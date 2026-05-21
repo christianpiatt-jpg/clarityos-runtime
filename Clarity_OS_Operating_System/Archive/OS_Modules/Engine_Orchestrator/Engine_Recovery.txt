@@ -1,0 +1,133 @@
+============================================================
+MODULE: ENGINE_RECOVERY
+TYPE: Full, Partial, Rollback & Emergency Recovery Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide full system recovery, partial recovery, rollback
+recovery, and emergency recovery for the Clarity_OS
+narrative-physics engine. Uses the Persistence Layer to restore
+engine state, configs, logs, version registry, extension
+registry, and runtime structures safely and deterministically.
+
+RECOVERY TYPES:
+1. FULL_RECOVERY
+2. PARTIAL_RECOVERY
+3. ROLLBACK_RECOVERY
+4. EMERGENCY_RECOVERY
+5. SANDBOX_RECOVERY
+6. EXTENSION_RECOVERY
+
+RECOVERY TRIGGERS:
+- Crash detection
+- Safety violation
+- Integrity failure
+- Snapshot corruption
+- Extension failure
+- Sandbox failure
+- Resource collapse
+- Scheduler deadlock
+- Event storm
+- Messaging bus failure
+
+RECOVERY SEQUENCE:
+
+STEP 1 — FREEZE ENGINE
+- Halt all execution
+- Halt scheduler
+- Halt messaging bus
+- Halt sandbox
+- Halt extensions
+- Enter SAFETY_CHECK state
+
+STEP 2 — DIAGNOSE FAILURE
+- Identify failure type
+- Identify affected modules
+- Identify corrupted components
+- Validate audit ledger
+- Validate integrity chain
+- Validate persistence layer
+
+STEP 3 — SELECT RECOVERY MODE
+IF corruption is localized:
+    PARTIAL_RECOVERY
+IF corruption affects version/config:
+    ROLLBACK_RECOVERY
+IF corruption is severe:
+    FULL_RECOVERY
+IF corruption is catastrophic:
+    EMERGENCY_RECOVERY
+
+STEP 4 — LOAD SNAPSHOT
+- Retrieve last known good snapshot
+- Validate signature
+- Validate hash
+- Validate integrity chain
+- Validate timestamp
+- Validate compatibility
+
+STEP 5 — RESTORE ENGINE STATE
+Restore:
+- Engine state machine
+- Config
+- Version registry
+- Extension registry
+- Telemetry buffers
+- Health metrics
+- Safety metrics
+- Scheduler state
+- Resource manager state
+
+STEP 6 — REBUILD RUNTIME STRUCTURES
+- Rebuild messaging bus
+- Rebuild event system
+- Rebuild scheduler queues
+- Rebuild resource pools
+- Rebuild extension slots
+- Rebuild sandbox isolation
+
+STEP 7 — VERIFY RECOVERY
+- Run HEALTH_CHECK
+- Run SAFETY_CHECK
+- Run Engine_Test_Harness
+- Validate telemetry
+- Validate performance
+- Validate resource usage
+
+STEP 8 — RETURN TO READY STATE
+IF all checks pass:
+    Transition to READY
+ELSE:
+    Transition to DEGRADED or CRITICAL
+
+FAILURE MODES:
+- Snapshot corruption
+- Integrity chain break
+- Rollback failure
+- Recovery loop
+- Incomplete restoration
+- Extension mismatch
+- Config mismatch
+- State machine mismatch
+
+RECOVERY FROM FAILURE:
+- Attempt previous snapshot
+- Attempt rollback snapshot
+- Attempt emergency minimal state
+- Require System Admin override
+- Trigger SHUTDOWN if unrecoverable
+
+RECOVERY CONTRACT:
+No recovery may violate safety.
+No recovery may introduce drift.
+No recovery may restore corrupted data.
+No recovery may bypass integrity checks.
+All recovery events must be audited.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

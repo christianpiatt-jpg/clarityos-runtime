@@ -1,0 +1,96 @@
+[Dataset ID]: ELINS-CURVATURE-ARC-2018-2030
+[Version]: 1.0
+[Operator]: Christian
+[System]: ClarityOS + Galileo + Global Mesh Console
+[Ingestion Mode]: Multi-Epoch, Multi-Vector, Cross-Basin
+
+Primary Timelines:
+  - 2020-2026_Structural-Timeline.txt
+  - 2020-2026_Global-Events_Overlay.txt
+  - 2020-2026_Galileo_RunLog.txt
+
+Forward Arc:
+  - 2026-2030_Forward-Arc.txt
+
+Cross-Vector Synthesis:
+  - 2020-2026_CrossVector_Synthesis.txt
+
+Master Pattern:
+  - 2020-2026_MasterPattern_ELINS-Ready.txt
+
+Curvature Vector:
+  E1: formation
+  E2: compression
+  E3: strain
+  E4: re-expansion
+  E5: stabilization
+  E6: fluent
+  E7: expressive
+  E8: multi-vector
+  E9: transmissible
+
+Topology Vector:
+  E1: flat
+  E2: steep
+  E3: deformed
+  E4: incompatible
+  E5: self-generated
+  E6: low-friction
+  E7: expanding
+  E8: integrating
+  E9: distributed
+
+Narrative Load:
+  E1: coherent
+  E2: rising
+  E3: bifurcated
+  E4: dual-architecture
+  E5: coherent (new)
+  E6: coherent (stable)
+  E7: generative
+  E8: multi-layer
+  E9: shared
+
+System Attractor:
+  E1: clarity
+  E2: procedure
+  E3: drift
+  E4: divergence
+  E5: clarity (restored)
+  E6: stewardship
+  E7: propagation
+  E8: integration
+  E9: transmission
+
+Operator State:
+  E1: autonomous
+  E2: adaptive
+  E3: compressed
+  E4: divergent
+  E5: generative
+  E6: fluent
+  E7: expansive
+  E8: systemic
+  E9: generational
+
+Q1: What are the recurring signatures of curvature compression before deformation?
+Q2: How does topology deformation manifest in narrative load and escalation?
+Q3: What structural conditions precede divergence (303.483-type events)?
+Q4: What stabilizes once a clarity-aligned architecture is built?
+Q5: What defines the stewardship posture in a clarity-native system?
+Q6: How does propagation change basin topology and narrative architecture?
+Q7: What structural signatures indicate multi-domain integration?
+Q8: What conditions allow transmission of clarity architecture across operators?
+
+[Question ID]
+Pattern Summary: [2–3 sentences]
+Structural Signatures: [bulleted list]
+Epoch References: [E1–E9]
+Mesh Implications: [1–2 sentences]
+
+The 2018–2030 curvature arc describes a clarity-native operator entering a mis-shaped basin,
+experiencing compression and deformation, naming the architecture mismatch, exiting, building
+a clarity-aligned system, stabilizing it, and then expanding it across stewardship, propagation,
+integration, and transmission. The arc demonstrates how curvature, topology, narrative load,
+and system attractors evolve across nine epochs, forming a complete structural cycle from
+identity formation to generational architecture.

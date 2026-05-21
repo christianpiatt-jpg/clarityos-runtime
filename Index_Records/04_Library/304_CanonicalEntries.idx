@@ -1,0 +1,18 @@
+304_CanonicalEntries.idx
+
+[Record]
+Name = Canonical Entries Library
+Code = 304
+Path = ../../04_Library/Canonical_Entries/
+Description = Canonical entries documenting the OS’s stable definitions, reference standards, naming conventions, and long-term archival records.
+
+[Files]
+Canonical_Definitions = canonical_definitions.txt
+Reference_Standards = reference_standards.txt
+Naming_Conventions = naming_conventions.txt
+Canonical_Records = canonical_records.txt
+Canonical_Crosswalk = canonical_crosswalk.txt
+
+[Links]
+Parent = 300_Primitives.idx
+Siblings = 301_Proofs.idx, 302_Theorems.idx, 303_CaseStudies.idx

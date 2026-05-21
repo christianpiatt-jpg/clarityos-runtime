@@ -1,0 +1,125 @@
+#tags: #clarityOS, #v3, #design, #markov, #evolution, #temporal-modeling
+
+===========================================
+V3 MARKOV EVOLUTION ENGINE — DESIGN SPEC
+===========================================
+
+OVERVIEW
+The v3 kernel evolves the entire ClarityOS by running a Markov chain over
+the system’s configuration state. Each state X_t is a vector composed of
+the outputs of the eight v2 modules. The engine proposes, evaluates, and
+commits transitions X_t → X_{t+1} using MARKOV_QC as the temporal lens.
+
+-------------------------------------------
+STATE VECTOR
+-------------------------------------------
+
+X_t = (G_t, P_t, E_t, Q_t, I_t, A_t, S_t, M_t)
+
+Where:
+
+- G_t : Geometry configuration
+        (GEOMETRIC_INTERPRETER)
+
+- P_t : Pattern configuration
+        (PATTERNED_SHAPES)
+
+- E_t : Energy mapping state
+        (ER_TRANSLATOR)
+
+- Q_t : QC status
+        (QC_ENGINE)
+
+- I_t : Identity geometry
+        (IDENTITY_LAYER_V2)
+
+- A_t : Agency posture
+        (AGENCY_ENGINE_V2)
+
+- S_t : System geometry
+        (PENTAGON_SPHERE_GEOMETRY)
+
+- M_t : Temporal model state
+        (MARKOV_QC)
+
+Each component is a structured object defined by its v2 module.
+
+-------------------------------------------
+TRANSITION KERNEL
+-------------------------------------------
+
+The Markov kernel P(X_{t+1} | X_t) is defined by module update rules:
+
+X_{t+1}^i = f_i(X_t)
+
+Where each f_i is a deterministic or stochastic update function that
+depends only on the current state X_t, satisfying the Markov property.
+
+Examples:
+
+G_{t+1} = f_G(G_t, P_t, E_t, S_t)
+P_{t+1} = f_P(P_t, G_t, M_t)
+E_{t+1} = f_E(E_t, G_t, P_t)
+Q_{t+1} = f_Q(Q_t, G_t, P_t, E_t, I_t, A_t, S_t, M_t)
+I_{t+1} = f_I(I_t, A_t, G_t)
+A_{t+1} = f_A(A_t, I_t, S_t)
+S_{t+1} = f_S(S_t, G_t, P_t, M_t)
+M_{t+1} = f_M(M_t, Q_t)
+
+-------------------------------------------
+REWARD FUNCTION
+-------------------------------------------
+
+R(X_t, X_{t+1}) favors transitions that increase:
+
+- Coherence (alignment of geometry, patterns, identity)
+- Stability (low drift, QC smoothness)
+- Laminar flow (agency + system geometry alignment)
+- Operator ergonomics (clarity, fewer steps, cleaner surfaces)
+- Predictive integrity (temporal consistency)
+
+The reward function biases the transition kernel toward high-quality
+evolutionary steps.
+
+-------------------------------------------
+POLICY
+-------------------------------------------
+
+The v3 kernel uses a policy π to select the next state:
+
+1. Propose candidate next states X_{t+1}^{(k)}
+2. Evaluate each using MARKOV_QC + R
+3. Select the best candidate according to π
+4. Commit X_{t+1} as the new system state
+
+π may be:
+- greedy (choose best)
+- softmax (probabilistic)
+- hybrid (recommended)
+
+-------------------------------------------
+ENGINE LOOP
+-------------------------------------------
+
+v3_step:
+    - Read current state X_t from v2 modules
+    - Generate candidate transitions
+    - Score candidates
+    - Select X_{t+1}
+    - Write X_{t+1} back into modules
+
+v3_run N:
+    - Repeat v3_step N times
+    - Log trajectory and QC scores
+
+v3_status:
+    - Display compressed representation of X_t
+
+-------------------------------------------
+NOTES
+-------------------------------------------
+
+- v2 remains the interpretive spine
+- v3 is the evolutionary engine
+- All evolution is reversible and logged
+- The system remains operator-legible at all times

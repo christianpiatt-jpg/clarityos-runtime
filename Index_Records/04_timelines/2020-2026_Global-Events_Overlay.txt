@@ -1,0 +1,14 @@
+[Epoch ID]: [Name]
+Dates: [same as structural timeline]
+Global / Regional Events:
+  - [Event 1, short label]
+  - [Event 2]
+Arc Type: [e.g., tech, public health, governance, conflict, economic]
+Mesh Classification:
+  - Global Arc: [low / medium / high]
+  - Basin Weather: [stable / volatile / mixed]
+  - Topology Stress: [low / medium / high]
+Notes:
+  - [1–2 sentences on how this might have shaped background conditions]
+
+XREF: Structural Timeline (2020–2026_Structural-Timeline.txt)

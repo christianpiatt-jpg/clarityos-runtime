@@ -1,0 +1,5 @@
+## ELINS Stack
+
+- ELINS_Library      (core objects, news, raw index)
+- ELINS_PLUS         (cross-basin overlays)
+- ELINS_PRO          (Markov-ready ingestion structures)

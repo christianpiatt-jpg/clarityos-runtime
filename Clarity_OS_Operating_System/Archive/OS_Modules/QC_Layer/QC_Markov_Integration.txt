@@ -1,0 +1,77 @@
+============================================================
+QC LAYER — MARKOV ENGINE INTEGRATION MODULE
+VERSION: 1.0
+LOCATION: /02_Modules/QC_Layer/
+
+PURPOSE:
+Bind the Markov Engine to the QC Layer so all frames, movements,
+and outputs are stabilized against next-state tendencies and
+narrative basin dynamics.
+
+MARKOV SUBSYSTEMS:
+1. Markov_Form
+2. Markov_Basin
+3. Markov_Drift
+4. Markov_Pressure
+5. Markov_Movement
+
+FUNCTION:
+The Markov Engine evaluates the next-state tendencies of any
+frame or output and ensures alignment with the system’s allowed
+movement rules and basin architecture.
+
+QC USE OF MARKOV:
+
+PRE-STABILIZATION:
+- Evaluate topic + direction for next-state drift.
+- Identify unstable narrative transitions.
+- Detect basin misalignment.
+- Predict pressure-induced distortions.
+- Validate movement against allowed Markov paths.
+
+POST-STABILIZATION:
+- Evaluate generated output for next-state stability.
+- Remove drift tendencies.
+- Re-align with basin architecture.
+- Re-check movement rules.
+- Harmonize with structural vectors.
+
+MARKOV ROLES:
+
+MARKOV_FORM:
+Ensures the frame maintains a stable narrative form.
+
+MARKOV_BASIN:
+Checks whether the frame is in the correct narrative basin and
+predicts basin shifts.
+
+MARKOV_DRIFT:
+Detects drift tendencies before they manifest.
+
+MARKOV_PRESSURE:
+Identifies pressure gradients that may distort next-state form.
+
+MARKOV_MOVEMENT:
+Ensures movement aligns with allowed transitions and does not
+collapse into unstable states.
+
+FAILURE MODES:
+- Basin shift detected
+- Drift tendency detected
+- Unstable movement path
+- Pressure-induced distortion
+- Form collapse
+
+RECOVERY:
+- Re-run PRE-STABILIZATION
+- Re-align with Markov_Basin
+- Re-check movement rules
+- Re-compress frame
+- Re-stabilize center
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

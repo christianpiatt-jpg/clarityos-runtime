@@ -1,0 +1,200 @@
+2026_04_07_intelMusk
+Intel joins Musk's massive Terafab chipmaking project
+Share
+Edited by Emma W. Thorne, Editor at LinkedIn News 
+Intel is joining Terafab, the ambitious chipmaking project announced last month by Elon Musk. Shares in the California-based chip giant rose early Tuesday on the news. Terafab is a joint venture between Musk's companies SpaceX, xAI and Tesla that's meant to unite all the stages of the chipmaking process "under one roof," and churn out chips for Optimus robots and SpaceX satellites faster than other companies have been able to so far. Musk has touted the $20 billion-plus project as "the most epic chip-building exercise in history by far."
+
+…
+see more
+Top perspectives
+Storyline feed updates
+View Lip-Bu Tan’s  graphic link
+Lip-Bu TanLip-Bu Tan
+   • 3rd+Premium • 3rd+
+CEO of Intel Corporation, Chairman of Walden International, Founding Managing Partner of Walden Catalyst VenturesCEO of Intel Corporation, Chairman of Walden International, Founding Managing Partner of Walden Catalyst Ventures
+10h •  10 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Elon has a proven track record of reimagining entire industries. This is exactly what is needed in semiconductor manufacturing today. Terafab represents a step change in how silicon logic, memory and packaging will get built in the future. Intel is proud to be a partner and work closely with Elon on this highly strategic project! 🚀🚀
+
+IntelIntel
+4,181,904 followers4,181,904 followers
+10h •  10 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+Intel is proud to join the Terafab project with SpaceX, xAI, and Tesla to help refactor silicon fab technology.
+ 
+Our ability to design, fabricate, and package ultra-high-performance chips at scale will help accelerate Terafab’s aim to produce 1 TW/year of compute to power future advances in AI and robotics.
+ 
+It was fun hosting Elon Musk at Intel this past weekend!
+…more
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likecelebratelove
+1,256
+76 comments
+93 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Deborah Sophia’s  graphic link
+Deborah SophiaDeborah Sophia
+   • 3rd+Premium • 3rd+
+Reporter at Reuters covering U.S. tech companies.Reporter at Reuters covering U.S. tech companies.
+6h •  6 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Intel is joining Elon Musk's Terafab AI chip complex project alongside SpaceX and Tesla to make chips that would power the tech billionaire's robotics ​and data center ambitions. The partnership is a major vote of confidence for Intel, as the chipmaker embarks on its turnaround journey after years of lagging behind rivals in the AI race. 
+
+Intel posted ‌a photo of its CEO Lip-Bu Tan and Musk shaking hands, saying it hosted Musk at its campus the past weekend. Intel's capabilities will help accelerate Terafab's goal of producing 1 terawatt ​per year of compute for future advances in AI and robotics, the company said in a ⁠post on X.
+
+The announcement comes months after Musk laid out plans for Tesla to build a massive AI chip fab to power the EV-maker's autonomous ambitions, ​and suggested the company could work with Intel.
+
+"Intel needs to show it can support the largest customers with their most ​important projects, and that seems ​to be the case with ⁠the Tesla partnership," said D.A. Davidson analyst Gil Luria, calling it an "important step" in the chipmaker's restructuring.
+
+Report for Reuters.
+An Intel logo appears in this illustration taken August 25, 2025. REUTERS/Dado Ruvic/Illustration
+Intel joins Musk's Terafab AI chip project to power humanoid, data center goals
+reuters.com
+likeinsightful
+31
+2 comments
+5 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Patrick Moorhead’s  graphic link
+Patrick MoorheadPatrick Moorhead
+   • 3rd+Verified • 3rd+
+Founder, CEO, and Chief Analyst at Moor Insights & Strategy. Six Five Media & Signal65 co-founder.Founder, CEO, and Chief Analyst at Moor Insights & Strategy. Six Five Media & Signal65 co-founder.
+Visit my website
+10h • Edited •  10 hours ago • Edited • Visible to anyone on or off LinkedIn
+
+Follow
+
+I called this one. Two weeks ago, I published my analysis of Elon Musk’s Terafab and wrote: “My best guess: Terafab becomes an advanced technology development center that partners with Samsung Semiconductor, Intel, or both for the actual high-volume manufacturing on leading-edge nodes.”
+
+This morning, Intel announced it is joining Terafab as a strategic partner alongside Tesla, SpaceX, and xAI. Intel is contributing what it calls “industry-leading semiconductor process technology and advanced packaging expertise.” That directly addresses what I identified as the single biggest open question from the March 21 announcement: whose process technology?
+
+A few things worth noting.
+
+First, this validates the thesis that chip design and chip manufacturing are different businesses. Musk proved he can design competitive silicon. Now he’s done the smart thing and partnered with a company that has decades of manufacturing DNA rather than trying to build that capability from zero.
+
+Second, Intel Foundry has been aggressively pursuing external customers since Lip-Bu Tan took over as CEO. The NVIDIA custom chip partnership in September 2025 was an early signal. Terafab is another. 
+
+Both sides get what they need: Musk gets a process technology partner, Intel gets volume commitments that justify continued investment in advanced nodes.
+
+Third, back in August 2025, I noted that Tesla’s chip strategy appeared to be a Tesla-Intel-Samsung arrangement. Eight months later, that arrangement has formalized into something much bigger than Dojo3 chips.
+
+What I’m still watching for: specifics on which Intel process node Terafab will use, the order timelines for ASML, KLA, and Applied Materials equipment, and how this partnership interacts with Tesla’s existing $16.5 billion Samsung deal for AI6 chips through 2033. The partnership is real. 
+
+The execution timeline is still an open question.
+
+My article here:
+https://lnkd.in/gb5D_Vpj
+likeinsightfulcelebrate
+157
+15 comments
+4 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Jeremo Tsao’s  graphic link
+Jeremo TsaoJeremo Tsao
+   • 3rd+Verified • 3rd+
+Product Manager | ACME Electronics Corporation (8121 TPEx)Product Manager | ACME Electronics Corporation (8121 TPEx)
+11h •  11 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+I’m not convinced Tesla’s Terafab vision will truly succeed — even 10 years from now.
+
+That’s not because I underestimate Tesla.
+It’s because I think too many people underestimate how brutally difficult the semiconductor industry really is.
+
+If Elon Musk had fully seen the AI wave coming from the beginning, Tesla probably would have moved into chip manufacturing much earlier.
+Instead, Tesla spent years designing chips while relying on outside foundries for production.
+
+To me, that says something important.
+
+This does not look like the execution of a long-mastered strategy.
+It looks more like a late realization:
+
+AI is scaling faster than expected, chips are becoming too strategic to leave in other people’s hands, and now Tesla wants deeper control.
+
+That logic is understandable.
+Any company betting its future on AI would want tighter control over compute, supply chain, and production capacity.
+
+But semiconductors are not EVs.
+
+EVs gave room for speed, disruption, capital, and bold execution.
+Semiconductors — especially advanced-node manufacturing — do not work that way.
+
+You do not build real semiconductor capability just because you have money.
+You do not create a world-class fab just because you hire smart engineers.
+And you definitely do not compress decades of manufacturing learning into a few years just because a founder is ambitious.
+
+This industry runs on accumulated process knowledge, painful yield learning, manufacturing discipline, supplier integration, failure analysis, packaging know-how, and years of repetition.
+
+That is why I remain skeptical.
+
+Many semiconductor engineers are not driven by the same “let’s build the future” startup energy that helped reshape EVs.
+They tend to ask much harder, more practical questions:
+ • Can this actually reach stable mass production?
+ • Can yield be improved and sustained?
+ • Will leadership stay committed when the learning curve gets ugly?
+ • Can the organization handle years of slow, expensive, unglamorous process improvement?
+
+That is the real test.
+
+Founder-driven intensity can absolutely move industries.
+But semiconductor manufacturing is one of the few fields where vision alone is nowhere near enough.
+
+Wanting to build chips is not the same as being able to build chips.
+
+Tesla may absolutely build something meaningful.
+It may create stronger in-house chip capability.
+It may secure parts of the stack that matter strategically.
+
+But becoming a true manufacturing force at the highest level?
+That is a very different challenge.
+
+And that is why, even 10 years from now, I am not yet convinced Terafab becomes the success story many people expect.
+
+Semiconductors are not built by ambition alone.
+They are built by patience, repetition, scars, and manufacturing reality.
+
+That is what makes this so interesting to watch.
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likeinsightfulsupport
+40
+18 comments
+2 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send

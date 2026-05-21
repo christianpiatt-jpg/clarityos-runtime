@@ -1,0 +1,109 @@
+Below is a compact, structured deliverable for the three supplied topics — Miniskirt (fashion / clothing history), Group theory (mathematics), Social proof (social psychology). Output: I — Extracted primitives (atomic items to index/search). II — Dewey‑based organization (approximate Dewey numbers and where to place primitives). III — Mesh (how topics and key primitives connect). IV — Clarity report with metadata fields, controlled tags, and prioritized next actions.
+
+I — Extracted primitives (atomic items)
+A. Miniskirt (fashion / cultural history)
+- Definitions/variants: miniskirt, minidress, micro‑miniskirt/microskirt, hipster mini, rah‑rah skirt, mini‑crini, micro‑mini, belt skirt.
+- Measurements/typical hemlines: generally mid‑thigh; defined as no longer than ~10 cm below buttocks; micro at upper thigh/near underwear line.
+- Origins & early examples: archaeological garments (c. 1390–1370 BCE), Duanqun Miao, 1920s banana skirt (Josephine Baker), 1940s sci‑fi pulp imagery.
+- Key designers/claimants: Mary Quant (London), André Courrèges (Paris), John Bates, Rudi Gernreich, Paco Rabanne, Norma Kamali, Vivienne Westwood, Azzedine Alaïa, Jean‑Paul Gaultier, others.
+- Timeline: pre‑20th instances → 1920s references → 1950s hemlines drop → early 1960s rise → 1964–66 mainstream → late 1960s micro‑minis → 1970s midi backlash/1970s punk/late‑70s new wave → 1980s revivals & variations → 2000s micro revival → 2010s–2020s social media/TikTok micro trends.
+- Cultural/political meanings: symbol of youth, sexual liberation, women’s rights; source of controversy, moral panics, regulatory bans in some regions; protests and violent backlash in some African countries; school/work dress‑code disputes.
+- Styling & accessories: tights/pantyhose replaced garters; knee‑high boots, thigh‑high boots, flats vs heels; shorts/divided skirts (culottes) and bike shorts as coverage options.
+- Reception/controversy: moral panic, bans, protests (e.g., Uganda, some African nations, Iran historically), debates over sexuality/propriety, gender politics.
+- Contemporary notes: micro/miniskirt resurgence via runway and social media; luxury brand pricing/viral items (examples cited); size‑inclusivity critiques.
+
+B. Group theory (mathematics)
+- Core definition: mathematical study of groups (sets with binary operation satisfying closure, associativity, identity, inverses).
+- Main classes & concepts: permutation groups, matrix (linear) groups, transformation groups, abstract groups, finite groups, Lie groups, topological groups, algebraic groups.
+- Key historical roots: Euler, Gauss, Lagrange, Ruffini, Abel, Évariste Galois, Cayley, Cauchy, Felix Klein, Sophus Lie.
+- Principal results/objects: classification of finite simple groups; group presentations (generators & relations); Cayley graphs; group actions; representation theory; conjugacy, normal subgroups, quotient groups.
+- Branches & subfields: finite group theory, representation theory, Lie theory, combinatorial/geometric group theory, algebraic groups, profinite groups.
+- Applications: physics (symmetry, conservation laws, Standard Model), chemistry/materials (molecular symmetry, point/space groups), cryptography (elliptic curves, Diffie–Hellman), algebraic topology (fundamental group), algebraic number theory (class groups), harmonic analysis.
+- Methods & problems: word problem, isomorphism problem, classification, group cohomology, Cayley graphs, Milnor–Švarc quasi‑isometry.
+- Examples/illustrations: Rubik’s Cube group, symmetric group Sn, alternating group An, Z (integers), torus example, Weyl groups.
+- Tools/terminology: representation ρ: G → GL(V), Haar measure, Maschke’s theorem, Schur’s lemma.
+
+C. Social proof (informational social influence)
+- Definition: tendency to copy others’ actions/decisions in ambiguous situations; coined/popularized by Robert Cialdini.
+- Mechanisms: uncertainty about correct behavior; perceived knowledgeability of others; similarity to group (in‑group effects); task importance; cultural moderating effects (collectivist vs individualist).
+- Classic studies: Muzafer Sherif (autokinetic effect, 1935); Asch/Ashen (conformity line studies not identical but related); eyewitness conformity experiments; door‑to‑door donor list experiment.
+- Related phenomena: information cascades, herd behavior, bandwagon effect, bystander effect, copycat suicides (Werther effect), normative social influence (contrast).
+- Domains of application: marketing/e‑commerce (testimonials, reviews), social media (followers, likes, views), entertainment (planted applause, laugh tracks), public health/messaging, politics, crowd behavior.
+- Moderators & caveats: cultural differences, perceived similarity, task importance, private acceptance vs public compliance, risk of premature convergence on poor choices.
+- Modern research/tools: agent‑based models for copycat suicide; recommender systems influence; dual‑process models for algorithmic recommendation influence.
+
+II — Dewey‑style organization (approximate placements and cross‑refs)
+- 100–199 Psychology & Philosophy
+  - 150 Psychology: Social proof (social influence, conformity) — informational social influence; mechanisms and cultural effects.
+  - 155 Differential & developmental: social learning aspects; group influence in development.
+- 300–399 Social sciences / Sociology / Political science
+  - 302 Social interaction & public opinion: social proof, herd behavior, influence in public/political contexts.
+  - 320 Political science: use of social proof in political mobilization/campaign messaging (cross‑ref to miniskirt as cultural symbol if political).
+- 370 Education
+  - 370.15 / 370.1 Learning theory: meaning‑making (if integrating educational persuasion); social learning via modeling and conformity.
+- 700–799 Arts & Recreation / Clothing & Fashion
+  - 391 Costume & personal appearance / 746.92 Fashion design: Miniskirt — history, designers, cultural reception.
+  - 306.4 / 306.7 (culture & gender politics) cross‑ref for sociocultural aspects of dress codes.
+- 510–599 Mathematics & Natural sciences
+  - 512 Algebra; 516.3 Group theory (main placement) — abstract group theory, finite groups, representations.
+  - 512.8 Applications & computational group theory (cryptography cross‑refs under 005.8 / 325).
+- 540–549 Chemistry / Materials science
+  - 547 Molecular symmetry: chemistry/materials application of point/space groups (cross‑ref from group theory).
+- 600–699 Applied sciences / Technology
+  - 621 Cryptography: applied group theory in public‑key systems (elliptic curves) — cross‑ref 005.8 Computer science & cryptography.
+
+III — Mesh: how the three topics connect (interdisciplinary links)
+- Social proof ↔ Miniskirt
+  - Fashion diffusion is a prototypical case of social proof / informational social influence: early adopters, influencers (designers, celebrities), peers, shop window effects, viral spread (1960s youthquake; modern TikTok revival).
+  - Moral panics and bans show normative social influence interacting with informational cues (authorities create normative signals).
+- Social proof ↔ Group theory (methodological/metaphorical)
+  - Group theory provides formal language for “group actions” and symmetry; metaphorically useful for modeling social coordination and network symmetry, and practically underpins agent‑based and network models (algebraic structures used in some computational models of social dynamics).
+  - Mathematical models of cascades and diffusion often use graph/group structures (Cayley graphs, automorphism groups) when modeling homogeneous agents or symmetry in networks.
+- Miniskirt ↔ Group theory
+  - Direct technical link minimal; possible cross‑disciplinary uses: group theory in pattern design, symmetry in textiles, algorithmic generation of repeats/patterns (mathematical symmetry groups applied to fabric patterns).
+- Triadic connection: All three intersect where formal models (group/graph theory, symmetry) and social psychology (social proof) explain cultural diffusion (fashion trends like the miniskirt). Practically: designers/brands exploit social proof heuristics; social networks (modeled mathematically) govern diffusion speed and pattern.
+
+IV — Clarity report — cataloging metadata, tags, and prioritized recommendations
+
+A. Standard metadata schema (apply to each resource/article)
+- Title
+- Short abstract (1–2 sentences)
+- Main subject heading(s) (controlled vocabulary)
+- Dewey/classification code(s)
+- Key persons/entities (designers, theorists)
+- Time period(s)
+- Geographic focus
+- Primary concepts (list)
+- Methods / measures / examples (e.g., Sherif 1935; classification theorem)
+- Applications / implications
+- Reception / controversies
+- References (top 3 canonical)
+- Tags (controlled vocabulary)
+- Related resources / cross‑refs
+
+B. Suggested controlled vocabulary / tags (compact)
+- miniskirt; fashion‑history; designers; youthquake; dress‑codes; moral‑panic; social‑proof; conformity; informational‑influence; diffusion‑of‑innovation; group‑theory; abstract‑algebra; representation‑theory; molecular‑symmetry; cryptography; network‑diffusion
+
+C. Short evidence / discovery notes (one‑sentence each)
+- Miniskirt: cultural artifact whose diffusion (1960s onward) exemplifies rapid fashion adoption via celebrity/retail influence, sustained by recurring revivals and contested by moral/normative forces.
+- Group theory: central mathematical domain describing symmetry and structure; foundational theory with deep applications across physics, chemistry, cryptography, and topology.
+- Social proof: robust psychological mechanism driving behavioral convergence under uncertainty; widely exploited in marketing, media, and online platforms; moderated by similarity and cultural norms.
+
+D. Prioritized next actions (practical)
+1. Create three canonical records (one per topic) using the metadata schema; include top 5 citations per record.
+2. For Miniskirt: produce a concise “diffusion timeline” (visual or CSV) marking key design events, media moments, bans/protests, and revival spikes (1964–66, late‑70s punk, 1980s, 2000s, 2020s TikTok).
+3. For Social proof: export an annotated bibliography of classic empirical studies (Sherif 1935; Cialdini; Asch; contemporary recommender systems papers).
+4. For Group theory: prepare a 1‑page “application map” linking major subfields (finite, Lie, representation) to applied domains (physics, chemistry, cryptography) with suggested beginner references.
+5. Produce a short crosswalk document (1 page) showing how social proof + network structure (graph/group models) explain fashion diffusion, with practical cues for researchers (variables to measure: influencer centrality, perceived similarity, task importance/visibility).
+
+E. Quick tagging suggestions to enable search/discovery immediately
+- Miniskirt: [fashion‑history, 1960s, Mary‑Quant, gender‑politics, bans]
+- Group theory: [mathematics, algebra, representation‑theory, cryptography, applications]
+- Social proof: [social‑psychology, conformity, marketing, cultural‑diffusion, experiments]
+
+If you want any of the following, I can produce them next:
+- JSON records for the three canonical items (metadata + cross‑links).
+- A CSV timeline for miniskirt diffusion events.
+- A 1‑page annotated bibliography for social proof (key studies + links).
+- A 1‑page application map for group theory.
+Which output should I generate?

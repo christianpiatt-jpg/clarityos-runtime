@@ -1,0 +1,38 @@
+#tags: #clarityOS, #v2, #navigation, #operator-layer
+
+# ClarityOS v2 — Navigation Map
+
+[1] GEOMETRIC_INTERPRETER
+    File → GEOMETRIC_INTERPRETER_Notes.txt
+    Function → Raw geometry extraction
+
+[2] PATTERNED_SHAPES
+    File → PATTERNED_SHAPES.txt
+    Function → Pattern and force-vector extraction
+
+[3] ER_TRANSLATOR
+    File → ER_TRANSLATOR_NOTES.txt
+    Function → Energy → representation conversion
+
+[4] QC_ENGINE
+    File → QC_ENGINE.txt
+    Function → Probabilities, thresholds, force-weights
+
+[5] IDENTITY_LAYER_V2
+    File → IDENTITY_LAYER_V2_notes.txt
+    Function → Clear-self, posture, reference frame
+
+[6] AGENCY_ENGINE_V2
+    File → AGENCY_ENGINE_V2_notes.txt
+    Function → Options, clean-yes, clean-no, wait-states
+
+[7] PENTAGON_SPHERE_GEOMETRY
+    File → PENTAGON_SPHERE_GEOMETRY_Notes.txt
+    Function → Multi-scale system mapping
+
+[8] MARKOV_QC
+    File → MARKOV_QC_Notes.txt
+    Function → Temporal weighting, drift detection, arc probabilities
+
+# End of Navigation Map
+

@@ -1,0 +1,136 @@
+2026-04-10-Economist
+
+AI models could offer mathematicians a common language
+Some hope they will simplify the process of verifying proofs
+
+Save
+
+Share
+
+Summary
+Abstract illustration of mirrored human profiles with geometric patterns and mathematical diagrams
+Illustration: Petra Péterffy
+Apr 8th 2026
+|
+7 min read
+Listen to this story
+WORKING OUT how to most efficiently pack a crate full of oranges may seem like a juvenile pursuit for professional mathematicians. And yet the sphere-packing problem, as this pastime is properly known, confounded geometers for centuries. A breakthrough came in 1998 when Thomas Hales, a mathematician then at the University of Michigan, claimed to have proved what had long been conjectured: that hexagonal stacking, in which each sphere sits in the recess formed by a circle of six on the layer beneath it, provides the densest possible configuration.
+
+The story did not quite end there. It took over a decade of checking and rechecking before his fellow mathematicians were happy that Dr Hales’s calculations were, in fact, correct. Such a state of affairs is not unusual. Before a mathematical conclusion can be elevated to the exalted status of proof, its steps have to be painstakingly examined symbol by symbol and proposition by proposition. That highlights a “core bottleneck in mathematics, which is trust”, says Patrick Shafto, who works at America’s Defence Advanced Research Projects Agency (DARPA).
+
+
+Dr Shafto leads a team hoping to use artificial intelligence to accelerate the rate of progress in pure mathematics by, among other things, streamlining this formalisation process. If highbrow maths-literate large language models (LLMs) can indeed certify existing proofs, as well as help develop new ones, many mathematicians hope they could speed up discovery in an area that is otherwise painfully slow.
+
+One thing that is already clear is that LLMs work through mathematical logic very differently from humans. Before getting stuck into a challenging computation, humans like to devise at least the outline of a plan of attack—setting out their intentions with the aim of writing proofs that can be followed at each step. LLMs, by contrast, run as a “stream of consciousness”, says Terence Tao, a mathematician at the University of California, Los Angeles. Such systems, therefore, work through problems based on what they think they should see next, not future steps; they meander and sound more like “improv dialogue rather than scripted text”.
+
+This improvisational approach nonetheless pays dividends. In recent months AI models have proved capable of solving long-standing open mathematical questions as well as entirely new problems designed to flummox them. “The field is moving very rapidly,” says Dr Tao.
+
+For Pushmeet Kohli, who heads AI for Science work at Google DeepMind, an AI lab, progress depends on ensuring these models express themselves in ways mathematicians can follow. One of the models he and his team have produced with this aim in mind is AlphaEvolve, a tool designed to generate proofs for optimisation problems: ones whose goal is to find mathematical objects that best meet some given criteria (densest sphere-packing, say). Although some techniques to solve such problems already existed, they were accessible only to experts. AlphgaEvolve, by contrast, can be prompted using “natural language”, meaning non-experts can work with it. Dr Tao, who helped with its development, says that its reasoning can occasionally be hard to follow. But he feels that DeepThink AI, another Google tool, is able to adequately explain its working.
+
+
+There are plenty of other players in the space. One is Harmonic, an American startup. When its bot, known as Aristotle, verifies a proof, it tries to follow the steps as submitted by the user. It does this by first translating the proof into a rigorous language of symbols and axioms that allows each step to be checked. Aristotle makes use of Lean, an open-source coding language popular with mathematicians. If the human proof-writer has made small errors, Aristotle then attempts to fix them. If the human has skipped some steps (mathematicians often make intuitive leaps), it fills in the details. The result is an airtight proof that follows the same principles as the original, says Tudor Achim, Harmonic’s boss. If a human wants to understand it, they still have to do some leg-work to decompose it, he explains, “But they know that every single step is correct.”
+
+Math, Inc. is another AI startup pursuing the same goal. It is developing a model called Gauss that can also convert a human-written proof into lines of Lean code. One pair of targets it had been pursuing were proofs for higher-dimensional versions of the sphere-packing problem obtained in 2016 by Maryna Viazovska, a mathematician then at Humboldt University of Berlin. Gauss successfully formalised these proofs—for 8-dimensional and 24-dimensional spheres, respectively—within weeks. Even though both proofs had already been verified without AI, Gauss’s work has contributed to mathematicians’ understanding of the tools in Dr Viazovska’s proofs.
+
+Show your working
+At DARPA, Dr Shafto hopes to find a way to automate translation between natural language and formal languages such as Lean, and decompose complex proofs into the propositions they are typically made up of. Bringing what he describes, at present, as “a hot mess of papers, text books and human heads” into a unified body of work would allow younger mathematicians to more readily navigate the existing literature. That could radically accelerate the progress of pure mathematicians and lower the barrier to entry for others. For now, though, he warns that mathematical expertise remains a valuable skill for users. “The AI makes mistakes, and you have to be able to figure out where,” he says.
+
+There are other pitfalls. Timothy Gowers, a mathematician at Cambridge University, is working on automatic theorem proving, in which computers are trained to find proofs by trying to mirror how humans do so. As part of that work, the lab is exploring whether AI models can make non-obvious connections between mathematical subfields, rather than simply retreading old ground. When human mathematicians are thinking through alternative approaches to a problem, says Dr Gowers, “you have to sort of dig around; there’s a whole process by which you try to generate non-standard ideas.”
+
+So far, the models’ ability to replicate human creativity has fallen short. One failing, says Dr Gowers, is that LLMs struggle to apply what they have learned in solving one problem when tackling another. Human mathematicians also develop what he calls an aesthetic sense, prompting them to look for neater proofs that can sometimes yield surprising results. That combination of aesthetic sense and deep knowledge seems quite difficult for AI models to emulate. On that front, at least, “humans still have the edge.”
+
+
+Bots can also misbehave in surprising ways. In March Donald Knuth, a mathematician at Stanford University, was working with his colleague Filip Stappers on a problem akin to that of the travelling salesman, in which the shortest route has to be found for a salesman to visit a number of cities once before returning home. To help move things along, they turned to Claude Opus 4.6, an LLM developed by Anthropic.
+
+After using several different approaches, Claude was able to solve the problem for cases when, at each stop, an odd number of routes remained to choose from. But when it was pushed to solve the problem for all even numbers, the model malfunctioned. “In the end, it was not even able to write and run explore programs correctly any more,” wrote Mr Stappers, referring to the code used by the model to express its reasoning. “Very weird.” All the same, wrote Dr Knuth, the way Claude tackled the problem left him impressed. (A few weeks later another researcher built on this work using ChatGPT 5.4 Pro, another LLM, to solve the problem for even numbers.)
+
+If these difficulties can be overcome, there are prizes aplenty on the horizon. In theory, an AI model able to retain the mathematical corpus could make new connections which have long eluded human researchers. And a model that can effectively reason about mathematics could also be taught to reason about other quantitative fields, from economics to physics. With such immense problem-solving abilities at their disposal, says Mr Kohli, the real challenge for humans will be finding the next set of problems worth tackling. ■
+
+Curious about the world? To enjoy our mind-expanding science coverage, sign up to Simply Science, our weekly subscriber-only newsletter.
+
+--
+
+AI micro-dramas are shaking up Chinese entertainment
+Regulators threaten to spoil the fun
+
+Save
+
+Share
+
+Summary
+Orange Cat Taoist Priest: Fighting the Zombie King
+Counting the cash in the kittyPhotograph: YouTube
+Apr 9th 2026
+|
+SHANGHAI
+|
+2 min read
+Listen to this story
+In the animated series “Orange Cat Taoist Priest: Fighting the Zombie King”, a tabby in a flowing robe uses magical amulets and laser lassos to battle a pack of vicious, undead kittens. These feline adventures come in dozens of two-minute episodes, or micro-dramas—a form of entertainment that mashes traditional TV shows with scrollable social-media posts. AI-animated soap operas featuring talking cats may sound niche but have become all the rage in China. The Taoist master cat has attracted half a million views.
+
+China’s entertainment industry has been shaken by micro-form. Total time spent watching longer dramas fell by 15% year on year in January while viewing time on Red Fruit, a micro-drama app owned by ByteDance, the Chinese firm behind TikTok, more than doubled.
+
+
+The business model is based on aggressively cutting costs. The live-action versions use amateurs and bare-bones sets, but they are being undercut by new AI-animation tools. The proliferation of these in the past year has enabled production costs to be cut by up to 90%, reckon analysts at HSBC, a bank. Industry insiders say the volume of live-action micro-drama filmed in some regions has shrunk by 80% while actors’ already meagre pay has been cut by half. One producer says that in early April he knew of only a few non-AI-animated micro-dramas being shot in China.
+
+But the AI type faces headwinds. Since April 1st regulators have required that all animated micro-series not already approved for streaming be removed from online platforms. New series, they say, must file for approval before being released online.
+
+The model’s other problems are also becoming clearer. One is excessive competition. China has produced so many AI micro-dramas that, despite their shoestring budgets, fewer and fewer get sufficient views to make money. Another problem is the very nature of this entertainment. It is hard for people to form sentimental attachments to micro-drama characters; as viewers, they are less loyal.
+
+China’s tech giants are trying to adapt. One of them, Alibaba, has launched a new season of a long-form animated series called “The Demon Hunter”. It has more than 10m followers. In the epic battle for eyeballs, longer dramas may still stand a chance. ■
+
+Subscribers can sign up to Drum Tower, our new weekly newsletter, to understand what the world makes of China—and what China makes of the world.
+
+---
+
+As Iran’s civilian economy crumbles, its military economy grows stronger
+War has split the country in two 
+
+Save
+
+Share
+
+Summary
+Significant sections of the B1 Bridge are seen destroyed after an airstrike attributed to the United States and Israel targeted the site near Tehran, in Karaj, Iran.
+Photograph: Getty Images
+Apr 6th 2026
+|
+6 min read
+Listen to this story
+FOR THE first month of their war on Iran, America and Israel mostly spared civilian infrastructure. The second month began differently. On April 2nd, as families picnicked in a nearby valley, America damaged the B1, Iran’s tallest bridge. (Iranian drones struck a Kuwaiti oil refinery in response.) Days later Mr Trump first threatened to obliterate more bridges and power plants, then warned that “a whole civilisation will die” unless Iran eased its blockade on the Strait of Hormuz.
+
+Fortunately it did not come to this. On April 7th America and Iran agreed to a two-week ceasefire. Though details of the agreement are still emerging, one thing is clear: it is unlikely to weaken the Iranian regime’s economic position. Perversely, this position has in fact already been strengthened by the damage visited on Iran’s civilian economy. That is because the activities of the mullahs and their elite fighting force, the Islamic Revolutionary Guard Corps (IRGC), are funded by a commercial empire, and war has been good for business. High oil prices are boosting revenues, as is the Guards’ ability to benefit from shipping and trade disruptions.
+
+
+Chart: The Economist
+Ordinary Iranians’ lot was already painful owing to years of Western sanctions and, last June, 12 days of Israeli bombardment. The economy shrank last year and six in ten people of working age are thought to be out of work, which prompted protests against the regime in January. The 11,000 strikes carried out by America have brought daily life to a halt. An internet blackout has squeezed the services industry, which once employed half the workforce. The government claims that 7m people, or one in four workers, have volunteered for military service.
+
+Foreign goods have become as scarce as employees and information. Iranian oil tankers are sailing freely through Hormuz, keeping energy exports flowing. But the flow of goods from Asia and the Gulf to Iran that had arisen despite the threat of American secondary sanctions has all but stopped. The United Arab Emirates (UAE), the source of nearly a third of Iranian imports in 2025, has not sent a single ship since it became the target of Iranian retaliation early in the conflict. It has closed its borders to most Iranians and stopped turning a blind eye to the thousands of shell companies in Dubai which helped Iran evade sanctions. Emirati authorities have arrested dozens on money-laundering charges and may freeze billions of dollars in Iranian assets even if the ceasefire holds.
+
+
+The rial, already nearly worthless, has fallen by another 8% against the dollar on the black market since the war began. Annual inflation was just under 50% on the eve of war, and prices have since risen by another 6%, according to the central bank. The government has done little to cushion the impact of lost jobs or higher costs. Policymakers have printed cash to cover deficits for decades. Now the printing presses are awhirr again.
+
+But the income of the regime and the IRGC is insulated from the vicissitudes of the broader Iranian economy. Proceeds come from three main areas: oil sales, domestic manufacturing and illicit trade. As Iran has been locked away from the outside world, all three have boomed.
+
+Short of cash, the government pays for the IRGC in oil instead. The Guards processed roughly half of Iran’s oil exports in 2025, worth at least $30bn. A slick machine has been built to deliver shipments, mostly to China, and process payments while evading sanctions. Thousands of shell companies and money exchanges buried deep in banking systems in Russia and China make deals nearly impossible to trace. According to two people familiar with the matter, Iran’s central government has handed over more barrels than usual to the IRGC in the past month.
+
+Who wants more moolah?
+The Guards have thus become the chief Iranian profiteer from pricier oil. Despite the war, Iran has exported at least as much as it did on average last year, and earned nearly twice as much. If the IRGC controls the same portion of oil it did a year ago, it could have captured half of that revenue.
+
+Domestic firms are a second source of finance. Each of the IRGC’s five branches owns sprawling conglomerates with stakes in roughly half of Iran’s firms, according to one official. These businesses construct pipelines, sell houses, make medicines and much besides. According to American officials, the IRGC is linked to Bahman, once the manufacturer of Mazda cars in Iran, and Sina Food Industries Development, a big producer of processed food.
+
+
+Chart: The Economist
+The IRGC’s manufacturers have benefited from wartime price rises and the sudden absence of foreign competition. Iranians normally favour higher-quality goods from Asia, the Gulf and Russia. They have had little choice but to turn to homegrown products. Two Western officials expect IRGC-linked firms’ profits from cosmetics and processed food to have doubled in a month. Other firms are smelting steel and aluminium, and making mechanical parts, prices of which have also jumped. The IRGC’s aluminium facilities are raking in more than before the war.
+
+Rising prices have boosted the IRGC’s income from illicit trade, too. The Guards run ports, airports and border crossings, which gives it a near-monopoly over such trade. The weakening of Iran’s regional proxies such as Hamas and Hizbullah, which once helped run a network that smuggled cigarettes, drugs and food inside weapons shipments into and out of Iran, is a blow to supplies. But disruption to shipping has added a premium to smuggled goods, giving an advantage to Iranian traders, who can pass through the strait with relative ease. One Israeli official reckons that the IRGC’s smugglers will be earning more from its international narcotics business. If Iran succeeds in levying a formal toll of $2m for every ship passing through Hormuz, the regime could earn $50bn if traffic resumed to just half of pre-war levels of about 130 vessels a day.
+
+
+The Emirati crackdown is an inconvenience for the IRGC, but not a disaster. Only a small share of the Iranian money stashed away in Dubai belongs to the regime, which has been wary of the UAE’s closeness to America, according to two American officials. Oil and arms payments are mostly processed through China, they say, which also stores the central bank’s reserves. Iran’s domestic payment system, Shetab, is linked to Russia’s Mir system, allowing banks to make transactions without worrying about extra sanctions. “It shows that these basic [payment systems] work in a crisis,” says one of the officials.
+
+Prophet and loss
+The war has not been without costs. Khatam al-Anbiya, the IRGC’s biggest conglomerate, runs factories making goods deemed important for national security, some of which are exported to China and Russia. Its weapons factories have come under heavy fire since the start of March. Iran’s two biggest steel mills closed on April 2nd after strikes, knocking out nearly 70% of production capacity. An Israeli official reckons a blackout in Tehran, which Iran blamed on Israeli strikes, may be the first instance of the regime saving power for its factories and oil infrastructure.
+
+With luck, the ceasefire will bring respite to Iranian civilians. But the war has proved the remarkable resilience of the IRGC’s finances. The only way to eliminate the Guards’ financial firepower is to go after Iran’s oil. The pause in hostilities demonstrates that Mr Trump has no appetite for that. He knows the regime would respond by setting the Gulf’s energy infrastructure—and world markets—ablaze. ■
+
+For more expert analysis of the biggest stories in economics, finance and markets, sign up to Money Talks, our weekly subscriber-only newsletter.

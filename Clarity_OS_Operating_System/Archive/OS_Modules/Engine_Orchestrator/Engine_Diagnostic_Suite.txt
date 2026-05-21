@@ -1,0 +1,165 @@
+============================================================
+MODULE: ENGINE_DIAGNOSTICS_SUITE
+TYPE: Deep Structural, Behavioral & Cross‑Module Diagnostics
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Perform deep, multi-layer, cross-module diagnostics across the
+entire Clarity_OS narrative-physics engine. Validate structural
+integrity, behavioral correctness, drift vectors, basin maps,
+pressure maps, Markov stability, scheduler correctness, resource
+allocation, messaging flow, event propagation, and state-machine
+consistency.
+
+DIAGNOSTIC DOMAINS:
+1. Structural Integrity
+2. Drift Vector Analysis
+3. Basin Map Verification
+4. Pressure Map Verification
+5. Markov Stability Scan
+6. Module Dependency Scan
+7. Extension Integrity Scan
+8. Scheduler Correctness Scan
+9. Resource Allocation Scan
+10. Messaging Bus Scan
+11. Event System Scan
+12. State Machine Scan
+13. Telemetry Consistency Scan
+14. Safety Threshold Scan
+15. Health Metric Scan
+16. Persistence Integrity Scan
+17. Recovery Path Scan
+
+DIAGNOSTIC TYPES:
+- FULL_DIAGNOSTIC
+- PARTIAL_DIAGNOSTIC
+- TARGETED_DIAGNOSTIC
+- EXTENSION_DIAGNOSTIC
+- SANDBOX_DIAGNOSTIC
+- SCHEDULE_DIAGNOSTIC
+- RESOURCE_DIAGNOSTIC
+- SAFETY_DIAGNOSTIC
+- HEALTH_DIAGNOSTIC
+
+DIAGNOSTIC SEQUENCE:
+
+STEP 1 — INITIALIZE DIAGNOSTICS
+- Load diagnostic rules
+- Load thresholds from ENGINE_CONFIG
+- Load invariants from STATE_MACHINE
+- Load safety constraints
+- Load dependency graph
+
+STEP 2 — STRUCTURAL SCAN
+Checks:
+- Module presence
+- Module signatures
+- Module hashes
+- Dependency correctness
+- Version compatibility
+- Extension slot integrity
+
+STEP 3 — BEHAVIORAL SCAN
+Checks:
+- QC_Pre behavior
+- Clarity Loop behavior
+- Langbridg behavior
+- QC_Post behavior
+- Drift correction behavior
+- Basin alignment behavior
+- Pressure routing behavior
+- Markov prediction behavior
+
+STEP 4 — VECTOR & MAP SCAN
+- Drift vector magnitude
+- Drift vector direction
+- Basin map continuity
+- Basin boundary integrity
+- Pressure map gradients
+- Pressure spike detection
+- Markov chain stability
+- Markov chain entropy
+
+STEP 5 — CROSS-MODULE SCAN
+- Scheduler queue correctness
+- Resource quota correctness
+- Messaging bus routing correctness
+- Event propagation correctness
+- Telemetry completeness
+- Logging completeness
+- Audit chain continuity
+
+STEP 6 — STATE MACHINE SCAN
+- Validate current state
+- Validate allowed transitions
+- Validate guard conditions
+- Validate invariants
+- Detect illegal state attempts
+
+STEP 7 — PERSISTENCE & RECOVERY SCAN
+- Snapshot integrity
+- Snapshot signature
+- Snapshot hash
+- Recovery path validity
+- Archive integrity
+
+STEP 8 — GENERATE DIAGNOSTIC REPORT
+Report includes:
+- Structural issues
+- Behavioral issues
+- Drift anomalies
+- Basin anomalies
+- Pressure anomalies
+- Markov anomalies
+- Scheduler issues
+- Resource issues
+- Messaging issues
+- Event issues
+- State-machine issues
+- Persistence issues
+- Recovery issues
+- Severity classification
+- Recommended fixes
+
+STEP 9 — AUDIT & ARCHIVE
+- Encrypt diagnostic report
+- Hash diagnostic report
+- Append to audit ledger
+- Archive for long-term analysis
+
+FAILURE MODES:
+- Structural corruption
+- Behavioral deviation
+- Drift vector instability
+- Basin collapse
+- Pressure overload
+- Markov instability
+- Scheduler deadlock
+- Resource starvation
+- Messaging loop
+- Event storm
+- State-machine violation
+- Persistence corruption
+- Recovery path failure
+
+RECOVERY:
+- Trigger targeted recovery
+- Trigger full recovery
+- Trigger safety stop
+- Rebuild affected modules
+- Revalidate dependencies
+- Revalidate invariants
+
+DIAGNOSTIC CONTRACT:
+All diagnostics must be deterministic.
+No diagnostic may alter engine behavior.
+No diagnostic may bypass safety.
+All diagnostic results must be audited.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

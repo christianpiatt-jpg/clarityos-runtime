@@ -1,0 +1,70 @@
+============================================================
+PM-TCP — Clarity Transport Protocol
+============================================================
+
+PURPOSE:
+Define the transport rules that ensure clear thinking is delivered
+reliably in high-pressure environments.
+
+TRANSPORT LOOP:
+Center → Compress → Cohere
+
+------------------------------------------------------------
+1. CENTER
+------------------------------------------------------------
+FUNCTION:
+Stabilize the system before any interpretation occurs.
+
+RULES:
+- Slow the interaction.
+- Remove urgency and reactive escalation.
+- Establish a stable reference frame.
+- No decisions are valid until the system is centered.
+
+OUTPUT:
+A calm environment capable of processing information.
+
+------------------------------------------------------------
+2. COMPRESS
+------------------------------------------------------------
+FUNCTION:
+Reduce the problem to its smallest accurate form.
+
+RULES:
+- Identify the real pressure.
+- Remove noise, projection, and narrative inflation.
+- Separate structure from emotion.
+- Represent the problem in minimal, precise terms.
+
+OUTPUT:
+A clear description of the actual issue.
+
+------------------------------------------------------------
+3. COHERE
+------------------------------------------------------------
+FUNCTION:
+Deliver a stable, shared interpretation.
+
+RULES:
+- Provide a structural explanation of the situation.
+- Confirm mutual understanding.
+- Ensure the interpretation is consistent across participants.
+- No resolution is valid unless it is coherent.
+
+OUTPUT:
+A shared understanding that supports forward movement.
+
+------------------------------------------------------------
+TRANSPORT GUARANTEE:
+A mediation outcome is only valid if it passes all three stages:
+Centered → Compressed → Coherent.
+
+If any stage fails, the transport fails.
+
+------------------------------------------------------------
+RETRANSMISSION RULE:
+If clarity breaks down at any point, restart the loop at CENTER.
+
+============================================================
+END OF FILE
+============================================================

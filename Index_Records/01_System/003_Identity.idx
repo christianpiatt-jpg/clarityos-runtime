@@ -1,0 +1,23 @@
+notepad 003_Identity.idx
+
+[Record]
+Name = Identity Layer
+Code = 003
+Path = ../../01_Constitution/04_Identity/
+Description = Identity primitives of ClarityOS including operator identity, system identity, coherence mechanics, drift detection, and identity-field boundaries.
+
+[Files]
+Identity_Primitives = identity_primitives.txt
+Identity_Field = identity_field.txt
+Coherence_Model = coherence_model.txt
+Drift_Detection = drift_detection.txt
+Operator_Identity = operator_identity.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 001_Geometry.idx, 002_Runtime.idx
+
+[Crosslinks]
+Up = None
+Across = 000,001,002,004,005
+Down = None

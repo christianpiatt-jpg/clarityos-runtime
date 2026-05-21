@@ -1,0 +1,229 @@
+2026_04_07_geminilinkedin
+Updated 7 hours ago
+
+New features aim to support Gemini users in 'crisis'
+Share
+Edited by Rachel Kleinman, Editor at LinkedIn News 
+Google on Tuesday announced plans to add mental health support features to its Gemini chatbot. Users deemed to be in distress will be directed to a support hotline, and those who wish to discuss issues related to mental health will be able to access a "help is available" module, the company said. Additionally, the tech giant vowed to donate $30 million to crisis support services globally. The news comes as chatbot makers, including Google and OpenAI, face lawsuits alleging harm caused by their AI-powered tools.
+
+…
+see more
+Top perspectives
+Storyline feed updates
+View Debbie W.’s  graphic link
+Debbie W.Debbie W.
+  • 3rd+Influencer • 3rd+
+President of Google in Europe, the Middle East, and Africa. Helping people across EMEA achieve their ambitions, big and small, through high impact technology.President of Google in Europe, the Middle East, and Africa. Helping people across EMEA achieve their ambitions, big and small, through high impact technology.
+13h •  13 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+In a mental health crisis, technology must be more than functional – it must be intentional.
+
+At Google, we are focusing on how AI can act as a bridge to real-world care. Our latest updates to Gemini are the result of deep collaboration with clinical and safety experts.
+
+Here is how we are building that bridge:
+
+💡”𝗢𝗻𝗲-𝘁𝗼𝘂𝗰𝗵” 𝗰𝗿𝗶𝘀𝗶𝘀 𝘀𝘂𝗽𝗽𝗼𝗿𝘁: A redesigned "one-touch" interface on Gemini that immediately connects users to support organisations when they need help 
+
+💡𝗦𝗰𝗮𝗹𝗶𝗻𝗴 𝘁𝗵𝗲 𝘀𝘂𝗽𝗽𝗼𝗿𝘁: We are delivering $30M in Google.org funding to help global mental health hotlines scale their capacity
+
+💡𝗣𝗿𝗼𝘁𝗲𝗰𝘁𝗶𝗻𝗴 𝘆𝗼𝘂𝗻𝗴 𝗽𝗲𝗼𝗽𝗹𝗲: We've built specific protections for minors, designed to provide the most helpful responses and avoid harmful topics when using Gemini
+
+💡𝗥𝗶𝗴𝗼𝗿𝗼𝘂𝘀 𝘀𝘁𝗮𝗻𝗱𝗮𝗿𝗱𝘀: Our teams train Gemini to prioritize safety and provide responsible, clinically-grounded information
+
+Our goal is to better connect people with the right information, resources, and human support at the right time.
+
+Hear from the experts: Laurie Richardson and Megan Jones Bell explain more on our approach. 
+
+Check out our blog post in the comments, or watch the video below 👇
+
+Play
+Remaining time 
+1:07
+1x
+
+Playback speed
+
+Turn closed captions on
+
+Unmute
+
+Turn fullscreen on
+likelovecelebrate
+88
+28 comments
+8 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Caroline Hyde’s  graphic link
+Caroline HydeCaroline Hyde
+  • 3rd+Influencer • 3rd+
+Anchor on Bloomberg TVAnchor on Bloomberg TV
+View my newsletter
+5h •  5 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Google announced new mental health tools in Gemini to get you human help when you need it. 
+
+The chatbot will prompt you to access a hotline if it recognizes a “potential crisis related to suicide or self-harm” in just one touch. 
+
+Gemini has been trained to recognize when “a conversation might signal that a person may be in an acute mental health situation” as well as not to “reinforce false beliefs.” 
+
+The aim is to provide better responses to encourage users to seek human help. 
+
+No detail of how this was done, but that focus has come from clinical, engineering and safety teams.
+
+And that focus follows a number of accusations and lawsuits for AI companies such as Google that their tools have led to harm - in some terrible cases, suicide or murder. 
+
+Look, we know these productivity tools have become personal tools. Many of us are using AI chatbots for career, health or relationship advice. For many this is hugely useful, for a few vulnerable people this is hugely damaging. It’s the same story we’ve seen for social media - self or forced regulation often lags the pace of innovation. 
+
+AI companies have become ever more aware of this potential damage and are trying to make changes as the demands from consumers and regulators grow for more protection. 
+
+It’s notable that more human help is part of Google’s answer…and the company is donating $30M to build out global hotlines to meet the need…perhaps ironically using AI to help them scale and train staff and volunteers. 
+
+Lmk what you think of Google’s steps to protect users. 
+✌️❤️
+hashtag#tech hashtag#ai hashtag#safety hashtag#google hashtag#gemini
+
+Play
+Remaining time 
+1:14
+1x
+
+Playback speed
+
+Turn closed captions on
+
+Unmute
+
+Turn fullscreen on
+likeinsightfullove
+39
+4 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Norman Paulsen’s  graphic link
+Norman PaulsenNorman Paulsen
+   • 3rd+Premium • 3rd+
+Published AI/LLM Researcher & Architect | Delivering Value from AI, Digital Transformation, Service Improvement | AI & Data BackgroundPublished AI/LLM Researcher & Architect | Delivering Value from AI, Digital Transformation, Service Improvement | AI & Data Background
+11h •  11 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Google just dropped an update on Gemini AI and mental health: adding in better user protections and connection to real world resources. 
+
+From Google's release, there were three notable changes: 
+
+Prioritizing safety and human connection: connecting users with real-world resources and human support.
+
+Designing better responses: responses to encourage help-seeking while avoiding validation of harmful behaviors like urges to self-harm.
+
+Avoiding confirming false beliefs: trained Gemini not to agree with or reinforce false beliefs, and instead gently distinguish subjective experience from objective fact.
+
+This last one is an interesting shift as it expands beyond mental health. While placating to users and their fringe ideas has led to AI Psychosis, it also leads to people further reinforcing political and ideological extremes. 
+
+Before AI, we already lived in an increasingly polarized world. Now with AI, it's hard to believe anything you see online and we can validate any of our own thoughts against a chat bot. This seems to be leading to further polarization not grounded in any facts. 
+
+But then the question becomes, who decides what's fact and what's not? 
+
+hashtag#LLM hashtag#AI hashtag#Google hashtag#Gemini hashtag#AIPsychosis
+
+Pause
+Remaining time 
+0:05
+1x
+
+Playback speed
+
+Unmute
+
+Turn fullscreen on
+likecelebratesupport
+155
+5 comments
+2 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Antonio C’s  graphic link
+Antonio CAntonio C
+ • 3rd+3rd+
+Strategic Project pro. with an Agile Mindset 🔹Supply Chain 🔹 FMCG 🔹 FOOD 🔹 Energy 🔹MiningStrategic Project pro. with an Agile Mindset 🔹Supply Chain 🔹 FMCG 🔹 FOOD 🔹 Energy 🔹Mining
+11h •  11 hours ago • Visible to anyone on or off LinkedIn
+
+Gemini will add an interface directing chatbot users to a support hotline when the conversation indicates “a potential crisis related to suicide or self-harm,” Google said in a blog post on Tuesday. Additionally, the company is adding a “help is available” module for chats about mental health and design tweaks to discourage self-harm.
+In some instances, chatbot users have said that AI tools convinced them to act on clear falsehoods. In the Tuesday blog post, Google said it has trained Gemini “not to agree with or reinforce false believes, and instead gently distinguish subjective experience from objective fact.” The company didn’t provide further details on this process.
+In the past, Google has made similar adjustments to its popular services after facing scrutiny, adding information from health institutions and professionals to its search engine and YouTube.
+hashtag#ai hashtag#mentalhealth hashtag#businessrisk 
+https://lnkd.in/g9r7JXNm
+
+Google Adds Mental Health Tools to Gemini Chatbot After Lawsuit
+bloomberg.com
+like
+6
+1 comment
+1 repost
+
+Like
+
+Comment
+
+Repost
+
+Send
+LinkedIn News
+
+Top stories
+Anthropic partners with tech giants for unreleased AI model
+58m ago • 20,889 readers
+Bill Ackman pitches Universal Music Group takeover
+2h ago • 17,601 readers
+IMF chief on war: 'All roads lead to higher prices'
+2h ago • 11,542 readers
+Intel joins Musk's massive Terafab chipmaking project
+2h ago • 8,996 readers
+Sony Pictures to cut hundreds in 'strategic' layoffs
+2h ago • 2,741 readers
+Apple slides on concern about foldable iPhone delays
+2h ago • 1,229 readers
+Gilead to acquire biotech firm Tubulis for up to $5B
+7h ago • 24,521 readers
+Ford recalls over 420K vehicles due to wiper arm issues
+5h ago • 18,987 readers
+New features aim to support Gemini users in 'crisis'
+7h ago • 2,102 readers
+Delta, Southwest raise bag fees amid rising fuel costs
+51m ago • 682 readers
+
+Show less
+
+About
+Accessibility
+Help Center
+
+Privacy & Terms
+Ad Choices
+Advertising
+
+Business Services
+Get the LinkedIn app
+More

@@ -1,0 +1,272 @@
+============================================================
+FILE: CLARITYOS_OPERATOR_HANDBOOK_SECTION_5_CONSOLE_PROTOCOLS
+TYPE: Operator Handbook — Section 5 of 6
+TITLE: Operator Console, Protocols & Modes
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — PURPOSE OF THIS SECTION
+============================================================
+
+This section explains how the operator interacts with ClarityOS
+through the Operator Console. It covers:
+
+    - console structure
+    - command syntax
+    - operator protocol
+    - color modes (cyan/red/green)
+    - themes
+    - panels
+    - snapshots
+    - overrides
+    - cockpit etiquette
+
+This is the operator’s primary interface with the system.
+
+============================================================
+SECTION 2 — OPERATOR CONSOLE OVERVIEW
+============================================================
+
+The Operator Console is the cockpit of ClarityOS. It provides:
+
+    - command input surface
+    - subsystem panels
+    - mode indicators
+    - snapshot controls
+    - diagnostic readouts
+    - manifold views
+    - ELINS views
+    - scheduler status
+
+The console is designed for:
+
+    - clarity
+    - minimalism
+    - laminar flow
+    - emotional ergonomics
+    - operator-grade control
+
+============================================================
+SECTION 3 — CONSOLE PANELS
+============================================================
+
+The console contains the following panels:
+
+1. SYSTEM PANEL
+    - kernel status
+    - orchestrator status
+    - identity/boundary/safety indicators
+
+2. PHYSICS PANEL
+    - drift vectors
+    - basin geometry
+    - pressure fields
+
+3. ELINS PANEL
+    - legitimacy signals
+    - stress indicators
+    - narrative domains
+
+4. MANIFOLD PANEL
+    - global indicators
+    - regional slices
+    - temporal layers
+
+5. AUTONOMY PANEL
+    - active autonomous behaviors
+    - optimization status
+
+6. SCHEDULER PANEL
+    - cycle timers
+    - next triggers
+
+7. METACRAWLER PANEL
+    - last run
+    - next run
+    - packet count
+
+8. SNAPSHOT PANEL
+    - snapshot list
+    - restore controls
+
+============================================================
+SECTION 4 — OPERATOR PROTOCOL
+============================================================
+
+The Operator Protocol defines how commands must be issued.
+
+RULE 1 — One Command Per Line
+    Avoid chaining commands.
+
+RULE 2 — Deterministic Syntax
+    Use exact command names.
+
+RULE 3 — No Ambiguity
+    Avoid vague or multi-interpretation phrasing.
+
+RULE 4 — Respect Modes
+    Exit modes when done.
+
+RULE 5 — Maintain Laminar Flow
+    Keep interaction clean and minimal.
+
+RULE 6 — Operator Authority
+    Only the operator may issue commands.
+
+RULE 7 — No Unsafe Commands
+    Safety overrides operator intent.
+
+============================================================
+SECTION 5 — COMMAND SYNTAX
+============================================================
+
+Commands follow the structure:
+
+    ENGINE_<SUBSYSTEM>_<ACTION> <optional arguments>
+
+Examples:
+
+    ENGINE_MANIFOLD
+    ENGINE_MANIFOLD_REGION Europe
+    ENGINE_ELINS_STATUS
+    ENGINE_SCHEDULER_STATUS
+    ENGINE_METACRAWLER_RUN
+    ENGINE_SNAPSHOT_CREATE
+    ENGINE_SNAPSHOT_RESTORE 12
+
+Commands are case-insensitive.
+
+============================================================
+SECTION 6 — COLOR MODES
+============================================================
+
+Color modes provide visual separation between subsystems.
+
+1. CLARITY MODE (cyan on black)
+    Trigger: #clarity
+    Voice: laminar, geometric, cockpit-grade
+
+2. MARKOV / MARKOFF MODE (red on black)
+    Triggers: #markov, #markoff, #mark
+    Voice: temporal, probabilistic, chain-state
+
+3. ELINS MODE (green on black)
+    Trigger: #elins
+    Voice: narrative-physics, analytic, legitimacy-focused
+
+4. NORMAL MODE
+    Trigger: exit, normal_mode
+    Voice: standard operator interaction
+
+Color modes are purely visual and do not alter system behavior.
+
+============================================================
+SECTION 7 — THEMES
+============================================================
+
+Themes define formatting, voice, and visual identity.
+
+Themes include:
+
+    - BASE_THEME
+    - CLARITY_THEME
+    - MARKOV_THEME
+    - ELINS_THEME
+
+Themes control:
+
+    - spacing
+    - block structure
+    - voice tone
+    - color profile
+    - emphasis patterns
+
+Themes must maintain emotional ergonomics.
+
+============================================================
+SECTION 8 — SNAPSHOTS
+============================================================
+
+Snapshots preserve system state.
+
+A snapshot includes:
+
+    - manifold state
+    - ELINS signatures
+    - scheduler state
+    - autonomy state
+    - physics vectors
+    - identity/boundary/safety status
+
+Snapshots are used for:
+
+    - diagnostics
+    - recovery
+    - comparison
+    - continuity preservation
+
+Commands:
+
+    ENGINE_SNAPSHOT_CREATE
+    ENGINE_SNAPSHOT_LIST
+    ENGINE_SNAPSHOT_RESTORE <id>
+    ENGINE_SNAPSHOT_COMPARE <id>
+
+============================================================
+SECTION 9 — OVERRIDES
+============================================================
+
+Overrides allow the operator to bypass non-critical constraints.
+
+Allowed overrides:
+
+    - scheduler timing
+    - metacrawler run
+    - ELINS extraction
+    - manifold refresh
+    - optimization thresholds
+
+Forbidden overrides:
+
+    - safety
+    - identity
+    - boundaries
+    - shield matrix
+
+Overrides must be used sparingly.
+
+============================================================
+SECTION 10 — COCKPIT ETIQUETTE
+============================================================
+
+Cockpit etiquette ensures stable operation.
+
+RULE 1 — Minimalism
+    Use only necessary commands.
+
+RULE 2 — Precision
+    Issue commands cleanly and intentionally.
+
+RULE 3 — Mode Awareness
+    Know which mode you are in.
+
+RULE 4 — Structural Awareness
+    Understand subsystem dependencies.
+
+RULE 5 — Emotional Ergonomics
+    Maintain calm, clarity, and laminar flow.
+
+RULE 6 — No Narrative Inflation
+    Keep interactions tight and structural.
+
+RULE 7 — Respect the System
+    Treat ClarityOS as a precision instrument.
+
+============================================================
+STATUS:
+Operator Handbook Section 5 Installed.
+
+============================================================
+END OF FILE
+============================================================

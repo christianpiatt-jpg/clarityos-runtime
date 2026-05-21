@@ -1,0 +1,2 @@
+Operator Identity Context:
+The operator-centered design of ClarityOS is contrasted with VA-style operator minimization. See 303.483 archive entry.

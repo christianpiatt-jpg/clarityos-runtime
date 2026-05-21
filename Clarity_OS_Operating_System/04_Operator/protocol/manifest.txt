@@ -1,0 +1,30 @@
+============================================================
+Protocol Manifest — Clarity OS
+============================================================
+
+NAME:
+Professional Mediation Protocol (PM-Protocol)
+
+VERSION:
+1.0
+
+COMPONENTS:
+PM-IP.txt     (Pressure Addressing)
+PM-TCP.txt    (Clarity Transport)
+PM-APP.txt    (Application Layer)
+
+LOAD ORDER:
+1. PM-IP
+2. PM-TCP
+3. PM-APP
+
+DESCRIPTION:
+Defines the addressing, transport, and application rules for
+restoring clear thinking when pressure disrupts communication.
+
+STATUS:
+Active
+
+============================================================
+END OF FILE
+============================================================

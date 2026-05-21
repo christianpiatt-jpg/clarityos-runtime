@@ -1,0 +1,297 @@
+============================================================
+FILE: CLARITYOS_OPERATOR_HANDBOOK_SECTION_3_AUTONOMY
+TYPE: Operator Handbook — Section 3 of 6
+TITLE: Autonomy, Scheduling & Global Metacrawler
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — PURPOSE OF THIS SECTION
+============================================================
+
+This section explains how ClarityOS v3 performs autonomous
+actions, maintains timing cycles, and ingests global metadata.
+It covers:
+
+    - autonomy rules
+    - optimization logic
+    - scheduler cycles
+    - triggers and timing
+    - the 6-hour global metacrawler
+    - metadata packet structure
+    - boundary enforcement
+    - ingestion pipeline
+    - failure modes and recovery
+
+This is the operational engine behind the system’s global
+awareness.
+
+============================================================
+SECTION 2 — AUTONOMY OVERVIEW
+============================================================
+
+ClarityOS supports **bounded autonomy** — the system may act on
+its own within strict, operator-defined constraints.
+
+Autonomy exists to:
+    - maintain continuity
+    - preserve coherence
+    - update the manifold
+    - extract narrative physics
+    - route metadata safely
+    - maintain system health
+
+Autonomy does **not**:
+    - generate new goals
+    - modify mission or intent
+    - bypass safety or boundaries
+    - self-modify
+    - ingest unauthorized content
+
+Autonomy is always subordinate to the operator.
+
+============================================================
+SECTION 3 — AUTONOMY RULES
+============================================================
+
+Autonomy is governed by the following rules:
+
+RULE 1 — Mission Alignment
+    All autonomous actions must align with the Mission File.
+
+RULE 2 — Boundary Compliance
+    No autonomous action may violate metadata-only boundaries.
+
+RULE 3 — Safety Priority
+    Safety overrides autonomy at all times.
+
+RULE 4 — Determinism
+    Autonomous actions must be deterministic and reproducible.
+
+RULE 5 — Transparency
+    All autonomous actions must be logged.
+
+RULE 6 — Operator Override
+    The operator may override any non-critical autonomous action.
+
+RULE 7 — No Self-Modification
+    Autonomy may not alter system code, mission, or identity.
+
+============================================================
+SECTION 4 — OPTIMIZATION LOGIC
+============================================================
+
+The Optimization Layer ensures the system remains efficient and
+stable. It performs:
+
+    - load balancing
+    - timing adjustments
+    - resource allocation
+    - anomaly correction
+    - ingestion smoothing
+    - manifold stabilization
+
+Optimization is bounded by:
+    - safety
+    - identity
+    - boundaries
+    - operator intent
+
+Optimization may never override these constraints.
+
+============================================================
+SECTION 5 — SCHEDULER OVERVIEW
+============================================================
+
+The Scheduler is responsible for:
+
+    - timing cycles
+    - triggers
+    - periodic tasks
+    - ingestion windows
+    - manifold refresh intervals
+    - ELINS extraction cycles
+    - diagnostics
+
+The Scheduler is deterministic and clock-driven.
+
+============================================================
+SECTION 6 — SCHEDULER CYCLES
+============================================================
+
+The Scheduler maintains several cycles:
+
+1. METACRAWLER_CYCLE
+    Every 6 hours (00:00, 06:00, 12:00, 18:00)
+
+2. ELINS_CYCLE
+    Immediately after each metacrawler run
+
+3. MANIFOLD_REFRESH_CYCLE
+    After ELINS completes
+
+4. DIAGNOSTIC_CYCLE
+    Every 24 hours
+
+5. HEALTH_CHECK_CYCLE
+    Every 2 hours
+
+6. SNAPSHOT_CYCLE (optional)
+    Operator-defined
+
+Each cycle is logged and validated.
+
+============================================================
+SECTION 7 — TRIGGERS
+============================================================
+
+Triggers include:
+
+    - system clock
+    - operator commands
+    - anomaly detection
+    - recovery events
+    - ingestion completion
+    - manifold desynchronization
+
+Triggers may not bypass safety or boundaries.
+
+============================================================
+SECTION 8 — THE GLOBAL METACRAWLER
+============================================================
+
+The metacrawler is the system’s global intake mechanism. It:
+
+    - runs every 6 hours
+    - ingests metadata-only headlines
+    - classifies region and language
+    - packages metadata into packets
+    - routes packets to ELINS
+    - triggers manifold updates
+
+The metacrawler is the system’s “eyes.”
+
+============================================================
+SECTION 9 — METADATA PACKET STRUCTURE
+============================================================
+
+Each metadata packet contains:
+
+    headline
+    timestamp
+    section
+    URL
+    language
+    region
+    source_id
+    ingestion_timestamp
+
+No article text is ever ingested.
+
+============================================================
+SECTION 10 — BOUNDARY ENFORCEMENT
+============================================================
+
+The metacrawler enforces strict boundaries:
+
+    - metadata-only
+    - no article text
+    - no paywall bypass
+    - no translation at ingest
+    - no summarization at ingest
+    - no sentiment extraction
+
+Boundary violations result in:
+
+    - packet discard
+    - violation log
+    - boundary alert
+
+============================================================
+SECTION 11 — INGESTION PIPELINE
+============================================================
+
+The ingestion pipeline consists of:
+
+STEP 1 — FETCH
+    Retrieve top-level headlines.
+
+STEP 2 — CLEAN
+    Remove duplicates and malformed entries.
+
+STEP 3 — CLASSIFY
+    Assign region, language, source_id, domain.
+
+STEP 4 — PACKAGE
+    Wrap metadata into METADATA_PACKET format.
+
+STEP 5 — ROUTE
+    Send packets to ELINS.
+
+STEP 6 — LOG
+    Record ingestion count, anomalies, and routing status.
+
+============================================================
+SECTION 12 — FAILURE MODES
+============================================================
+
+Potential failures:
+
+    - source unreachable
+    - malformed metadata
+    - boundary violation
+    - ELINS routing failure
+    - manifold update failure
+    - schedule drift
+    - ingestion imbalance
+
+============================================================
+SECTION 13 — RECOVERY PROCEDURES
+============================================================
+
+Recovery steps:
+
+1. RETRY FETCH
+    Attempt to retrieve metadata again.
+
+2. FALLBACK TO CACHE
+    Use cached metadata if available.
+
+3. SKIP SOURCE
+    Continue ingestion without the failing source.
+
+4. RE-RUN ELINS
+    If extraction fails.
+
+5. RE-RUN MANIFOLD UPDATE
+    If manifold desynchronizes.
+
+6. NOTIFY OPERATOR
+    Always notify the operator of failures.
+
+============================================================
+SECTION 14 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_METACRAWLER_STATUS
+    Display last run, next run, packet count, anomalies.
+
+ENGINE_METACRAWLER_RUN
+    Manually trigger ingestion.
+
+ENGINE_METACRAWLER_LOGS
+    Display ingestion logs.
+
+ENGINE_SCHEDULER_STATUS
+    Display active cycles and timing.
+
+ENGINE_AUTONOMY_STATUS
+    Display active autonomous behaviors.
+
+============================================================
+STATUS:
+Operator Handbook Section 3 Installed.
+
+============================================================
+END OF FILE
+============================================================

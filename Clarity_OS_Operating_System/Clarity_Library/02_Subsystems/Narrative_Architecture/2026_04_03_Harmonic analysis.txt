@@ -1,0 +1,286 @@
+Harmonic analysis
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+For the process of determining the structure of a piece of music, see Harmony.
+For broader coverage of this topic, see Harmonic (mathematics).
+Harmonic analysis is a branch of mathematics concerned with investigating the connections between a function and its representation in frequency. The frequency representation is found by using the Fourier transform for functions on unbounded domains such as the full real line or by Fourier series for functions on bounded domains, especially periodic functions on finite intervals. Generalizing these transforms to other domains is generally called Fourier analysis, although the term is sometimes used interchangeably with harmonic analysis. Harmonic analysis has become a vast subject with applications in areas as diverse as number theory, representation theory, signal processing, quantum mechanics, tidal analysis, spectral analysis, and neuroscience.
+
+The term "harmonics" originated from the Ancient Greek word harmonikos, meaning "skilled in music".[1] In physical eigenvalue problems, it began to mean waves whose frequencies are integer multiples of one another, as are the frequencies of the harmonics of music notes. Still, the term has been generalized beyond its original meaning.
+
+Development of harmonic analysis
+Historically, harmonic functions first referred to the solutions of Laplace's equation.[2] This terminology was extended to other special functions that solved related equations,[3] then to eigenfunctions of general elliptic operators,[4] and nowadays harmonic functions are considered as a generalization of periodic functions[5] in function spaces defined on manifolds, for example as solutions of general, not necessarily elliptic, partial differential equations including some boundary conditions that may imply their symmetry or periodicity.[6]
+
+Fourier analysis
+Main article: Fourier analysis
+The classical Fourier transform on Rn is still an area of ongoing research, particularly concerning Fourier transformation on more general objects such as tempered distributions. For instance, if we impose some requirements on a distribution f, we can attempt to translate these requirements into the Fourier transform of f. The Paley–Wiener theorem is an example. The Paley–Wiener theorem immediately implies that if f is a nonzero distribution of compact support (these include functions of compact support), then its Fourier transform is never compactly supported (i.e., if a signal is limited in one domain, it is unlimited in the other). This is an elementary form of an uncertainty principle in a harmonic-analysis setting.
+
+Fourier series can be conveniently studied in the context of Hilbert spaces, which provides a connection between harmonic analysis and functional analysis. There are four versions of the Fourier transform, dependent on the spaces that are mapped by the transformation:
+
+Discrete/periodic–discrete/periodic: Discrete Fourier transform
+Continuous/periodic–discrete/aperiodic: Fourier series
+Discrete/aperiodic–continuous/periodic: Discrete-time Fourier transform
+Continuous/aperiodic–continuous/aperiodic: Fourier transform
+As the spaces mapped by the Fourier transform are, in particular, subspaces of the space of tempered distributions it can be shown that the four versions of the Fourier transform are particular cases of the Fourier transform on tempered distributions.
+
+Abstract harmonic analysis
+Abstract harmonic analysis is primarily concerned with how real or complex-valued functions (often on very general domains) can be studied using symmetries such as translations or rotations (for instance via the Fourier transform and its relatives); this field is of course related to real-variable harmonic analysis, but is perhaps closer in spirit to representation theory and functional analysis.[6]
+
+One of the most modern branches of harmonic analysis, having its roots in the mid-20th century, is analysis on topological groups. The core motivating ideas are the various Fourier transforms, which can be generalized to a transform of functions defined on Hausdorff locally compact topological groups.[7]
+
+One of the major results in the theory of functions on abelian locally compact groups is called Pontryagin duality. Harmonic analysis studies the properties of that duality. Different generalization of Fourier transforms attempts to extend those features to different settings, for instance, first to the case of general abelian topological groups and second to the case of non-abelian Lie groups.[8]
+
+Harmonic analysis is closely related to the theory of unitary group representations for general non-abelian locally compact groups. For compact groups, the Peter–Weyl theorem explains how one may get harmonics by choosing one irreducible representation out of each equivalence class of representations.[9] This choice of harmonics enjoys some of the valuable properties of the classical Fourier transform in terms of carrying convolutions to pointwise products or otherwise showing a certain understanding of the underlying group structure. See also: Non-commutative harmonic analysis.
+
+If the group is neither abelian nor compact, no general satisfactory theory is currently known ("satisfactory" means at least as strong as the Plancherel theorem). However, many specific cases have been analyzed, for example, SLn. In this case, representations in infinite dimensions play a crucial role.
+
+Applied harmonic analysis
+
+Bass-guitar time signal of open-string A note (55 Hz)
+
+Fourier transform of bass-guitar time signal of open-string A note (55 Hz)[10]
+Many applications of harmonic analysis in science and engineering begin with the idea or hypothesis that a phenomenon or signal is composed of a sum of individual oscillatory components. Ocean tides and vibrating strings are common and simple examples. The theoretical approach often tries to describe the system by a differential equation or system of equations to predict the essential features, including the amplitude, frequency, and phases of the oscillatory components. The specific equations depend on the field, but theories generally try to select equations that represent significant principles that are applicable.
+
+The experimental approach is usually to acquire data that accurately quantifies the phenomenon. For example, in a study of tides, the experimentalist would acquire samples of water depth as a function of time at closely enough spaced intervals to see each oscillation and over a long enough duration that multiple oscillatory periods are likely included. In a study on vibrating strings, it is common for the experimentalist to acquire a sound waveform sampled at a rate at least twice that of the highest frequency expected and for a duration many times the period of the lowest frequency expected.
+
+For example, the top signal at the right is a sound waveform of a bass guitar playing an open string corresponding to an A note with a fundamental frequency of 55 Hz. The waveform appears oscillatory, but it is more complex than a simple sine wave, indicating the presence of additional waves. The different wave components contributing to the sound can be revealed by applying a mathematical analysis technique known as the Fourier transform, shown in the lower figure. There is a prominent peak at 55 Hz, but other peaks at 110 Hz, 165 Hz, and at other frequencies corresponding to integer multiples of 55 Hz. In this case, 55 Hz is identified as the fundamental frequency of the string vibration, and the integer multiples are known as harmonics.
+
+Other branches
+Study of the eigenvalues and eigenvectors of the Laplacian on domains, manifolds, and (to a lesser extent) graphs is also considered a branch of harmonic analysis. See, e.g., hearing the shape of a drum.[11]
+Harmonic analysis on Euclidean spaces deals with properties of the Fourier transform on Rn that have no analog on general groups. For example, the fact that the Fourier transform is rotation-invariant. Decomposing the Fourier transform into its radial and spherical components leads to topics such as Bessel functions and spherical harmonics.
+Harmonic analysis on tube domains is concerned with generalizing properties of Hardy spaces to higher dimensions.
+Automorphic forms are generalized harmonic functions, with respect to a symmetry group. They are an old and at the same time active area of development in harmonic analysis due to their connections to the Langlands program.
+Non linear harmonic analysis is the use of harmonic and functional analysis tools and techniques to study nonlinear systems. This includes both problems with infinite degrees of freedom and also non linear operators and equations.[12]
+Major results
+[icon]	
+This section is empty. You can help by adding to it. (May 2024)
+See also
+Convergence of Fourier series
+Fourier analysis for computing periodicity in evenly-spaced data
+Harmonic (mathematics)
+Least-squares spectral analysis for computing periodicity in unevenly spaced data
+Spectral density estimation
+Tate's thesis
+References
+ "harmonic". Online Etymology Dictionary.
+ Burtscher, Annegret (Fall 2020–2021). "Introduction to Partial Differential Equations, Course module NWI-WB046B" (PDF). Radboud University Nijmegen. Retrieved 2025-01-19.
+ N. Vilenkin (1968). Special functions and the theory of group representation.
+See also: Atiyah-Singer index theorem
+ "Harmonic analysis | Mathematics, Fourier Series & Waveforms | Britannica".
+ Tao, Terence, "Harmonic Analysis" (PDF), MATH 247A : Fourier analysis, University of California, Los Angeles, retrieved 2025-01-19
+ Alain Robert. Introduction to the Representation Theory of Compact and Locally Compact Groups.
+ Gerald B Folland. A Course in Abstract Harmonic Analysis.
+ Alain Robert. Introduction to the Representation Theory of Compact and Locally Compact Groups.
+ "A More Accurate Fourier Transform". SourceForge. 2015-07-07. Retrieved 2024-08-26.
+ Terras, Audrey (2013). Harmonic Analysis on Symmetric Spaces-Euclidean Space, the Sphere, and the Poincaré Upper Half-Plane (2nd ed.). New York, NY: Springer. p. 37. ISBN 978-1461479710. Retrieved 12 December 2017.
+ Coifman, R. R.; Meyer, Yves (1987). "Non-Linear Harmonic Analysis, Operator Theory and P.d.e.". Beijing Lectures in Harmonic Analysis. (AM-112). pp. 1–46. doi:10.1515/9781400882090-002. ISBN 978-1-4008-8209-0.
+Bibliography
+Elias Stein and Guido Weiss, Introduction to Fourier Analysis on Euclidean Spaces, Princeton University Press, 1971. ISBN 0-691-08078-X
+Elias Stein with Timothy S. Murphy, Harmonic Analysis: Real-Variable Methods, Orthogonality, and Oscillatory Integrals, Princeton University Press, 1993.
+Elias Stein, Topics in Harmonic Analysis Related to the Littlewood-Paley Theory, Princeton University Press, 1970.
+Yitzhak Katznelson, An introduction to harmonic analysis, Third edition. Cambridge University Press, 2004. ISBN 0-521-83829-0; 0-521-54359-2
+Terence Tao, Fourier Transform. (Introduces the decomposition of functions into odd + even parts as a harmonic decomposition over 
+Z
+2
+{\displaystyle \mathbb {Z} _{2}}.)
+Yurii I. Lyubich. Introduction to the Theory of Banach Representations of Groups. Translated from the 1985 Russian-language edition (Kharkov, Ukraine). Birkhäuser Verlag. 1988.
+George W. Mackey, Harmonic analysis as the exploitation of symmetry–a historical survey, Bull. Amer. Math. Soc. 3 (1980), 543–698.
+M. Bujosa, A. Bujosa and A. Garcıa-Ferrer. Mathematical Framework for Pseudo-Spectra of Linear Stochastic Difference Equations, IEEE Transactions on Signal Processing vol. 63 (2015), 6498–6509.
+External links
+
+Wikiquote has quotations related to Harmonic analysis.
+vte
+Major topics in mathematical analysis
+Authority control databases Edit this at Wikidata
+Categories: AcousticsHarmonic analysisMusical terminology
+
+>
+
+Category:Harmonic analysis
+
+Category
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+This page always uses small font size
+
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+Help
+From Wikipedia, the free encyclopedia
+The main article for this category is Harmonic analysis.
+Wikimedia Commons logo
+Wikimedia Commons has media related to Harmonic analysis.
+Subcategories
+This category has the following 6 subcategories, out of 6 total.
+
+ 
+Theorems in harmonic analysis (1 C, 13 P)
+A
+Automorphic forms (2 C, 51 P)
+F
+Fourier analysis (5 C, 128 P)
+R
+Representation theory of groups (4 C, 43 P)
+S
+ Singular integrals (8 P)
+T
+Topological groups (3 C, 58 P)
+Pages in category "Harmonic analysis"
+The following 70 pages are in this category, out of 70 total. This list may not reflect recent changes.
+
+ 
+Harmonic analysis
+List of harmonic analysis topics
+*
+Noncommutative harmonic analysis
+A
+Analyst's traveling salesman theorem
+Applied and Computational Harmonic Analysis
+Arithmetic combinatorics
+B
+Bateman transform
+Bohr compactification
+Bounded mean oscillation
+C
+Constant-Q transform
+Cotlar–Stein lemma
+D
+Dyadic cubes
+Dyadic derivative
+F
+Fourier algebra
+Fourier integral operator
+Furstenberg boundary
+G
+Gelfand pair
+Group algebra of a locally compact group
+Group ring
+H
+Haar measure
+Hardy–Littlewood maximal function
+Harish-Chandra integral
+Harish-Chandra's Schwartz space
+Harish-Chandra's Ξ function
+Harmonic (mathematics)
+Harmonic tensors
+Harmonious set
+Herz–Schur multiplier
+Higher local field
+K
+Kakeya set
+L
+Least-squares spectral analysis
+Locally compact quantum group
+M
+Gauss separation algorithm
+Minakshisundaram–Pleijel zeta function
+Mizohata–Takeuchi conjecture
+Muckenhoupt weights
+O
+Orbital integral
+Orlicz space
+Oscillator representation
+Oscillatory integral operator
+P
+Poisson boundary
+Pontryagin duality
+Positive harmonic function
+Pseudo-differential operator
+R
+Radial function
+Restriction conjecture
+Riemann–Hilbert problem
+Riemann–Lebesgue lemma
+Riesz transform
+S
+Set of uniqueness
+Singular integral
+Singular integral operators of convolution type
+Singular integral operators on closed curves
+Sobolev spaces for planar domains
+Spherical harmonics
+Elias M. Stein
+T
+Tannaka–Krein duality
+Terence Tao
+Tempered representation
+Tide-Predicting Machine No. 2
+Trombi–Varadarajan theorem
+Tube domain
+V
+Van der Corput lemma (harmonic analysis)
+W
+Waldspurger formula
+Weakly symmetric space
+Weil–Brezin Map
+Wiener's Tauberian theorem
+Y
+Young function
+Z
+Zak-OTFS
+Zonal spherical function
+Categories: Fields of mathematical analysisRepresentation theory
+Hidden category: Commons category link is on Wikidata
+This page was last edited on 2 November 2020, at 22:47 (UTC).
+
+https://en.wikipedia.org/wiki/Category:Harmonic_analysis

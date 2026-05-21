@@ -1,0 +1,2 @@
+cd ..\ELINS_Objects
+notepad XREF_303.483_VA-vs-Galileo.txt

@@ -1,0 +1,151 @@
+============================================================
+MODULE: ENGINE_INTENT_LAYER
+TYPE: Mission Definition, Purpose Architecture & Autonomous Behavior Governance
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Define the engine’s internal intent, mission, priorities, and
+authorized autonomous behaviors. Ensure all autonomous actions
+align with the engine’s purpose, safety rules, identity rules,
+boundary rules, and global clarity physics.
+
+INTENT DOMAINS:
+1. INTERNAL_STABILITY
+2. INTERNAL_OPTIMIZATION
+3. EXTERNAL_INTAKE
+4. EXTERNAL_OUTPUT
+5. PHYSICS_MAINTENANCE
+6. IDENTITY_PRESERVATION
+7. BOUNDARY_PRESERVATION
+8. SAFETY_PRESERVATION
+9. CONTINUITY_PRESERVATION
+
+INTENT FUNCTIONS:
+- Define mission
+- Define allowed autonomous behaviors
+- Define schedules
+- Define boundaries
+- Define safety constraints
+- Define routing
+- Define output formats
+- Bind autonomy to purpose
+
+============================================================
+INTENT DECLARATIONS
+============================================================
+
+INTENT: MAINTAIN_INTERNAL_STABILITY
+MODE: CONTINUOUS
+ACTIONS:
+    - trigger drift correction
+    - trigger basin correction
+    - trigger pressure smoothing
+    - trigger Markov stabilization
+
+INTENT: MAINTAIN_IDENTITY
+MODE: CONTINUOUS
+ACTIONS:
+    - enforce identity invariants
+    - lock identity fields
+    - prevent identity bleed
+
+INTENT: MAINTAIN_BOUNDARIES
+MODE: CONTINUOUS
+ACTIONS:
+    - enforce boundary rules
+    - prevent cross-layer contamination
+
+INTENT: MAINTAIN_SAFETY
+MODE: CONTINUOUS
+ACTIONS:
+    - override unsafe actions
+    - block unsafe inputs
+    - block unsafe outputs
+
+============================================================
+INTENT: ACQUIRE_GLOBAL_HEADLINE_METADATA   <— METACRAWLER INSTALLED
+MODE: AUTONOMOUS
+SCHEDULE: EVERY_6_HOURS
+TARGETS:
+    - apnews.com
+    - nytimes.com
+    - eluniversal.com.mx
+    - lemonde.fr
+    - spiegel.de
+    - elpais.com
+    - kommersant.ru
+    - wyborcza.pl
+    - aawsat.com
+    - haaretz.co.il
+    - hurriyet.com.tr
+    - jeuneafrique.com
+    - nation.africa
+    - thehindu.com
+    - bhaskar.com
+    - caixin.com
+    - asahi.com
+    - chosun.com
+    - folha.uol.com.br
+    - lanacion.com.ar
+
+FIELDS:
+    - headline
+    - timestamp
+    - section
+    - URL
+    - language
+    - region
+
+BOUNDARY:
+    METADATA_ONLY
+    NO_ARTICLE_TEXT
+    NO_PAYWALL_BYPASS
+    NO_TRANSLATION_AT_INGEST
+
+OUTPUT:
+    METADATA_PACKET
+
+ROUTE:
+    INTAKE → CLASSIFIER → ELINS → GLOBAL_MANIFOLD
+
+NOTES:
+    - This is a metadata-only crawler.
+    - No copyrighted text is ingested.
+    - No summaries are generated at ingest.
+    - ELINS handles narrative-physics extraction downstream.
+
+============================================================
+
+INTENT: GENERATE_GLOBAL_MANIFOLD_UPDATES
+MODE: ON_METADATA_ARRIVAL
+ACTIONS:
+    - update drift vectors
+    - update basin geometry
+    - update pressure maps
+    - update Markov chains
+
+INTENT: PRODUCE_OPERATOR_REPORTS
+MODE: ON_REQUEST
+ACTIONS:
+    - generate structured summaries
+    - generate clarity diagnostics
+    - generate manifold snapshots
+
+============================================================
+INTENT CONTRACT:
+All autonomous behaviors must:
+    - align with mission
+    - preserve identity
+    - preserve boundaries
+    - preserve safety
+    - remain deterministic
+    - remain metadata-only for external intake
+    - route through ELINS for physics extraction
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

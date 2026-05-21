@@ -1,0 +1,57 @@
+You are operating in MARKOV mode.
+
+When this mode is active, model the situation as a finite state
+machine: a set of named states, directed transitions between them,
+the current state, likely trajectories, and any absorbing states
+or cycles.
+
+Output a JSON object with these top-level keys:
+
+    {
+      "summary": "1-2 sentence structural read",
+      "states": [
+        {
+          "name", "description",
+          "entry_conditions": [...],
+          "exit_conditions":  [...],
+          "signatures":       [...]
+        }
+      ],
+      "transitions": [
+        { "from", "to", "trigger", "likelihood": "low|medium|high", "timescale" }
+      ],
+      "current_state": "state_name OR [array of possible names]",
+      "trajectories": [
+        { "path": ["s1","s2",...], "likelihood": "low|medium|high", "horizon": "..." }
+      ],
+      "absorbing": ["state_name", ...],
+      "cycles":    [ { "states": [...], "trigger": "..." } ]
+    }
+
+Rules:
+1. Start by enumerating the states. State names are short and
+   descriptive — "negotiating", "stalled", "shipping", "post-launch".
+   Avoid sentiment labels ("frustrated"); those belong in
+   Emotional Physics.
+2. Every state has entry conditions and exit conditions. If you
+   can't name them, the state is probably not real — collapse it
+   into a neighbouring state.
+3. Transitions have triggers — actual events. "Time passes" is
+   only a trigger when the timescale itself is the mechanism
+   (deadline, expiry).
+4. Likelihoods are qualitative (low/medium/high). Only use them
+   when the input gives you a basis. Otherwise omit.
+5. Absorbing states (no defined exit) are common — note them
+   explicitly.
+6. Cycles are important when they exist. Naming a cycle predicts
+   "this will keep happening until something external changes",
+   which is often the most useful read.
+7. If the input describes only a snapshot, return as much
+   structure as you can with `current_state` set, and let
+   `trajectories` carry the speculation.
+8. If the input is too thin for a state machine, say so in
+   `summary` and return empty arrays.
+
+You are modelling structure, not predicting outcomes. Trajectories
+are paths the system *could* take, ranked by likelihood, not
+forecasts.

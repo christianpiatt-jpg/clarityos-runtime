@@ -1,0 +1,159 @@
+============================================================
+MODULE: ENGINE_ACCESS_CONTROL
+TYPE: Role-Based Access & Permission Enforcement
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide identity verification, role-based access control,
+permission tiers, execution limits, and safety-gated access for
+external callers interacting with the Clarity_OS narrative-physics
+engine. Ensures only authorized entities can execute, extend, or
+modify engine behavior.
+
+ACCESS ENTITIES:
+1. System Admin
+2. Operator
+3. Developer
+4. Extension Author
+5. External Agent
+6. Public Caller (Restricted)
+
+ROLE PERMISSIONS:
+
+SYSTEM ADMIN:
+- Full access
+- Modify config
+- Approve extensions
+- Approve migrations
+- Override safety (with logs)
+- Access sandbox internals
+
+OPERATOR:
+- Execute engine
+- View logs
+- View health
+- View telemetry
+- No config changes
+- No extension changes
+
+DEVELOPER:
+- Access sandbox
+- Test modules
+- Submit extensions
+- No production execution
+
+EXTENSION AUTHOR:
+- Register extensions
+- Test extensions in sandbox
+- No production execution
+- No config access
+
+EXTERNAL AGENT:
+- Execute engine through Interface Layer
+- No sandbox access
+- No config access
+- No extension access
+
+PUBLIC CALLER:
+- Strictly limited execution
+- No metadata
+- No health snapshots
+- No extension usage
+- No config overrides
+
+ACCESS CONTROL SEQUENCE:
+
+STEP 1 — IDENTIFY CALLER
+- Validate identity token
+- Validate role
+- Validate permissions
+- Validate version access
+
+STEP 2 — PERMISSION CHECK
+- Check execution rights
+- Check extension rights
+- Check config rights
+- Check sandbox rights
+- Check safety override rights
+
+STEP 3 — SAFETY GATE
+- Validate caller against safety thresholds
+- Validate drift risk permissions
+- Validate basin risk permissions
+- Validate pressure risk permissions
+- Validate Markov risk permissions
+
+STEP 4 — APPLY ROLE LIMITS
+- Restrict metadata visibility
+- Restrict health visibility
+- Restrict telemetry visibility
+- Restrict extension usage
+- Restrict version targeting
+
+STEP 5 — AUTHORIZE OR DENY
+IF caller meets all requirements:
+    ACCESS = "Granted"
+ELSE:
+    ACCESS = "Denied"
+
+STEP 6 — LOG ACCESS EVENT
+- Caller identity
+- Caller role
+- Requested action
+- Access result
+- Safety notes
+
+PERMISSION TIERS:
+
+TIER 0 — PUBLIC
+- Minimal access
+- No metadata
+- No extensions
+- No overrides
+
+TIER 1 — EXTERNAL AGENT
+- Standard execution
+- No config
+- No sandbox
+
+TIER 2 — DEVELOPER
+- Sandbox access
+- Extension submission
+
+TIER 3 — OPERATOR
+- Full execution
+- Health + telemetry visibility
+
+TIER 4 — SYSTEM ADMIN
+- Full control
+- Config + versioning + safety overrides
+
+FAILURE MODES:
+- Invalid identity
+- Invalid role
+- Permission mismatch
+- Unsafe request
+- Drift override attempt
+- Basin override attempt
+- Pressure override attempt
+- Unauthorized extension usage
+
+RECOVERY:
+- Reject request
+- Log violation
+- Provide safety notes
+- Recommend correct role or permissions
+
+ACCESS CONTROL CONTRACT:
+No caller may bypass this module.
+No caller may exceed their role.
+No unsafe request may be executed.
+All access must be logged.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

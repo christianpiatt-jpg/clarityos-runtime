@@ -1,0 +1,5 @@
+notepad console_primitives.txt
+
+console.quickcard:
+    load_surface("QuickStartCard")
+    return

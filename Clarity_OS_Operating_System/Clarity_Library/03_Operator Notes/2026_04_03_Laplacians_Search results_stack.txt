@@ -1,0 +1,2618 @@
+Search results
+Help
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+This page always uses small font size
+
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+- Spectral graph theory / Laplacians.
+Results 1 – 20 of 75
+The page "- Spectral graph theory / Laplacians." does not exist. You can create a draft and submit it for review or request that a redirect be created, but consider checking the search results below to see whether the topic is already covered.
+
+
+20 items
+Spectral graph theory
+In mathematics, spectral graph theory is the study of the properties of a graph in relationship to the characteristic polynomial, eigenvalues, and eigenvectors...
+15 KB (1,876 words) - 16:14, 11 January 2026
+Ramanujan graph
+field of spectral graph theory, a Ramanujan graph is a regular graph whose spectral gap is almost as large as possible (see extremal graph theory). Such...
+20 KB (2,804 words) - 04:55, 30 October 2025
+Laplacian matrix
+mathematical field of graph theory, the Laplacian matrix, also called the graph Laplacian, admittance matrix, Kirchhoff matrix, or discrete Laplacian, is a matrix...
+45 KB (5,056 words) - 12:52, 8 March 2026
+Expander graph
+In graph theory, an expander graph is a sparse graph that has strong connectivity properties, quantified using vertex, edge or spectral expansion. Expander...
+41 KB (5,391 words) - 22:25, 16 December 2025
+Thumbnail for Spectral clustering
+Spectral clustering
+Andrew V. (2006). Multiscale Spectral Image Segmentation Multiscale preconditioning for computing eigenvalues of graph Laplacians in image segmentation. Fast...
+27 KB (3,574 words) - 15:49, 30 March 2026
+Laplace operator (redirect from Laplacian)
+Peter; Vogan, David A. Jr. "Laplacians on spheres" (PDF). Retrieved 2026-03-21. Ren, Qiuyu. "Spectral Properties of the Laplacian on Compact Lie Groups" (PDF)...
+47 KB (7,538 words) - 04:06, 30 March 2026
+List of unsolved problems in mathematics (redirect from List of unsolved problems in graph theory)
+discrete and Euclidean geometries, graph theory, group theory, model theory, number theory, set theory, Ramsey theory, dynamical systems, and partial differential...
+207 KB (21,434 words) - 23:27, 30 March 2026
+Adjacency matrix (redirect from Adjacency matrix of a bipartite graph)
+between a graph and the eigenvalues and eigenvectors of its adjacency matrix is studied in spectral graph theory. The adjacency matrix of a graph should...
+20 KB (2,497 words) - 16:13, 12 February 2026
+Graph Fourier transform
+as a graph Fourier basis. The Graph Fourier transform is important in spectral graph theory. It is widely applied in the recent study of graph structured...
+12 KB (1,845 words) - 15:48, 17 December 2025
+Thumbnail for Cheeger constant (graph theory)
+Cheeger constant (graph theory)
+spectral gap of the Laplacian matrix of the graph. The Cheeger inequality is a fundamental result and motivation for spectral graph theory. Spectral graph...
+7 KB (892 words) - 17:09, 7 February 2026
+Thumbnail for Algebraic graph theory
+Algebraic graph theory
+Laplacian matrix of a graph (this part of algebraic graph theory is also called spectral graph theory). For the Petersen graph, for example, the spectrum...
+7 KB (671 words) - 19:13, 18 December 2025
+Thumbnail for Graph theory
+Graph theory
+computer science, graph theory is the study of graphs, which are mathematical structures used to model pairwise relations between objects. A graph in this context...
+73 KB (7,927 words) - 01:59, 27 March 2026
+Thumbnail for Graph drawing
+Graph drawing
+Graph drawing is an area of mathematics and computer science combining methods from geometric graph theory and information visualization to derive two-dimensional...
+34 KB (3,632 words) - 01:19, 26 February 2026
+Discrete Laplace operator (redirect from Discrete Laplacian operator)
+condition), is rarely used for graph Laplacians, but is common in other applications. Multidimensional discrete Laplacians on rectangular cuboid regular...
+34 KB (5,732 words) - 11:12, 24 February 2026
+Thumbnail for Algebraic connectivity
+Algebraic connectivity (redirect from Algebraic connectivity of a graph)
+Miroslav Fiedler) of a graph G is the second-smallest eigenvalue (counting multiple eigenvalues separately) of the Laplacian matrix of G. This eigenvalue...
+9 KB (1,017 words) - 08:37, 3 September 2025
+Thumbnail for Fan Chung
+Fan Chung (category Graph theorists)
+the areas of spectral graph theory, extremal graph theory and random graphs, in particular in generalizing the Erdős–Rényi model for graphs with general...
+23 KB (2,622 words) - 00:21, 4 February 2026
+Graph partition
+matrix, or spectral clustering that groups graph vertices using the eigendecomposition of the graph Laplacian matrix. A multi-level graph partitioning...
+25 KB (3,003 words) - 16:24, 28 November 2025
+Thumbnail for Hypergraph
+Hypergraph (redirect from Host graph)
+learning techniques include hypergraph spectral clustering that extends the spectral graph theory with hypergraph Laplacian, and hypergraph semi-supervised learning...
+54 KB (7,136 words) - 04:09, 2 February 2026
+Representation (mathematics) (section Graph theory)
+matrix and Laplacian matrix gives rise to the field of spectral graph theory. Dual to the observation above that every graph is an intersection graph is the...
+11 KB (1,209 words) - 15:44, 19 December 2025
+Thumbnail for Spectral layout
+Spectral layout
+(1994), Theory of Spectral Graph Layout, Tech. Report MSR-TR-94-04, Microsoft Research. Koren, Yehuda (2005), "Drawing graphs by eigenvectors: theory and...
+2 KB (191 words) - 19:57, 12 October 2024
+
+>
+
+Laplacian matrix
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+In the mathematical field of graph theory, the Laplacian matrix, also called the graph Laplacian, admittance matrix, Kirchhoff matrix, or discrete Laplacian, is a matrix representation of a graph. Named after Pierre-Simon Laplace, the graph Laplacian matrix can be viewed as a matrix form of the negative discrete Laplace operator on a graph approximating the negative continuous Laplacian obtained by the finite difference method.
+
+The Laplacian matrix relates to many functional graph properties. Kirchhoff's theorem can be used to calculate the number of spanning trees for a given graph. The sparsest cut of a graph can be approximated through the Fiedler vector — the eigenvector corresponding to the second smallest eigenvalue of the graph Laplacian — as established by Cheeger's inequality. The spectral decomposition of the Laplacian matrix allows the construction of low-dimensional embeddings that appear in many machine learning applications and determines a spectral layout in graph drawing. Graph-based signal processing is based on the graph Fourier transform that extends the traditional discrete Fourier transform by substituting the standard basis of complex sinusoids for eigenvectors of the Laplacian matrix of a graph corresponding to the signal.
+
+The Laplacian matrix is the easiest to define for a simple graph but is more common in applications for an edge-weighted graph, i.e., with weights on its edges — the entries of the graph adjacency matrix. Spectral graph theory relates properties of a graph to a spectrum, i.e., eigenvalues and eigenvectors of matrices associated with the graph, such as its adjacency matrix or Laplacian matrix. Imbalanced weights may undesirably affect the matrix spectrum, leading to the need of normalization — a column/row scaling of the matrix entries — resulting in normalized adjacency and Laplacian matrices.
+
+Definitions for simple graphs
+Laplacian matrix
+Given a simple graph 
+G
+{\displaystyle G} with 
+n
+{\displaystyle n} vertices 
+v
+1
+,
+…
+,
+v
+n
+{\displaystyle v_{1},\ldots ,v_{n}}, its Laplacian matrix 
+L
+n
+×
+n
+{\textstyle L_{n\times n}} is defined element-wise as[1]
+
+L
+i
+,
+j
+:=
+{
+deg
+⁡
+(
+v
+i
+)
+if
+ 
+i
+=
+j
+−
+1
+if
+ 
+i
+≠
+j
+ 
+and
+ 
+v
+i
+ is adjacent to 
+v
+j
+0
+otherwise
+,
+{\displaystyle L_{i,j}:={\begin{cases}\deg(v_{i})&{\mbox{if}}\ i=j\\-1&{\mbox{if}}\ i\neq j\ {\mbox{and}}\ v_{i}{\mbox{ is adjacent to }}v_{j}\\0&{\mbox{otherwise}},\end{cases}}}
+or equivalently by the matrix
+
+L
+=
+D
+−
+A
+,
+{\displaystyle L=D-A,}
+where D is the degree matrix, and A is the graph's adjacency matrix. Since 
+G
+{\textstyle G} is a simple graph, 
+A
+{\textstyle A} only contains 1s or 0s and its diagonal elements are all 0s.
+
+Here is a simple example of a labelled, undirected graph and its Laplacian matrix.
+
+Labelled graph	Degree matrix	Adjacency matrix	Laplacian matrix
+	
+(
+2
+0
+0
+0
+0
+0
+0
+3
+0
+0
+0
+0
+0
+0
+2
+0
+0
+0
+0
+0
+0
+3
+0
+0
+0
+0
+0
+0
+3
+0
+0
+0
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrrrrr}2&0&0&0&0&0\\0&3&0&0&0&0\\0&0&2&0&0&0\\0&0&0&3&0&0\\0&0&0&0&3&0\\0&0&0&0&0&1\\\end{array}}\right)}	
+(
+0
+1
+0
+0
+1
+0
+1
+0
+1
+0
+1
+0
+0
+1
+0
+1
+0
+0
+0
+0
+1
+0
+1
+1
+1
+1
+0
+1
+0
+0
+0
+0
+0
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrrrrr}0&1&0&0&1&0\\1&0&1&0&1&0\\0&1&0&1&0&0\\0&0&1&0&1&1\\1&1&0&1&0&0\\0&0&0&1&0&0\\\end{array}}\right)}	
+(
+2
+−
+1
+0
+0
+−
+1
+0
+−
+1
+3
+−
+1
+0
+−
+1
+0
+0
+−
+1
+2
+−
+1
+0
+0
+0
+0
+−
+1
+3
+−
+1
+−
+1
+−
+1
+−
+1
+0
+−
+1
+3
+0
+0
+0
+0
+−
+1
+0
+1
+)
+{\textstyle \left({\begin{array}{rrrrrr}2&-1&0&0&-1&0\\-1&3&-1&0&-1&0\\0&-1&2&-1&0&0\\0&0&-1&3&-1&-1\\-1&-1&0&-1&3&0\\0&0&0&-1&0&1\\\end{array}}\right)}
+We observe for the undirected graph that both the adjacency matrix and the Laplacian matrix are symmetric and that the row- and column-sums of the Laplacian matrix are all zeros (which directly implies that the Laplacian matrix is singular).
+
+For directed graphs, either the indegree or outdegree might be used, depending on the application, as in the following example:
+
+Labelled graph	Adjacency matrix	Out-Degree matrix	Out-Degree Laplacian	In-Degree matrix	In-Degree Laplacian
+
+(
+0
+1
+1
+0
+0
+1
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&1\\0&0&1\\1&0&0\\\end{array}}\right)}	
+(
+2
+0
+0
+0
+1
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}2&0&0\\0&1&0\\0&0&1\\\end{array}}\right)}	
+(
+2
+0
+−
+1
+−
+1
+1
+0
+−
+1
+−
+1
+1
+)
+{\textstyle \left({\begin{array}{rrr}2&0&-1\\-1&1&0\\-1&-1&1\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+1
+0
+0
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&1&0\\0&0&2\\\end{array}}\right)}	
+(
+1
+−
+1
+−
+1
+0
+1
+−
+1
+−
+1
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&-1\\0&1&-1\\-1&0&2\\\end{array}}\right)}
+In the directed graph, the adjacency matrix and Laplacian matrix are asymmetric. In its Laplacian matrix, column-sums or row-sums are zero, depending on whether the indegree or outdegree has been used.
+
+Laplacian matrix for an undirected graph via the oriented incidence matrix
+The 
+|
+v
+|
+×
+|
+e
+|
+{\textstyle |v|\times |e|} oriented incidence matrix B with element Bve for the vertex v and the edge e (connecting vertices 
+v
+i
+{\textstyle v_{i}} and 
+v
+j
+{\textstyle v_{j}}, with i ≠ j) is defined by
+
+B
+v
+e
+=
+{
+1
+,
+if 
+v
+=
+v
+i
+−
+1
+,
+if 
+v
+=
+v
+j
+0
+,
+otherwise
+.
+{\displaystyle B_{ve}=\left\{{\begin{array}{rl}1,&{\text{if }}v=v_{i}\\-1,&{\text{if }}v=v_{j}\\0,&{\text{otherwise}}.\end{array}}\right.}
+Even though the edges in this definition are technically directed, their directions can be arbitrary, still resulting in the same symmetric Laplacian 
+|
+v
+|
+×
+|
+v
+|
+{\textstyle |v|\times |v|} matrix L defined as
+
+L
+=
+B
+B
+T
+{\displaystyle L=BB^{\textsf {T}}}
+where 
+B
+T
+{\textstyle B^{\textsf {T}}} is the matrix transpose of B.
+
+Undirected graph	Incidence matrix	Laplacian matrix
+	
+(
+1
+1
+1
+0
+−
+1
+0
+0
+0
+0
+−
+1
+0
+1
+0
+0
+−
+1
+−
+1
+)
+{\textstyle \left({\begin{array}{rrrr}1&1&1&0\\-1&0&0&0\\0&-1&0&1\\0&0&-1&-1\\\end{array}}\right)}	
+(
+3
+−
+1
+−
+1
+−
+1
+−
+1
+1
+0
+0
+−
+1
+0
+2
+−
+1
+−
+1
+0
+−
+1
+2
+)
+{\textstyle \left({\begin{array}{rrrr}3&-1&-1&-1\\-1&1&0&0\\-1&0&2&-1\\-1&0&-1&2\\\end{array}}\right)}
+An alternative product 
+B
+T
+B
+{\displaystyle B^{\textsf {T}}B} defines the so-called 
+|
+e
+|
+×
+|
+e
+|
+{\textstyle |e|\times |e|} edge-based Laplacian, as opposed to the original commonly used vertex-based Laplacian matrix L.
+
+Symmetric Laplacian for a directed graph
+The Laplacian matrix of a directed graph is by definition generally non-symmetric, while, e.g., traditional spectral clustering is primarily developed for undirected graphs with symmetric adjacency and Laplacian matrices. A trivial approach to applying techniques requiring the symmetry is to turn the original directed graph into an undirected graph and build the Laplacian matrix for the latter.
+
+In the matrix notation, the adjacency matrix of the undirected graph could, e.g., be defined as a Boolean sum of the adjacency matrix 
+A
+{\displaystyle A} of the original directed graph and its matrix transpose 
+A
+T
+{\displaystyle A^{T}}, where the zero and one entries of 
+A
+{\displaystyle A} are treated as logical, rather than numerical, values, as in the following example:
+
+Adjacency matrix	Symmetrized adjacency	Symmetric Laplacian matrix
+(
+0
+1
+1
+0
+0
+1
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{ccc}0&1&1\\0&0&1\\1&0&0\\\end{array}}\right)}	
+(
+0
+1
+1
+1
+0
+1
+1
+1
+0
+)
+{\textstyle \left({\begin{array}{ccc}0&1&1\\1&0&1\\1&1&0\\\end{array}}\right)}	
+(
+2
+−
+1
+−
+1
+−
+1
+2
+−
+1
+−
+1
+−
+1
+2
+)
+{\textstyle \left({\begin{array}{ccc}2&-1&-1\\-1&2&-1\\-1&-1&2\\\end{array}}\right)}
+Laplacian matrix normalization
+A vertex with a large degree, also called a heavy node, results in a large diagonal entry in the Laplacian matrix dominating the matrix properties. Normalization is aimed to make the influence of such vertices more equal to that of other vertices, by dividing the entries of the Laplacian matrix by the vertex degrees. To avoid division by zero, isolated vertices with zero degrees are excluded from the process of the normalization.
+
+Symmetrically normalized Laplacian
+The symmetrically normalized Laplacian matrix is defined as:[1]
+
+L
+sym
+:=
+(
+D
++
+)
+1
+/
+2
+L
+(
+D
++
+)
+1
+/
+2
+=
+I
+−
+(
+D
++
+)
+1
+/
+2
+A
+(
+D
++
+)
+1
+/
+2
+,
+{\displaystyle L^{\text{sym}}:=(D^{+})^{1/2}L(D^{+})^{1/2}=I-(D^{+})^{1/2}A(D^{+})^{1/2},}
+where 
+D
++
+{\displaystyle D^{+}} is the Moore–Penrose inverse of the degree matrix.
+
+The elements of 
+L
+sym
+{\textstyle L^{\text{sym}}} are thus given by
+
+L
+i
+,
+j
+sym
+:=
+{
+1
+if 
+i
+=
+j
+ and 
+deg
+⁡
+(
+v
+i
+)
+≠
+0
+−
+1
+deg
+⁡
+(
+v
+i
+)
+deg
+⁡
+(
+v
+j
+)
+if 
+i
+≠
+j
+ and 
+v
+i
+ is adjacent to 
+v
+j
+0
+otherwise
+.
+{\displaystyle L_{i,j}^{\text{sym}}:={\begin{cases}1&{\mbox{if }}i=j{\mbox{ and }}\deg(v_{i})\neq 0\\-{\frac {1}{\sqrt {\deg(v_{i})\deg(v_{j})}}}&{\mbox{if }}i\neq j{\mbox{ and }}v_{i}{\mbox{ is adjacent to }}v_{j}\\0&{\mbox{otherwise}}.\end{cases}}}
+The symmetrically normalized Laplacian matrix is symmetric if and only if the adjacency matrix is symmetric.
+
+Adjacency matrix	Degree matrix	Normalized Laplacian
+(
+0
+1
+0
+1
+0
+1
+0
+1
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&0\\1&0&1\\0&1&0\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+2
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&2&0\\0&0&1\\\end{array}}\right)}	
+(
+1
+−
+1
+/
+2
+0
+−
+1
+/
+2
+1
+−
+1
+/
+2
+0
+−
+1
+/
+2
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-{\sqrt {1/2}}&0\\-{\sqrt {1/2}}&1&-{\sqrt {1/2}}\\0&-{\sqrt {1/2}}&1\\\end{array}}\right)}
+For a non-symmetric adjacency matrix of a directed graph, either of indegree and outdegree can be used for normalization:
+
+Adjacency matrix	Out-Degree matrix	Out-Degree normalized Laplacian	In-Degree matrix	In-Degree normalized Laplacian
+(
+0
+1
+1
+0
+0
+1
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&1\\0&0&1\\1&0&0\\\end{array}}\right)}	
+(
+2
+0
+0
+0
+1
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}2&0&0\\0&1&0\\0&0&1\\\end{array}}\right)}	
+(
+1
+−
+1
+/
+2
+−
+1
+/
+2
+0
+1
+−
+1
+−
+1
+/
+2
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-{\sqrt {1/2}}&-{\sqrt {1/2}}\\0&1&-1\\-{\sqrt {1/2}}&0&1\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+1
+0
+0
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&1&0\\0&0&2\\\end{array}}\right)}	
+(
+1
+−
+1
+−
+1
+/
+2
+0
+1
+−
+1
+/
+2
+−
+1
+/
+2
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&-{\sqrt {1/2}}\\0&1&-{\sqrt {1/2}}\\-{\sqrt {1/2}}&0&1\\\end{array}}\right)}
+Left (random-walk) and right normalized Laplacians
+The left (random-walk) normalized Laplacian matrix is defined as:
+
+L
+rw
+:=
+D
++
+L
+=
+I
+−
+D
++
+A
+,
+{\displaystyle L^{\text{rw}}:=D^{+}L=I-D^{+}A,}
+where 
+D
++
+{\displaystyle D^{+}} is the Moore–Penrose inverse. The elements of 
+L
+rw
+{\textstyle L^{\text{rw}}} are given by
+
+L
+i
+,
+j
+rw
+:=
+{
+1
+if 
+i
+=
+j
+ and 
+deg
+⁡
+(
+v
+i
+)
+≠
+0
+−
+1
+deg
+⁡
+(
+v
+i
+)
+if 
+i
+≠
+j
+ and 
+v
+i
+ is adjacent to 
+v
+j
+0
+otherwise
+.
+{\displaystyle L_{i,j}^{\text{rw}}:={\begin{cases}1&{\mbox{if }}i=j{\mbox{ and }}\deg(v_{i})\neq 0\\-{\frac {1}{\deg(v_{i})}}&{\mbox{if }}i\neq j{\mbox{ and }}v_{i}{\mbox{ is adjacent to }}v_{j}\\0&{\mbox{otherwise}}.\end{cases}}}
+Similarly, the right normalized Laplacian matrix is defined as
+
+L
+D
++
+=
+I
+−
+A
+D
++
+{\displaystyle LD^{+}=I-AD^{+}}.
+The left or right normalized Laplacian matrix is symmetric if the adjacency matrix is symmetric and the graph is regular. Otherwise, the left or right normalized Laplacian matrix is asymmetric. For example,
+
+Adjacency matrix	Degree matrix	Left normalized Laplacian	Right normalized Laplacian
+(
+0
+1
+0
+1
+0
+1
+0
+1
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&0\\1&0&1\\0&1&0\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+2
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&2&0\\0&0&1\\\end{array}}\right)}	
+(
+1
+−
+1
+0
+−
+1
+/
+2
+1
+−
+1
+/
+2
+0
+−
+1
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&0\\-1/2&1&-1/2\\0&-1&1\\\end{array}}\right)}	
+(
+1
+−
+1
+/
+2
+0
+−
+1
+1
+−
+1
+0
+−
+1
+/
+2
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1/2&0\\-1&1&-1\\0&-1/2&1\\\end{array}}\right)}
+The example also demonstrates that if 
+G
+{\displaystyle G} has no isolated vertices, then 
+D
++
+A
+{\displaystyle D^{+}A} right stochastic and hence is the matrix of a random walk, so that the left normalized Laplacian 
+L
+rw
+:=
+D
++
+L
+=
+I
+−
+D
++
+A
+{\displaystyle L^{\text{rw}}:=D^{+}L=I-D^{+}A} has each row summing to zero. Thus we sometimes alternatively call 
+L
+rw
+{\displaystyle L^{\text{rw}}} the random-walk normalized Laplacian. In the less uncommonly used right normalized Laplacian 
+L
+D
++
+=
+I
+−
+A
+D
++
+{\displaystyle LD^{+}=I-AD^{+}} each column sums to zero since 
+A
+D
++
+{\displaystyle AD^{+}} is left stochastic.
+
+For a non-symmetric adjacency matrix of a directed graph, one also needs to choose indegree or outdegree for normalization:
+
+Adjacency matrix	Out-Degree matrix	Out-Degree left normalized Laplacian	In-Degree matrix	In-Degree right normalized Laplacian
+(
+0
+1
+1
+0
+0
+1
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&1\\0&0&1\\1&0&0\\\end{array}}\right)}	
+(
+2
+0
+0
+0
+1
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}2&0&0\\0&1&0\\0&0&1\\\end{array}}\right)}	
+(
+1
+−
+1
+/
+2
+−
+1
+/
+2
+0
+1
+−
+1
+−
+1
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1/2&-1/2\\0&1&-1\\-1&0&1\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+1
+0
+0
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&1&0\\0&0&2\\\end{array}}\right)}	
+(
+1
+−
+1
+−
+1
+/
+2
+0
+1
+−
+1
+/
+2
+−
+1
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&-1/2\\0&1&-1/2\\-1&0&1\\\end{array}}\right)}
+The left out-degree normalized Laplacian with row-sums all 0 relates to right stochastic 
+D
+out
++
+A
+{\displaystyle D_{\text{out}}^{+}A} , while the right in-degree normalized Laplacian with column-sums all 0 contains left stochastic 
+A
+D
+in
++
+{\displaystyle AD_{\text{in}}^{+}}.
+
+Definitions for graphs with weighted edges
+Common in applications graphs with weighted edges are conveniently defined by their adjacency matrices where values of the entries are numeric and no longer limited to zeros and ones. In spectral clustering and graph-based signal processing, where graph vertices represent data points, the edge weights can be computed, e.g., as inversely proportional to the distances between pairs of data points, leading to all weights being non-negative with larger values informally corresponding to more similar pairs of data points. Using correlation and anti-correlation between the data points naturally leads to both positive and negative weights. Most definitions for simple graphs are trivially extended to the standard case of non-negative weights, while negative weights require more attention, especially in normalization.
+
+Laplacian matrix
+The Laplacian matrix is defined by
+
+L
+=
+D
+−
+A
+,
+{\displaystyle L=D-A,}
+where D is the degree matrix and A is the adjacency matrix of the graph.
+
+For directed graphs, either the indegree or outdegree might be used, depending on the application, as in the following example:
+
+Adjacency matrix	In-Degree matrix	In-Degree Laplacian	Out-Degree matrix	Out-Degree Laplacian
+(
+0
+1
+2
+3
+0
+5
+6
+7
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&2\\3&0&5\\6&7&0\\\end{array}}\right)}	
+(
+9
+0
+0
+0
+8
+0
+0
+0
+7
+)
+{\textstyle \left({\begin{array}{rrr}9&0&0\\0&8&0\\0&0&7\\\end{array}}\right)}	
+(
+9
+−
+1
+−
+2
+−
+3
+8
+−
+5
+−
+6
+−
+7
+7
+)
+{\textstyle \left({\begin{array}{rrr}9&-1&-2\\-3&8&-5\\-6&-7&7\\\end{array}}\right)}	
+(
+3
+0
+0
+0
+8
+0
+0
+0
+13
+)
+{\textstyle \left({\begin{array}{rrr}3&0&0\\0&8&0\\0&0&13\\\end{array}}\right)}	
+(
+3
+−
+1
+−
+2
+−
+3
+8
+−
+5
+−
+6
+−
+7
+13
+)
+{\textstyle \left({\begin{array}{rrr}3&-1&-2\\-3&8&-5\\-6&-7&13\\\end{array}}\right)}
+Graph self-loops, manifesting themselves by non-zero entries on the main diagonal of the adjacency matrix, are allowed but do not affect the graph Laplacian values.
+
+Symmetric Laplacian via the incidence matrix
+
+A 2-dimensional spring system.
+For graphs with weighted edges one can define a weighted incidence matrix B and use it to construct the corresponding symmetric Laplacian as 
+L
+=
+B
+B
+T
+{\displaystyle L=BB^{\textsf {T}}}. An alternative cleaner approach, described here, is to separate the weights from the connectivity: continue using the incidence matrix as for regular graphs and introduce a matrix just holding the values of the weights. A spring system is an example of this model used in mechanics to describe a system of springs of given stiffnesses and unit length, where the values of the stiffnesses play the role of the weights of the graph edges.
+
+We thus reuse the definition of the weightless 
+|
+v
+|
+×
+|
+e
+|
+{\textstyle |v|\times |e|} incidence matrix B with element Bve for the vertex v and the edge e (connecting vertexes 
+v
+i
+{\textstyle v_{i}} and 
+v
+j
+{\textstyle v_{j}}, with i > j) defined by
+
+B
+v
+e
+=
+{
+1
+,
+if 
+v
+=
+v
+i
+−
+1
+,
+if 
+v
+=
+v
+j
+0
+,
+otherwise
+.
+{\displaystyle B_{ve}=\left\{{\begin{array}{rl}1,&{\text{if }}v=v_{i}\\-1,&{\text{if }}v=v_{j}\\0,&{\text{otherwise}}.\end{array}}\right.}
+We now also define a diagonal 
+|
+e
+|
+×
+|
+e
+|
+{\textstyle |e|\times |e|} matrix W containing the edge weights. Even though the edges in the definition of B are technically directed, their directions can be arbitrary, still resulting in the same symmetric Laplacian 
+|
+v
+|
+×
+|
+v
+|
+{\textstyle |v|\times |v|} matrix L defined as
+
+L
+=
+B
+W
+B
+T
+{\displaystyle L=BWB^{\textsf {T}}}
+where 
+B
+T
+{\textstyle B^{\textsf {T}}} is the matrix transpose of B.
+
+The construction is illustrated in the following example, where every edge 
+e
+i
+{\textstyle e_{i}} is assigned the weight value i, with 
+i
+=
+1
+,
+2
+,
+3
+,
+4.
+{\textstyle i=1,2,3,4.}
+
+Undirected graph	Incidence matrix	Edge weights	Laplacian matrix
+	
+(
+1
+1
+1
+0
+−
+1
+0
+0
+0
+0
+−
+1
+0
+1
+0
+0
+−
+1
+−
+1
+)
+{\textstyle \left({\begin{array}{rrrr}1&1&1&0\\-1&0&0&0\\0&-1&0&1\\0&0&-1&-1\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+0
+2
+0
+0
+0
+0
+3
+0
+0
+0
+0
+4
+)
+{\textstyle \left({\begin{array}{rrrr}1&0&0&0\\0&2&0&0\\0&0&3&0\\0&0&0&4\\\end{array}}\right)}	
+(
+6
+−
+1
+−
+2
+−
+3
+−
+1
+1
+0
+0
+−
+2
+0
+6
+−
+4
+−
+3
+0
+−
+4
+7
+)
+{\textstyle \left({\begin{array}{rrrr}6&-1&-2&-3\\-1&1&0&0\\-2&0&6&-4\\-3&0&-4&7\\\end{array}}\right)}
+Symmetric Laplacian for a directed graph
+Just like for simple graphs, the Laplacian matrix of a directed weighted graph is by definition generally non-symmetric. The symmetry can be enforced by turning the original directed graph into an undirected graph first before constructing the Laplacian. The adjacency matrix of the undirected graph could, e.g., be defined as a sum of the adjacency matrix 
+A
+{\displaystyle A} of the original directed graph and its matrix transpose 
+A
+T
+{\displaystyle A^{T}} as in the following example:
+
+Adjacency matrix	Symmetrized adjacency matrix	Symmetric Laplacian matrix
+(
+0
+1
+1
+0
+0
+1
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&1\\0&0&1\\1&0&0\\\end{array}}\right)}	
+(
+0
+1
+2
+1
+0
+1
+2
+1
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&2\\1&0&1\\2&1&0\\\end{array}}\right)}	
+(
+3
+−
+1
+−
+2
+−
+1
+2
+−
+1
+−
+2
+−
+1
+3
+)
+{\textstyle \left({\begin{array}{rrr}3&-1&-2\\-1&2&-1\\-2&-1&3\\\end{array}}\right)}
+where the zero and one entries of 
+A
+{\displaystyle A} are treated as numerical, rather than logical as for simple graphs, values, explaining the difference in the results - for simple graphs, the symmetrized graph still needs to be simple with its symmetrized adjacency matrix having only logical, not numerical values, e.g., the logical sum is 1 v 1 = 1, while the numeric sum is 1 + 1 = 2.
+
+Alternatively, the symmetric Laplacian matrix can be calculated from the two Laplacians using the indegree and outdegree, as in the following example:
+
+Adjacency matrix	Out-Degree matrix	Out-Degree Laplacian	In-Degree matrix	In-Degree Laplacian
+(
+0
+1
+1
+0
+0
+1
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&1\\0&0&1\\1&0&0\\\end{array}}\right)}	
+(
+2
+0
+0
+0
+1
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}2&0&0\\0&1&0\\0&0&1\\\end{array}}\right)}	
+(
+2
+−
+1
+−
+1
+0
+1
+−
+1
+−
+1
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}2&-1&-1\\0&1&-1\\-1&0&1\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+1
+0
+0
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&1&0\\0&0&2\\\end{array}}\right)}	
+(
+1
+−
+1
+−
+1
+0
+1
+−
+1
+−
+1
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&-1\\0&1&-1\\-1&0&2\\\end{array}}\right)}
+The sum of the out-degree Laplacian transposed and the in-degree Laplacian equals to the symmetric Laplacian matrix.
+
+Laplacian matrix normalization
+The goal of normalization is, like for simple graphs, to make the diagonal entries of the Laplacian matrix to be all unit, also scaling off-diagonal entries correspondingly. In a weighted graph, a vertex may have a large degree because of a small number of connected edges but with large weights just as well as due to a large number of connected edges with unit weights.
+
+Graph self-loops, i.e., non-zero entries on the main diagonal of the adjacency matrix, do not affect the graph Laplacian values, but may need to be counted for calculation of the normalization factors.
+
+Symmetrically normalized Laplacian
+The symmetrically normalized Laplacian is defined as
+
+L
+sym
+:=
+(
+D
++
+)
+1
+/
+2
+L
+(
+D
++
+)
+1
+/
+2
+=
+I
+−
+(
+D
++
+)
+1
+/
+2
+A
+(
+D
++
+)
+1
+/
+2
+,
+{\displaystyle L^{\text{sym}}:=(D^{+})^{1/2}L(D^{+})^{1/2}=I-(D^{+})^{1/2}A(D^{+})^{1/2},}
+where L is the unnormalized Laplacian, A is the adjacency matrix, D is the degree matrix, and 
+D
++
+{\displaystyle D^{+}} is the Moore–Penrose inverse. Since the degree matrix D is diagonal, its reciprocal square root 
+(
+D
++
+)
+1
+/
+2
+{\textstyle (D^{+})^{1/2}} is just the diagonal matrix whose diagonal entries are the reciprocals of the square roots of the diagonal entries of D. If all the edge weights are nonnegative then all the degree values are automatically also nonnegative and so every degree value has a unique positive square root. To avoid the division by zero, vertices with zero degrees are excluded from the process of the normalization, as in the following example:
+
+Adjacency matrix	In-Degree matrix	In-Degree normalized Laplacian	Out-Degree matrix	Out-Degree normalized Laplacian
+(
+0
+1
+0
+4
+0
+0
+0
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&0\\4&0&0\\0&0&0\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+4
+0
+0
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&4&0\\0&0&0\\\end{array}}\right)}	
+(
+1
+−
+1
+/
+2
+0
+−
+2
+1
+0
+0
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}1&-1/2&0\\-2&1&0\\0&0&0\\\end{array}}\right)}	
+(
+4
+0
+0
+0
+1
+0
+0
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}4&0&0\\0&1&0\\0&0&0\\\end{array}}\right)}	
+(
+1
+−
+1
+/
+2
+0
+−
+2
+1
+0
+0
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}1&-1/2&0\\-2&1&0\\0&0&0\\\end{array}}\right)}
+The symmetrically normalized Laplacian is a symmetric matrix if and only if the adjacency matrix A is symmetric and the diagonal entries of D are nonnegative, in which case we can use the term the symmetric normalized Laplacian.
+
+The symmetric normalized Laplacian matrix can be also written as
+
+L
+sym
+:=
+(
+D
++
+)
+1
+/
+2
+L
+(
+D
++
+)
+1
+/
+2
+=
+(
+D
++
+)
+1
+/
+2
+B
+W
+B
+T
+(
+D
++
+)
+1
+/
+2
+=
+S
+S
+T
+{\displaystyle L^{\text{sym}}:=(D^{+})^{1/2}L(D^{+})^{1/2}=(D^{+})^{1/2}BWB^{\textsf {T}}(D^{+})^{1/2}=SS^{T}}
+using the weightless 
+|
+v
+|
+×
+|
+e
+|
+{\textstyle |v|\times |e|} incidence matrix B and the diagonal 
+|
+e
+|
+×
+|
+e
+|
+{\textstyle |e|\times |e|} matrix W containing the edge weights and defining the new 
+|
+v
+|
+×
+|
+e
+|
+{\textstyle |v|\times |e|} weighted incidence matrix 
+S
+=
+(
+D
++
+)
+1
+/
+2
+B
+W
+1
+/
+2
+{\textstyle S=(D^{+})^{1/2}BW^{{1}/{2}}} whose rows are indexed by the vertices and whose columns are indexed by the edges of G such that each column corresponding to an edge e = {u, v} has an entry 
+1
+d
+u
+{\textstyle {\frac {1}{\sqrt {d_{u}}}}} in the row corresponding to u, an entry 
+−
+1
+d
+v
+{\textstyle -{\frac {1}{\sqrt {d_{v}}}}} in the row corresponding to v, and has 0 entries elsewhere.
+
+Random walk normalized Laplacian
+The random walk normalized Laplacian is defined as
+
+L
+rw
+:=
+D
++
+L
+=
+I
+−
+D
++
+A
+{\displaystyle L^{\text{rw}}:=D^{+}L=I-D^{+}A}
+where D is the degree matrix. Since the degree matrix D is diagonal, its inverse 
+D
++
+{\textstyle D^{+}} is simply defined as a diagonal matrix, having diagonal entries which are the reciprocals of the corresponding diagonal entries of D. For the isolated vertices (those with degree 0), a common choice is to set the corresponding element 
+L
+i
+,
+i
+rw
+{\textstyle L_{i,i}^{\text{rw}}} to 0. The matrix elements of 
+L
+rw
+{\textstyle L^{\text{rw}}} are given by
+
+L
+i
+,
+j
+rw
+:=
+{
+1
+if
+ 
+i
+=
+j
+ 
+and
+ 
+deg
+⁡
+(
+v
+i
+)
+≠
+0
+−
+1
+deg
+⁡
+(
+v
+i
+)
+if
+ 
+i
+≠
+j
+ 
+and
+ 
+v
+i
+ is adjacent to 
+v
+j
+0
+otherwise
+.
+{\displaystyle L_{i,j}^{\text{rw}}:={\begin{cases}1&{\mbox{if}}\ i=j\ {\mbox{and}}\ \deg(v_{i})\neq 0\\-{\frac {1}{\deg(v_{i})}}&{\mbox{if}}\ i\neq j\ {\mbox{and}}\ v_{i}{\mbox{ is adjacent to }}v_{j}\\0&{\mbox{otherwise}}.\end{cases}}}
+The name of the random-walk normalized Laplacian comes from the fact that this matrix is 
+L
+rw
+=
+I
+−
+P
+{\textstyle L^{\text{rw}}=I-P}, where 
+P
+=
+D
++
+A
+{\textstyle P=D^{+}A} is simply the transition matrix of a random walker on the graph, assuming non-negative weights. For example, let 
+e
+i
+{\textstyle e_{i}} denote the i-th standard basis vector. Then 
+x
+=
+e
+i
+P
+{\textstyle x=e_{i}P} is a probability vector representing the distribution of a random walker's locations after taking a single step from vertex 
+i
+{\textstyle i}; i.e., 
+x
+j
+=
+P
+(
+v
+i
+→
+v
+j
+)
+{\textstyle x_{j}=\mathbb {P} \left(v_{i}\to v_{j}\right)}. More generally, if the vector 
+x
+{\textstyle x} is a probability distribution of the location of a random walker on the vertices of the graph, then 
+x
+′
+=
+x
+P
+t
+{\textstyle x'=xP^{t}} is the probability distribution of the walker after 
+t
+{\textstyle t} steps.
+
+The random walk normalized Laplacian can also be called the left normalized Laplacian 
+L
+rw
+:=
+D
++
+L
+{\displaystyle L^{\text{rw}}:=D^{+}L} since the normalization is performed by multiplying the Laplacian by the normalization matrix 
+D
++
+{\displaystyle D^{+}} on the left. It has each row summing to zero since 
+P
+=
+D
++
+A
+{\displaystyle P=D^{+}A} is right stochastic, assuming all the weights are non-negative.
+
+In the less uncommonly used right normalized Laplacian 
+L
+D
++
+=
+I
+−
+A
+D
++
+{\displaystyle LD^{+}=I-AD^{+}} each column sums to zero since 
+A
+D
++
+{\displaystyle AD^{+}} is left stochastic.
+
+For a non-symmetric adjacency matrix of a directed graph, one also needs to choose indegree or outdegree for normalization:
+
+Adjacency matrix	Out-Degree matrix	Out-Degree left normalized Laplacian	In-Degree matrix	In-Degree right normalized Laplacian
+(
+0
+1
+0
+0
+0
+2
+1
+0
+0
+)
+{\textstyle \left({\begin{array}{rrr}0&1&0\\0&0&2\\1&0&0\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+2
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&2&0\\0&0&1\\\end{array}}\right)}	
+(
+1
+−
+1
+0
+0
+1
+−
+1
+−
+1
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&0\\0&1&-1\\-1&0&1\\\end{array}}\right)}	
+(
+1
+0
+0
+0
+1
+0
+0
+0
+2
+)
+{\textstyle \left({\begin{array}{rrr}1&0&0\\0&1&0\\0&0&2\\\end{array}}\right)}	
+(
+1
+−
+1
+0
+0
+1
+−
+1
+−
+1
+0
+1
+)
+{\textstyle \left({\begin{array}{rrr}1&-1&0\\0&1&-1\\-1&0&1\\\end{array}}\right)}
+The left out-degree normalized Laplacian with row-sums all 0 relates to right stochastic 
+D
+out
++
+A
+{\displaystyle D_{\text{out}}^{+}A} , while the right in-degree normalized Laplacian with column-sums all 0 contains left stochastic 
+A
+D
+in
++
+{\displaystyle AD_{\text{in}}^{+}}.
+
+Negative weights
+Negative weights present several challenges for normalization:
+
+The presence of negative weights may naturally result in zero row- and/or column-sums for non-isolated vertices. A vertex with a large row-sum of positive weights and equally negatively large row-sum of negative weights, together summing up to zero, could be considered a heavy node and both large values scaled, while the diagonal entry remains zero, like for an isolated vertex.
+Negative weights may also give negative row- and/or column-sums, so that the corresponding diagonal entry in the non-normalized Laplacian matrix would be negative and a positive square root needed for the symmetric normalization would not exist.
+Arguments can be made to take the absolute value of the row- and/or column-sums for the purpose of normalization, thus treating a possible value -1 as a legitimate unit entry of the main diagonal of the normalized Laplacian matrix.
+Properties
+For an (undirected) graph G and its Laplacian matrix L with eigenvalues 
+λ
+0
+≤
+λ
+1
+≤
+⋯
+≤
+λ
+n
+−
+1
+{\textstyle \lambda _{0}\leq \lambda _{1}\leq \cdots \leq \lambda _{n-1}}:
+
+L is symmetric.
+L is positive-semidefinite (that is 
+λ
+i
+≥
+0
+{\textstyle \lambda _{i}\geq 0} for all 
+i
+{\textstyle i}). This can be seen from the fact that the Laplacian is symmetric and diagonally dominant.
+L is an M-matrix (its off-diagonal entries are nonpositive, yet the real parts of its eigenvalues are nonnegative).
+Every row sum and column sum of L is zero. Indeed, in the sum, the degree of the vertex is summed with a "−1" for each neighbor.
+In consequence, 
+λ
+0
+=
+0
+{\textstyle \lambda _{0}=0}, because the vector 
+v
+0
+=
+(
+1
+,
+1
+,
+…
+,
+1
+)
+{\textstyle \mathbf {v} _{0}=(1,1,\dots ,1)} satisfies 
+L
+v
+0
+=
+0
+.
+{\textstyle L\mathbf {v} _{0}=\mathbf {0} .} This also implies that the Laplacian matrix is singular.
+The number of connected components in the graph is the dimension of the nullspace of the Laplacian and the algebraic multiplicity of the 0 eigenvalue.
+The smallest non-zero eigenvalue of L is called the spectral gap.
+The second smallest eigenvalue of L (could be zero) is the algebraic connectivity (or Fiedler value) of G and approximates the sparsest cut of a graph.
+The Laplacian is an operator on the n-dimensional vector space of functions 
+f
+:
+V
+→
+R
+{\textstyle f:V\to \mathbb {R} }, where 
+V
+{\textstyle V} is the vertex set of G, and 
+n
+=
+|
+V
+|
+{\textstyle n=|V|}.
+When G is k-regular, the normalized Laplacian is: 
+L
+=
+1
+k
+L
+=
+I
+−
+1
+k
+A
+{\textstyle {\mathcal {L}}={\tfrac {1}{k}}L=I-{\tfrac {1}{k}}A}, where A is the adjacency matrix and I is an identity matrix.
+For a graph with multiple connected components, L is a block diagonal matrix, where each block is the respective Laplacian matrix for each component, possibly after reordering the vertices (i.e. L is permutation-similar to a block diagonal matrix).
+The trace of the Laplacian matrix L is equal to 
+2
+m
+{\textstyle 2m} where 
+m
+{\textstyle m} is the number of edges of the considered graph.
+Now consider an eigendecomposition of 
+L
+{\textstyle L}, with unit-norm eigenvectors 
+v
+i
+{\textstyle \mathbf {v} _{i}} and corresponding eigenvalues 
+λ
+i
+{\textstyle \lambda _{i}}:
+λ
+i
+=
+v
+i
+T
+L
+v
+i
+=
+v
+i
+T
+M
+T
+M
+v
+i
+=
+(
+M
+v
+i
+)
+T
+(
+M
+v
+i
+)
+.
+{\displaystyle {\begin{aligned}\lambda _{i}&=\mathbf {v} _{i}^{\textsf {T}}L\mathbf {v} _{i}\\&=\mathbf {v} _{i}^{\textsf {T}}M^{\textsf {T}}M\mathbf {v} _{i}\\&=\left(M\mathbf {v} _{i}\right)^{\textsf {T}}\left(M\mathbf {v} _{i}\right).\\\end{aligned}}}
+Because 
+λ
+i
+{\textstyle \lambda _{i}} can be written as the inner product of the vector 
+M
+v
+i
+{\textstyle M\mathbf {v} _{i}} with itself, this shows that 
+λ
+i
+≥
+0
+{\textstyle \lambda _{i}\geq 0} and so the eigenvalues of 
+L
+{\textstyle L} are all non-negative.
+
+All eigenvalues of the normalized symmetric Laplacian satisfy 0 = μ0 ≤ … ≤ μn−1 ≤ 2. These eigenvalues (known as the spectrum of the normalized Laplacian) relate well to other graph invariants for general graphs.[1]
+One can check that:
+L
+rw
+=
+I
+−
+D
+−
+1
+2
+(
+I
+−
+L
+sym
+)
+D
+1
+2
+{\displaystyle L^{\text{rw}}=I-D^{-{\frac {1}{2}}}\left(I-L^{\text{sym}}\right)D^{\frac {1}{2}}},
+i.e., 
+L
+rw
+{\textstyle L^{\text{rw}}} is similar to the normalized Laplacian 
+L
+sym
+{\textstyle L^{\text{sym}}}. For this reason, even if 
+L
+rw
+{\textstyle L^{\text{rw}}} is in general not symmetric, it has real eigenvalues — exactly the same as the eigenvalues of the normalized symmetric Laplacian 
+L
+sym
+{\textstyle L^{\text{sym}}}.
+
+Interpretation as the discrete Laplace operator approximating the continuous Laplacian
+The graph Laplacian matrix can be further viewed as a matrix form of the negative discrete Laplace operator on a graph approximating the negative continuous Laplacian operator obtained by the finite difference method. (See Discrete Poisson equation)[2] In this interpretation, every graph vertex is treated as a grid point; the local connectivity of the vertex determines the finite difference approximation stencil at this grid point, the grid size is always one for every edge, and there are no constraints on any grid points, which corresponds to the case of the homogeneous Neumann boundary condition, i.e., free boundary. Such an interpretation allows one, e.g., generalizing the Laplacian matrix to the case of graphs with an infinite number of vertices and edges, leading to a Laplacian matrix of an infinite size.
+
+Generalizations and extensions of the Laplacian matrix
+Generalized Laplacian
+The generalized Laplacian 
+Q
+{\displaystyle Q} is defined as:[3]
+
+{
+Q
+i
+,
+j
+<
+0
+if 
+i
+≠
+j
+ and 
+v
+i
+ is adjacent to 
+v
+j
+Q
+i
+,
+j
+=
+0
+if 
+i
+≠
+j
+ and 
+v
+i
+ is not adjacent to 
+v
+j
+any number
+otherwise
+.
+{\displaystyle {\begin{cases}Q_{i,j}<0&{\mbox{if }}i\neq j{\mbox{ and }}v_{i}{\mbox{ is adjacent to }}v_{j}\\Q_{i,j}=0&{\mbox{if }}i\neq j{\mbox{ and }}v_{i}{\mbox{ is not adjacent to }}v_{j}\\{\mbox{any number}}&{\mbox{otherwise}}.\end{cases}}}
+Notice the ordinary Laplacian is a generalized Laplacian.
+
+Admittance matrix of an AC circuit
+The Laplacian of a graph was first introduced to model electrical networks. In an alternating current (AC) electrical network, real-valued resistances are replaced by complex-valued impedances. The weight of edge (i, j) is, by convention, minus the reciprocal of the impedance directly between i and j. In models of such networks, the entries of the adjacency matrix are complex, but the Kirchhoff matrix remains symmetric, rather than being Hermitian. Such a matrix is usually called an "admittance matrix", denoted 
+Y
+{\displaystyle Y}, rather than a "Laplacian". This is one of the rare applications that give rise to complex symmetric matrices.
+
+Adjacency matrix	Weighted degree matrix	Admittance matrix
+(
+0
+i
+0
+0
+i
+0
+1
+−
+2
+i
+0
+0
+1
+−
+2
+i
+0
+1
+0
+0
+1
+0
+)
+{\textstyle \left({\begin{array}{rrrr}0&i&0&0\\i&0&1-2i&0\\0&1-2i&0&1\\0&0&1&0\\\end{array}}\right)}	
+(
+i
+0
+0
+0
+0
+1
+−
+i
+0
+0
+0
+0
+2
+−
+2
+i
+0
+0
+0
+0
+1
+)
+{\textstyle \left({\begin{array}{rrrr}i&0&0&0\\0&1-i&0&0\\0&0&2-2i&0\\0&0&0&1\\\end{array}}\right)}	
+(
+−
+i
+i
+0
+0
+i
+−
+1
++
+i
+1
+−
+2
+i
+0
+0
+1
+−
+2
+i
+−
+2
++
+2
+i
+1
+0
+0
+1
+−
+1
+)
+{\textstyle \left({\begin{array}{rrrr}-i&i&0&0\\i&-1+i&1-2i&0\\0&1-2i&-2+2i&1\\0&0&1&-1\\\end{array}}\right)}
+Magnetic Laplacian
+There are other situations in which entries of the adjacency matrix are complex-valued, and the Laplacian does become a Hermitian matrix. The Magnetic Laplacian for a directed graph with real weights 
+w
+i
+j
+{\displaystyle w_{ij}} is constructed as the Hadamard product of the real symmetric matrix of the symmetrized Laplacian and the Hermitian phase matrix with the complex entries
+
+γ
+q
+(
+i
+,
+j
+)
+=
+e
+i
+2
+π
+q
+(
+w
+i
+j
+−
+w
+j
+i
+)
+{\displaystyle \gamma _{q}(i,j)=e^{i2\pi q(w_{ij}-w_{ji})}}
+which encode the edge direction into the phase in the complex plane. In the context of quantum physics, the magnetic Laplacian can be interpreted as the operator that describes the phenomenology of a free charged particle on a graph, which is subject to the action of a magnetic field and the parameter 
+q
+{\displaystyle q} is called electric charge.[4] In the following example 
+q
+=
+1
+/
+4
+{\displaystyle q=1/4}:
+
+Adjacency matrix	Symmetrized Laplacian	Phase matrix	Magnetic Laplacian
+(
+0
+1
+0
+0
+1
+0
+1
+0
+0
+0
+0
+0
+0
+0
+1
+0
+)
+{\textstyle \left({\begin{array}{rrrr}0&1&0&0\\1&0&1&0\\0&0&0&0\\0&0&1&0\\\end{array}}\right)}	
+(
+2
+−
+2
+0
+0
+−
+2
+3
+−
+1
+0
+0
+−
+1
+2
+−
+1
+0
+0
+−
+1
+1
+)
+{\textstyle \left({\begin{array}{rrrr}2&-2&0&0\\-2&3&-1&0\\0&-1&2&-1\\0&0&-1&1\\\end{array}}\right)}	
+(
+1
+1
+1
+1
+1
+1
+i
+1
+1
+−
+i
+1
+−
+i
+1
+1
+i
+1
+)
+{\textstyle \left({\begin{array}{rrrr}1&1&1&1\\1&1&i&1\\1&-i&1&-i\\1&1&i&1\\\end{array}}\right)}	
+(
+2
+−
+2
+0
+0
+−
+2
+3
+−
+i
+0
+0
+i
+2
+i
+0
+0
+−
+i
+1
+)
+{\textstyle \left({\begin{array}{rrrr}2&-2&0&0\\-2&3&-i&0\\0&i&2&i\\0&0&-i&1\\\end{array}}\right)}
+Deformed Laplacian
+The deformed Laplacian is commonly defined as
+
+Δ
+(
+s
+)
+=
+I
+−
+s
+A
++
+s
+2
+(
+D
+−
+I
+)
+{\displaystyle \Delta (s)=I-sA+s^{2}(D-I)}
+where 
+I
+{\textstyle I} is the identity matrix, 
+A
+{\textstyle A} is the adjacency matrix, 
+D
+{\textstyle D} is the degree matrix, and 
+s
+{\textstyle s} is a (complex-valued) number.[5]
+The standard Laplacian is just 
+Δ
+(
+1
+)
+{\textstyle \Delta (1)} and 
+Δ
+(
+−
+1
+)
+=
+D
++
+A
+{\textstyle \Delta (-1)=D+A} is the signless Laplacian.
+
+Signless Laplacian
+The signless Laplacian is defined as
+
+Q
+=
+D
++
+A
+{\displaystyle Q=D+A}
+where 
+D
+{\displaystyle D} is the degree matrix, and 
+A
+{\displaystyle A} is the adjacency matrix.[6] Like the signed Laplacian 
+L
+{\displaystyle L}, the signless Laplacian 
+Q
+{\displaystyle Q} also is positive semi-definite as it can be factored as
+
+Q
+=
+R
+R
+T
+{\displaystyle Q=RR^{\textsf {T}}}
+where 
+R
+{\textstyle R} is the incidence matrix. 
+Q
+{\displaystyle Q} has a 0-eigenvector if and only if it has a bipartite connected component (isolated vertices being bipartite connected components). This can be shown as
+
+x
+T
+Q
+x
+=
+x
+T
+R
+R
+T
+x
+⟹
+R
+T
+x
+=
+0
+.
+{\displaystyle \mathbf {x} ^{\textsf {T}}Q\mathbf {x} =\mathbf {x} ^{\textsf {T}}RR^{\textsf {T}}\mathbf {x} \implies R^{\textsf {T}}\mathbf {x} =\mathbf {0} .}
+This has a solution where 
+x
+≠
+0
+{\displaystyle \mathbf {x} \neq \mathbf {0} } if and only if the graph has a bipartite connected component.
+
+Directed multigraphs
+An analogue of the Laplacian matrix can be defined for directed multigraphs.[7] In this case the Laplacian matrix L is defined as
+
+L
+=
+D
+−
+A
+{\displaystyle L=D-A}
+where D is a diagonal matrix with Di,i equal to the outdegree of vertex i and A is a matrix with Ai,j equal to the number of edges from i to j (including loops).
+
+Open source software implementations
+SciPy[8]
+NetworkX[9]
+Julia[10]
+Application software
+scikit-learn Spectral Clustering[11]
+PyGSP: Graph Signal Processing in Python[12]
+megaman: Manifold Learning for Millions of Points[13]
+smoothG[14]
+Laplacian Change Point Detection for Dynamic Graphs (KDD 2020)[15]
+LaplacianOpt (A Julia Package for Maximizing Laplacian's Second Eigenvalue of Weighted Graphs) [16]
+LigMG (Large Irregular Graph MultiGrid)[17]
+Laplacians.jl[18]
+See also
+Stiffness matrix
+Resistance distance
+Transition rate matrix
+Calculus on finite weighted graphs
+Graph Fourier transform
+References
+ Chung, Fan (1997) [1992]. Spectral Graph Theory. American Mathematical Society. ISBN 978-0821803158.
+ Smola, Alexander J.; Kondor, Risi (2003), "Kernels and regularization on graphs", Learning Theory and Kernel Machines: 16th Annual Conference on Learning Theory and 7th Kernel Workshop, COLT/Kernel 2003, Washington, DC, USA, August 24–27, 2003, Proceedings, Lecture Notes in Computer Science, vol. 2777, Springer, pp. 144–158, CiteSeerX 10.1.1.3.7020, doi:10.1007/978-3-540-45167-9_12, ISBN 978-3-540-40720-1.
+ Godsil, C.; Royle, G. (2001). Algebraic Graph Theory, Graduate Texts in Mathematics. Springer-Verlag.
+ Satoshi Furutani; Toshiki Shibahara; Mitsuaki Akiyama; Kunio Hato; Masaki Aida (2020). Graph Signal Processing for Directed Graphs based on the Hermitian Laplacian (PDF). ECML PKDD 2019: Machine Learning and Knowledge Discovery in Databases. pp. 447–463. doi:10.1007/978-3-030-46150-8_27.
+ Morbidi, F. (2013). "The Deformed Consensus Protocol" (PDF). Automatica. 49 (10): 3049–3055. doi:10.1016/j.automatica.2013.07.006. S2CID 205767404.
+ Cvetković, Dragoš; Simić, Slobodan K. (2010). "Towards a Spectral Theory of Graphs Based on the Signless Laplacian, III". Applicable Analysis and Discrete Mathematics. 4 (1): 156–166. doi:10.2298/AADM1000001C. ISSN 1452-8630. JSTOR 43671298.
+ Chaiken, S.; Kleitman, D. (1978). "Matrix Tree Theorems". Journal of Combinatorial Theory, Series A. 24 (3): 377–381. doi:10.1016/0097-3165(78)90067-5. ISSN 0097-3165.
+ "SciPy". GitHub. 4 October 2023.
+ "NetworkX". GitHub. 4 October 2023.
+ "Julia". GitHub. 4 October 2023.
+ "2.3. Clustering".
+ "PyGSP: Graph Signal Processing in Python". GitHub. 23 March 2022.
+ "Megaman: Manifold Learning for Millions of Points". GitHub. 14 March 2022.
+ "SmoothG". GitHub. 17 September 2020.
+ "Announcing Our Paper at KDD 2020". 2 July 2020.
+ "Harshangrjn/LaplacianOpt.jl". GitHub. 2 February 2022.
+ "LigMG (Large Irregular Graph MultiGrid)-- A distributed memory graph Laplacian solver for large irregular graphs". GitHub. 5 January 2022.
+ "Laplacians.jl". GitHub. 11 March 2022.
+vte
+Matrix classes
+Explicitly constrained entries	
+AlternantAnti-diagonalAnti-HermitianAnti-symmetricArrowheadBandBidiagonalBisymmetricBlock-diagonalBlockBlock tridiagonalBooleanCauchyCentrosymmetricConferenceComplex HadamardCopositiveDiagonally dominantDiagonalDiscrete Fourier TransformElementaryEquivalentFrobeniusGeneralized permutationHadamardHankelHermitianHessenbergHollowIntegerLogicalMatrix unitMetzlerMooreNonnegativePentadiagonalPermutationPersymmetricPolynomialQuaternionicSignatureSkew-HermitianSkew-symmetricSkylineSparseSylvesterSymmetricToeplitzTriangularTridiagonalVandermondeWalshZ
+Constant	
+ExchangeHilbertIdentityLehmerOf onesPascalPauliRedhefferShiftZero
+Conditions on eigenvalues or eigenvectors	
+CompanionConvergentDefectiveDefiniteDiagonalizableHurwitz-stablePositive-definiteStieltjes
+Satisfying conditions on products or inverses	
+CongruentIdempotent or ProjectionInvertibleInvolutoryNilpotentNormalOrthogonalUnimodularUnipotentUnitaryTotally unimodularWeighing
+With specific applications	
+AdjugateAlternating signAugmentedBézoutJabotinskyCartanCirculantCofactorCommutationConfusionCoxeterDistanceDuplication and eliminationEuclidean distanceFundamental (linear differential equation)GeneratorGramHessianHouseholderJacobianMomentPayoffPickRandomRotationRouth-HurwitzSeifertShearSimilaritySymplecticTotally positiveTransformation
+Used in statistics	
+CenteringCorrelationCovarianceDesignDoubly stochasticFisher informationHatPrecisionStochasticTransition
+Used in graph theory	
+AdjacencyBiadjacencyDegreeEdmondsIncidenceLaplacianSeidel adjacencyTutte
+Used in science and engineering	
+Cabibbo–Kobayashi–MaskawaDensityFundamental (computer vision)Fuzzy associativeGammaGell-MannHamiltonianIrregularOverlapSState transitionSubstitutionZ (chemistry)
+Related terms	
+Jordan normal formLinear independenceMatrix exponentialMatrix representation of conic sectionsPerfect matrixPseudoinverseRow echelon formWronskian
+icon Mathematics portalList of matricesCategory:Matrices (mathematics)
+Categories: Algebraic graph theoryMatrices (mathematics)Numerical differential equations
+
+

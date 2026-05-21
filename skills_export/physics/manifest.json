@@ -1,0 +1,22 @@
+{
+  "name": "physics",
+  "version": "1.0.0",
+  "type": "constraint_skill",
+  "domain": "limits, invariants, feasibility",
+  "summary": "Identify hard constraints, invariants, and non-negotiable limits. Distinguish what cannot be true from what is merely difficult.",
+  "input_schema": "schemas/inputs.json",
+  "output_schema": "schemas/outputs.json",
+  "system_prompt": "prompts/system_prompt.txt",
+  "examples": "prompts/examples.md",
+  "theory": "docs/theory.md",
+  "usage_patterns": "docs/usage_patterns.md",
+  "invocation_phrases": [
+    "use physics",
+    "what are the constraints",
+    "is this feasible",
+    "what's invariant here",
+    "what would break this"
+  ],
+  "produces": ["constraints", "invariants", "assumptions", "failure_modes", "feasibility"],
+  "consumed_by_clarityos_runtime": false
+}

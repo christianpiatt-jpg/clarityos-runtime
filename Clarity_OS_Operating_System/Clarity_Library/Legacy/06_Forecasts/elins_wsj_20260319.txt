@@ -1,0 +1,50 @@
+TITLE:
+WSJ 10‑Point — Regime Destabilization, Gulf Pivot, and Macro‑Market Signals
+
+DATE:
+2026-03-19
+
+DEWEY TAGS:
+  - Primary: 303.31/Topology/MiddleEast
+  - Secondary: 303.31/Topology/DecapitationEffects
+  - Secondary: 303.31/Topology/GlobalMacro
+
+ARTIFACT TYPE:
+Multi‑Basin Update
+
+BASIN(S) AFFECTED:
+A — Middle East
+C — Global Macro / Finance / Tech
+E — US Domestic Politics
+
+SIGNAL LINE:
+"The signal is coordinated regime‑destabilization and Gulf realignment, producing extreme curvature in the security and identity fields."
+
+LAST 48 HOURS:
+- Larijani and Basij commander killed in Israeli strikes.
+- Gulf states pivot: now urging US to cripple Iran before war ends.
+- Trump advisers suppress internal dissent after Joe Kent resignation.
+- Fed governors may dissent; monetary fracture emerging.
+- Amazon cuts USPS shipments; Nvidia $1T forecast under scrutiny.
+- Epstein insider‑info network exposed; Milton re‑enters corporate scene.
+
+NEXT 48 HOURS:
+- Further Israeli deep‑strike operations likely.
+- Gulf diplomatic pressure on US expected to intensify.
+- Fed meeting may reveal internal fractures.
+- Logistics and tech markets remain sensitive to volatility.
+
+QC FORECAST (72h):
+Score: 9/10
+Fields: Security, Identity, Narrative
+Volatility Notes: High‑density escalation cluster; multi‑actor activation.
+
+IMPACT LINE:
+"This produces a multi‑basin escalation environment with global macro and political implications."
+
+SOURCE CONTEXT:
+- WSJ 10‑Point Newsletter (19 Mar 2026)
+
+NOTES:
+- Add to A/C/E‑Basin fused ELINS for 19 March.
+

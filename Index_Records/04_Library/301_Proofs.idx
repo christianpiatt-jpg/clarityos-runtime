@@ -1,0 +1,18 @@
+301_Proofs.idx
+
+[Record]
+Name = Proofs Library
+Code = 301
+Path = ../../04_Library/Proofs/
+Description = Formal proofs demonstrating the validity, stability, and internal coherence of system primitives, theorems, and OS mechanics.
+
+[Files]
+Proof_Structures = proof_structures.txt
+Formal_Proofs = formal_proofs.txt
+Stability_Proofs = stability_proofs.txt
+Derivation_Notes = derivation_notes.txt
+Proof_Crosswalk = proof_crosswalk.txt
+
+[Links]
+Parent = 300_Primitives.idx
+Siblings = 302_Theorems.idx, 303_CaseStudies.idx, 304_CanonicalEntries.idx

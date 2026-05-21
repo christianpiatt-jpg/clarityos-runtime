@@ -1,0 +1,80 @@
+{
+  "name": "clarityos-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ClarityOS desktop client — double-click launcher for the Threads / Memory Vault stack",
+  "main": "electron.js",
+  "type": "commonjs",
+  "scripts": {
+    "build:icons": "python icon/build_icons.py",
+    "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5174 && cross-env NODE_ENV=development electron .",
+    "build": "vite build",
+    "package": "npm run build && electron-builder",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.5.0",
+    "vite": "^5.4.10",
+    "wait-on": "^8.0.1"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "build": {
+    "appId": "ai.clarityos.desktop",
+    "productName": "ClarityOS",
+    "directories": {
+      "output": "release",
+      "buildResources": "icon"
+    },
+    "files": [
+      "dist/**/*",
+      "electron.js",
+      "preload.js",
+      "icon/icon.png",
+      "icon/icon.ico",
+      "icon/icon.icns",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "mac": {
+      "icon": "icon/icon.icns",
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg",      "arch": ["arm64", "x64"] },
+        { "target": "zip",      "arch": ["arm64", "x64"] }
+      ]
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        { "target": "nsis",       "arch": ["x64"] },
+        { "target": "portable",   "arch": ["x64"] }
+      ]
+    },
+    "linux": {
+      "icon": "icon/icon.png",
+      "target": [
+        { "target": "AppImage",   "arch": ["x64"] },
+        { "target": "deb",        "arch": ["x64"] }
+      ],
+      "category": "Network"
+    }
+  }
+}

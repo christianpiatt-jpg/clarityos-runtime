@@ -1,0 +1,26 @@
+notepad 002_Runtime.idx
+
+[Record]
+Name = Runtime Layer
+Code = 002
+Path = ../../01_Constitution/03_Runtime/
+Description = Operational behavior of ClarityOS including runtime loops, operator interfaces, boot sequences, and pane reconfiguration logic.
+
+[Files]
+OS_Interface = ClarityOS_60_OS_Interface.txt
+Runtime_Loop = ClarityOS_60_runtimeloop and _operatorcards.txt
+Boot_Sequence = ClarityOS_Console OS Command Set and Boot sequence.txt
+Operator_Interface = ClarityOS_operator_interface_60.txt
+Pane_Reconfig = ClarityOS_v1.1_moed-dependent pane reconfiguration upgrade.txt
+Full_Runtime = full 60 runtime.txt
+Runtime_Summary = Runtime_Summary_60.txt
+Version_Architecture = Version 60 Architecture.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Sibling = 001_Geometry.idx
+
+[Crosslinks]
+Up = None
+Across = 000,001,003,004,005
+Down = 200–204,500–504

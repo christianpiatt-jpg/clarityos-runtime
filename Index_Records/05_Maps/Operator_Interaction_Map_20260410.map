@@ -1,0 +1,8 @@
+[MAP]
+name: Operator Interaction Map
+version: 20260410
+
+[INTERACTIONS]
+operator → console → diagnostics → continuity → archive
+
+[END]

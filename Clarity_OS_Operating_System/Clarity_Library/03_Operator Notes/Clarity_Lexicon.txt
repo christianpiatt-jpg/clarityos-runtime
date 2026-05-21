@@ -1,0 +1,36 @@
+CLARITY LEXICON v1.0 — PRIMITIVES
+
+1. Boundary  
+   Definition: The edge of responsibility.  
+   Function: Reduces emotional load; prevents over‑identification.  
+   Kernel Mapping: Responsibility Router.
+
+2. Pattern  
+   Definition: Structural repetition independent of personality.  
+   Function: Depersonalizes conflict; reveals system loops.  
+   Kernel Mapping: Structural Scanner.
+
+3. Pacing  
+   Definition: The nervous system’s tempo relative to the situation.  
+   Function: Slows escalation; restores temporal clarity.  
+   Kernel Mapping: Nervous System Regulator.
+
+4. Meaning vs Manifest  
+   Definition: The gap between intent and what actually appears.  
+   Function: Detects drift; prevents misinterpretation loops.  
+   Kernel Mapping: Alignment Detector.
+
+5. Tripwire  
+   Definition: The moment accountability activates.  
+   Function: Clarifies when responsibility becomes unavoidable.  
+   Kernel Mapping: Accountability Trigger.
+
+6. Neutral Clarity  
+   Definition: Clarity as a mechanical property, not a moral stance.  
+   Function: Removes emotional charge; keeps conversations safe.  
+   Kernel Mapping: Emotional Load Dampener.
+
+7. Room Motion  
+   Definition: The collective direction of pressure in a group.  
+   Function: Predicts escalation vectors; guides navigation.  
+   Kernel Mapping: Collective Pressure Mapper.

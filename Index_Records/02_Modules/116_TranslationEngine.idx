@@ -1,0 +1,18 @@
+notepad 116_TranslationEngine.idx
+
+[Record]
+Name = Translation Engine
+Code = 116
+Path = ../../02_Subsystems/Translation_Engine/
+Description = Semantic-stability subsystem responsible for cross-language clarity, multilingual propagation, drift-free translation of primitives, cultural invariance, and meaning preservation across basins.
+
+[Files]
+Translation_Primitives = translation_primitives.txt
+Semantic_Maps = semantic_maps.txt
+CrossLanguage_Models = crosslanguage_models.txt
+Drift_Free_Translation = drift_free_translation.txt
+Cultural_Invariance = cultural_invariance.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx, 113_AutoAdjustEngine.idx, 114_RecoveryEngine.idx, 115_TransmissionEngine.idx

@@ -1,0 +1,23 @@
+[ClarityOS acceptance] {{severity}} — {{title}}
+
+Detected at: {{detected_at}}
+Run id:      {{run_id}}
+Scenario:    {{scenario}}
+Surface:     {{surface}}
+
+Detail:
+{{detail}}
+
+This is a {{severity}} condition under the acceptance harness. Per
+tests/acceptance/failure_modes.md:
+
+- P0 conditions block deploys until root-cause is confirmed.
+- Open the run report at:
+  tests/acceptance/reports/{{run_id}}/report.md
+- Confirm an incident is posted at:
+  {{dashboard_url}}
+
+Do not retry the run blindly. Do not edit report.json. Do not silence
+the failing scenario in tests/acceptance/scenarios/index.ts to "get
+green". The harness is intentionally retry-free so failures surface
+honestly.

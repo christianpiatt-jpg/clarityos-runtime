@@ -1,0 +1,18 @@
+403_BasinMaps.idx
+
+[Record]
+Name = Basin Maps
+Code = 403
+Path = ../../05_Maps/Basin_Maps/
+Description = Maps of geographic, cultural, and energetic basins showing propagation patterns, operator density, and basin-specific signatures.
+
+[Files]
+Basin_Overview = basin_overview.txt
+Propagation_Maps = propagation_maps.txt
+Density_Maps = density_maps.txt
+Basin_Signatures = basin_signatures.txt
+Basin_Crosswalk = basin_crosswalk.txt
+
+[Links]
+Parent = 400_SystemMaps.idx
+Siblings = 401_SubsystemMaps.idx, 402_OperatorMaps.idx, 404_HydronicMaps.idx

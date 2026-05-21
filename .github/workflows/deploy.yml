@@ -1,0 +1,212 @@
+# PASS-6 Phase C+E — Deployment workflow scaffold.
+#
+# Triggered by ``v*`` tags. The workflow now has TWO jobs:
+#
+#   1. ``ci-gate``   — Re-runs the runtime CI gate against the tagged
+#                      commit. A red gate stops the deploy.
+#   2. ``deploy``    — Placeholder for the real container build +
+#                      push + Cloud Run deploy. Depends on ``ci-gate``
+#                      passing. Every step that would touch a
+#                      registry, a project, or a secret is commented
+#                      out under ``TODO(PASS-7)``.
+#
+# Phase E refinement: the deploy job documents the real wiring via
+# placeholder env vars (IMAGE_NAME, PROJECT_ID, CLOUD_RUN_SERVICE)
+# that PASS-7 will fill in from repo secrets. The workflow still
+# never pushes or deploys at this scaffold stage.
+name: deploy
+
+on:
+  push:
+    tags:
+      - "v*"
+  # Allow a manual dry-run from the Actions tab. ``workflow_dispatch``
+  # never hits real infrastructure under this scaffold.
+  workflow_dispatch:
+
+# Only one deploy in flight per tag. Never cancel mid-deploy.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Once real deployment lands, switch the deploy job's permissions to
+# ``id-token: write`` + ``contents: read`` and use Workload Identity
+# Federation to GCP. The ci-gate job needs only ``contents: read``.
+permissions:
+  contents: read
+
+# ---------------------------------------------------------------------------
+# Repository-level placeholders. These map onto values that PASS-7
+# will configure as repository or environment secrets:
+#
+#   IMAGE_NAME         — the registry path of the runtime image, e.g.
+#                        us-central1-docker.pkg.dev/${PROJECT_ID}/clarityos/runtime
+#   PROJECT_ID         — the GCP project that owns the Cloud Run
+#                        service AND the Secret Manager entries
+#                        (CLARITYOS_VAULT_SECRET etc.).
+#   CLOUD_RUN_SERVICE  — the Cloud Run service name, e.g. clarityos-runtime
+#   GCP_REGION         — the region the service runs in, e.g. us-central1
+#
+# Until PASS-7 sets these as secrets in repo settings, the placeholders
+# below are visible at the workflow YAML level. They are NOT secrets
+# themselves — they are pointer values that the real auth + deploy
+# steps will consume via ``${{ secrets.* }}``. The actual credentials
+# (service-account key, Stripe keys, vault secret) MUST come from
+# Secret Manager, never from this file.
+# ---------------------------------------------------------------------------
+env:
+  IMAGE_NAME:        REPLACE_IN_PASS_7
+  PROJECT_ID:        REPLACE_IN_PASS_7
+  CLOUD_RUN_SERVICE: clarityos-runtime
+  GCP_REGION:        us-central1
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # ci-gate — Re-run the CI gate against the tagged commit. A deploy
+  # MUST NOT proceed on a red gate. This is the same selection as
+  # ci.yml and release.yml so a release tag carries a known-good SHA.
+  # ---------------------------------------------------------------------------
+  ci-gate:
+    name: CI gate (runtime_spine + privacy_surface + determinism_surface)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      CLARITYOS_VAULT_SECRET: ci-throwaway-vault-secret-DO-NOT-USE-IN-PROD
+      CLARITYOS_BACKEND: memory
+      CLARITYOS_BILLING_MODE: mock
+      CLARITYOS_MOCK_AUTO_CONFIRM: "1"
+      CLARITYOS_DISABLE_MACRO_SCHEDULER: "1"
+      CLARITYOS_LOG_LEVEL: WARNING
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install runtime + test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest==8.3.3 httpx==0.27.2
+
+      - name: Run runtime CI gate
+        run: |
+          python -m pytest \
+            -m "runtime_spine or privacy_surface or determinism_surface" \
+            --maxfail=1 -q
+
+  # ---------------------------------------------------------------------------
+  # deploy — Placeholder. Real auth/build/push/deploy steps live under
+  # the ``TODO(PASS-7)`` block. The job runs ONLY after the CI gate
+  # passes (``needs: ci-gate``) so a regressed tag cannot deploy.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: deploy ${{ env.CLOUD_RUN_SERVICE }} (scaffold — no real deploy)
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Emit release + target metadata
+        run: |
+          echo "tag               = ${GITHUB_REF#refs/tags/}"
+          echo "sha               = ${GITHUB_SHA}"
+          echo "actor             = ${GITHUB_ACTOR}"
+          echo "image_name        = ${IMAGE_NAME}"
+          echo "project_id        = ${PROJECT_ID}"
+          echo "cloud_run_service = ${CLOUD_RUN_SERVICE}"
+          echo "gcp_region        = ${GCP_REGION}"
+
+      # ----------------------------------------------------------------------
+      # TODO(PASS-7) — Activate the real build + push + deploy stages.
+      #
+      # Activation steps (do these in repo settings BEFORE uncommenting):
+      #
+      #   1. Set up Workload Identity Federation on the GCP project.
+      #      Add a workload-identity-pool + provider that trusts this
+      #      GitHub repository.
+      #
+      #   2. Create a deploy service account with these roles:
+      #        roles/run.admin
+      #        roles/iam.serviceAccountUser
+      #        roles/artifactregistry.writer
+      #        roles/secretmanager.secretAccessor
+      #
+      #   3. Configure these GitHub Actions secrets in repo settings:
+      #        GCP_WIF_PROVIDER  — full resource name of the WIF provider
+      #        GCP_DEPLOY_SA     — email of the deploy service account
+      #        GCP_PROJECT_ID    — the GCP project id (replaces PROJECT_ID env)
+      #        GCP_REGISTRY_HOST — e.g. us-central1-docker.pkg.dev
+      #
+      #   4. Swap the ``env:`` placeholders at the top of this file:
+      #        IMAGE_NAME:  ${GCP_REGISTRY_HOST}/${GCP_PROJECT_ID}/clarityos/runtime
+      #        PROJECT_ID:  ${{ secrets.GCP_PROJECT_ID }}
+      #
+      #   5. Set up a ``production`` GitHub Environment with required
+      #      reviewers, then add ``environment: production`` to this job.
+      #
+      #   6. Uncomment the four step blocks below.
+      #
+      # ----------------------------------------------------------------------
+      #
+      # - name: Authenticate to GCP (Workload Identity Federation)
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+      #     service_account:           ${{ secrets.GCP_DEPLOY_SA }}
+      #
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
+      #
+      # - name: Build + push runtime container
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     push:    true
+      #     tags:    ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+      #
+      # - name: Deploy to Cloud Run
+      #   uses: google-github-actions/deploy-cloudrun@v2
+      #   with:
+      #     service:  ${{ env.CLOUD_RUN_SERVICE }}
+      #     image:    ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+      #     region:   ${{ env.GCP_REGION }}
+      #     env_vars: |-
+      #       CLARITYOS_BACKEND=firestore
+      #       CLARITYOS_VAULT_BACKEND=firestore
+      #       CLARITYOS_BILLING_MODE=stripe
+      #       CLARITYOS_BOOTSTRAP_PASSWORD_REQUIRED=1
+      #       CLARITYOS_LOG_LEVEL=INFO
+      #     secrets:  |-
+      #       CLARITYOS_VAULT_SECRET=projects/${{ env.PROJECT_ID }}/secrets/clarityos-vault-secret:latest
+      #       CLARITYOS_ADMIN_PASSWORD=projects/${{ env.PROJECT_ID }}/secrets/clarityos-admin-password:latest
+      #       CLARITYOS_STRIPE_SECRET_KEY=projects/${{ env.PROJECT_ID }}/secrets/clarityos-stripe-secret:latest
+      #       CLARITYOS_STRIPE_WEBHOOK_SECRET=projects/${{ env.PROJECT_ID }}/secrets/clarityos-stripe-webhook-secret:latest
+      #
+      # ----------------------------------------------------------------------
+      # NEVER set CLARITYOS_VAULT_PLAINTEXT in production. The runtime
+      # invariant (INV-V4) requires the explicit string "true" to
+      # enable plaintext mode — any other value (including the env var
+      # being absent) keeps encryption ON. The deploy.yml MUST NOT
+      # carry the variable at all under env_vars: above.
+      # ----------------------------------------------------------------------
+
+      - name: Dry-run notice
+        run: |
+          echo ""
+          echo "================================================================"
+          echo "  deploy scaffold — no image was built, nothing was pushed,"
+          echo "  nothing was deployed. See the inline TODO(PASS-7) block in"
+          echo "  .github/workflows/deploy.yml for the real activation plan."
+          echo ""
+          echo "  CI gate verified at SHA: ${GITHUB_SHA}"
+          echo "================================================================"

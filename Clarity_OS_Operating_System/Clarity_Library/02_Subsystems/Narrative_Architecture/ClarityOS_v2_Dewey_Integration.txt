@@ -1,0 +1,29 @@
+#tags: #clarityOS, #v2, #dewey, #system-file, #operator-layer
+150 — Psychology
+  153 — Mental Processes & Intelligence
+    153.4 — Perception, Interpretation, Cognitive Processing
+      153.42 — Pattern Recognition & Cognitive Mapping
+
+[1] GEOMETRIC_INTERPRETER_Notes.txt
+    Dewey: 152.1 / 153.42
+
+[2] PATTERNED_SHAPES.txt
+    Dewey: 006.3 / 153.42
+
+[3] ER_TRANSLATOR_NOTES.txt
+    Dewey: 153.4 / 006.3
+
+[4] QC_ENGINE.txt
+    Dewey: 153.43 (Evaluation & Judgment)
+
+[5] IDENTITY_LAYER_V2_notes.txt
+    Dewey: 153.6 (Self & Agency)
+
+[6] AGENCY_ENGINE_V2_notes.txt
+    Dewey: 153.6 / 153.8 (Decision Processes)
+
+[7] PENTAGON_SPHERE_GEOMETRY_Notes.txt
+    Dewey: 003.3 (Systems Theory)
+
+[8] MARKOV_QC_Notes.txt
+    Dewey: 003.54 (Temporal Systems / Markov Models)

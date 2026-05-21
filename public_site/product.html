@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product — ClarityOS</title>
+<meta name="description" content="ClarityOS surfaces, kernel components, and runtime contracts. PHONE, WEB, CLOUD, interpreter, model router, clarity pipeline, local vault.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">ClarityOS</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
+      <ul id="primary-nav" class="nav-list">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="product.html" aria-current="page">Product</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section page-head">
+    <div class="container">
+      <p class="eyebrow">Product</p>
+      <h1 class="page-title">Surfaces and kernel components.</h1>
+      <p class="page-lede">
+        ClarityOS is a single runtime exposed through three surfaces
+        and assembled from a small number of kernel components. Each
+        component has a stable contract and a deterministic shape.
+      </p>
+    </div>
+  </section>
+
+  <nav class="section section-bordered toc" aria-label="On this page">
+    <div class="container">
+      <h2 class="toc-title">On this page</h2>
+      <ol class="toc-list">
+        <li><a href="#phone">PHONE runtime</a></li>
+        <li><a href="#web">WEB cockpit</a></li>
+        <li><a href="#cloud">CLOUD execution layer</a></li>
+        <li><a href="#interpreter">Interpreter</a></li>
+        <li><a href="#router">Model router</a></li>
+        <li><a href="#clarity">Clarity pipeline</a></li>
+        <li><a href="#vault">Local vault</a></li>
+        <li><a href="#continuity">Multi-surface continuity</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <section class="section" id="phone">
+    <div class="container">
+      <h2 class="section-title">PHONE runtime</h2>
+      <p class="section-prose">
+        The phone surface is a React Native / Expo application. It
+        connects to the cloud over HTTPS, authenticates via the
+        operator session, and renders the same vault state the web
+        cockpit renders. Threads, projects, the operator timeline,
+        and the regression-first packet runner are all reachable.
+      </p>
+      <p class="section-prose">
+        The phone is read-write equal to the web cockpit. There is no
+        feature gap by device class. Network drops degrade gracefully:
+        the runtime caches recent reads and retries writes when the
+        connection returns.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-bordered" id="web">
+    <div class="container">
+      <h2 class="section-title">WEB cockpit</h2>
+      <p class="section-prose">
+        The web cockpit is a Vite + React application. It is
+        designed for long-form work: assembling threads, reviewing
+        the operator timeline, running regression chains, inspecting
+        vault state, and managing model preferences.
+      </p>
+      <p class="section-prose">
+        All routes are auth-gated by a single session header. The
+        cockpit holds no privileged state of its own; every panel
+        reads from the cloud and renders deterministically from the
+        response.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="cloud">
+    <div class="container">
+      <h2 class="section-title">CLOUD execution layer</h2>
+      <p class="section-prose">
+        The cloud layer is a FastAPI service that runs on Cloud Run.
+        It is the home of the kernel: intelligence routing, the
+        encrypted local vault, the operator timeline, threads,
+        projects, and every reasoning mode.
+      </p>
+      <p class="section-prose">
+        Endpoints are session-scoped. Per-user partitioning is
+        native at the vault layer, not bolted on at the application
+        layer. Cross-user reads are not just rejected; they are
+        unreachable.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-bordered" id="interpreter">
+    <div class="container">
+      <h2 class="section-title">Interpreter</h2>
+      <p class="section-prose">
+        The interpreter is the kernel itself. It assembles context
+        for the model from the operator&rsquo;s vault, threads,
+        projects, and recent timeline, dispatches through the model
+        router, and coerces the result back into a typed shape.
+      </p>
+      <p class="section-prose">
+        The interpreter does not load skill manifests. It does not
+        branch on whether a plugin is &ldquo;active.&rdquo; Reasoning
+        modes are kernel functions with stable schemas. When a new
+        mode is added, it ships as a kernel function with its own
+        endpoint &mdash; not as a registry entry.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="router">
+    <div class="container">
+      <h2 class="section-title">Model router</h2>
+      <p class="section-prose">
+        The model router selects which provider executes a given
+        task. Resolution is deterministic and observable:
+      </p>
+      <ol class="numbered-list">
+        <li>Explicit override (when the caller pins a model).</li>
+        <li>Founder default (a global override, if set).</li>
+        <li>User preferred model (from operator state).</li>
+        <li>Task default (the fallback per task class).</li>
+      </ol>
+      <p class="section-prose">
+        Five provider classes are supported: OpenAI, Anthropic,
+        Google, xAI, and a local on-device runtime. The router itself
+        is provider-agnostic. Adding a sixth provider does not change
+        any caller.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-bordered" id="clarity">
+    <div class="container">
+      <h2 class="section-title">Clarity pipeline</h2>
+      <p class="section-prose">
+        The clarity pipeline is the reasoning-stability operator. It
+        scores text by the ratio of emotive language to institutional
+        signal and routes the consuming model into one of three
+        reasoning modes: stabilize, expand, or normal.
+      </p>
+      <p class="section-prose">
+        When the operator reports a problem, the pipeline can
+        trigger the regression-first protocol &mdash; a layered
+        diagnostic walk through the failing logic chain that
+        refuses to propose fixes until each layer has been verified.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="vault">
+    <div class="container">
+      <h2 class="section-title">Local vault</h2>
+      <p class="section-prose">
+        The vault is encrypted at rest. Per-user keys are derived
+        from a PBKDF2 root. Values are JSON-serializable and stored
+        under namespaced keys: threads, projects, embeddings,
+        regression chains, regression packets, preferences,
+        operator state.
+      </p>
+      <p class="section-prose">
+        The vault holds the canonical state. Every other component
+        &mdash; cockpit, phone, cloud kernel &mdash; is a view over
+        that state. Reads are partitioned by user; cross-user access
+        is structurally impossible.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-bordered" id="continuity">
+    <div class="container">
+      <h2 class="section-title">Multi-surface continuity</h2>
+      <p class="section-prose">
+        A thread started on phone is the same thread on web. A chain
+        opened from web is replayable from desktop. The operator
+        timeline aggregates activity from every surface and presents
+        it in one chronological feed.
+      </p>
+      <p class="section-prose">
+        Continuity is not a feature. It is the runtime contract.
+        When a new surface is added, it inherits the contract; it
+        does not negotiate a new one.
+      </p>
+      <p class="section-cta">
+        <a class="btn btn-primary" href="contact.html">Request Access</a>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p class="footer-brand">ClarityOS</p>
+    <ul class="footer-links">
+      <li><a href="product.html">Product</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <p class="footer-meta">An operator-grade reasoning runtime.</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>

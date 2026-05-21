@@ -1,0 +1,8 @@
+/* v1 global reset — scoped so it ONLY applies inside .v1-surface-root.
+   The web client has its own cockpit chrome (Layout.tsx) for non-v1
+   routes; this rule must not affect those. The /threads route renders
+   <ClarityOSSurface> which sets the .v1-surface-root class on its
+   outer div, and the surface uses height: 100vh to fill the viewport.
+
+   No global #root override, no global box-sizing reset — preserve the
+   existing app.css behavior outside the v1 surface. */

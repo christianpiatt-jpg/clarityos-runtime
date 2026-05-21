@@ -1,0 +1,42 @@
+notepad 002_Runtime.idx
+
+[RuntimeLoader]
+Purpose = Initialize system, load modules, activate boundaries, prepare console
+
+[BootSequence]
+1 = 000_Constitution
+2 = 001_Geometry
+3 = 005_Boundary
+4 = 004_Imports
+5 = 002_Runtime
+6 = 110_OperatorConsole
+7 = 111_DiagnosticsEngine
+8 = 112_StabilityEngine
+9 = 104_PropagationOS
+10 = 900_PlanetaryMesh
+
+[RuntimeResponsibilities]
+1 = LoadIndex
+2 = InitializeBoundaries
+3 = ActivateDiagnosticsPrecheck
+4 = LoadModules
+5 = InitializeOperatorState
+6 = PrepareConsole
+7 = HandOffToConsole
+
+[RuntimeState]
+IndexLoaded = False
+BoundariesInitialized = False
+DiagnosticsPrecheck = False
+ModulesLoaded = False
+ConsoleReady = False
+RuntimeActive = False
+
+[Activation]
+Trigger = IndexLoaded AND BoundariesInitialized AND ModulesLoaded AND ConsoleReady
+
+[Handoff]
+Next = 110_OperatorConsole
+
+[Status]
+Runtime = Active

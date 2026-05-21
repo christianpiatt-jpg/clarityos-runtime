@@ -1,0 +1,118 @@
+============================================================
+MODULE: ENGINE_RESET
+TYPE: State Reset Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide a full system reset for the Clarity_OS narrative-physics
+engine. Clears all temporary state, resets vectors, flushes logs,
+and returns the engine to a clean baseline before the next run.
+
+RESET TARGETS:
+1. Vector State
+2. ELINS Buffers
+3. Markov State Cache
+4. Drift Buffers
+5. Basin Memory
+6. Pressure Maps
+7. Clarity Loop Residue
+8. Langbridg Temporary Structures
+9. QC_Pre / QC_Post Temporary Frames
+10. Execution Logs (if configured)
+11. Orchestrator Runtime Context
+
+RESET SEQUENCE:
+
+STEP 1 — HALT ENGINE
+- Pause all active modules
+- Prevent new execution until reset completes
+
+STEP 2 — CLEAR VECTOR STATE
+- Reset all 7 Primary Vectors to baseline
+- Remove alignment residue
+- Remove contradiction flags
+
+STEP 3 — CLEAR ELINS BUFFERS
+- Flush LOCAL, WARNO, PRESSURE, DIRECTION buffers
+- Reset alert levels
+- Remove stale environmental signals
+
+STEP 4 — CLEAR MARKOV STATE CACHE
+- Remove next-state predictions
+- Remove drift tendency maps
+- Remove basin-shift projections
+
+STEP 5 — CLEAR DRIFT BUFFERS
+- Remove drift events
+- Remove drift corrections
+- Reset drift counters
+
+STEP 6 — CLEAR BASIN MEMORY
+- Reset basin alignment state
+- Remove basin history
+- Remove basin-shift flags
+
+STEP 7 — CLEAR PRESSURE MAPS
+- Remove pressure gradients
+- Remove distortion maps
+- Reset pressure baseline
+
+STEP 8 — CLEAR CLARITY LOOP RESIDUE
+- Remove centering state
+- Remove compression residue
+- Reset through-line enforcement state
+
+STEP 9 — CLEAR LANGBRIDG TEMP STRUCTURES
+- Remove bulletization buffers
+- Remove tone stabilization residue
+- Reset structural preservation state
+
+STEP 10 — CLEAR QC TEMPORARY FRAMES
+- Remove QC_Pre intermediate frames
+- Remove QC_Post intermediate frames
+- Reset stabilization flags
+
+STEP 11 — CLEAR LOGS (IF ENABLED)
+- Flush execution logs
+- Flush drift logs
+- Flush vector logs
+- Flush ELINS logs
+- Flush Markov logs
+
+STEP 12 — RESET ORCHESTRATOR CONTEXT
+- Reset sequencing state
+- Reset failure counters
+- Reset recovery flags
+
+STEP 13 — CONFIRM CLEAN BASELINE
+- Validate all modules are at baseline
+- Validate no residue remains
+- Validate engine is ready for next run
+
+FAILURE MODES:
+- Residue detected
+- Vector state not cleared
+- ELINS buffer not flushed
+- Markov cache not cleared
+- Drift buffer contamination
+- Basin memory persistence
+- Pressure map persistence
+
+RECOVERY:
+- Re-run reset sequence
+- Force-clear buffers
+- Reinitialize modules
+- Re-validate baseline
+
+RESET CONTRACT:
+No new execution may begin until reset completes.
+All modules must return to baseline.
+No state may persist across runs.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

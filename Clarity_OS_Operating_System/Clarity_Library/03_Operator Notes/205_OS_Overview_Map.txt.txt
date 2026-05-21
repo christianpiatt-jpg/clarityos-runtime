@@ -1,0 +1,106 @@
+205_OS_Overview_Map.txt
+
+┌──────────────────────────────────────────────────────────────┐
+│                        SYSTEM LAYER (000–005)                 │
+└──────────────────────────────────────────────────────────────┘
+000 Constitution Layer
+001 Geometry Layer
+002 Runtime Layer
+003 Identity Layer
+004 Imports Layer
+005 Boundary Layer
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                     MODULES / ENGINES (100–119)               │
+└──────────────────────────────────────────────────────────────┘
+100 ULDA Subsystem
+101 Martial OS
+102 Executive Layer
+103 Meta‑Executive Layer
+104 Propagation OS
+105 Global OS
+106 VA Simulation
+107 Buddy Suite
+108 Analytics Engine
+109 Forecasting Engine
+110 Operator Console
+111 Diagnostics Engine
+112 Stability Engine
+113 Auto‑Adjust Engine
+114 Recovery Engine
+115 Transmission Engine
+116 Translation Engine
+117 Continuity Engine
+118 Archive Engine
+119 Governance Engine
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                     OPERATOR NOTES (200–204)                  │
+└──────────────────────────────────────────────────────────────┘
+200 Operator Handbook
+201 Runtime Notes
+202 Scenario Library
+203 Drift Catalog
+204 Recovery Playbook
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                         LIBRARY (300–304)                     │
+└──────────────────────────────────────────────────────────────┘
+300 Primitives Library
+301 Proofs Library
+302 Theorems Library
+303 Case Studies Library
+304 Canonical Entries Library
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                           MAPS (400–404)                      │
+└──────────────────────────────────────────────────────────────┘
+400 System Maps
+401 Subsystem Maps
+402 Operator Maps
+403 Basin Maps
+404 Hydronic Maps
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                           LOGS (500–504)                      │
+└──────────────────────────────────────────────────────────────┘
+500 Runtime Logs
+501 Operator Logs
+502 Drift Logs
+503 Recovery Logs
+504 Forecast Logs
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                       DIAGNOSTICS (700–704)                   │
+└──────────────────────────────────────────────────────────────┘
+700 System Diagnostics
+701 Subsystem Diagnostics
+702 Operator Diagnostics
+703 Integrity Scans
+704 Contamination Checks
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                         ARCHIVE (800–804)                     │
+└──────────────────────────────────────────────────────────────┘
+800 System Archive
+801 Subsystem Archive
+802 Operator Archive
+803 Event Archive
+804 Snapshot Archive
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                   PLANETARY MESH LAYER (900–904)              │
+└──────────────────────────────────────────────────────────────┘
+900 Planetary Mesh
+901 Global Flows
+902 Cross‑Scale Dynamics
+903 Planetary Diagnostics
+904 Planetary Snapshots

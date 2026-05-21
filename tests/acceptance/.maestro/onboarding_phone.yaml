@@ -1,0 +1,127 @@
+# tests/acceptance/.maestro/onboarding_phone.yaml
+#
+# Phone onboarding flow. Walks Panels 1-6 of the canonical Onboarding
+# Spec §1.1, with login pre-step. Driven by Maestro CLI; output
+# success/failure exit code is consumed by tests/acceptance/surfaces/phone.ts.
+#
+# ============================================================
+# ADJUSTMENT NOTES — verify before first real run
+# ============================================================
+# 1. appId
+#      "com.clarityos.phone" — replace with the actual bundle id
+#      declared in phone/app.json::expo.android.package and
+#      phone/app.json::expo.ios.bundleIdentifier.
+#
+# 2. testIDs required in the RN UI for stable Maestro targeting:
+#      Login screen:        testID="email" testID="password"
+#                           Sign-in button text: "Sign in" (or matched by submit role)
+#      Panel 1 (identity):  testID="handle" testID="displayName"
+#      Panel 3 (vault):     testID="secret"
+#      Panel 5 (first run): testID="scenario_text" testID="annotation"
+#
+#      If the shipped UI uses different testIDs or none, either:
+#         (a) add the testIDs above to the RN components, or
+#         (b) replace the `id:` selectors below with `text:` matches
+#             (slower, more brittle, sensitive to translation/whitespace).
+#
+# 3. Button text strings used here must match the RN components literally.
+#    Update both sides if either changes.
+#
+# 4. The login pre-step is conditional via runFlow.when.visible — if a
+#    persistent session is restored on launch, the login form will not
+#    appear and the flow proceeds directly to onboarding.
+# ============================================================
+
+appId: com.clarityos.phone
+
+env:
+  OP_EMAIL: ""
+  OP_HANDLE: ""
+  OP_SECRET: ""
+  BACKEND_BASE_URL: ""
+
+---
+- launchApp
+- waitForAnimationToEnd
+
+# ----- Login (pre-step, conditional) -----
+# ADJUSTMENT: if your login screen uses different copy than "Sign in",
+# update both the `visible:` matcher and the tap target here.
+- runFlow:
+    when:
+      visible: "Sign in"
+    commands:
+      - tapOn:
+          id: email
+      - inputText: ${OP_EMAIL}
+      - tapOn:
+          id: password
+      - inputText: ${OP_SECRET}
+      - tapOn: "Sign in"
+      - waitForAnimationToEnd
+
+# ----- Panel 1 — identity -----
+- assertVisible:
+    text: "1 / 6 · identity"
+- tapOn:
+    id: handle
+- inputText: ${OP_HANDLE}
+- hideKeyboard
+- tapOn:
+    id: displayName
+- inputText: ${OP_HANDLE}
+- hideKeyboard
+- tapOn: "continue"
+- waitForAnimationToEnd
+
+# ----- Panel 2 — continuity (start fresh path) -----
+# ADJUSTMENT: the spec also supports "resume from N artifacts" but the
+# acceptance harness uses the start-fresh path for determinism. Do not
+# add a "resume" branch here — keep flows monotone.
+- assertVisible:
+    text: "2 / 6 · continuity"
+- tapOn: "start fresh"
+- waitForAnimationToEnd
+
+# ----- Panel 3 — vault initialization -----
+- assertVisible:
+    text: "3 / 6 · vault"
+- tapOn:
+    id: secret
+- inputText: ${OP_SECRET}
+- hideKeyboard
+- tapOn: "initialize vault"
+- waitForAnimationToEnd
+
+# ----- Panel 4 — ELINS primer (read-only walkthrough) -----
+- assertVisible:
+    text: "4 / 6 · ELINS primer"
+- tapOn: "continue"
+- waitForAnimationToEnd
+
+# ----- Panel 5 — first run (operator-authored scenario) -----
+- assertVisible:
+    text: "5 / 6 · first run"
+- tapOn:
+    id: scenario_text
+- inputText: "acceptance harness scenario text — at least 32 characters total."
+- hideKeyboard
+- tapOn: "run"
+- waitForAnimationToEnd
+# ELINS run completes; result panel renders with "what this run tells me".
+- tapOn:
+    id: annotation
+- inputText: "acceptance harness annotation"
+- hideKeyboard
+- tapOn: "save annotation and continue"
+- waitForAnimationToEnd
+
+# ----- Panel 6 — exit confirmation -----
+- assertVisible:
+    text: "6 / 6 · ready"
+- tapOn: "enter cockpit"
+- waitForAnimationToEnd
+
+# Cockpit landing — the post-onboarding home displays the Inbound rail
+# header at minimum.
+- assertVisible: "Inbound"

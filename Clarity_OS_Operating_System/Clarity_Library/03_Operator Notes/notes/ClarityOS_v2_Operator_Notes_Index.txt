@@ -1,0 +1,41 @@
+#tags: #clarityOS, #v2, #index, #operator-layer, #library-object
+
+# ClarityOS v2 — Operator Notes Index
+This index maps each v2 module to its operator-facing notes.
+
+------------------------------------------------------------
+
+## GEOMETRIC_INTERPRETER
+File: GEOMETRIC_INTERPRETER_Notes.txt
+Purpose: How to read external forms, shapes, and cultural geometry.
+
+## PATTERNED_SHAPES
+File: PATTERNED_SHAPES_Notes.txt
+Purpose: How to identify relational patterns, force vectors, and shape signatures.
+
+## ER_TRANSLATOR
+File: ER_TRANSLATOR_Notes.txt
+Purpose: How raw energy becomes representational geometry (force-picture).
+
+## QC_ENGINE
+File: QC_ENGINE_Notes.txt
+Purpose: How the system evaluates probabilities, thresholds, and force-weights.
+
+## IDENTITY_LAYER_V2
+File: IDENTITY_LAYER_V2_Notes.txt
+Purpose: How the OS stabilizes clear-self, posture, and reference frame.
+
+## AGENCY_ENGINE_V2
+File: AGENCY_ENGINE_V2_Notes.txt
+Purpose: How options, clean-no, clean-yes, and wait-states are generated.
+
+## PENTAGON_SPHERE_GEOMETRY
+File: PENTAGON_SPHERE_GEOMETRY_Notes.txt
+Purpose: How multi-scale system mapping works (center-of-mass, load paths).
+
+## MARKOV_QC
+File: MARKOV_QC_Notes.txt
+Purpose: How temporal weighting, arc probabilities, and drift alerts operate.
+
+------------------------------------------------------------
+# End of Index

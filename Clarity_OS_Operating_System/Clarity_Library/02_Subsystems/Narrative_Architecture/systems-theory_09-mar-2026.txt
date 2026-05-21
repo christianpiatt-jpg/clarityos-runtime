@@ -1,0 +1,1634 @@
+systems-theory_09-mar-2026
+
+Systems theory
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+
+This article has an unclear citation style. The references used may be made clearer with a different or consistent style of citation and footnoting. (July 2025) (Learn how and when to remove this message)
+Complex systems
+
+Topics
+Self-organization
+Collective behavior
+Networks
+Evolution and adaptation
+Pattern formation
+Systems theory and cybernetics
+Nonlinear dynamics
+Game theory
+vte
+Systems theory is the transdisciplinary[1] study of systems, i.e. cohesive groups of interrelated, interdependent components that can be natural or artificial. Every system has causal boundaries, is influenced by its context, defined by its structure, function and role, and expressed through its relations with other systems. A system is "more than the sum of its parts" when it expresses synergy or emergent behavior.[2]
+
+Changing one component of a system may affect other components or the whole system. It may be possible to predict these changes in patterns of behavior. For systems that learn and adapt, the growth and the degree of adaptation depend upon how well the system is engaged with its environment and other contexts influencing its organization. Some systems support other systems, maintaining the other system to prevent failure. The goals of systems theory are to model a system's dynamics, constraints, conditions, and relations; and to elucidate principles (such as purpose, measure, methods, tools) that can be discerned and applied to other systems at every level of nesting, and in a wide range of fields for achieving optimized equifinality.[3]
+
+General systems theory is about developing broadly applicable concepts and principles, as opposed to concepts and principles specific to one domain of knowledge. It distinguishes dynamic or active systems from static or passive systems. Active systems are activity structures or components that interact in behaviours and processes or interrelate through formal contextual boundary conditions (attractors). Passive systems are structures and components that are being processed. For example, a computer program is passive when it is a file stored on the hard drive and active when it runs in memory.[4] The field is related to systems thinking, machine logic, and systems engineering.
+
+Overview
+
+This section is written like a personal reflection, personal essay, or argumentative essay that states a Wikipedia editor's personal feelings or presents an original argument about a topic. Please help improve it by rewriting it in an encyclopedic style. (November 2020) (Learn how and when to remove this message)
+Systems theory is manifest in the work of practitioners in many disciplines, for example the works of physician Alexander Bogdanov, biologist Ludwig von Bertalanffy, linguist Béla H. Bánáthy, and sociologist Talcott Parsons; in the study of ecological systems by Howard T. Odum, Eugene Odum; in Fritjof Capra's study of organizational theory; in the study of management by Peter Senge; in interdisciplinary areas such as human resource development in the works of Richard A. Swanson; and in the works of educators Debora Hammond and Alfonso Montuori.
+
+As a transdisciplinary, interdisciplinary, and multiperspectival endeavor, systems theory brings together principles and concepts from ontology, the philosophy of science, physics, computer science, biology, and engineering, as well as geography, sociology, political science, psychotherapy (especially family systems therapy), and economics.
+
+Systems theory promotes dialogue between autonomous areas of study as well as within systems science itself. In this respect, with the possibility of misinterpretations, von Bertalanffy[5] believed a general theory of systems "should be an important regulative device in science," to guard against superficial analogies that "are useless in science and harmful in their practical consequences."
+
+Others remain closer to the direct systems concepts developed by the original systems theorists. For example, Ilya Prigogine, of the Center for Complex Quantum Systems at the University of Texas, has studied emergent properties, suggesting that they offer analogues for living systems. The distinction of autopoiesis as made by Humberto Maturana and Francisco Varela represent further developments in this field. Important names in contemporary systems science include Russell Ackoff, Ruzena Bajcsy, Béla H. Bánáthy, Gregory Bateson, Anthony Stafford Beer, Peter Checkland, Barbara Grosz, Brian Wilson, Robert L. Flood, Allenna Leonard, Radhika Nagpal, Fritjof Capra, Warren McCulloch, Kathleen Carley, Michael C. Jackson, Katia Sycara, and Edgar Morin among others.
+
+With the modern foundations for a general theory of systems following World War I, Ervin László, in the preface for Bertalanffy's book, Perspectives on General System Theory, points out that the translation of "general system theory" from German into English has "wrought a certain amount of havoc":[6]
+
+It (General System Theory) was criticized as pseudoscience and said to be nothing more than an admonishment to attend to things in a holistic way. Such criticisms would have lost their point had it been recognized that von Bertalanffy's general system theory is a perspective or paradigm, and that such basic conceptual frameworks play a key role in the development of exact scientific theory. .. Allgemeine Systemtheorie is not directly consistent with an interpretation often put on 'general system theory,' to wit, that it is a (scientific) "theory of general systems." To criticize it as such is to shoot at straw men. Von Bertalanffy opened up something much broader and of much greater significance than a single theory (which, as we now know, can always be falsified and has usually an ephemeral existence): he created a new paradigm for the development of theories.
+
+Theorie (or Lehre) "has a much broader meaning in German than the closest English words 'theory' and 'science'," just as Wissenschaft (or 'Science').[6] These ideas refer to an organized body of knowledge and "any systematically presented set of concepts, whether empirically, axiomatically, or philosophically" represented, while many associate Lehre with theory and science in the etymology of general systems, though it also does not translate from the German very well; its "closest equivalent" translates to 'teaching', but "sounds dogmatic and off the mark."[6] An adequate overlap in meaning is found within the word "nomothetic", which can mean "having the capability to posit long-lasting sense." While the idea of a "general systems theory" might have lost many of its root meanings in the translation, by defining a new way of thinking about science and scientific paradigms, systems theory became a widespread term used for instance to describe the interdependence of relationships created in organizations.
+
+A system in this frame of reference can contain regularly interacting or interrelating groups of activities. For example, in noting the influence in the evolution of "an individually oriented industrial psychology [into] a systems and developmentally oriented organizational psychology," some theorists recognize that organizations have complex social systems; separating the parts from the whole reduces the overall effectiveness of organizations.[7] This difference, from conventional models that center on individuals, structures, departments and units, separates in part from the whole, instead of recognizing the interdependence between groups of individuals, structures and processes that enable an organization to function.
+
+László explains that the new systems view of organized complexity went "one step beyond the Newtonian view of organized simplicity" which reduced the parts from the whole, or understood the whole without relation to the parts. The relationship between organisations and their environments can be seen as the foremost source of complexity and interdependence. In most cases, the whole has properties that cannot be known from analysis of the constituent elements in isolation.[8]
+
+Béla H. Bánáthy, who argued—along with the founders of the systems society—that "the benefit of humankind" is the purpose of science, has made significant and far-reaching contributions to the area of systems theory. For the Primer Group at the International Society for the System Sciences, Bánáthy defines a perspective that iterates this view:[9][full citation needed]
+
+The systems view is a world-view that is based on the discipline of SYSTEM INQUIRY. Central to systems inquiry is the concept of SYSTEM. In the most general sense, system means a configuration of parts connected and joined together by a web of relationships. The Primer Group defines system as a family of relationships among the members acting as a whole. Von Bertalanffy defined system as "elements in standing relationship."
+
+Applications
+Art
+Main article: Systems art
+Biology
+Main article: Systems biology
+Systems biology is a movement that draws on several trends in bioscience research. Proponents describe systems biology as a biology-based interdisciplinary study field that focuses on complex interactions in biological systems, claiming that it uses a new perspective (holism instead of reduction).
+
+Particularly from the year 2000 onwards, the biosciences use the term widely and in a variety of contexts. An often stated ambition of systems biology is the modelling and discovery of emergent properties which represents properties of a system whose theoretical description requires the only possible useful techniques to fall under the remit of systems biology. It is thought that Ludwig von Bertalanffy may have created the term systems biology in 1928.[10]
+
+Subdisciplines of systems biology include:
+
+Systems neuroscience
+Systems pharmacology
+Ecology
+Main article: Systems ecology
+Systems ecology is an interdisciplinary field of ecology that takes a holistic approach to the study of ecological systems, especially ecosystems;[11][12][13] it can be seen as an application of general systems theory to ecology.
+
+Central to the systems ecology approach is the idea that an ecosystem is a complex system exhibiting emergent properties. Systems ecology focuses on interactions and transactions within and between biological and ecological systems, and is especially concerned with the way the functioning of ecosystems can be influenced by human interventions. It uses and extends concepts from thermodynamics and develops other macroscopic descriptions of complex systems.
+
+Chemistry
+Main article: Systems chemistry
+Systems chemistry is the science of studying networks of interacting molecules, to create new functions from a set (or library) of molecules with different hierarchical levels and emergent properties.[14] Systems chemistry is also related to the origin of life (abiogenesis).[15]
+
+Engineering
+Main article: Systems engineering
+Systems engineering is an interdisciplinary approach and means for enabling the realisation and deployment of successful systems. It can be viewed as the application of engineering techniques to the engineering of systems, as well as the application of a systems approach to engineering efforts.[16] Systems engineering integrates other disciplines and specialty groups into a team effort, forming a structured development process that proceeds from concept to production to operation and disposal. Systems engineering considers both the business and the technical needs of all customers, with the goal of providing a quality product that meets the user's needs.[17][18]
+
+User-centered design process
+Systems thinking is a crucial part of user-centered design processes and is necessary to understand the whole impact of a new human computer interaction (HCI) information system.[19] Overlooking this and developing software without insights input from the future users (mediated by user experience designers) is a serious design flaw that can lead to complete failure of information systems, increased stress and mental illness for users of information systems leading to increased costs and a huge waste of resources.[20] It is currently surprisingly uncommon for organizations and governments to investigate the project management decisions leading to serious design flaws and lack of usability.[citation needed]
+
+The Institute of Electrical and Electronics Engineers estimates that roughly 15% of the estimated $1 trillion used to develop information systems every year is completely wasted and the produced systems are discarded before implementation by entirely preventable mistakes.[21] According to the CHAOS report published in 2018 by the Standish Group, a vast majority of information systems fail or partly fail according to their survey:
+
+Pure success is the combination of high customer satisfaction with high return on value to the organization. Related figures for the year 2017 are: successful: 14%, challenged: 67%, failed 19%.[22]
+
+Mathematics
+Main article: System dynamics
+System dynamics is an approach to understanding the nonlinear behaviour of complex systems over time using stocks, flows, internal feedback loops, and time delays.[23] The field of category theory has recently been used by researchers including David Jaz Myers[24] to formalise concepts from systems theory.
+
+Social sciences and humanities
+Systems theory in anthropology
+Systems theory in archaeology
+Systems theory in political science
+Psychology
+Main article: Systems psychology
+Systems psychology is a branch of psychology that studies human behaviour and experience in complex systems.
+
+It received inspiration from systems theory and systems thinking, as well as the basics of theoretical work from Roger Barker, Gregory Bateson, Humberto Maturana and others. It makes an approach in psychology in which groups and individuals receive consideration as systems in homeostasis. Systems psychology "includes the domain of engineering psychology, but in addition seems more concerned with societal systems[25] and with the study of motivational, affective, cognitive and group behavior that holds the name engineering psychology."[26]
+
+In systems psychology, characteristics of organizational behaviour (such as individual needs, rewards, expectations, and attributes of the people interacting with the systems) "considers this process in order to create an effective system."[27]
+
+Informatics
+System theory has been applied in the field of neuroinformatics and connectionist cognitive science. Attempts are being made in neurocognition to merge connectionist cognitive neuroarchitectures with the approach of system theory and dynamical systems theory.[28]
+
+History
+Precursors
+Timeline
+Predecessors
+
+Baron d'Holbach (1723/1789), Saint-Simon (1760–1825), Auguste Comte (1798–1857), Karl Marx (1818–1883), Friedrich Engels (1820–1895), Herbert Spencer (1820–1903), Rudolf Clausius (1822–1888), Vilfredo Pareto (1848–1923), Émile Durkheim (1858–1917), Alexander Bogdanov (1873–1928), Nicolai Hartmann (1882–1950), Robert Maynard Hutchins (1929–1951), among others
+Founders
+
+1946–1953: Macy conferences
+1948: Norbert Wiener publishes Cybernetics: Or Control and Communication in the Animal and the Machine
+1951: Talcott Parsons publishes The Social System[29]
+1954: The Society for the Advancement of General Systems Theory is established by Ludwig von Bertalanffy, Anatol Rapoport, Ralph W. Gerard, Kenneth Boulding.
+1955: William Ross Ashby publishes Introduction to Cybernetics
+1968: Bertalanffy publishes General System Theory: Foundations, Development, Applications
+Other contributors
+
+1970–1990 Second-order cybernetics (Heinz von Foerster, Gregory Bateson, Humberto Maturana, and others)
+1971–1973 Cybersyn, rudimentary internet and cybernetic system for democratic economic planning developed by Stafford Beer in Chile under the Allende government
+1970s: Catastrophe theory (René Thom, E.C. Zeeman) Dynamical systems in mathematics.
+1977: Ilya Prigogine received the Nobel Prize for his works on self-organization, conciliating important systems theory concepts with system thermodynamics.
+1980s: Chaos theory (David Ruelle, Edward Lorenz, Mitchell Feigenbaum, Steve Smale, James A. Yorke)
+1986: Context theory (Anthony Wilden)
+1988: International Society for Systems Science is established.
+1990: Complex adaptive systems (John H. Holland, Murray Gell-Mann, W. Brian Arthur)
+Systems thinking can date back to antiquity, whether considering the first systems of written communication with Sumerian cuneiform to Maya numerals, or the feats of engineering with the Egyptian pyramids. Differentiated from Western rationalist traditions of philosophy, C. West Churchman often identified with the I Ching as a systems approach sharing a frame of reference similar to pre-Socratic philosophy and Heraclitus.[30]: 12–13  Ludwig von Bertalanffy traced systems concepts to the philosophy of Gottfried Leibniz and Nicholas of Cusa's coincidentia oppositorum. While modern systems can seem considerably more complicated, they may embed themselves in history.
+
+Figures like James Joule and Sadi Carnot represent an important step to introduce the systems approach into the (rationalist) hard sciences of the 19th century, also known as the energy transformation. Then, the thermodynamics of this century, by Rudolf Clausius, Josiah Gibbs and others, established the system reference model as a formal scientific object.
+
+Similar ideas are found in learning theories that developed from the same fundamental concepts, emphasising how understanding results from knowing concepts both in part and as a whole. In fact, Bertalanffy's organismic psychology paralleled the learning theory of Jean Piaget.[31] Some consider interdisciplinary perspectives critical in breaking away from industrial age models and thinking, wherein history represents history and math represents math, while the arts and sciences specialization remain separate and many treat teaching as behaviorist conditioning.[32]
+
+The contemporary work of Peter Senge provides detailed discussion of the commonplace critique of educational systems grounded in conventional assumptions about learning,[33] including the problems with fragmented knowledge and lack of holistic learning from the "machine-age thinking" that became a "model of school separated from daily life." In this way, some systems theorists attempt to provide alternatives to, and evolved ideation from orthodox theories which have grounds in classical assumptions, including individuals such as Max Weber and Émile Durkheim in sociology and Frederick Winslow Taylor in scientific management.[34] The theorists sought holistic methods by developing systems concepts that could integrate with different areas.
+
+Some may view the contradiction of reductionism in conventional theory (which has as its subject a single part) as simply an example of changing assumptions. The emphasis with systems theory shifts from parts to the organization of parts, recognizing interactions of the parts as not static and constant but dynamic processes. Some questioned the conventional closed systems with the development of open systems perspectives. The shift originated from absolute and universal authoritative principles and knowledge to relative and general conceptual and perceptual knowledge[35] and still remains in the tradition of theorists that sought to provide means to organize human life. In other words, theorists rethought the preceding history of ideas; they did not lose them. Mechanistic thinking was particularly critiqued, especially the industrial-age mechanistic metaphor for the mind from interpretations of Newtonian mechanics by Enlightenment philosophers and later psychologists that laid the foundations of modern organizational theory and management by the late 19th century.[36]
+
+Founding and early development
+Where assumptions in Western science from Plato and Aristotle to Isaac Newton's Principia (1687) have historically influenced all areas from the hard to social sciences (see, David Easton's seminal development of the "political system" as an analytical construct), the original systems theorists explored the implications of 20th-century advances in terms of systems.
+
+Between 1929 and 1951, Robert Maynard Hutchins at the University of Chicago had undertaken efforts to encourage innovation and interdisciplinary research in the social sciences, aided by the Ford Foundation with the university's interdisciplinary Division of the Social Sciences established in 1931.[30]: 5–9 
+
+Many early systems theorists aimed at finding a general systems theory that could explain all systems in all fields of science.
+
+"General systems theory" (GST; German: allgemeine Systemlehre) was coined in the 1940s by Ludwig von Bertalanffy, who sought a new approach to the study of living systems.[37] Bertalanffy developed the theory via lectures beginning in 1937 and then via publications beginning in 1946.[38] According to Mike C. Jackson (2000), Bertalanffy promoted an embryonic form of GST as early as the 1920s and 1930s, but it was not until the early 1950s that it became more widely known in scientific circles.[39]
+
+Jackson also claimed that Bertalanffy's work was informed by Alexander Bogdanov's three-volume Tectology (1912–1917), providing the conceptual base for GST.[39] A similar position is held by Richard Mattessich (1978) and Fritjof Capra (1996). Despite this, Bertalanffy never even mentioned Bogdanov in his works.
+
+The systems view was based on several fundamental ideas. First, all phenomena can be viewed as a web of relationships among elements, or a system. Second, all systems, whether electrical, biological, or social, have common patterns, behaviors, and properties that the observer can analyze and use to develop greater insight into the behavior of complex phenomena and to move closer toward a unity of the sciences. System philosophy, methodology and application are complementary to this science.[6]
+
+Cognizant of advances in science that questioned classical assumptions in the organizational sciences, Bertalanffy's idea to develop a theory of systems began as early as the interwar period, publishing "An Outline for General Systems Theory" in the British Journal for the Philosophy of Science by 1950.[40]
+
+In 1954, von Bertalanffy, along with Anatol Rapoport, Ralph W. Gerard, and Kenneth Boulding, came together at the Center for Advanced Study in the Behavioral Sciences in Palo Alto to discuss the creation of a "society for the advancement of General Systems Theory." In December that year, a meeting of around 70 people was held in Berkeley to form a society for the exploration and development of GST.[41] The Society for General Systems Research (renamed the International Society for Systems Science in 1988) was established in 1956 thereafter as an affiliate of the American Association for the Advancement of Science (AAAS),[41] specifically catalyzing systems theory as an area of study. The field developed from the work of Bertalanffy, Rapoport, Gerard, and Boulding, as well as other theorists in the 1950s like William Ross Ashby, Margaret Mead, Gregory Bateson, and C. West Churchman, among others.
+
+Bertalanffy's ideas were adopted by others, working in mathematics, psychology, biology, game theory, and social network analysis. Subjects that were studied included those of complexity, self-organization, connectionism and adaptive systems. In fields like cybernetics, researchers such as Ashby, Norbert Wiener, John von Neumann, and Heinz von Foerster examined complex systems mathematically; Von Neumann discovered cellular automata and self-reproducing systems, again with only pencil and paper. Aleksandr Lyapunov and Jules Henri Poincaré worked on the foundations of chaos theory without any computer at all. At the same time, Howard T. Odum, known as a radiation ecologist, recognized that the study of general systems required a language that could depict energetics, thermodynamics and kinetics at any system scale. To fulfill this role, Odum developed a general system, or universal language, based on the circuit language of electronics, known as the Energy Systems Language.
+
+The Cold War affected the research project for systems theory in ways that sorely disappointed many of the seminal theorists. Some began to recognize that theories defined in association with systems theory had deviated from the initial general systems theory view.[42] Economist Kenneth Boulding, an early researcher in systems theory, had concerns over the manipulation of systems concepts. Boulding concluded from the effects of the Cold War that abuses of power always prove consequential and that systems theory might address such issues.[30]: 229–233  Since the end of the Cold War, a renewed interest in systems theory emerged, combined with efforts to strengthen an ethical[43] view on the subject.
+
+In sociology, systems thinking also began in the 20th century, including Talcott Parsons' action theory[44] and Niklas Luhmann's social systems theory.[45][46] According to Rudolf Stichweh (2011):[44]: 2 
+
+Since its beginnings the social sciences were an important part of the establishment of systems theory... [T]he two most influential suggestions were the comprehensive sociological versions of systems theory which were proposed by Talcott Parsons since the 1950s and by Niklas Luhmann since the 1970s.
+
+Elements of systems thinking can also be seen in the work of James Clerk Maxwell, particularly control theory.
+
+General systems research and systems inquiry
+Many early systems theorists aimed at finding a general systems theory that could explain all systems in all fields of science. Ludwig von Bertalanffy began developing his 'general systems theory' via lectures in 1937 and then via publications from 1946.[38] The concept received extensive focus in his 1968 book, General System Theory: Foundations, Development, Applications.[31]
+
+There are many definitions of a general system, some properties that definitions include are: an overall goal of the system, parts of the system and relationships between these parts, and emergent properties of the interaction between the parts of the system that are not performed by any part on its own.[47]: 58  Derek Hitchins defines a system in terms of entropy as a collection of parts and relationships between the parts where the parts of their interrelationships decrease entropy.[47]: 58 
+
+Bertalanffy aimed to bring together under one heading the organismic science that he had observed in his work as a biologist. He wanted to use the word system for those principles that are common to systems in general. In General System Theory (1968), he wrote:[31]: 32 
+
+[T]here exist models, principles, and laws that apply to generalized systems or their subclasses, irrespective of their particular kind, the nature of their component elements, and the relationships or "forces" between them. It seems legitimate to ask for a theory, not of systems of a more or less special kind, but of universal principles applying to systems in general.
+
+In the preface to von Bertalanffy's Perspectives on General System Theory, Ervin László stated:[6]
+
+Thus when von Bertalanffy spoke of Allgemeine Systemtheorie it was consistent with his view that he was proposing a new perspective, a new way of doing science. It was not directly consistent with an interpretation often put on "general system theory", to wit, that it is a (scientific) "theory of general systems." To criticize it as such is to shoot at straw men. Von Bertalanffy opened up something much broader and of much greater significance than a single theory (which, as we now know, can always be falsified and has usually an ephemeral existence): he created a new paradigm for the development of theories.
+
+Bertalanffy outlines systems inquiry into three major domains: philosophy, science, and technology. In his work with the Primer Group, Béla H. Bánáthy generalized the domains into four integratable domains of systemic inquiry:
+
+philosophy: the ontology, epistemology, and axiology of systems
+theory: a set of interrelated concepts and principles applying to all systems
+methodology: the set of models, strategies, methods and tools that instrumentalize systems theory and philosophy
+application: the application and interaction of the domains
+These operate in a recursive relationship, he explained; integrating 'philosophy' and 'theory' as knowledge, and 'method' and 'application' as action; systems inquiry is thus knowledgeable action.[48][failed verification]
+
+Properties of general systems
+General systems may be split into a hierarchy of systems, where there is less interactions between the different systems than there is the components in the system. The alternative is heterarchy where all components within the system interact with one another.[47]: 65  Sometimes an entire system will be represented inside another system as a part, sometimes referred to as a holon.[47] These hierarchies of system are studied in hierarchy theory.[49] The amount of interaction between parts of systems higher in the hierarchy and parts of the system lower in the hierarchy is reduced. If all the parts of a system are tightly coupled (interact with one another a lot) then the system cannot be decomposed into different systems. The amount of coupling between parts of a system may differ temporally, with some parts interacting more often than other, or for different processes in a system.[50]: 293  Herbert A. Simon distinguished between decomposable, nearly decomposable and nondecomposable systems.[47]: 72 
+
+Russell L. Ackoff distinguished general systems by how their goals and subgoals could change over time. He distinguished between goal-maintaining, goal-seeking, multi-goal and reflective (or goal-changing) systems.[47]: 73 
+
+System types and fields
+Theoretical fields
+
+This section is in list format but may read better as prose. You can help by converting this section, if appropriate. Editing help is available. (October 2022)
+Main article: List of types of systems theory
+Chaos theory
+Complex system
+Control theory
+Dynamical systems theory
+Earth system science
+Ecological systems theory
+Industrial ecology
+Living systems theory[49]
+Sociotechnical system
+Systemics
+Telecoupling
+Urban metabolism
+World-systems theory
+Cybernetics
+Main article: Cybernetics
+Cybernetics is the study of the communication and control of regulatory feedback both in living and lifeless systems (organisms, organizations, machines), and in combinations of those. Its focus is how anything (digital, mechanical or biological) controls its behavior, processes information, reacts to information, and changes or can be changed to better accomplish those three primary tasks.
+
+The terms systems theory and cybernetics have been widely used as synonyms. Some authors use the term cybernetic systems to denote a proper subset of the class of general systems, namely those systems that include feedback loops. However, Gordon Pask's differences of eternal interacting actor loops (that produce finite products) makes general systems a proper subset of cybernetics. In cybernetics, complex systems have been examined mathematically by such researchers as W. Ross Ashby, Norbert Wiener, John von Neumann, and Heinz von Foerster.
+
+Threads of cybernetics began in the late 1800s that led toward the publishing of seminal works (such as Wiener's Cybernetics in 1948 and Bertalanffy's General System Theory in 1968). Cybernetics arose more from engineering fields and GST from biology. If anything, it appears that although the two probably mutually influenced each other, cybernetics had the greater influence. Bertalanffy specifically made the point of distinguishing between the areas in noting the influence of cybernetics:
+
+Systems theory is frequently identified with cybernetics and control theory. This again is incorrect. Cybernetics as the theory of control mechanisms in technology and nature is founded on the concepts of information and feedback, but as part of a general theory of systems.... [T]he model is of wide application but should not be identified with 'systems theory' in general ... [and] warning is necessary against its incautious expansion to fields for which its concepts are not made.[31]: 17–23 
+
+Cybernetics, catastrophe theory, chaos theory and complexity theory have the common goal to explain complex systems that consist of a large number of mutually interacting and interrelated parts in terms of those interactions. Cellular automata, neural networks, artificial intelligence, and artificial life are related fields, but do not try to describe general (universal) complex (singular) systems. The best context to compare the different "C"-Theories about complex systems is historical, which emphasizes different tools and methodologies, from pure mathematics in the beginning to pure computer science today. Since the beginning of chaos theory, when Edward Lorenz accidentally discovered a strange attractor with his computer, computers have become an indispensable source of information. One could not imagine the study of complex systems without the use of computers today.
+
+System types
+
+This section is in list format but may read better as prose. You can help by converting this section, if appropriate. Editing help is available. (October 2022)
+Biological
+Anatomical systems
+Nervous
+Sensory
+Ecological systems
+Living systems
+Complex
+Complex adaptive system
+Conceptual
+Coordinate
+Deterministic (philosophy)
+Digital ecosystem
+Experimental
+Writing
+Coupled human–environment
+Database
+Deterministic (science)
+Mathematical
+Dynamical system
+Formal system
+Energy
+Holarchical
+Information
+Measurement
+Imperial
+Metric
+Multi-agent
+Nonlinear
+Operating
+Planetary
+Social
+Cultural
+Economic
+Legal
+Political
+Star
+Complex adaptive systems
+Main article: Complex adaptive system
+Complex adaptive systems (CAS), coined by John H. Holland, Murray Gell-Mann, and others at the interdisciplinary Santa Fe Institute, are special cases of complex systems: they are complex in that they are diverse and composed of multiple, interconnected elements; they are adaptive in that they have the capacity to change and learn from experience.
+
+In contrast to control systems, in which negative feedback dampens and reverses disequilibria, CAS are often subject to positive feedback, which magnifies and perpetuates changes, converting local irregularities into global features.
+
+See also
+diagram	Systems science portal
+Glossary of systems theory
+List of types of systems theory
+Autonomous agency theory
+Bibliography of sociology
+Cellular automata
+Chaos theory
+Complexity
+Dependency theory
+Emergence
+Engaged theory
+Fractal
+Grey box model
+Hierarchy theory
+Irreducible complexity
+Meta-systems
+Multidimensional systems
+Open and closed systems in social science
+Pattern language
+Recursion (computer science)
+Reductionism
+Redundancy (engineering)
+Reversal theory
+Social rule system theory
+Sociology and complexity science
+Sociotechnical system
+Structuralist economics
+Structure–organization–process
+System identification
+Systemantics
+Systematics – study of multi-term systems
+Systemics
+Systemography
+Systems science
+Tektology
+Theoretical ecology
+User-in-the-loop
+Viable system theory
+Viable systems approach
+World-systems theory
+Organizations
+List of systems sciences organizations
+References
+ Montuori, A. (2011). "Systems Approach". Encyclopedia of Creativity. pp. 414–421. doi:10.1016/B978-0-12-375038-9.00212-0. ISBN 978-0-12-375038-9.
+ Von Bertalanffy, Ludwig (1972). "The History and Status of General Systems Theory". The Academy of Management Journal. 15 (4): 407–426. Bibcode:1972AManJ..15..407V. JSTOR 255139.
+ Beven, Keith (March 2006). "A manifesto for the equifinality thesis" (PDF). Journal of Hydrology. 320 (1–2): 18–36. Bibcode:2006JHyd..320...18B. doi:10.1016/j.jhydrol.2005.07.007.
+ Paolo Rocchi (2000). Technology + Culture. IOS Press. ISBN 978-1-58603-035-3.
+ Bertalanffy, (1950: 142).
+ László, Ervin. 1974. "Preface" in Perspectives on General System Theory, by L. von Bertalanffy, edited by Edgar Taschdjian. New York: George Braziller.
+ Schein, E. H. (1980). Organizational Psychology. New Jersey: Prentice-Hall. pp. 4–11.
+ Laszlo, Ervin (1972). The Systems View of the World: The Natural Philosophy of the New Developments in the Sciences. New York, New York: George Braziller, Inc. (simultaneously with Doubleday Canada, Limited). pp. 14–15. ISBN 0-8076-0637-5. LCCN 71-188357.
+ Béla H. Bánáthy, 1997: ¶ 22.
+ 1928, Kritische Theorie der Formbildung, Borntraeger. In English: Modern Theories of Development: An Introduction to Theoretical Biology, Oxford University Press, New York: Harper, 1933
+ Shugart, Herman H., and Robert V. O'Neill. "Systems Ecology". Dowden, Hutchingon & Ross, 1979.
+ Van Dyne, George M. "Ecosystems, Systems Ecology, and Systems Ecologists". ORNL- 3975. Oak Ridge National Laboratory, Oak Ridge, TN, 1966.
+ Wilkinson, David M. (2006). Fundamental Processes in Ecology: An Earth Systems Approach. Oxford University Press. ISBN 9780198568469. Archived from the original on 2024-04-21. Retrieved 2020-11-12.
+ Ludlow, R. Frederick; Otto, Sijbren (2008). "Systems chemistry". Chemical Society Reviews. 37 (1): 101–108. Bibcode:2008CSRev..37..101L. doi:10.1039/b611921m. PMID 18197336.
+ von Kiedrowski, Günter; Otto, Sijbren; Herdewijn, Piet (December 2010). "Welcome Home, Systems Chemists!". Journal of Systems Chemistry. 1 (1) 1. doi:10.1186/1759-2208-1-1.
+ Thomé, Bernhard (1993). Systems Engineering: Principles and Practice of Computer-based Systems Engineering. Chichester: John Wiley & Sons. ISBN 0-471-93552-2.
+ INCOSE. "What is Systems Engineering". Archived from the original on 2006-11-28. Retrieved 2006-11-26.
+ Blockley, David; Godfrey, Patrick, Doing it Differently: Systems for Rethinking Infrastructure (2nd Edition) ICE Publishing, London, England, ISBN 978-0-7277-6082-1.
+ Söderström, Jonas. "Algoritmiska larm belastar sjukvården". Jävla skitsystem. Archived from the original on 6 August 2020. Retrieved 12 September 2020.
+ Söderström, Jonas (2010). Jävla skitsystem!. Stockholm: Karnaval Förlag. p. 16,17.
+ Charette, Robert N. (2 September 2005). "Why Software Fails". IEEE Spectrum. Archived from the original on 9 September 2020. Retrieved 12 September 2020.
+ Portman, Henny (3 January 2020). "Review CHAOS Report 2018". Henny Portman's Blog. Archived from the original on 29 September 2020. Retrieved 11 September 2020.
+ "MIT System Dynamics in Education Project (SDEP)". Archived from the original on 2019-02-13. Retrieved 2016-10-28.
+ Myers, David Jaz. "David Jaz Myers – Student of mathematics and otherwise". www.davidjaz.com. Retrieved 2025-09-02.
+ Vallacher, R. R., & Nowak, A. (2007). Dynamical social psychology: Finding order in the flow of human experience. New York: Guilford Publications.
+ Lester R. Bittel and Muriel Albers Bittel (1978), Encyclopedia of Professional Management, McGraw-Hill, ISBN 0-07-005478-9, p. 498.
+ Michael M. Behrmann (1984), Handbook of Microcomputers in Special Education. College Hill Press. ISBN 0-933014-35-X. p. 212.
+ Maurer, Harald (2021). Cognitive Science. doi:10.1201/9781351043526. ISBN 978-1-351-04352-6. chap. 1.4, 2., 3.26
+ Parsons, Talcott (1951). The Social System. Glencoe.
+ Hammond, Debora (2003). The Science of Synthesis. University of Colorado Press. ISBN 9780870817229.
+ von Bertalanffy, Ludwig. [1968] 1976. General System Theory: Foundations, Development, Applications (rev. ed.). New York: George Braziller. ISBN 0-8076-0453-4.
+ see Steiss 1967; Buckley, 1967.
+ Senge, Peter., Ed (2000). Schools That Learn: A Fifth Discipline Fieldbook for Educators, Parents, and Everyone Who Cares About Education. New York: Doubleday Dell Publishing Group. pp. 27–49.
+ Bailey, 1994, pp. 3–8; see also Owens, 2004.
+ Bailey 1994, pp. 3–8.
+ Bailey, 1994; Flood, 1997; Checkland, 1999; Laszlo, 1972.
+ Montuori, A. 2011. "Systems Approach." pp. 414–421 in Encyclopedia of Creativity (2nd ed.). Academic Press. doi:10.1016/B978-0-12-375038-9.00212-0.
+ von Bertalanffy, Karl Ludwig. [1967] 1970. Robots, Men and Minds: Psychology in the Modern World (1st ed.), translated by H-J. Flechtner. Düsseldorf: Econ Verlag GmbH. p. 115.
+ Mike C. Jackson. 2000. Systems Approaches to Management. London, England: Springer.
+ von Bertalanffy, Ludwig. 1950. "An Outline for General Systems Theory." British Journal for the Philosophy of Science 1(2).
+ "History". www.isss.org. Archived from the original on 2021-05-10. Retrieved 2021-03-13.
+ Hull, D. L. (1970). "Systemic Dynamic Social Theory". Sociological Quarterly. 11 (3): 351–363. doi:10.1111/j.1533-8525.1970.tb00778.x.
+ Ludwig von Bertalanffy. 1968. General System theory: Foundations, Development, Applications.
+ Rudolf Stichweh (2011), "Systems Theory Archived 2016-03-07 at the Wayback Machine", in:y.
+ Luhmann, Niklas (1984). Soziale Systeme: Grundriß einer allgemeinen Theorie. Suhrkamp.
+ Bertrand Badie et al. (eds.), International Encyclopedia of Political Science. Sage New York.
+ Skyttner, Lars (2005). General systems theory : problems, perspectives, practice (2nd ed.). Hackensack, NJ: World Scientific. ISBN 978-981-277-475-0. OCLC 181372125.
+ "start [ProjectsISSS]". projects.isss.org. Archived from the original on 2021-04-13. Retrieved 2021-04-07.
+ Sinnott, J.D.; Rabin, J.S. (2012). "Sex Roles". Encyclopedia of Human Behavior. pp. 411–417. doi:10.1016/B978-0-12-375000-6.00323-2. ISBN 978-0-08-096180-4.
+ Wu, Jianguo (2013). "Hierarchy Theory: An Overview". Linking Ecology and Ethics for a Changing World. pp. 281–301. doi:10.1007/978-94-007-7470-4_24. ISBN 978-94-007-7469-8.
+Further reading
+Ashby, W. Ross (1956). An Introduction to Cybernetics. Chapman & Hall. OCLC 522174.
+Ashby, W. Ross (1970). Design for a Brain: The Origin of Adaptive Behavior (2nd ed.). Chapman & Hall. OCLC 19378401.
+Bateson, Gregory; Bateson, Mary C. (2000) [1972]. Steps to an Ecology of Mind (University of Chicago Press ed.). University of Chicago Press. ISBN 9780226039060. OCLC 42295815.
+von Bertalanffy, Ludwig (1968). General System Theory. New York: George Braziller.
+Burks, Arthur (1970). Essays on Cellular Automata. University of Illinois Press.
+Cherry, Colin (1957). On Human Communication. Cambridge: The MIT Press.
+Churchman, C. West (1971). The Design of Inquiring Systems. New York: Basic Books.
+Checkland, Peter (1999). Systems Thinking, Systems Practice. Wiley.
+Gleick, James (1997). Chaos: Making a New Science. Random House.
+Haken, Hermann (1983). Synergetics: An Introduction (3rd ed.). Springer.
+Holland, John H. (1992). Adaptation in Natural and Artificial Systems. Cambridge: The MIT Press.
+Luhmann, Niklas (2013). Introduction to Systems Theory. Polity.
+Macy, Joanna (1991). Mutual Causality in Buddhism and General Systems Theory. SUNY Press.
+Maturana, Humberto; Varela, Francisco (1980). Autopoiesis and Cognition. Springer Science & Business Media.
+Miller, James Grier (1978). Living Systems. McGraw-Hill.
+von Neumann, John (1951). "The General and Logical Theory of Automata". Cerebral Mechanisms in Behavior. pp. 1–41.
+von Neumann, John (1956). "Probabilistic Logics and the Synthesis of Reliable Organisms from Unreliable Components". Automata Studies. 34: 43–98.
+von Neumann, John (1966). Burks, Arthur (ed.). Theory of Self-Reproducing Automata. Illinois University Press.
+Parsons, Talcott (1951). The Social System. The Free Press.
+Prigogine, Ilya (1980). From Being to Becoming. W. H. Freeman & Co.
+Simon, Herbert A. (1962). "The Architecture of Complexity". Proceedings of the American Philosophical Society. 106.
+Simon, Herbert A. (1996). The Sciences of the Artificial. Vol. 136 (3rd ed.). The MIT Press.
+Shannon, Claude; Weaver, Warren (1998) [1st Pub. 1949]. The Mathematical Theory of Communication. University of Illinois Press. ISBN 0-252-72546-8.
+Shannon, Claude (1948). "A Mathematical Theory of Communication". Bell System Technical Journal. 27 (3): 379–423. Bibcode:1948BSTJ...27..379S. doi:10.1002/j.1538-7305.1948.tb01338.x.
+Thom, René (1972). Structural Stability and Morphogenesis. Reading, Massachusetts: Addison-Wesley.
+Volk, Tyler (1995). Metapatterns: Across Space, Time, and Mind. Columbia University Press. ISBN 978-0-231-53262-4.
+Weaver, Warren (1948). "Science and Complexity". The American Scientist. 36 (4): 536–544. PMID 18882675.
+Wiener, Norbert (1965). Cybernetics: Or the Control and Communication in the Animal and the Machine (2nd ed.). The MIT Press.
+Wolfram, Stephen (2002). A New Kind of Science. Wolfram Media.
+Zadeh, Lofti (1962). "From Circuit Theory to System Theory". Proceedings of the IRE. 50 (5): 856–865. Bibcode:1962PIRE...50..856Z. doi:10.1109/JRPROC.1962.288302.
+External links
+Systems theory
+at Wikipedia's sister projects
+Wiktionary logoDefinitions from Wiktionary
+Wikimedia Commons logoMedia from Commons
+Wikinews logoNews from Wikinews
+Quotations from Wikiquote
+Wikisource logoTexts from Wikisource
+Wikibooks logoTextbooks from Wikibooks
+Wikiversity logoResources from Wikiversity
+ Data related to Systems theory at Wikidata
+Systems Thinking at Wikiversity
+Systems theory at Principia Cybernetica Web
+Introduction to systems thinking – 55 slides
+Organizations
+
+International Society for the System Sciences
+New England Complex Systems Institute
+System Dynamics Society
+vte
+Systems science
+vte
+Digital humanities
+vte
+Scientific modelling
+Authority control databases Edit this at Wikidata
+Categories: Systems theoryEmergenceInterdisciplinary subfields of sociologyComplex systems theorySystems science
+This page was last edited on 9 March 2026, at 18:31 (UTC).
+
+Meta-system
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+(Redirected from Meta-systems)
+icon
+This article needs additional citations for verification. Please help improve this article by adding citations to reliable sources. Unsourced material may be challenged and removed.
+Find sources: "Meta-system" – news · newspapers · books · scholar · JSTOR (April 2025) (Learn how and when to remove this message)
+A metasystem or meta-system is a "system about other systems",[1] such as describing, generalizing, modelling, or analyzing the other system(s). It links the concepts of a system and meta. Aurelio Peccei conceived of environmental degradation, poverty, population health challenges, urban decay, and criminality as comprising an interrelated, generalized meta-problem — a meta-system of problems he termed the problematic.[2]
+
+References
+ Palmer, Kent D. (July 2000). "9.6 Meta‐systems Engineering". INCOSE International Symposium. 10 (1): 889–904. doi:10.1002/j.2334-5837.2000.tb00470.x. ISSN 2334-5837.
+ "The Predicament of Mankind" (PDF). 1970. pp. 12–13. Archived from the original (PDF) on 2014-02-03. Retrieved 2016-05-13.
+Wiktionary logo
+Look up metasystem in Wiktionary, the free dictionary.
+Stub icon	
+This systems-related article is a stub. You can help Wikipedia by adding missing information.
+
+Categories: Systems theory stubsControl theory
+This page was last edited on 7 December 2025, at 08:25 (UTC).
+
+Multidimensional system
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+(Redirected from Multidimensional systems)
+In mathematical systems theory, a multidimensional system or m-D system is a system in which not only one independent variable exists (like time), but there are several independent variables.
+
+Important problems such as factorization and stability of m-D systems (m > 1) have recently attracted the interest of many researchers and practitioners. The reason is that the factorization and stability is not a straightforward extension of the factorization and stability of 1-D systems because, for example, the fundamental theorem of algebra does not exist in the ring of m-D (m > 1) polynomials.
+
+Applications
+Multidimensional systems or m-D systems are the necessary mathematical background for modern digital image processing with many applications in biomedicine, X-ray technology and satellite communications.[1][2] There are also some studies combining m-D systems with partial differential equations (PDEs).
+
+Linear multidimensional state-space model
+A state-space model is a representation of a system in which the effect of all "prior" input values is contained by a state vector. In the case of an m-d system, each dimension has a state vector that contains the effect of prior inputs relative to that dimension. The collection of all such dimensional state vectors at a point constitutes the total state vector at the point.
+
+Consider a uniform discrete space linear two-dimensional (2d) system that is space invariant and causal. It can be represented in matrix-vector form as follows:[3][4]
+
+Represent the input vector at each point 
+(
+i
+,
+j
+)
+{\displaystyle (i,j)} by 
+u
+(
+i
+,
+j
+)
+{\displaystyle u(i,j)}, the output vector by 
+y
+(
+i
+,
+j
+)
+{\displaystyle y(i,j)} the horizontal state vector by 
+R
+(
+i
+,
+j
+)
+{\displaystyle R(i,j)} and the vertical state vector by 
+S
+(
+i
+,
+j
+)
+{\displaystyle S(i,j)}. Then the operation at each point is defined by:
+
+R
+(
+i
++
+1
+,
+j
+)
+=
+A
+1
+R
+(
+i
+,
+j
+)
++
+A
+2
+S
+(
+i
+,
+j
+)
++
+B
+1
+u
+(
+i
+,
+j
+)
+S
+(
+i
+,
+j
++
+1
+)
+=
+A
+3
+R
+(
+i
+,
+j
+)
++
+A
+4
+S
+(
+i
+,
+j
+)
++
+B
+2
+u
+(
+i
+,
+j
+)
+y
+(
+i
+,
+j
+)
+=
+C
+1
+R
+(
+i
+,
+j
+)
++
+C
+2
+S
+(
+i
+,
+j
+)
++
+D
+u
+(
+i
+,
+j
+)
+{\displaystyle {\begin{aligned}R(i+1,j)&=A_{1}R(i,j)+A_{2}S(i,j)+B_{1}u(i,j)\\S(i,j+1)&=A_{3}R(i,j)+A_{4}S(i,j)+B_{2}u(i,j)\\y(i,j)&=C_{1}R(i,j)+C_{2}S(i,j)+Du(i,j)\end{aligned}}}
+where 
+A
+1
+,
+A
+2
+,
+A
+3
+,
+A
+4
+,
+B
+1
+,
+B
+2
+,
+C
+1
+,
+C
+2
+{\displaystyle A_{1},A_{2},A_{3},A_{4},B_{1},B_{2},C_{1},C_{2}} and 
+D
+{\displaystyle D} are matrices of appropriate dimensions.
+
+These equations can be written more compactly by combining the matrices:
+
+[
+R
+(
+i
++
+1
+,
+j
+)
+S
+(
+i
+,
+j
++
+1
+)
+y
+(
+i
+,
+j
+)
+]
+=
+[
+A
+1
+A
+2
+B
+1
+A
+3
+A
+4
+B
+2
+C
+1
+C
+2
+D
+]
+[
+R
+(
+i
+,
+j
+)
+S
+(
+i
+,
+j
+)
+u
+(
+i
+,
+j
+)
+]
+{\displaystyle {\begin{bmatrix}R(i+1,j)\\S(i,j+1)\\y(i,j)\end{bmatrix}}={\begin{bmatrix}A_{1}&A_{2}&B_{1}\\A_{3}&A_{4}&B_{2}\\C_{1}&C_{2}&D\end{bmatrix}}{\begin{bmatrix}R(i,j)\\S(i,j)\\u(i,j)\end{bmatrix}}}
+Given input vectors 
+u
+(
+i
+,
+j
+)
+{\displaystyle u(i,j)} at each point and initial state values, the value of each output vector can be computed by recursively performing the operation above.
+
+Multidimensional transfer function
+A discrete linear two-dimensional system is often described by a partial difference equation in the form: 
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+a
+p
+,
+q
+y
+(
+i
+−
+p
+,
+j
+−
+q
+)
+=
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+b
+p
+,
+q
+x
+(
+i
+−
+p
+,
+j
+−
+q
+)
+{\displaystyle \sum _{p,q=0,0}^{m,n}a_{p,q}y(i-p,j-q)=\sum _{p,q=0,0}^{m,n}b_{p,q}x(i-p,j-q)}
+
+where 
+x
+(
+i
+,
+j
+)
+{\displaystyle x(i,j)} is the input and 
+y
+(
+i
+,
+j
+)
+{\displaystyle y(i,j)} is the output at point 
+(
+i
+,
+j
+)
+{\displaystyle (i,j)} and 
+a
+p
+,
+q
+{\displaystyle a_{p,q}} and 
+b
+p
+,
+q
+{\displaystyle b_{p,q}} are constant coefficients.
+
+To derive a transfer function for the system the 2d Z-transform is applied to both sides of the equation above.
+
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+a
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+Y
+(
+z
+1
+,
+z
+2
+)
+=
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+b
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+X
+(
+z
+1
+,
+z
+2
+)
+{\displaystyle \sum _{p,q=0,0}^{m,n}a_{p,q}z_{1}^{-p}z_{2}^{-q}Y(z_{1},z_{2})=\sum _{p,q=0,0}^{m,n}b_{p,q}z_{1}^{-p}z_{2}^{-q}X(z_{1},z_{2})}
+Transposing yields the transfer function 
+T
+(
+z
+1
+,
+z
+2
+)
+{\displaystyle T(z_{1},z_{2})}:
+
+T
+(
+z
+1
+,
+z
+2
+)
+=
+Y
+(
+z
+1
+,
+z
+2
+)
+X
+(
+z
+1
+,
+z
+2
+)
+=
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+b
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+a
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+{\displaystyle T(z_{1},z_{2})={Y(z_{1},z_{2}) \over X(z_{1},z_{2})}={\sum _{p,q=0,0}^{m,n}b_{p,q}z_{1}^{-p}z_{2}^{-q} \over \sum _{p,q=0,0}^{m,n}a_{p,q}z_{1}^{-p}z_{2}^{-q}}}
+So given any pattern of input values, the 2d Z-transform of the pattern is computed and then multiplied by the transfer function 
+T
+(
+z
+1
+,
+z
+2
+)
+{\displaystyle T(z_{1},z_{2})} to produce the Z-transform of the system output.
+
+Realization of a 2d transfer function
+Often an image processing or other md computational task is described by a transfer function that has certain filtering properties, but it is desired to convert it to state-space form for more direct computation. Such conversion is referred to as realization of the transfer function.
+
+Consider a 2d linear spatially invariant causal system having an input-output relationship described by:
+
+Y
+(
+z
+1
+,
+z
+2
+)
+=
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+b
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+a
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+X
+(
+z
+1
+,
+z
+2
+)
+{\displaystyle Y(z_{1},z_{2})={\sum _{p,q=0,0}^{m,n}b_{p,q}z_{1}^{-p}z_{2}^{-q} \over \sum _{p,q=0,0}^{m,n}a_{p,q}z_{1}^{-p}z_{2}^{-q}}X(z_{1},z_{2})}
+Two cases are individually considered 1) the bottom summation is simply the constant 1 2) the top summation is simply a constant 
+k
+{\displaystyle k}. Case 1 is often called the "all-zero" or "finite impulse response" case, whereas case 2 is called the "all-pole" or "infinite impulse response" case. The general situation can be implemented as a cascade of the two individual cases. The solution for case 1 is considerably simpler than case 2 and is shown below.
+
+Example: all zero or finite impulse response
+Y
+(
+z
+1
+,
+z
+2
+)
+=
+∑
+p
+,
+q
+=
+0
+,
+0
+m
+,
+n
+b
+p
+,
+q
+z
+1
+−
+p
+z
+2
+−
+q
+X
+(
+z
+1
+,
+z
+2
+)
+{\displaystyle Y(z_{1},z_{2})=\sum _{p,q=0,0}^{m,n}b_{p,q}z_{1}^{-p}z_{2}^{-q}X(z_{1},z_{2})}
+The state-space vectors will have the following dimensions:
+
+R
+(
+1
+×
+m
+)
+,
+S
+(
+1
+×
+n
+)
+,
+x
+(
+1
+×
+1
+)
+{\displaystyle R(1\times m),\quad S(1\times n),\quad x(1\times 1)} and 
+y
+(
+1
+×
+1
+)
+{\displaystyle y(1\times 1)}
+Each term in the summation involves a negative (or zero) power of 
+z
+1
+{\displaystyle z_{1}} and of 
+z
+2
+{\displaystyle z_{2}} which correspond to a delay (or shift) along the respective dimension of the input 
+x
+(
+i
+,
+j
+)
+{\displaystyle x(i,j)}. This delay can be effected by placing 
+1
+{\displaystyle 1}’s along the super diagonal in the 
+A
+1
+{\displaystyle A_{1}}. and 
+A
+4
+{\displaystyle A_{4}} matrices and the multiplying coefficients 
+b
+i
+,
+j
+{\displaystyle b_{i,j}} in the proper positions in the 
+A
+2
+{\displaystyle A_{2}}. The value 
+b
+0
+,
+0
+{\displaystyle b_{0,0}} is placed in the upper position of the 
+B
+1
+{\displaystyle B_{1}} matrix, which will multiply the input 
+x
+(
+i
+,
+j
+)
+{\displaystyle x(i,j)} and add it to the first component of the 
+R
+i
+,
+j
+{\displaystyle R_{i,j}} vector. Also, a value of 
+b
+0
+,
+0
+{\displaystyle b_{0,0}} is placed in the 
+D
+{\displaystyle D} matrix which will multiply the input 
+x
+(
+i
+,
+j
+)
+{\displaystyle x(i,j)} and add it to the output 
+y
+{\displaystyle y}. The matrices then appear as follows:
+
+A
+1
+=
+[
+0
+0
+0
+⋯
+0
+0
+1
+0
+0
+⋯
+0
+0
+0
+1
+0
+⋯
+0
+0
+⋮
+⋮
+⋮
+⋱
+⋮
+⋮
+0
+0
+0
+⋯
+0
+0
+0
+0
+0
+⋯
+1
+0
+]
+{\displaystyle A_{1}={\begin{bmatrix}0&0&0&\cdots &0&0\\1&0&0&\cdots &0&0\\0&1&0&\cdots &0&0\\\vdots &\vdots &\vdots &\ddots &\vdots &\vdots \\0&0&0&\cdots &0&0\\0&0&0&\cdots &1&0\end{bmatrix}}}
+A
+2
+=
+[
+0
+0
+0
+⋯
+0
+0
+0
+0
+0
+⋯
+0
+0
+0
+0
+0
+⋯
+0
+0
+⋮
+⋮
+⋮
+⋱
+⋮
+⋮
+0
+0
+0
+⋯
+0
+0
+0
+0
+0
+⋯
+0
+0
+]
+{\displaystyle A_{2}={\begin{bmatrix}0&0&0&\cdots &0&0\\0&0&0&\cdots &0&0\\0&0&0&\cdots &0&0\\\vdots &\vdots &\vdots &\ddots &\vdots &\vdots \\0&0&0&\cdots &0&0\\0&0&0&\cdots &0&0\end{bmatrix}}}
+A
+3
+=
+[
+b
+1
+,
+n
+b
+2
+,
+n
+b
+3
+,
+n
+⋯
+b
+m
+−
+1
+,
+n
+b
+m
+,
+n
+b
+1
+,
+n
+−
+1
+b
+2
+,
+n
+−
+1
+b
+3
+,
+n
+−
+1
+⋯
+b
+m
+−
+1
+,
+n
+−
+1
+b
+m
+,
+n
+−
+1
+b
+1
+,
+n
+−
+2
+b
+2
+,
+n
+−
+2
+b
+3
+,
+n
+−
+2
+⋯
+b
+m
+−
+1
+,
+n
+−
+2
+b
+m
+,
+n
+−
+2
+⋮
+⋮
+⋮
+⋱
+⋮
+⋮
+b
+1
+,
+2
+b
+2
+,
+2
+b
+3
+,
+2
+⋯
+b
+m
+−
+1
+,
+2
+b
+m
+,
+2
+b
+1
+,
+1
+b
+2
+,
+1
+b
+3
+,
+1
+⋯
+b
+m
+−
+1
+,
+1
+b
+m
+,
+1
+]
+{\displaystyle A_{3}={\begin{bmatrix}b_{1,n}&b_{2,n}&b_{3,n}&\cdots &b_{m-1,n}&b_{m,n}\\b_{1,n-1}&b_{2,n-1}&b_{3,n-1}&\cdots &b_{m-1,n-1}&b_{m,n-1}\\b_{1,n-2}&b_{2,n-2}&b_{3,n-2}&\cdots &b_{m-1,n-2}&b_{m,n-2}\\\vdots &\vdots &\vdots &\ddots &\vdots &\vdots \\b_{1,2}&b_{2,2}&b_{3,2}&\cdots &b_{m-1,2}&b_{m,2}\\b_{1,1}&b_{2,1}&b_{3,1}&\cdots &b_{m-1,1}&b_{m,1}\end{bmatrix}}}
+A
+4
+=
+[
+0
+0
+0
+⋯
+0
+0
+1
+0
+0
+⋯
+0
+0
+0
+1
+0
+⋯
+0
+0
+⋮
+⋮
+⋮
+⋱
+⋮
+⋮
+0
+0
+0
+⋯
+0
+0
+0
+0
+0
+⋯
+1
+0
+]
+{\displaystyle A_{4}={\begin{bmatrix}0&0&0&\cdots &0&0\\1&0&0&\cdots &0&0\\0&1&0&\cdots &0&0\\\vdots &\vdots &\vdots &\ddots &\vdots &\vdots \\0&0&0&\cdots &0&0\\0&0&0&\cdots &1&0\end{bmatrix}}}
+
+B
+1
+=
+[
+1
+0
+0
+0
+⋮
+0
+0
+]
+{\displaystyle B_{1}={\begin{bmatrix}1\\0\\0\\0\\\vdots \\0\\0\end{bmatrix}}}
+B
+2
+=
+[
+b
+0
+,
+n
+b
+0
+,
+n
+−
+1
+b
+0
+,
+n
+−
+2
+⋮
+b
+0
+,
+2
+b
+0
+,
+1
+]
+{\displaystyle B_{2}={\begin{bmatrix}b_{0,n}\\b_{0,n-1}\\b_{0,n-2}\\\vdots \\b_{0,2}\\b_{0,1}\end{bmatrix}}}
+C
+1
+=
+[
+b
+1
+,
+0
+b
+2
+,
+0
+b
+3
+,
+0
+⋯
+b
+m
+−
+1
+,
+0
+b
+m
+,
+0
+]
+{\displaystyle C_{1}={\begin{bmatrix}b_{1,0}&b_{2,0}&b_{3,0}&\cdots &b_{m-1,0}&b_{m,0}\\\end{bmatrix}}}
+C
+2
+=
+[
+0
+0
+0
+⋯
+0
+1
+]
+{\displaystyle C_{2}={\begin{bmatrix}0&0&0&\cdots &0&1\\\end{bmatrix}}}
+D
+=
+[
+b
+0
+,
+0
+]
+{\displaystyle D={\begin{bmatrix}b_{0,0}\end{bmatrix}}}
+[3][4]
+
+References
+ Bose, N.K., ed. (1985). Multidimensional Systems Theory, Progress, Directions and Open Problems in Multidimensional Systems. Dordre http, Holland: D. Reidel Publishing Company.
+ Bose, N.K., ed. (1979). Multidimensional Systems: Theory and Applications. IEEE Press.
+ Tzafestas, S.G., ed. (1986). Multidimensional Systems: Techniques and Applications. New York: Marcel-Dekker.
+ Kaczorek, T. (1985). Two-Dimensional Linear Systems. Lecture Notes Contr. and Inform. Sciences. Vol. 68. Springer-Verlag.
+Categories: Digital imagingPartial differential equationsStability theoryMultidimensional signal processing
+

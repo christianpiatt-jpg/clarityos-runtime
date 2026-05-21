@@ -1,0 +1,18 @@
+notepad 108_AnalyticsEngine.idx
+
+[Record]
+Name = Analytics Engine
+Code = 108
+Path = ../../02_Subsystems/Analytics_Engine/
+Description = Analytical subsystem responsible for pattern detection, drift analysis, signal-to-noise separation, hydronic analytics, and predictive geometry.
+
+[Files]
+Analytics_Primitives = analytics_primitives.txt
+Pattern_Recognition = pattern_recognition.txt
+Drift_Detection = drift_detection.txt
+Signal_Processing = signal_processing.txt
+Predictive_Geometry = predictive_geometry.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx

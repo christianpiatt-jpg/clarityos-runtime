@@ -1,0 +1,18 @@
+[DRIFT_FORECAST]
+layer: structural
+risk_zones:
+  - 04_Library: medium
+  - 02_Modules: low
+  - 05_Maps: medium
+  - 06_Logs: high
+drivers:
+  - frequent updates to library artifacts
+  - operator‑generated files without index registration
+  - log accumulation without pruning
+  - map regeneration cycles
+recommendations:
+  - enforce index registration for all new artifacts
+  - schedule monthly log pruning
+  - run integrity scans after structural updates
+  - snapshot library layer weekly
+confidence: 0.82

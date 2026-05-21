@@ -1,0 +1,76 @@
+============================================================
+MODULE: ENGINE_CONFIG
+TYPE: Global Configuration Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide global configuration parameters for all modules in the
+Clarity_OS narrative-physics engine. Defines thresholds,
+sensitivities, tolerances, and rules for QC, Clarity Loop,
+Langbridg, ELINS, Markov, and the Orchestrator.
+
+CONFIG SECTIONS:
+
+[GLOBAL]
+ENGINE_VERSION = 1.0
+MAX_BULLETS = 3
+ONE_SENTENCE_PER_BULLET = TRUE
+TONE_MODE = "Neutral-Structural"
+LOGGING_ENABLED = TRUE
+
+[QC]
+DRIFT_THRESHOLD = 0.15
+STRUCTURAL_TOLERANCE = 0.10
+BASIN_TOLERANCE = 0.12
+VECTOR_SENSITIVITY = 0.85
+PRESSURE_SENSITIVITY = 0.80
+DIRECTIONAL_STRICTNESS = "High"
+
+[CLARITY_LOOP]
+COMPRESSION_LEVEL = 0.75
+CENTERING_INTENSITY = 0.90
+DRIFT_REMOVAL_STRENGTH = 0.85
+THROUGH_LINE_ENFORCEMENT = "Strict"
+
+[LANGBRIDG]
+MAX_BULLETS = 3
+MIN_BULLETS = 1
+ALLOW_FORWARD_LOOKING = TRUE
+DISALLOW_ADVERBS = TRUE
+DISALLOW_INTENSIFIERS = TRUE
+DISALLOW_METAPHORS = TRUE
+DISALLOW_JARGON = TRUE
+
+[ELINS]
+LOCAL_SENSITIVITY = 0.80
+WARNO_ALERT_LEVEL = 0.70
+PRESSURE_SPIKE_THRESHOLD = 0.65
+DIRECTIONAL_ALIGNMENT_REQUIRED = TRUE
+
+[MARKOV]
+STABILITY_TOLERANCE = 0.78
+DRIFT_PREDICTION_SENSITIVITY = 0.82
+BASIN_SHIFT_ALERT = 0.75
+PRESSURE_DISTORTION_ALERT = 0.70
+ALLOWED_MOVEMENT_PATHS = "Stable-Only"
+
+[ORCHESTRATOR]
+STRICT_SEQUENCING = TRUE
+ALLOW_NO_SKIPS = TRUE
+FAIL_ON_DRIFT = TRUE
+FAIL_ON_BASIN_MISMATCH = TRUE
+
+CONFIG CONTRACT:
+All modules must read from ENGINE_CONFIG.
+No module may override global constraints.
+All thresholds must be respected during execution.
+No output may exceed MAX_BULLETS.
+No output may violate drift, basin, or structural tolerances.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

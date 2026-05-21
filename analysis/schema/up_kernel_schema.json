@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clarityos.local/analysis/schema/up_kernel_schema.json",
+  "title": "UP^ Output Record",
+  "description": "Schema for a single UP^ kernel output row: one (region, DV) pair carrying the M1 and M3 coefficients on E/r, the M3 alternator-by-E/r interaction coefficient, their analytic and permutation p-values, the pattern-code label from the existing pattern taxonomy, and a short interpretation string. UP^ is defined in analysis/physics/up_kernel_spec.md. The model lineup (M1 / M2 / M3) and the alternator-first rule are defined in analysis/physics/alternator/PHYSICS_UP_SPEC_v1.1.0.md and analysis/physics/alternator/UP_PREREGISTERED_ANALYSIS.md. This schema is additive and pure: it imposes no runtime path or filename.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dv_name",
+    "pattern_code",
+    "beta_E_M1",
+    "p_E_M1",
+    "beta_E_M3",
+    "p_E_M3",
+    "beta_int_M3",
+    "p_int_M3",
+    "perm_p_M1_E",
+    "perm_p_M3_int",
+    "interpretation"
+  ],
+  "properties": {
+    "dv_name": {
+      "type": "string",
+      "description": "Name of the UP^ dependent variable for this row. Must be one of the five DVs defined in up_kernel_spec.md § 4.",
+      "enum": [
+        "delta_total_weight",
+        "delta_mean_edge",
+        "delta_pct_total",
+        "delta_inv_weight",
+        "delta_pct_total_weak"
+      ]
+    },
+    "pattern_code": {
+      "type": "integer",
+      "description": "Pattern label drawn from the existing pattern taxonomy (e.g., 0, 3, 5, 9, ...). The taxonomy itself is defined elsewhere in the analysis layer and is not redefined by this schema.",
+      "minimum": 0
+    },
+    "beta_E_M1": {
+      "type": "number",
+      "description": "Coefficient on E/r in the canonical UP model M1: Δ ~ (E/r) + controls."
+    },
+    "p_E_M1": {
+      "type": "number",
+      "description": "Two-sided analytic p-value on the E/r coefficient in M1.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "beta_E_M3": {
+      "type": "number",
+      "description": "Coefficient on E/r in the augmented UP model M3: Δ ~ (E/r) + A + A·(E/r) + controls."
+    },
+    "p_E_M3": {
+      "type": "number",
+      "description": "Two-sided analytic p-value on the E/r coefficient in M3.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "beta_int_M3": {
+      "type": "number",
+      "description": "Coefficient on the A·(E/r) interaction term in M3."
+    },
+    "p_int_M3": {
+      "type": "number",
+      "description": "Two-sided analytic p-value on the A·(E/r) interaction in M3.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "perm_p_M1_E": {
+      "type": "number",
+      "description": "Permutation p-value for the E/r coefficient in M1 under a label-shuffling null.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "perm_p_M3_int": {
+      "type": "number",
+      "description": "Permutation p-value for the A·(E/r) interaction in M3 under a label-shuffling null.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "interpretation": {
+      "type": "string",
+      "description": "Short canonical label summarising the row's UP^ pattern. The label is drawn from the same taxonomy as pattern_code (e.g., 'regime-dependent magnitude'). The schema does not enumerate the full label set — that is owned by the pattern taxonomy."
+    }
+  },
+  "$defs": {
+    "dv_registry": {
+      "title": "UP^ DV Registry",
+      "description": "Authoritative registry of UP^ DVs and which one is primary. Defined as a const so the registry is immutable schema data, not a per-row constraint. Mirrors up_kernel_spec.md § 4–5.",
+      "const": {
+        "delta_total_weight": {
+          "primary": false,
+          "description": "Signed change in total edge weight; bulk-energy DV; scale-equivariant (not scale-invariant)."
+        },
+        "delta_mean_edge": {
+          "primary": false,
+          "description": "Per-edge mean weight change; density-normalized; scale-equivariant."
+        },
+        "delta_pct_total": {
+          "primary": false,
+          "description": "Fractional change in total weight; dimensionless; scale-invariant."
+        },
+        "delta_inv_weight": {
+          "primary": false,
+          "description": "Change in sum of inverse edge weights; weak-channel detector; not scale-invariant."
+        },
+        "delta_pct_total_weak": {
+          "primary": true,
+          "description": "Scale-invariant fractional change in the weak-edge subgraph total weight; the canonical UP^ readout."
+        }
+      }
+    }
+  }
+}

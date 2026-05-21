@@ -1,0 +1,333 @@
+Cognitive bias
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+Part of a series on
+Psychology
+Greek psi symbol associated with psychology
+OutlineHistorySubfields
+Basic psychology
+Applied psychology
+Concepts
+Lists
+ Psychology portal
+vte
+
+The Cognitive Bias Codex
+A cognitive bias is a systematic pattern of deviation from norm or rationality in judgment.[1][2] Individuals create their own "subjective reality" from their perception of the input. An individual's construction of reality, not the objective input, may dictate their behavior in the world. Thus, cognitive biases may sometimes lead to perceptual distortion, inaccurate judgment, illogical interpretation, and irrationality.[3][4][5]
+
+While cognitive biases may initially appear to be negative, some are adaptive. They may lead to more effective actions in a given context.[6] Furthermore, allowing cognitive biases enables faster decisions which can be desirable when timeliness is more valuable than accuracy, as illustrated in heuristics.[7] Other cognitive biases are a "by-product" of human processing limitations,[1] resulting from a lack of appropriate mental mechanisms (bounded rationality), the impact of an individual's constitution and biological state (see embodied cognition), or simply from a limited capacity for information processing.[8][9] Cognitive biases can make individuals more inclined to endorsing pseudoscientific beliefs by requiring less evidence for claims that confirm their preconceptions. This can potentially distort their perceptions and lead to inaccurate judgments.[10]
+
+A continually evolving list of cognitive biases has been identified over the last six decades of research on human judgment and decision-making in cognitive science, social psychology, and behavioral economics. The study of cognitive biases has practical implications for areas including clinical judgment, entrepreneurship, finance, and management.[11][12]
+
+Overview
+When making judgments under uncertainty, people rely on mental shortcuts or heuristics, which provide swift estimates about the possibility of uncertain occurrences. For example, the representativeness heuristic is defined as the tendency to judge the frequency or likelihood of an occurrence by the extent of which the event resembles the typical case.[13] Similarly the availability heuristic is that individuals estimate the likelihood of events by how easy they are to recall, and the anchoring heuristic prefers the initial reference points that are recalled.[14] While these heuristics are efficient and simple for the brain to compute, they sometimes introduce predictable and systematic cognitive errors, or biases.[7]
+
+The "Linda Problem" illustrates the representativeness heuristic and corresponding bias. Participants were given a description of "Linda" that suggests Linda might well be a feminist (e.g., she is said to be concerned about discrimination and social justice issues). They were then asked whether they thought Linda was more likely to be (a) a "bank teller" or (b) a "bank teller and active in the feminist movement." A majority chose answer (b). Independent of the information given about Linda, though, the more restrictive answer (b) is under any circumstance statistically less likely than answer (a). This is an example of the conjunction fallacy: respondents chose (b) because it seemed more "representative" or typical of persons who might fit the description of Linda.[15] The representativeness heuristic may lead to errors such as activating stereotypes and inaccurate judgments of others.[16]
+
+Gerd Gigerenzer argues that heuristics should not lead us to conceive of human thinking as riddled with irrational cognitive biases. They should rather conceive rationality as an adaptive tool, not identical to the rules of formal logic or the probability calculus.[17] Gigerenzer believes that cognitive biases are not biases, but rules of thumb, or as he would put it "gut feelings" that can actually help us make accurate decisions in our lives. There is not clear evidence that these behaviors are genuinely, severely biased once the actual problems people face are understood. Advances in economics and cognitive neuroscience now suggest that many behaviors previously labeled as biases might instead represent optimal decision-making strategies.[18]
+
+Definitions
+Definition	Source
+"bias ... that occurs when humans are processing and interpreting information"	ISO/IEC TR 24027:2021(en), 3.2.4,[19] ISO/IEC TR 24368:2022(en), 3.8[20]
+"...we can define cognitive biases as systematic errors in cognition that occur when, having an epistemic goal, we non-consciously deviate from it by relying on irrelevant or partially relevant information and ignoring that which is relevant."	Nadurak V. (2025). Heuristics and cognitive biases: A conceptual analysis. Memory & cognition, 10.3758/s13421-025-01814-w. Advance online publication. https://doi.org/10.3758/s13421-025-01814-w[21]
+History
+The notion of cognitive biases was introduced by Amos Tversky and Daniel Kahneman in 1972[22] and grew out of their experience of people's innumeracy, or inability to reason intuitively with the greater orders of magnitude. Tversky, Kahneman, and colleagues demonstrated several replicable ways in which human judgments and decisions differ from rational choice theory. Their 1974 paper, Judgment under Uncertainty: Heuristics and Biases, outlined how people rely on mental shortcuts when making judgments under uncertainty.[14] Experiments such as the "Linda problem" grew into heuristics and biases research programs, which spread beyond academic psychology into other disciplines including medicine and political science.
+
+The list of cognitive biases has long been a topic of critique. In psychology a "rationality war" unfolded between Gerd Gigerenzer and the Kahneman and Tversky school,[23] which pivoted on whether biases are primarily defects of human cognition or the result of behavioural patterns that are actually adaptive or "ecologically rational".[24] Gerd Gigerenzer has historically been one of the main opponents to cognitive biases and heuristics.[25][26][27] This debate has recently reignited, with critiques arguing there has been an overemphasis on biases in human cognition.[18]
+
+Koster, Fox & MacLeod (2009) introduced the concept of cognitive bias modification, which focuses on reducing maladaptive cognitive patterns through computer-based attention training and behavioral tasks.[28]
+
+Types
+Biases can be distinguished on a number of dimensions. Examples of cognitive biases include -
+
+Biases specific to groups (such as the risky shift) versus biases at the individual level.
+Biases that affect decision-making, where the desirability of options has to be considered (e.g., sunk costs fallacy).
+Biases, such as illusory correlation, that affect judgment of how likely something is or whether one thing is the cause of another.
+Biases that affect memory,[29] such as consistency bias (remembering one's past attitudes and behavior as more similar to one's present attitudes).
+Biases that reflect a subject's motivation,[30] for example, the desire for a positive self-image leading to egocentric bias and the avoidance of unpleasant cognitive dissonance.[31]
+Other biases are due to the particular way the brain perceives, forms memories and makes judgments. This distinction is sometimes described as "hot cognition" versus "cold cognition", as motivated reasoning can involve a state of arousal. Among the "cold" biases,
+
+some are due to ignoring relevant information (e.g., neglect of probability),
+some involve a decision or judgment being affected by irrelevant information (for example the framing effect where the same problem receives different responses depending on how it is described; or the distinction bias where choices presented together have different outcomes than those presented separately), and
+others give excessive weight to an unimportant but salient feature of the problem (e.g., anchoring).
+As some biases reflect motivation specifically the motivation to have positive attitudes to oneself.[31] It accounts for the fact that many biases are self-motivated or self-directed (e.g., illusion of asymmetric insight, self-serving bias). There are also biases in how subjects evaluate in-groups or out-groups; evaluating in-groups as more diverse and "better" in many respects, even when those groups are arbitrarily defined (ingroup bias, outgroup homogeneity bias).
+
+Some cognitive biases belong to the subgroup of attentional biases, which refers to paying increased attention to certain stimuli. It has been shown, for example, that people addicted to alcohol and other drugs pay more attention to drug-related stimuli. Common psychological tests to measure those biases are the Stroop task[32][33] and the dot probe task.
+
+Individuals' susceptibility to some types of cognitive biases can be measured by the Cognitive Reflection Test (CRT) developed by Shane Frederick (2005).[34][35]
+
+List of biases
+Main article: List of cognitive biases
+The following is a list of the more commonly studied cognitive biases:
+
+Name	Description
+Fundamental attribution error (FAE, aka correspondence bias[36])	Tendency to overemphasize personality-based explanations for behaviors observed in others. At the same time, individuals under-emphasize the role and power of situational influences on the same behavior. Edward E. Jones and Victor A. Harris' (1967)[37] classic study illustrates the FAE. Despite being made aware that the target's speech direction (pro-Castro/anti-Castro) was assigned to the writer, participants ignored the situational pressures and attributed pro-Castro attitudes to the writer when the speech represented such attitudes.
+Implicit bias (aka implicit stereotype, unconscious bias)	Tendency to attribute positive or negative qualities to a group of individuals. It can be fully non-factual or be an abusive generalization of a frequent trait in a group to all individuals of that group.
+Priming bias	Tendency to be influenced by the first presentation of an issue to create our preconceived idea of it, which we then can adjust with later information.
+Confirmation bias	Tendency to search for or interpret information in a way that confirms one's preconceptions, and discredit information that does not support the initial opinion.[38] Related to the concept of cognitive dissonance, in that individuals may reduce inconsistency by searching for information which reconfirms their views (Jermias, 2001, p. 146).[39]
+Affinity bias	Tendency to be favorably biased toward people most like ourselves.[40]
+Self-serving bias	Tendency to claim more responsibility for successes than for failures. It may also manifest itself as a tendency for people to evaluate ambiguous information in a way beneficial to their interests.
+Belief bias	Tendency to evaluate the logical strength of an argument based on current belief and perceived plausibility of the statement's conclusion.
+Framing	Tendency to narrow the description of a situation in order to guide to a selected conclusion. The same primer can be framed differently and therefore lead to different conclusions.
+Hindsight bias	Tendency to view past events as being predictable. Also called the "I-knew-it-all-along" effect.
+Embodied cognition	Tendency to have selectivity in perception, attention, decision making, and motivation based on the biological state of the body.
+Anchoring bias	The inability of people to make appropriate adjustments from a starting point in response to a final answer. It can lead people to make sub-optimal decisions. Anchoring affects decision making in negotiations, medical diagnoses, and judicial sentencing.[41]
+Status quo bias	Tendency to hold to the current situation rather than an alternative situation, to avoid risk and loss (loss aversion).[42] In status quo bias, a decision-maker has the increased propensity to choose an option because it is the default option or status quo. Has been shown to affect various important economic decisions, for example, a choice of car insurance or electrical service.[43]
+Overconfidence effect	Tendency to overly trust one's own capability to make correct decisions. People tended to overrate their abilities and skills as decision makers.[44] See also the Dunning–Kruger effect.
+Physical attractiveness stereotype	The tendency to assume people who are physically attractive also possess other desirable personality traits.[45]
+Halo Effect	Tendency for positive impressions to contaminate other evaluations. In marketing, it may manifest itself in positive bias towards a certain product based on previous positive experiences with another product from the same brand. In psychology, the halo effect explains why people often assume individuals who are viewed as attractive to be also popular, successful, and happy.[46]
+Practical significance
+Further information: Confirmation bias § Consequences
+Many social institutions rely on individuals to make rational judgments. Across management, finance, medicine, and law, the most recurrent bias is overconfidence, though anchoring and framing also play substantial roles. While research in finance often uses large-scale data, studies in medicine and law frequently rely on vignette-based designs. Berthet highlights the lack of ecological validity in many studies and the need for deeper exploration of individual differences in susceptibility to bias.[47] The securities regulation regime largely assumes that all investors act as perfectly rational persons. In truth, actual investors face cognitive limitations from biases, heuristics, and framing effects. In some academic disciplines, the study of bias is very popular. For instance, bias is a wide spread and well studied phenomenon because most decisions that concern the minds and hearts of entrepreneurs are computationally intractable.[12]
+
+In law enforcement and legal decision-making, confirmation bias and related errors frequently influence investigative decisions and evidence evaluation. Structured intervention strategies, such as accountability measures and checklists, show some promise in reducing bias during case evaluations.[48] A fair jury trial, for example, requires that the jury ignore irrelevant features of the case, weigh the relevant features appropriately, consider different possibilities open-mindedly and resist fallacies such as appeal to emotion. The various biases demonstrated in these psychological experiments suggest that people will frequently fail to do all these things.[49] However, they fail to do so in systematic, directional ways that are predictable.[5]
+
+Cognitive biases can create other issues that arise in everyday life. Study participants who ate more unhealthy snack food tended to have less inhibitory control and more reliance on approach bias.[50] Cognitive biases could be linked to various eating disorders and how people view their bodies and their body image.[51][52]
+
+Cognitive biases can be used in destructive ways.[53] Some believe that there are people in authority who use cognitive biases and heuristics in order to manipulate others so that they can reach their end goals. Some medications and other health care treatments rely on cognitive biases in order to persuade others who are susceptible to cognitive biases to use their products. Many see this as taking advantage of one's natural struggle of judgement and decision-making. They also believe that it is the government's responsibility to regulate these misleading ads.
+
+Cognitive biases also seem to play a role in property sale price and value. Participants in the experiment were shown a residential property.[54] Afterwards, they were shown another property that was completely unrelated to the first property. They were asked to say what they believed the value and the sale price of the second property would be. They found that showing the participants an unrelated property did have an effect on how they valued the second property.
+
+Cognitive biases can be used in non-destructive ways. In team science and collective problem-solving, the superiority bias can be beneficial. It leads to a diversity of solutions within a group, especially in complex problems, by preventing premature consensus on suboptimal solutions. This example demonstrates how a cognitive bias, typically seen as a hindrance, can enhance collective decision-making by encouraging a wider exploration of possibilities.[55]
+
+Cognitive biases are interlinked with collective illusions, a phenomenon where a group of people mistakenly believe that their views and preferences are shared by the majority, when in reality, they are not. These illusions often arise from various cognitive biases that misrepresent our perception of social norms and influence how we assess the beliefs of others.[56]
+
+Cognitive biases also influence the spread of misinformation, particularly in digital environments. Lazer, Baum, and Grinberg (2018) analyzed over 16,000 false news stories shared by millions of Twitter users during the 2016 U.S. election and found that false information spread significantly faster than accurate news.[57] This occurs partly because misinformation aligns with existing beliefs and triggers emotional reactions, both of which are linked to confirmation and availability biases. These findings illustrate how cognitive biases can distort public understanding and contribute to the rapid dissemination of false narratives.[57]
+
+Reducing
+Main articles: Cognitive bias mitigation and Cognitive bias modification
+The content and direction of cognitive biases are not "arbitrary".[58][59] Debiasing is the reduction of biases in judgment and decision-making through incentives, nudges, and training. Cognitive bias mitigation and cognitive bias modification are forms of debiasing specifically applicable to cognitive biases and their effects. One debiasing technique aims to decrease biases by encouraging individuals to use controlled processing compared to automatic processing.[36] Because they cause systematic errors, cognitive biases cannot be compensated for using a wisdom of the crowd technique of averaging answers from several people.[60] Reference class forecasting is a method for systematically debiasing estimates and decisions, based on what Daniel Kahneman has dubbed the outside view.
+
+Cognitive bias modification (CBM) refers to the process of modifying cognitive biases in healthy people and also refers to a growing area of psychological (non-pharmaceutical) therapies for anxiety, depression and addiction called cognitive bias modification therapy (CBMT). CBMT is sub-group of therapies within a growing area of psychological therapies based on modifying cognitive processes with or without accompanying medication and talk therapy, sometimes referred to as applied cognitive processing therapies (ACPT). Although cognitive bias modification can refer to modifying cognitive processes in healthy individuals, CBMT is a growing area of evidence-based psychological therapy, in which cognitive processes are modified to relieve suffering[61][62] from serious depression,[63] anxiety,[64][28] and addiction.[65] CBMT techniques are technology-assisted therapies that are delivered via a computer with or without clinician support. CBM combines evidence and theory from the cognitive model of anxiety,[66] cognitive neuroscience,[67] and attentional models.[68] Even one-shot training interventions, such as educational videos and debiasing games that taught mitigating strategies, significantly reduced the commission of several cognitive biases.[69]
+
+Cognitive bias modification has also been used to help those with obsessive-compulsive beliefs and obsessive-compulsive disorder.[70][71] This therapy has shown that it decreases the obsessive-compulsive beliefs and behaviors.
+
+In relation to reducing the fundamental attribution error, monetary incentives and informing participants they will be held accountable for their attributions have been linked to the increase of accurate attributions.[72][73]
+
+Common theoretical causes of some cognitive biases
+Bias arises from various processes that are sometimes difficult to distinguish. These include:
+
+Bounded rationality — limits on optimization and rationality
+Prospect theory
+Evolutionary psychology — Remnants from evolutionary adaptive mental functions.[2]
+Mental accounting
+Adaptive bias — basing decisions on limited information and biasing them based on the costs of being wrong
+Attribute substitution — making a complex, difficult judgment by unconsciously replacing it with an easier judgment[74]
+Attribution theory
+Salience
+Naïve realism
+Cognitive dissonance, and related:
+Impression management
+Self-perception theory
+Information-processing shortcuts (heuristics),[75] including:
+Availability heuristic — estimating what is more likely by what is more available in memory, which is biased toward vivid, unusual, or emotionally charged examples[7]
+Representativeness heuristic — judging probabilities based on resemblance[7]
+Affect heuristic — basing a decision on an emotional reaction rather than a calculation of risks and benefits[76]
+Emotional and moral motivations[77] deriving, for example, from:
+The two-factor theory of emotion
+The somatic markers hypothesis
+Introspection illusion
+Misinterpretations or misuse of statistics; innumeracy.
+Social influence[78]
+The brain's limited information processing capacity[79]
+Noisy information processing (distortions during storage in and retrieval from memory).[80] For example, a 2012 Psychological Bulletin article suggests that at least eight seemingly unrelated biases can be produced by the same information-theoretic generative mechanism.[80] The article shows that noisy deviations in the memory-based information processes that convert objective evidence (observations) into subjective estimates (decisions) can produce regressive conservatism, the belief revision (Bayesian conservatism), illusory correlations, illusory superiority (better-than-average effect) and worse-than-average effect, subadditivity effect, exaggerated expectation, overconfidence, and the hard–easy effect.
+Individual differences in cognitive biases
+Bias habit convention
+The relation between cognitive bias, habit and social convention is still an important issue.
+People do appear to have stable individual differences in their susceptibility to decision biases such as overconfidence, temporal discounting, and bias blind spot.[81] That said, these stable levels of bias within individuals are possible to change. Participants in experiments who watched training videos and played debiasing games showed medium to large reductions both immediately and up to three months later in the extent to which they exhibited susceptibility to six cognitive biases: anchoring, bias blind spot, confirmation bias, fundamental attribution error, projection bias, and representativeness.[82]
+
+Individual differences in cognitive bias have also been linked to varying levels of cognitive abilities and functions.[83] The Cognitive Reflection Test (CRT) has been used to help understand the connection between cognitive biases and cognitive ability. There have been inconclusive results when using the Cognitive Reflection Test to understand ability. However, there does seem to be a correlation; those who gain a higher score on the Cognitive Reflection Test, have higher cognitive ability and rational-thinking skills. This in turn helps predict the performance on cognitive bias and heuristic tests. Those with higher CRT scores tend to be able to answer more correctly on different heuristic and cognitive bias tests and tasks.[84]
+
+Age is another individual difference that has an effect on one's ability to be susceptible to cognitive bias. Older individuals tend to be more susceptible to cognitive biases and have less cognitive flexibility. However, older individuals were able to decrease their susceptibility to cognitive biases throughout ongoing trials.[85] These experiments had both young and older adults complete a framing task. Younger adults had more cognitive flexibility than older adults. Cognitive flexibility is linked to helping overcome pre-existing biases.
+
+See also
+	Psychology portal
+	Philosophy portal
+Action slip
+Baconian method § Idols of the mind (idola mentis) – Investigative process
+Cognitive bias in animals – Influence of decision making by emotions or irrelevant stimulus in animals
+Cognitive bias mitigation – Reduction of the negative effects of cognitive biases
+Cognitive bias modification
+Cognitive dissonance – Mental phenomenon of holding contradictory beliefs
+Cognitive distortion – Exaggerated or irrational thought pattern
+Cognitive inertia – Lack of motivation to mentally tackle a problem or issue
+Cognitive psychology – Subdiscipline of psychology
+Cognitive vulnerability – Concept in cognitive psychology
+Critical thinking – Analysis of facts to form a judgment
+Cultural cognition
+Emotional bias – Distortion in cognition
+Epistemic injustice – Injustice related to knowledge
+Evolutionary psychology – Branch of psychology
+Expectation bias – Cognitive bias of experimental subject
+Fallacy – Argument that uses faulty reasoning
+False consensus effect – Attributional type of cognitive bias
+Implicit stereotype – Unreflected, mistaken attributions to and descriptions of social groups
+Jumping to conclusions – Psychological term
+List of cognitive biases
+Magical thinking – Belief in the connection of unrelated events
+Prejudice – Attitudes based on preconceived categories
+Presumption of guilt – Presumption that a person is guilty of a crime
+Rationality – Quality of being agreeable to reason
+Systemic bias – Inherent tendency of a process to support particular outcomes
+Theory-ladenness – Degree to which an observation is affected by one's presuppositions
+Truthiness – Belief in truth based on only intuition
+References
+ Haselton, Nettle & Andrews 2005.
+ Van Eyghen H (2022). "Cognitive Bias. Philogenesis or Ontogenesis". Frontiers in Psychology. 13 892829. doi:10.3389/fpsyg.2022.892829. PMC 9364952. PMID 35967732.
+ Kahneman D, Tversky A (1972). "Subjective probability: A judgment of representativeness" (PDF). Cognitive Psychology. 3 (3): 430–454. doi:10.1016/0010-0285(72)90016-3. Archived from the original (PDF) on 2019-12-14. Retrieved 2017-04-01.
+ Baron J (2007). Thinking and Deciding (4th ed.). New York, NY: Cambridge University Press.
+ Ariely D (2008). Predictably Irrational: The Hidden Forces That Shape Our Decisions. New York, NY: HarperCollins. ISBN 978-0-06-135323-9.
+ For instance: Gigerenzer G, Goldstein DG (October 1996). "Reasoning the fast and frugal way: models of bounded rationality" (PDF). Psychological Review. 103 (4): 650–69. CiteSeerX 10.1.1.174.4404. doi:10.1037/0033-295X.103.4.650. hdl:21.11116/0000-0000-B771-2. PMID 8888650.
+ Tversky A, Kahneman D (September 1974). "Judgment under Uncertainty: Heuristics and Biases". Science. 185 (4157): 1124–31. Bibcode:1974Sci...185.1124T. doi:10.1126/science.185.4157.1124. PMID 17835457. S2CID 143452957.
+ Bless H, Fiedler K, Strack F (2004). Social cognition: How individuals construct social reality. Hove and New York: Psychology Press.
+ Morewedge CK, Kahneman D (October 2010). "Associative processes in intuitive judgment". Trends in Cognitive Sciences. 14 (10): 435–40. doi:10.1016/j.tics.2010.07.004. PMC 5378157. PMID 20696611.
+ Rodríguez-Ferreiro, Javier; Barberia, Itxaso (2021-12-21). "Believers in pseudoscience present lower evidential criteria". Scientific Reports. 11 (1): 24352. Bibcode:2021NatSR..1124352R. doi:10.1038/s41598-021-03816-5. ISSN 2045-2322. PMC 8692588. PMID 34934119.
+ Kahneman D, Tversky A (July 1996). "On the reality of cognitive illusions" (PDF). Psychological Review. 103 (3): 582–91, discussion 592–6. CiteSeerX 10.1.1.174.5117. doi:10.1037/0033-295X.103.3.582. PMID 8759048.
+ Zhang SX, Cueto J (2015). "The Study of Bias in Entrepreneurship". Entrepreneurship Theory and Practice. 41 (3): 419–454. doi:10.1111/etap.12212. S2CID 146617323.
+ Baumeister RF, Bushman BJ (2010). Social psychology and human nature: International Edition. Belmont, US: Wadsworth. p. 141.
+ Tversky, Amos; Kahneman, Daniel (1974-09-27). "Judgment under Uncertainty: Heuristics and Biases". Science. 185 (4157): 1124–1131. Bibcode:1974Sci...185.1124T. doi:10.1126/science.185.4157.1124. PMID 17835457.
+ Tversky A, Kahneman D (1983). "Extensional versus intuitive reasoning: The conjunction fallacy in probability judgement" (PDF). Psychological Review. 90 (4): 293–315. doi:10.1037/0033-295X.90.4.293. Archived (PDF) from the original on 2007-09-28.
+ Haselton, Nettle & Andrews 2005, p. 726.
+ Gigerenzer G (2006). "Bounded and Rational". In Stainton RJ (ed.). Contemporary Debates in Cognitive Science. Blackwell. p. 129. ISBN 978-1-4051-1304-5.
+ Page, Lionel (2022). Optimally Irrational. Cambridge University Press.
+ "3.2.4". ISO/IEC TR 24027:2021 Information technology — Artificial intelligence (AI) — Bias in AI systems and AI aided decision making. ISO. 2021. Retrieved 21 June 2023.
+ "3.8". ISO/IEC TR 24368:2022 Information technology — Artificial intelligence — Overview of ethical and societal concerns. ISO. 2022. Retrieved 21 June 2023.
+ Nadurak, Vitaliy (2025-10-31). "Heuristics and cognitive biases: A conceptual analysis". Memory & Cognition. doi:10.3758/s13421-025-01814-w. ISSN 1532-5946. PMID 41174343.
+ Kahneman D, Frederick S (2002). "Representativeness Revisited: Attribute Substitution in Intuitive Judgment". In Gilovich T, Griffin DW, Kahneman D (eds.). Heuristics and Biases: The Psychology of Intuitive Judgment. Cambridge: Cambridge University Press. pp. 51–52. ISBN 978-0-521-79679-8.
+ Sturm, T. (2012). "The "Rationality Wars" in Psychology: Where they are and Where they Could Go". Inquiry. 55 (1): 66–81. doi:10.1080/0020174X.2012.643628.
+ Todd, P.M.; Gigerenzer, G. (2012). Ecological Rationality: Intelligence in the World. OUP USA.
+ Clavien C (2010). "Gerd Gigerenzer, Gut Feelings: Short Cuts to Better Decision Making: Penguin Books, 2008 (1st ed. 2007), £ 8.99 (paperback), ISBN-13: 978-0141015910". Ethical Theory and Moral Practice. 13 (1): 113–115. doi:10.1007/s10677-009-9172-8. ISSN 1386-2820. S2CID 8097667.
+ Gigerenzer G (2000). Adaptive thinking : rationality in the real world. Oxford: Oxford Univ. Press. ISBN 978-0-19-803117-8. OCLC 352897263.
+ Gigerenzer G (1999). Simple heuristics that make us smart. Todd, Peter M., ABC Research Group. New York: Oxford University Press. ISBN 0-585-35863-X. OCLC 47009468.
+ Koster, Ernst H. W.; Fox, Elaine; MacLeod, Colin (February 2009). "Introduction to the special section on cognitive bias modification in emotional disorders". Journal of Abnormal Psychology. 118 (1): 1–4. doi:10.1037/a0014379. ISSN 1939-1846. PMID 19222308.
+ Schacter DL (March 1999). "The seven sins of memory. Insights from psychology and cognitive neuroscience". The American Psychologist. 54 (3): 182–203. doi:10.1037/0003-066X.54.3.182. PMID 10199218. S2CID 14882268.
+ Kunda Z (November 1990). "The case for motivated reasoning" (PDF). Psychological Bulletin. 108 (3): 480–98. doi:10.1037/0033-2909.108.3.480. PMID 2270237. S2CID 9703661. Archived from the original (PDF) on 2017-07-06. Retrieved 2017-10-27.
+ Hoorens V (1993). "Self-enhancement and Superiority Biases in Social Comparison". In Stroebe, W., Hewstone, Miles (eds.). European Review of Social Psychology 4. Wiley.
+ Jensen AR, Rohwer WD (1966). "The Stroop color-word test: a review". Acta Psychologica. 25 (1): 36–93. doi:10.1016/0001-6918(66)90004-7. PMID 5328883.
+ MacLeod CM (March 1991). "Half a century of research on the Stroop effect: an integrative review". Psychological Bulletin. 109 (2): 163–203. Bibcode:1991PsycB.109..163M. CiteSeerX 10.1.1.475.2563. doi:10.1037/0033-2909.109.2.163. hdl:11858/00-001M-0000-002C-5646-A. PMID 2034749.
+ Frederick S (2005). "Cognitive Reflection and Decision Making". Journal of Economic Perspectives. 19 (4): 25–42. doi:10.1257/089533005775196732. ISSN 0895-3309.
+ Oechssler J, Roider A, Schmitz PW (2009). "Cognitive abilities and behavioral biases" (PDF). Journal of Economic Behavior & Organization. 72 (1): 147–152. doi:10.1016/j.jebo.2009.04.018. ISSN 0167-2681. Archived (PDF) from the original on 2016-08-03.
+ Baumeister RF, Bushman BJ (2010). Social psychology and human nature: International Edition. Belmont, USA: Wadsworth.
+ Jones EE, Harris VA (1967). "The attribution of attitudes". Journal of Experimental Social Psychology. 3: 1–24. doi:10.1016/0022-1031(67)90034-0.
+ Mahoney MJ (1977). "Publication prejudices: An experimental study of confirmatory bias in the peer review system". Cognitive Therapy and Research. 1 (2): 161–175. doi:10.1007/bf01173636. S2CID 7350256.
+ Jermias J (2001). "Cognitive dissonance and resistance to change: The influence of commitment confirmation and feedback on judgement usefulness of accounting systems". Accounting, Organizations and Society. 26 (2): 141–160. doi:10.1016/s0361-3682(00)00008-8.
+ Thakrar, Monica. "Council Post: Unconscious Bias And Three Ways To Overcome It". Forbes.
+ Cho, I. et al. (2018) 'The Anchoring Effect in Decision-Making with Visual Analytics', 2017 IEEE Conference on Visual Analytics Science and Technology, VAST 2017 - Proceedings. IEEE, pp. 116–126. doi:10.1109/VAST.2017.8585665.
+ Kahneman, D., Knetsch, J. L. and Thaler, R. H. (1991) Anomalies The Endowment Effect, Loss Aversion, and Status Quo Bias, Journal of Economic Perspectives.
+ Dean, M. (2008) 'Status quo bias in large and small choice sets', New York, p. 52. Available at: http://www.yorkshire-exile.co.uk/Dean_SQ.pdf Archived 2010-12-25 at the Wayback Machine.
+ Gimpel, Henner (2008), Gimpel, Henner; Jennings, Nicholas R.; Kersten, Gregory E.; Ockenfels, Axel (eds.), "Cognitive Biases in Negotiation Processes", Negotiation, Auctions, and Market Engineering, Lecture Notes in Business Information Processing, vol. 2, Berlin, Heidelberg: Springer Berlin Heidelberg, pp. 213–226, doi:10.1007/978-3-540-77554-6_16, ISBN 978-3-540-77553-9, retrieved 2020-11-25
+ Lorenz, Kate. (2005). "Do Pretty People Earn More?" http://www.CNN.com.
+ Nicolau, Juan; Mellinas, Juan; Fuentes, Eva (February 2021). "The Halo Effect". IEncyclopedia of Tourism Management and Marketing. Edward Elgar Publishing. Retrieved 17 February 2025.
+ Berthet, Vincent (2022-01-04). "The Impact of Cognitive Biases on Professionals' Decision-Making: A Review of Four Occupational Areas". Frontiers in Psychology. 12 802439. doi:10.3389/fpsyg.2021.802439. ISSN 1664-1078. PMC 8763848. PMID 35058862.
+ Meterko, Vanessa; Cooper, Glinda (2022-03-01). "Cognitive Biases in Criminal Case Evaluation: A Review of the Research". Journal of Police and Criminal Psychology. 37 (1): 101–122. doi:10.1007/s11896-020-09425-8. ISSN 1936-6469.
+ Sutherland S (2007). Irrationality: The Enemy Within (Second ed.). Pinter & Martin. ISBN 978-1-905177-07-3.
+ Kakoschke N, Kemps E, Tiggemann M (April 2015). "Combined effects of cognitive bias for food cues and poor inhibitory control on unhealthy food intake". Appetite. 87: 358–64. doi:10.1016/j.appet.2015.01.004. hdl:2328/35717. PMID 25592403. S2CID 31561602.
+ Williamson DA, Muller SL, Reas DL, Thaw JM (October 1999). "Cognitive bias in eating disorders: implications for theory and treatment". Behavior Modification. 23 (4): 556–77. doi:10.1177/0145445599234003. PMID 10533440. S2CID 36189809.
+ Williamson DA (1996). "Body image disturbance in eating disorders: A form of cognitive bias?". Eating Disorders. 4 (1): 47–58. doi:10.1080/10640269608250075. ISSN 1064-0266.
+ Trout J (2005). "Paternalism and Cognitive Bias". Law and Philosophy. 24 (4): 393–434. doi:10.1007/s10982-004-8197-3. ISSN 0167-5249. S2CID 143783638. SSRN 1470509.
+ Levy DS, Frethey-Bentham C (2010). "The effect of context and the level of decision maker training on the perception of a property's probable sale price". Journal of Property Research. 27 (3): 247–267. doi:10.1080/09599916.2010.518406. ISSN 0959-9916. S2CID 154866472.
+ Boroomand, Amin; Smaldino, Paul E. (2023). "Superiority bias and communication noise can enhance collective problem-solving". Journal of Artificial Societies and Social Simulation. 26 (3) 14. doi:10.18564/jasss.5154.
+ Rose, Todd (1 February 2022). Collective Illusions: Conformity, Complicity, and the Science of Why We Make Bad Decisions. Hachette Books. ISBN 978-0-306-92570-2.
+ Lazer, David M. J.; Baum, Matthew A.; Benkler, Yochai; Berinsky, Adam J.; Greenhill, Kelly M.; Menczer, Filippo; Metzger, Miriam J.; Nyhan, Brendan; Pennycook, Gordon; Rothschild, David; Schudson, Michael; Sloman, Steven A.; Sunstein, Cass R.; Thorson, Emily A.; Watts, Duncan J. (2018-03-09). "The science of fake news". Science. 359 (6380): 1094–1096. arXiv:2307.07903. Bibcode:2018Sci...359.1094L. doi:10.1126/science.aao2998. PMID 29590025.
+ Gigerenzer G (1996). "On narrow norms and vague heuristics: A reply to Kahneman and Tversky (1996)". Psychological Review. 103 (3): 592–596. CiteSeerX 10.1.1.314.996. doi:10.1037/0033-295x.103.3.592.
+ Haselton, Nettle & Andrews 2005, p. 730.
+ Buckingham M, Goodall A. "The Feedback Fallacy". Harvard Business Review. No. March–April 2019.
+ MacLeod C, Mathews A, Tata P (February 1986). "Attentional bias in emotional disorders". Journal of Abnormal Psychology. 95 (1): 15–20. doi:10.1037/0021-843x.95.1.15. PMID 3700842.
+ Bar-Haim Y, Lamy D, Pergamin L, Bakermans-Kranenburg MJ, van IJzendoorn MH (January 2007). "Threat-related attentional bias in anxious and nonanxious individuals: a meta-analytic study". Psychological Bulletin. 133 (1): 1–24. CiteSeerX 10.1.1.324.4312. doi:10.1037/0033-2909.133.1.1. PMID 17201568. S2CID 2861872.
+ Holmes EA, Lang TJ, Shah DM (February 2009). "Developing interpretation bias modification as a "cognitive vaccine" for depressed mood: imagining positive events makes you feel better than thinking about them verbally". Journal of Abnormal Psychology. 118 (1): 76–88. doi:10.1037/a0012590. PMID 19222316.
+ Hakamata Y, Lissek S, Bar-Haim Y, Britton JC, Fox NA, Leibenluft E, et al. (December 2010). "Attention bias modification treatment: a meta-analysis toward the establishment of novel treatment for anxiety". Biological Psychiatry. 68 (11): 982–90. doi:10.1016/j.biopsych.2010.07.021. PMC 3296778. PMID 20887977.
+ Eberl C, Wiers RW, Pawelczack S, Rinck M, Becker ES, Lindenmeyer J (April 2013). "Approach bias modification in alcohol dependence: do clinical effects replicate and for whom does it work best?". Developmental Cognitive Neuroscience. 4: 38–51. doi:10.1016/j.dcn.2012.11.002. PMC 6987692. PMID 23218805.
+ Clark DA, Beck AT (2009). Cognitive Therapy of Anxiety Disorders: Science and Practice. London: Guildford.
+ Browning M, Holmes EA, Murphy SE, Goodwin GM, Harmer CJ (May 2010). "Lateral prefrontal cortex mediates the cognitive modification of attentional bias". Biological Psychiatry. 67 (10): 919–25. doi:10.1016/j.biopsych.2009.10.031. PMC 2866253. PMID 20034617.
+ Eysenck MW, Derakshan N, Santos R, Calvo MG (May 2007). "Anxiety and cognitive performance: attentional control theory". Emotion. 7 (2): 336–53. CiteSeerX 10.1.1.453.3592. doi:10.1037/1528-3542.7.2.336. PMID 17516812. S2CID 33462708.
+ Morewedge CK, Yoon H, Scopelliti I, Symborski CW, Korris JH, Kassam KS (2015-08-13). "Debiasing Decisions Improved Decision Making With a Single Training Intervention" (PDF). Policy Insights from the Behavioral and Brain Sciences. 2: 129–140. doi:10.1177/2372732215600886. ISSN 2372-7322. S2CID 4848978.
+ Beadel JR, Smyth FL, Teachman BA (2014). "Change Processes During Cognitive Bias Modification for Obsessive Compulsive Beliefs". Cognitive Therapy and Research. 38 (2): 103–119. doi:10.1007/s10608-013-9576-6. ISSN 0147-5916. S2CID 32259433.
+ Williams AD, Grisham JR (October 2013). "Cognitive Bias Modification (CBM) of obsessive compulsive beliefs". BMC Psychiatry. 13 (1) 256. doi:10.1186/1471-244X-13-256. PMC 3851748. PMID 24106918.
+ Vonk R (1999). "Effects of outcome dependency on correspondence bias". Personality and Social Psychology Bulletin. 25 (3): 382–389. doi:10.1177/0146167299025003009. S2CID 145752877.
+ Tetlock PE (1985). "Accountability: A social check on the fundamental attribution error". Social Psychology Quarterly. 48 (3): 227–236. doi:10.2307/3033683. JSTOR 3033683.
+ Kahneman D, Frederick S (2002). "Representativeness revisited: Attribute substitution in intuitive judgment". In Gilovich T, Griffin DW, Kahneman D (eds.). Heuristics and Biases: The Psychology of Intuitive Judgment. Cambridge: Cambridge University Press. pp. 49–81. ISBN 978-0-521-79679-8. OCLC 47364085.
+ Kahneman, D., Slovic, P., & Tversky, A. (1982). Judgment under uncertainty: Heuristics and biases (1st ed.). Cambridge University Press.
+ Slovic P, Finucane M, Peters E, MacGregor DG (2002). "The Affect Heuristic". In Gilovich T, Griffin D, Kahneman D (eds.). Heuristics and Biases: The Psychology of Intuitive Judgment. Cambridge University Press. pp. 397–420. ISBN 978-0-521-79679-8.
+ Pfister HR, Böhm G (2008). "The multiplicity of emotions: A framework of emotional functions in decision making". Judgment and Decision Making. 3: 5–17. doi:10.1017/S1930297500000127.
+ Wang X, Simons F, Brédart S (2001). "Social cues and verbal framing in risky choice". Journal of Behavioral Decision Making. 14 (1): 1–15. doi:10.1002/1099-0771(200101)14:1<1::AID-BDM361>3.0.CO;2-N.
+ Simon HA (1955). "A behavioral model of rational choice". The Quarterly Journal of Economics. 69 (1): 99–118. doi:10.2307/1884852. JSTOR 1884852.
+ Hilbert M (March 2012). "Toward a synthesis of cognitive biases: how noisy information processing can bias human decision making" (PDF). Psychological Bulletin. 138 (2): 211–37. CiteSeerX 10.1.1.432.8763. doi:10.1037/a0025940. PMID 22122235.
+ Scopelliti I, Morewedge CK, McCormick E, Min HL, Lebrecht S, Kassam KS (2015-04-24). "Bias Blind Spot: Structure, Measurement, and Consequences". Management Science. 61 (10): 2468–2486. doi:10.1287/mnsc.2014.2096.
+ Morewedge CK, Yoon H, Scopelliti I, Symborski CW, Korris JH, Kassam KS (2015-10-01). "Debiasing Decisions Improved Decision Making With a Single Training Intervention" (PDF). Policy Insights from the Behavioral and Brain Sciences. 2 (1): 129–140. doi:10.1177/2372732215600886. ISSN 2372-7322. S2CID 4848978.
+ Vartanian O, Beatty EL, Smith I, Blackler K, Lam Q, Forbes S, De Neys W (July 2018). "The Reflective Mind: Examining Individual Differences in Susceptibility to Base Rate Neglect with fMRI". Journal of Cognitive Neuroscience. 30 (7): 1011–1022. doi:10.1162/jocn_a_01264. PMID 29668391. S2CID 4933030.
+ Toplak ME, West RF, Stanovich KE (October 2011). "The Cognitive Reflection Test as a predictor of performance on heuristics-and-biases tasks". Memory & Cognition. 39 (7): 1275–89. doi:10.3758/s13421-011-0104-1. PMID 21541821.
+ Wilson CG, Nusbaum AT, Whitney P, Hinson JM (August 2018). "Age-differences in cognitive flexibility when overcoming a preexisting bias through feedback". Journal of Clinical and Experimental Neuropsychology. 40 (6): 586–594. doi:10.1080/13803395.2017.1398311. PMID 29161963. S2CID 13372385.
+Further reading
+Soprano, Michael; Roitero, Kevin (May 2024). "Cognitive Biases in Fact-Checking and Their Countermeasures: A Review". Information Processing & Management. 61 (3, 103672) 103672. doi:10.1016/j.ipm.2024.103672.
+Eiser JR, van der Pligt J (1988). Attitudes and Decisions. London: Routledge. ISBN 978-0-415-01112-9.
+Fine C (2006). A Mind of its Own: How your brain distorts and deceives. Cambridge, UK: Icon Books. ISBN 1-84046-678-2.
+Gilovich T (1993). How We Know What Isn't So: The Fallibility of Human Reason in Everyday Life. New York: Free Press. ISBN 0-02-911706-2.
+Haselton MG, Nettle D, Andrews PW (2005). "The evolution of cognitive bias" (PDF). In Buss DM (ed.). Handbook of Evolutionary Psychology. Hoboken: Wiley. pp. 724–746.
+Heuer RJ Jr (1999). "Psychology of Intelligence Analysis. Central Intelligence Agency". Archived from the original on July 15, 2001.
+Kahneman D (2011). Thinking, Fast and Slow. New York: Farrar, Straus and Giroux. ISBN 978-0-374-27563-1.
+Kahneman D (2022). Noise: A Flaw in Human Judgment. Little, Brown and Company. ISBN 978-0316451390.
+Kida T (2006). Don't Believe Everything You Think: The 6 Basic Mistakes We Make in Thinking. New York: Prometheus. ISBN 978-1-59102-408-8.
+Krueger JI, Funder DC (June 2004). "Towards a balanced social psychology: causes, consequences, and cures for the problem-seeking approach to social behavior and cognition". The Behavioral and Brain Sciences. 27 (3): 313–27, discussion 328–76. doi:10.1017/s0140525x04000081. PMID 15736870. S2CID 6260477.
+Nisbett R, Ross L (1980). Human Inference: Strategies and shortcomings of human judgement. Englewood Cliffs, NJ: Prentice-Hall. ISBN 978-0-13-445130-5.
+Piatelli-Palmarini M (1994). Inevitable Illusions: How Mistakes of Reason Rule Our Minds. New York: John Wiley & Sons. ISBN 0-471-15962-X.
+Stanovich K (2009). What Intelligence Tests Miss: The Psychology of Rational Thought. New Haven (CT): Yale University Press. ISBN 978-0-300-12385-2.
+Tavris C, Aronson E (2007). Mistakes Were Made (But Not by Me): Why We Justify Foolish Beliefs, Bad Decisions and Hurtful Acts. Orlando, Florida: Harcourt Books. ISBN 978-0-15-101098-1.
+Young S (2007). Micromessaging - Why Great Leadership Is Beyond Words. New York: McGraw-Hill. ISBN 978-0-07-146757-5.
+External links
+Wikimedia Commons logo Media related to Cognitive biases at Wikimedia Commons
+ Quotations related to Cognitive bias at Wikiquote
+The Roots of Consciousness: To Err Is human
+Cognitive bias in the financial arena (archived 20 June 2006)
+A Visual Study Guide To Cognitive Biases
+Reward Delay Loop - Interactive simulator demonstrating pattern recognition bias in random events
+vte
+Biases
+vte
+Disinformation and misinformation
+DisinformationMisinformationPropagandaDisinformation attackDisinformation researchPublications about disinformation
+Mechanisms
+Tactics
+Targets and campaigns
+Countering disinformation
+vte
+Digital media use and mental health
+vte
+Media and human factors
+vte
+Decision theory
+Authority control databases Edit this at Wikidata	
+GND
+Categories: CognitionCognitive biasesDecision theoryIntelligence analysis

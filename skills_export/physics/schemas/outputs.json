@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "physics.outputs.v1",
+  "title": "Physics — output",
+  "type": "object",
+  "required": ["summary", "feasibility", "invariants", "hard_constraints", "soft_constraints", "assumptions", "failure_modes"],
+  "properties": {
+    "summary":     { "type": "string", "maxLength": 600 },
+    "feasibility": { "enum": ["feasible", "feasible_with_changes", "infeasible"] },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim"],
+        "properties": {
+          "claim":        { "type": "string" },
+          "why_it_holds": { "type": "string" },
+          "test":         { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "hard_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "source", "violation_consequence"],
+        "properties": {
+          "claim":                 { "type": "string" },
+          "source":                { "type": "string" },
+          "violation_consequence": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "soft_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "what_it_costs_to_relax"],
+        "properties": {
+          "claim":                  { "type": "string" },
+          "what_it_costs_to_relax": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "actually_negotiable"],
+        "properties": {
+          "claim":                    { "type": "string" },
+          "actually_negotiable":      { "type": "boolean" },
+          "what_changes_if_relaxed":  { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger", "description", "reversible"],
+        "properties": {
+          "trigger":      { "type": "string" },
+          "description":  { "type": "string" },
+          "blast_radius": { "type": "string" },
+          "reversible":   { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

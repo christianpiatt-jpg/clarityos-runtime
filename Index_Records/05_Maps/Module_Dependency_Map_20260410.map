@@ -1,0 +1,11 @@
+[MAP]
+name: Module Dependency Map
+version: 20260410
+
+[DEPENDENCIES]
+110 OperatorConsole → 111 DiagnosticsEngine
+111 DiagnosticsEngine → 703 IntegrityScans
+117 ContinuityEngine → 305 StructuralInventory
+118 ArchiveEngine → MASTER_INDEX
+
+[END]

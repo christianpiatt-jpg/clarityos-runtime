@@ -1,0 +1,18 @@
+503_RecoveryLogs.idx
+
+[Record]
+Name = Recovery Logs
+Code = 503
+Path = ../../06_Logs/Recovery_Logs/
+Description = Logs documenting recovery attempts, stabilization sequences, collapse reversals, and post-drift restoration outcomes.
+
+[Files]
+Recovery_Attempts = recovery_attempts.txt
+Stabilization_Events = stabilization_events.txt
+Collapse_Reversals = collapse_reversals.txt
+Restoration_Notes = restoration_notes.txt
+Recovery_Crosswalk = recovery_crosswalk.txt
+
+[Links]
+Parent = 500_RuntimeLogs.idx
+Siblings = 501_OperatorLogs.idx, 502_DriftLogs.idx, 504_ForecastLogs.idx

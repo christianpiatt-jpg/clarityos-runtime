@@ -1,0 +1,18 @@
+902_CrossScaleDynamics.idx
+
+[Record]
+Name = Cross-Scale Dynamics
+Code = 902
+Path = ../../Index_Records/
+Description = Captures interactions between micro-, meso-, and macro-scale structures across the planetary system.
+
+[Files]
+Scale_Interactions = scale_interactions.txt
+CrossScale_Events = crossscale_events.txt
+Harmonics = harmonics.txt
+Resonance_Maps = resonance_maps.txt
+Dynamics_Crosswalk = dynamics_crosswalk.txt
+
+[Links]
+Parent = 900_PlanetaryMesh.idx
+Siblings = 901_GlobalFlows.idx, 903_PlanetaryDiagnostics.idx, 904_PlanetarySnapshots.idx

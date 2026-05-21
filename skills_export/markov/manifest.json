@@ -1,0 +1,22 @@
+{
+  "name": "markov",
+  "version": "1.0.0",
+  "type": "sequence_skill",
+  "domain": "timelines, transitions, state machines",
+  "summary": "Model situations as states + transitions. Probabilities optional, structure mandatory.",
+  "input_schema": "schemas/inputs.json",
+  "output_schema": "schemas/outputs.json",
+  "system_prompt": "prompts/system_prompt.txt",
+  "examples": "prompts/examples.md",
+  "theory": "docs/theory.md",
+  "usage_patterns": "docs/usage_patterns.md",
+  "invocation_phrases": [
+    "use markov",
+    "model this as a state machine",
+    "run this through markov",
+    "build a timeline",
+    "what are the states and transitions"
+  ],
+  "produces": ["states", "transitions", "entry_conditions", "exit_conditions", "current_state", "next_likely"],
+  "consumed_by_clarityos_runtime": false
+}

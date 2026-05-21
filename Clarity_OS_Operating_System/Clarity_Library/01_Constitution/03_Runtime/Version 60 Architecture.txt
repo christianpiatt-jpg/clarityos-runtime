@@ -1,0 +1,77 @@
+                         ┌──────────────────────────────┐
+                         │        OS 6.0 CORE           │
+                         │  (System Motion Grammar)      │
+                         └──────────────┬───────────────┘
+                                        │
+                                        │ 5 Primitives
+                                        ▼
+                   ┌────────────────────────────────────────────┐
+                   │      UNIVERSAL INTEGRATION LAYER           │
+                   │  field_dynamics                            │
+                   │  pressure_signatures                       │
+                   │  coherence_conditions                      │
+                   │  attractors                                │
+                   │  transitions                               │
+                   └──────────────┬─────────────────────────────┘
+                                  │
+                                  │ 3 Runtime Behaviors
+                                  ▼
+                   ┌────────────────────────────────────────────┐
+                   │          RUNTIME ENGINE                    │
+                   │  drift_detection                           │
+                   │  propagation                               │
+                   │  stabilization                             │
+                   └──────────────┬─────────────────────────────┘
+                                  │
+                                  │
+     ┌────────────────────────────┼──────────────────────────────┬──────────────────────────────┐
+     ▼                            ▼                              ▼                              ▼
+┌──────────────┐          ┌──────────────┐               ┌──────────────┐               ┌──────────────┐
+│    ELINS     │          │ VA Manager   │               │ Employment   │               │ Buddy Suite  │
+│ (Global Intel│          │   Tool       │               │    Law OS    │               │ (Affect OS)  │
+└──────────────┘          └──────────────┘               └──────────────┘               └──────────────┘
+     │                            │                              │                              │
+     │ OS 6.0-native              │ OS 6.0-native                │ OS 6.0-native                │ OS 6.0-native
+     ▼                            ▼                              ▼                              ▼
+┌──────────────┐          ┌──────────────┐               ┌──────────────┐               ┌──────────────┐
+│  ELINSpro    │          │ Operator HB  │               │ Multi-Party  │               │ Escalation   │
+│ (Projection) │          │ (Mesh/Flow)  │               │   Engine     │               │   Ladder     │
+└──────────────┘          └──────────────┘               └──────────────┘               └──────────────┘
+
+module.import(field_dynamics)
+module.import(pressure_signatures)
+module.import(coherence_conditions)
+module.import(attractors)
+module.import(transitions)
+
+module.runtime(drift_detection, propagation, stabilization)
+
+TITLE:
+OS 6.0 Integration Layer — Unified Module Architecture
+
+DATE:
+2026‑03‑19
+
+DEWEY TAGS:
+  - Primary: 303.31/Topology/SystemIntegration
+  - Secondary: 303.31/Topology/SystemMotion
+  - Secondary: 303.31/Topology/ModuleArchitecture
+  - Secondary: 303.31/Topology/UnifiedRuntime
+
+ARTIFACT TYPE:
+Integration Specification + Architecture Diagram
+
+SIGNAL LINE:
+"The integration layer unifies all modules under OS 6.0 by importing five primitives and enabling three runtime behaviors."
+
+SUMMARY:
+- Defines universal integration block.
+- Establishes OS‑native module requirements.
+- Provides runtime reflex specification.
+- Includes full architecture diagram.
+- Ensures cross‑module coherence and drift resistance.
+
+NOTES:
+- Root node for all future module development.
+- Required for ELINS, VA Manager Tool, Employment Law OS, Buddy Suite, FounderSuite, and Operator Handbook.
+

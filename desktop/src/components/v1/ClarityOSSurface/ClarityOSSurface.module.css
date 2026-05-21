@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-void);
+  padding: var(--space-outer);
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr var(--insights-width);
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.mainGridCollapsed {
+  grid-template-columns: var(--sidebar-width) 1fr 0;
+}
+
+.mainGridNoInsights {
+  grid-template-columns: var(--sidebar-width) 1fr;
+}

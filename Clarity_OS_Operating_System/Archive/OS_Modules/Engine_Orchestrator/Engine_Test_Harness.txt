@@ -1,0 +1,98 @@
+============================================================
+MODULE: ENGINE_TEST_HARNESS
+TYPE: Diagnostic Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide a controlled diagnostic environment for testing the full
+Clarity_OS narrative-physics engine. Ensures stability, drift
+resistance, basin alignment, and correct sequencing across all
+modules.
+
+TEST INPUTS:
+- Synthetic Topic
+- Synthetic Direction
+
+TEST OUTPUTS:
+- Diagnostic Report
+- Stability Score
+- Drift Score
+- Basin Alignment Score
+- Vector Alignment Score
+- ELINS Signal Map
+- Markov Stability Map
+
+HARNESS SEQUENCE:
+
+STEP 1 — INITIALIZE TEST
+- Load synthetic Topic + Direction
+- Initialize diagnostic context
+- Enable full logging mode
+
+STEP 2 — RUN QC_PRE
+- Validate frame
+- Log vector alignment
+- Log ELINS signals
+- Log Markov next-state tendencies
+- Output: Clean Input Frame
+
+STEP 3 — RUN CLARITY LOOP CONTROLLER
+- Log centering
+- Log compression
+- Log drift removal
+- Log through-line enforcement
+- Output: SIL
+
+STEP 4 — RUN LANGBRIDG CONTROLLER
+- Log bulletization
+- Log tone stabilization
+- Log structural preservation
+- Output: ≤3 Bullet Frame
+
+STEP 5 — RUN QC_POST
+- Log vector re-check
+- Log ELINS re-check
+- Log Markov stability
+- Log tone and structure validation
+- Output: Final Stabilized Output
+
+STEP 6 — GENERATE DIAGNOSTIC REPORT
+- Stability Score (0–100)
+- Drift Score (0–100)
+- Basin Alignment Score (0–100)
+- Vector Alignment Score (0–100)
+- ELINS Signal Map
+- Markov Stability Map
+- Pass/Fail Status
+
+FAILURE MODES:
+- QC_Pre instability
+- Clarity Loop collapse
+- Langbridg drift
+- QC_Post misalignment
+- Basin mismatch
+- Pressure distortion
+- Vector contradiction
+
+RECOVERY:
+- Re-run QC_Pre
+- Re-align vectors
+- Re-check ELINS
+- Re-run Markov evaluation
+- Re-run Clarity Loop
+- Re-run Langbridg
+- Re-stabilize tone and structure
+
+HARNESS CONTRACT:
+All modules must be tested in sequence.
+No module may be skipped.
+All failures must be logged.
+No output may exceed three bullets.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

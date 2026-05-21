@@ -1,0 +1,113 @@
+============================================================
+PM-APP — Application Protocol
+============================================================
+
+PURPOSE:
+Provide a standard method for applying the mediation protocol
+(PM-IP and PM-TCP) in any environment: human, organizational,
+technical, or AI-driven.
+
+APPLICATION CONTRACT:
+All implementations must follow the sequence:
+
+1. Expose a Pressure Object (PM-IP)
+2. Run the Transport Loop (PM-TCP)
+3. Produce a Coherent Output
+
+------------------------------------------------------------
+1. INPUT REQUIREMENTS
+------------------------------------------------------------
+Every application of the protocol must begin with:
+
+- A defined Pressure Object:
+  SOURCE
+  LOCATION
+  INTENSITY
+  SCOPE
+
+- A clear statement of the context:
+  "What situation requires mediation?"
+
+- A defined set of participants or system elements.
+
+No application is valid without these inputs.
+
+------------------------------------------------------------
+2. PROCESS REQUIREMENTS
+------------------------------------------------------------
+All implementations must run the Transport Loop:
+
+CENTER:
+- Stabilize the environment.
+- Remove reactive escalation.
+- Establish a shared reference frame.
+
+COMPRESS:
+- Identify the real pressure.
+- Reduce the problem to its minimal form.
+- Remove noise and projection.
+
+COHERE:
+- Deliver a stable interpretation.
+- Confirm mutual understanding.
+- Ensure the interpretation is consistent.
+
+If any stage fails, restart at CENTER.
+
+------------------------------------------------------------
+3. OUTPUT REQUIREMENTS
+------------------------------------------------------------
+A valid mediation output must include:
+
+1. A stable interpretation of the situation.
+2. A clear description of the real pressure.
+3. A shared understanding across participants.
+4. A defined next step or path forward.
+
+Outputs must be structural, minimal, and free of narrative inflation.
+
+------------------------------------------------------------
+4. IMPLEMENTATION RULES
+------------------------------------------------------------
+- The protocol is domain-agnostic.
+- Any system may implement it: human, organizational, or AI.
+- No implementation may skip stages of the Transport Loop.
+- No interpretation is valid unless it is coherent.
+- No resolution is valid unless pressure is correctly addressed.
+
+------------------------------------------------------------
+5. FAILURE MODES
+------------------------------------------------------------
+If clarity breaks down:
+- Restart at CENTER.
+
+If pressure is misidentified:
+- Rebuild the Pressure Object.
+
+If participants diverge:
+- Re-run COHERE.
+
+If the system destabilizes:
+- Re-run CENTER → COMPRESS → COHERE.
+
+------------------------------------------------------------
+6. APPLICATION EXAMPLES
+------------------------------------------------------------
+Human Mediation:
+- Identify pressure.
+- Run the loop.
+- Deliver a shared interpretation.
+
+Organizational Conflict:
+- Map pressure across teams.
+- Run the loop.
+- Produce a structural resolution.
+
+AI Agent:
+- Request Pressure Object.
+- Run the loop internally.
+- Output a coherent interpretation.
+
+------------------------------------------------------------
+END OF FILE
+============================================================

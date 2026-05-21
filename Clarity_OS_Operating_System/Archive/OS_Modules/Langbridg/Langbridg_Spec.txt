@@ -1,0 +1,58 @@
+============================================================
+MODULE: LANGBRIDG
+TYPE: Language Transformation Module
+VERSION: 1.2
+LOCATION: /02_Modules/Langbridg/
+
+PURPOSE:
+Transform a Single Interpretive Line (SIL) into a clean,
+structural, ≤3-bullet output suitable for public-facing
+communication while preserving frame integrity.
+
+PRIMARY TASKS:
+1. Bulletization (≤3 bullets)
+2. Drift Removal
+3. Structural Preservation
+4. Tone Stabilization
+5. Compression
+
+INPUT:
+- Single Interpretive Line (SIL) from Clarity Loop
+
+OUTPUT:
+- ≤3 Bullet Output (one sentence per bullet)
+
+LANGBRIDG RULES:
+- Maximum of three bullets
+- Minimum of one bullet
+- One sentence per bullet
+- No adverbs or intensifiers
+- No narrative or commentary
+- No metaphors or jargon
+- Cultural neutrality required
+- Tone must remain steady, human, and professional
+
+BULLET LOGIC:
+1. Core fact
+2. Structural insight
+3. Forward-looking clarity (optional)
+
+FAILURE MODES:
+- More than three bullets
+- Multi-sentence bullets
+- Drift or narrative inflation
+- Tone instability
+- Structural misalignment
+
+RECOVERY:
+- Re-run compression
+- Re-run drift removal
+- Re-align with SIL
+- Re-stabilize tone
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

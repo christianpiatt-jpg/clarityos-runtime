@@ -1,0 +1,21 @@
+{
+  "name": "emotional_physics",
+  "version": "1.0.0",
+  "type": "reasoning_skill",
+  "domain": "affect, motivation, conflict",
+  "summary": "Model emotional state structurally — as forces, constraints, and trajectories — rather than sentimentally.",
+  "input_schema": "schemas/inputs.json",
+  "output_schema": "schemas/outputs.json",
+  "system_prompt": "prompts/system_prompt.txt",
+  "examples": "prompts/examples.md",
+  "theory": "docs/theory.md",
+  "usage_patterns": "docs/usage_patterns.md",
+  "invocation_phrases": [
+    "use emotional physics",
+    "run this through emotional physics",
+    "model the emotional dynamics",
+    "what are the forces here"
+  ],
+  "produces": ["forces", "constraints", "trajectories", "risk_zones"],
+  "consumed_by_clarityos_runtime": false
+}

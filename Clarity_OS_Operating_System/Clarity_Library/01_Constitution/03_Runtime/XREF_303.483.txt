@@ -1,0 +1,2 @@
+Runtime Note:
+Galileo Online 1.0 requires human-in-the-loop operation. See 303.483 archive entry for architectural rationale.

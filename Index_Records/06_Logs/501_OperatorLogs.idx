@@ -1,0 +1,18 @@
+501_OperatorLogs.idx
+
+[Record]
+Name = Operator Logs
+Code = 501
+Path = ../../06_Logs/Operator_Logs/
+Description = Logs documenting operator posture, decisions, cockpit actions, and in-room behavioral signatures.
+
+[Files]
+Operator_Notes = operator_notes.txt
+Decision_Log = decision_log.txt
+Posture_Log = posture_log.txt
+Action_Sequences = action_sequences.txt
+Operator_Crosswalk = operator_crosswalk.txt
+
+[Links]
+Parent = 500_RuntimeLogs.idx
+Siblings = 502_DriftLogs.idx, 503_RecoveryLogs.idx, 504_ForecastLogs.idx

@@ -1,0 +1,10 @@
+module.import(field_dynamics)
+module.import(pressure_signatures)
+module.import(coherence_conditions)
+module.import(attractors)
+module.import(transitions)
+
+module.runtime(drift_detection, propagation, stabilization)
+
+
+

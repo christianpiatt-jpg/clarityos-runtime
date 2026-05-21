@@ -1,0 +1,5 @@
+POST /clarify
+{
+  "text": "<string>",
+  "meta": {...}
+}

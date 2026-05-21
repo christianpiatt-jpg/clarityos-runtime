@@ -1,0 +1,18 @@
+804_SnapshotArchive.idx
+
+[Record]
+Name = Snapshot Archive
+Code = 804
+Path = ../../09_Archive/Snapshot_Archive/
+Description = Archival of system snapshots, subsystem snapshots, operator snapshots, and preserved runtime states.
+
+[Files]
+System_Snapshots = system_snapshots.txt
+Subsystem_Snapshots = subsystem_snapshots.txt
+Operator_Snapshots = operator_snapshots.txt
+Runtime_Snapshots = runtime_snapshots.txt
+Snapshot_Crosswalk = snapshot_crosswalk.txt
+
+[Links]
+Parent = 800_SystemArchive.idx
+Siblings = 801_SubsystemArchive.idx, 802_OperatorArchive.idx, 803_EventArchive.idx

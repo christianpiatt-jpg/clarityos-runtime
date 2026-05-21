@@ -1,0 +1,138 @@
+3 Inputs - mesh = (Get Your Booty to the Polls; Category: Burlesque; Cognitive bias). I: extract primitives (atomic items you can index/search). II: organize those primitives by approximate Dewey Decimal headings. III: reduced clarity report with recommendations and compact metadata/tags.
+
+I — Extracted primitives (entities, facts, concepts, metrics, formats, issues)
+- Documents / Titles
+  - “Get Your Booty to the Polls (GYBTTP)” — voter outreach campaign (video ads)
+  - Category: Burlesque — Wikimedia category page
+  - “Cognitive bias” — encyclopedic article
+
+- People (named)
+  - Angela Barnes — director (GYBTTP)
+  - Paul Fox — producer (GYBTTP)
+  - Mondale Robinson — collaborator (focused on Black male voters)
+  - Jenny Gang — dancer, Ivory (Atlanta)
+  - Zippora Lewis — pole dancer, teacher
+  - Coy Malone — vegan chef, computer scientist, exotic dancer
+  - Nikki St. John — novelist, activist, dancer at the Ivory
+  - Jasmine Johnson — activist/educator/porn performer/therapist (commentator)
+  - MF Akynos — founder, Black Sex Workers Collective (critic)
+  - (References: Portia Bruner, Olivia Steadman, Juana Summer, Otillia Steadman, Ally Mauch, Hayley Fowler, Lisa Respers France — journalists/media items)
+
+- Organizations / Groups / Venues
+  - Black Sex Workers Collective (critic)
+  - The Ivory (Atlanta strip club)
+  - Local NAACP chapter (referenced)
+  - Wikimedia Commons (media)
+  - Subcategory listings & pages under “Burlesque”
+
+- Campaign attributes (GYBTTP)
+  - Target audience: Black men who patronize strip clubs; Atlanta strip-club culture
+  - Purpose: increase voter turnout; explain voting impact in local elections; show how to fill out ballots
+  - Style: videos featuring Black women exotic dancers; hip-hop soundtrack; 1950s-style instructional motif in second video
+  - Production: volunteer crew; filmed in one day; initial release Sept 2020; repurposed for Jan 2021 march/event; second ad funded by unspecified donors
+  - Directors/producers: Angela Barnes (dir.), Paul Fox (prod.)
+  - Reach / metrics: >3.3 million views (viral)
+  - Outcomes: speaking engagements for dancers; social-media Q&A
+  - Critiques: accused of perpetuating stereotypes; opposed by Black Sex Workers Collective for not addressing root problems; praised by some for reappropriating objectification for empowerment
+
+- Content examples (GYBTTP)
+  - Messages: local offices matter (district attorney, sheriff, school board); practical ballot guidance
+  - Visuals: dancers, vintage dresses, giant fake ballot
+  - Tone: nonpartisan (first video)
+
+- Burlesque category primitives
+  - Category label: Burlesque
+  - Subcategories: 5 subcategories (counts given)
+  - Pages: 17 pages listed (titles obfuscated in input)
+  - Note: Wikimedia Commons media exists for burlesque
+
+- Cognitive bias primitives (concepts, definitions, mechanisms)
+  - Definition: systematic deviation from rational judgment; subjective reality
+  - Origins: Tversky & Kahneman (1972+); heuristics-and-biases program
+  - Heuristics: representativeness, availability, anchoring, affect, attribute substitution
+  - Examples: Linda problem (conjunction fallacy), availability, confirmation bias, anchoring, status quo bias, overconfidence, halo effect
+  - Types/dimensions: individual vs. group; decision vs. memory biases; motivational vs. perceptual
+  - Measurement/tools: Cognitive Reflection Test (CRT); Stroop task; dot probe
+  - Consequences/practical areas: law enforcement, finance, medicine, misinformation spread, eating disorders, jury decision-making
+  - Debiasing approaches: controlled processing, training videos/games, reference-class forecasting, cognitive bias modification therapy (CBMT)
+  - Causes/theoretical roots: bounded rationality, prospect theory, attribute substitution, noisy information processing, evolutionary/adaptive explanations, social influence
+  - Empirical findings: training/games can reduce susceptibility; older adults more susceptible but can learn; misinformation spreads faster due to biases
+  - Related constructs: motivated reasoning, cognitive dissonance, naive realism, collective illusions
+
+II — Organization according to Dewey Decimal approximations (approximate Dewey headings with placed primitives)
+
+- 100–199 — Philosophy & Psychology
+  - 150 Psychology
+    - 150 General psychology: cognitive bias — definition, overview
+    - 152 Perception / 153 Mental processes: heuristics, cognitive processing, attribute substitution
+    - 155 Differential & developmental psychology: age differences in susceptibility
+    - 158 Applied psychology: debiasing training, cognitive bias modification therapy (CBMT)
+    - Representative items placed here: Cognitive Reflection Test, Stroop task, attentional bias tasks, causes (bounded rationality), practical applications in clinical therapy
+
+- 300–399 — Social sciences
+  - 320 Political science
+    - 324.6 Voting / political participation: GYBTTP campaign (voter mobilization, turnout efforts, nonpartisan messaging)
+    - 305 Social groups / race & ethnicity: target = Black men; community-specific messaging; critiques regarding stereotyping and marginalization
+    - 302 Social interaction & public opinion: campaign virality, social media engagement, public responses
+    - Representative items: GYBTTP production, outcomes (engagements), criticisms, community responses
+
+- 700–799 — Arts, Recreation & Performing Arts
+  - 792 Theatrical arts / 792.8 Dance & performance variants
+    - 792 Performing arts: burlesque category — pages and subcategories; items on exotic dancers and strip-club culture
+    - 793 (circus, magic) less relevant; but place burlesque/strip-dance under 792.8–792.9
+    - Representative items: Category: Burlesque; dancers (Jenny Gang, Zippora Lewis, etc.); venues (The Ivory, Atlanta), performance styles and media (videos)
+
+- 000–099 — Generalities / information resources
+  - 020 Library & information sciences (cataloguing metadata suggestions)
+    - Use for metadata and indexing strategy (recommended tags, fields)
+
+- 300–399 cross-link
+  - 362 Social welfare & public policy: debates about systemic racism and policy relevance referenced by campaign critics
+
+III — Reduced clarity report (summary, practical cataloguing/next steps, metadata & tags)
+
+1) One-paragraph summaries
+- Get Your Booty to the Polls (GYBTTP): Grassroots multimedia voter-outreach campaign (video ads) directed by Angela Barnes with volunteer production, released Sept 2020. Targeted Black men who frequent strip clubs in Atlanta, using Black women dancers to explain local election stakes and ballot completion. Videos went viral (>3.3M views) and produced community engagements; attracted both praise (reframing objectification into empowerment) and criticism (reinforcing stereotypes; not addressing root causes).
+- Burlesque category (Wikimedia): Wikimedia category page indexing burlesque-related media and pages; contains 5 subcategories and 17 pages, links to Commons media.
+- Cognitive bias (encyclopedic): Wide survey of cognitive biases: definitions, historical origins (Tversky & Kahneman), major heuristics, examples (Linda problem), measurement tools, causes, impacts across domains, and mitigation/debiasing methods (CBM, training, reference-class forecasting).
+
+2) Key cross-cutting observations (insights)
+- Intersections: GYBTTP sits at a cultural + political + performing-arts intersection — handing a performance genre (burlesque/exotic dance) to achieve political mobilization. This bridges 792 (performing arts), 150 (psychology — persuasion heuristics), and 320 (political participation).
+- Cognitive bias relevance: The campaign’s design deliberately exploits social attention heuristics (salience, availability) to increase recall and motivate action; criticisms reflect attribution and stereotype-related biases (fundamental attribution, implicit bias, representativeness).
+- Metadata and rights: videos, media, and performer identities must be indexed with attention to privacy/consent, and with subject tags for race, gender, political advocacy, and performance venue.
+
+3) Recommended minimal metadata fields for cataloguing (for each campaign/video/page)
+- Title
+- Type (video/ad; category page; article)
+- Creators / producers / director(s)
+- Performers (names, roles, venue affiliations)
+- Date(s) of release / filming
+- Geographic focus (Atlanta, US)
+- Target audience
+- Themes (voter outreach, local elections, ballot instruction, burlesque, Black community)
+- Format (video length, style: hip-hop/backtrack; 1950s instructional motif)
+- Reach metrics (views, engagements)
+- Funding source (if known)
+- Reception tags (viral; praised; criticized)
+- Rights/licensing info
+- Dewey classifications (as above)
+- Related articles / external links / references
+
+4) Suggested controlled vocabulary / tags (short list)
+- voter-outreach, civic-engagement, ballot-instruction, nonpartisan-ad, Black-community, strip-club-culture, exotic-dance, burlesque, viral-video, political-communication, cognitive-bias (salience/availability), media-criticism, community-response
+
+5) Recommended next actions (cataloging & analysis)
+- Assign primary Dewey numbers: 324.6 (voting/political participation) + 792.8 (burlesque/stripping) + 150 (psychology/persuasion) for cross-referenced indexing.
+- Create a composite record for GYBTTP linking: media files, performer bios, reception/critique notes, and related social-media metrics.
+- Tag cognitive-bias-related analysis where the campaign intentionally leveraged salience/availability heuristics — useful for interdisciplinary indexes (political communication + psychology).
+- Add provenance notes: production context (volunteer crew, pandemic unemployment motivation), release timeline (Sept 2020; repurposed Jan 2021).
+- Preserve critical perspectives: store the critiques (Black Sex Workers Collective statement; stereotype concerns) as part of reception metadata.
+
+6) One-line distilled conclusions (clarity)
+- GYBTTP is a viral, nonpartisan voter-mobilization case study at the nexus of performing arts and political communication that deliberately uses attention-capturing performance to overcome motivation/availability barriers; catalog it under voting/political participation (324.6) with cross-references to performing arts (792) and psychology (150) for persuasion heuristics and ethical critique.
+
+If you want, I can:
+- Produce machine-ready JSON records for each primary item with the metadata fields above.
+- Export a small bibliographic/citation set for the references listed.
+- Generate a controlled-vocabulary taxonomy (CSV) for tagging these records.
+Which output would help you next?

@@ -1,0 +1,582 @@
+Geometric modeling
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+icon
+This article needs additional citations for verification. Please help improve this article by adding citations to reliable sources. Unsourced material may be challenged and removed.
+Find sources: "Geometric modeling" – news · newspapers · books · scholar · JSTOR (August 2014) (Learn how and when to remove this message)
+
+Geometric modeling is a branch of applied mathematics and computational geometry that studies methods and algorithms for the mathematical description of shapes. The shapes studied in geometric modeling are mostly two- or three-dimensional (solid figures), although many of its tools and principles can be applied to sets of any finite dimension. Today most geometric modeling is done with computers and for computer-based applications. Two-dimensional models are important in computer typography and technical drawing. Three-dimensional models are central to computer-aided design and manufacturing (CAD/CAM), and widely used in many applied technical fields such as civil and mechanical engineering, architecture, geology and medical image processing.[1]
+
+Geometric models are usually distinguished from procedural and object-oriented models, which define the shape implicitly by an opaque algorithm that generates its appearance.[citation needed] They are also contrasted with digital images and volumetric models which represent the shape as a subset of a fine regular partition of space; and with fractal models that give an infinitely recursive definition of the shape. However, these distinctions are often blurred: for instance, a digital image can be interpreted as a collection of colored squares; and geometric shapes such as circles are defined by implicit mathematical equations. Also, a fractal model yields a parametric or implicit model when its recursive definition is truncated to a finite depth.
+
+Notable awards of the area are the John A. Gregory Memorial Award[2] and the Bézier award.[3]
+
+See also
+2D geometric modeling
+Architectural geometry
+Computational conformal geometry
+Computational topology
+Computer-aided engineering
+Computer-aided manufacturing
+Digital geometry
+Geometric modeling kernel
+List of interactive geometry software
+Parametric equation
+Parametric surface
+Solid modeling
+Space partitioning
+References
+ Handbook of Computer Aided Geometric Design
+ "John A. Gregory Memorial Award". geometric-modelling.org. Retrieved 2025-07-08.
+ "Archived copy". Archived from the original on 2014-07-15. Retrieved 2014-06-20.
+Further reading
+General textbooks:
+
+Jean Gallier (1999). Curves and Surfaces in Geometric Modeling: Theory and Algorithms. Morgan Kaufmann. This book is out of print and freely available from the author.
+Gerald E. Farin (2002). Curves and Surfaces for CAGD: A Practical Guide (5th ed.). Morgan Kaufmann. ISBN 978-1-55860-737-8.
+Michael E. Mortenson (2006). Geometric Modeling (3rd ed.). Industrial Press. ISBN 978-0-8311-3298-9.
+Ronald Goldman (2009). An Integrated Introduction to Computer Graphics and Geometric Modeling (1st ed.). CRC Press. ISBN 978-1-4398-0334-9.
+Nikolay N. Golovanov (2014). Geometric Modeling: The mathematics of shapes. CreateSpace Independent Publishing Platform. ISBN 978-1497473195.
+For multi-resolution (multiple level of detail) geometric modeling :
+
+Armin Iske; Ewald Quak; Michael S. Floater (2002). Tutorials on Multiresolution in Geometric Modelling: Summer School Lecture Notes. Springer Science & Business Media. ISBN 978-3-540-43639-3.
+Neil Dodgson; Michael S. Floater; Malcolm Sabin (2006). Advances in Multiresolution for Geometric Modelling. Springer Science & Business Media. ISBN 978-3-540-26808-6.
+Subdivision methods (such as subdivision surfaces):
+
+Joseph D. Warren; Henrik Weimer (2002). Subdivision Methods for Geometric Design: A Constructive Approach. Morgan Kaufmann. ISBN 978-1-55860-446-9.
+Jörg Peters; Ulrich Reif (2008). Subdivision Surfaces. Springer Science & Business Media. ISBN 978-3-540-76405-2.
+Lars-Erik Andersson; Neil Frederick Stewart (2010). Introduction to the Mathematics of Subdivision Surfaces. SIAM. ISBN 978-0-89871-761-7.
+External links
+Geometry and Algorithms for CAD (Lecture Note, TU Darmstadt)
+Authority control databases Edit this at Wikidata
+International	
+GND
+National	
+Czech Republic
+
+
+Stub icon	
+This applied mathematics–related article is a stub. You can help Wikipedia by adding missing information.
+
+Categories: Geometric algorithmsComputer-aided designApplied geometryApplied mathematics stubs
+
+-
+Geometric modeling kernel
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+A geometric modeling kernel is a solid modeling software component used in computer-aided design (CAD) packages.[1][2] Available modelling kernels include:
+
+ACIS is developed and licensed by Spatial Corporation of Dassault Systèmes.
+SMLib is developed by Solid Modeling Solutions.[3]
+Convergence Geometric Modeler[4] is developed by Dassault Systèmes.
+Parasolid is developed and licensed by Siemens.
+Romulus was a predecessor to Parasolid.
+ShapeManager[5] is developed by Autodesk and was forked from ACIS in 2001.
+Granite[6] is developed by Parametric Technology Corporation.
+C3D Modeler is developed by C3D Labs, part of the ASCON Group.[7][8]
+CGAL is an opensource Computational Geometry Algorithms Library which has support for Boolean operations on Polyhedra; but no sweep, revolve or NURBS.
+Open CASCADE is an opensource modeling kernel.
+sgCore is a freeware proprietary modeling kernel distributed as an SDK.[9]
+K3 kernel[10] is developed by Center GeoS.
+SOLIDS++[11] is developed by IntegrityWare, Inc.
+APM Engine[12][13][14] is developed by RSDC APM.
+KCM[15] is developed and licensed by Kubotek Kosmos[16]
+SvLis Geometric Kernel became opensource and discontinued, for Windows only.
+IRIT modeling environment, for Windows only.[17]
+GTS[18] GNU Triangulated Surface Library, for polygon meshes only and not surfaces.
+Russian Geometric Kernel.
+Geometry Kernel,[19] a multi-platform C++ library with source code accessible for clients, developed and distributed by RDF - Geometry Kernel web site.
+SolveSpace has its own integrated parametric solid geometry kernel with a limited NURBS support.
+Kernel market
+The kernel market currently is dominated by Parasolid and ACIS, which were introduced in the late 1980s. The latest kernel to enter the market is KCM. ShapeManager has no presence in the kernel licensing market and in 2001 Autodesk clearly stated they were not going into this business.[citation needed]
+
+The world's newest geometric modeling kernel is Russian Geometric Kernel owned by the Russian government, and it is not clear if it is going to be commercially available, despite offering unique features over the other kernels on the market.[20][21][22][23]
+
+Kernel developers
+The table below contains a representative list of developers developing their own kernel or licensing the kernel from a third-party.[24]
+
+Platforms	Domain	Kernel	Application	Developed by	Country
+Windows	CAD, AEC	Open CASCADE	4MCAD IntelliCAD	4M S.A.	Greece
+Windows	MCAD	ACIS / KCM	KeyCreator	Kubotek Kosmos	United States
+Windows	MCAD	C3D	KOMPAS-3D	ASCON Group	Russia
+Windows	AEC	C3D	KOMPAS-Builder	ASCON Group	Russia
+Windows	CAD	C3D + K3 kernel	K3-Furniture	Center GeoS	Russia
+Windows	AEC	C3D	Renga Architecture[25][26]	ASCON Group	Russia
+iPad, Windows	MCAD	Parasolid	Shapr3D	Shapr3D zrt.	Hungary
+Android	MCAD	C3D	KOMPAS:24	ASCON Group	Russia
+Windows	CAD	C3D Modeler for Teigha Platform / ACIS	nanoCAD Plus	NanoSoft	Russia
+Windows	MCAD	Parasolid	T-FLEX	Top Systems	Russia
+Windows	MCAD	APM Engine	APM Studio	APM	Russia
+Windows	CAM	C3D	TECHTRAN	NIP-Informatic	Russia
+Windows	CAD	C3D	PASSAT	NTP Truboprovod Archived 2015-02-07 at the Wayback Machine	Russia
+Windows, Mac	CAD, CAM	Own Kernel	Rhinoceros 3D	Robert McNeel and Associates	United States
+Windows	CAD	C3D	ESPRIT Extra CAD	LO CNITI, Rubius	Russia
+Windows	CAD	C3D	BAZIS System	BAZIS Center	Russia
+Windows	CAE	Parasolid	Adams	MSC Software	United States
+Windows	CAD, CAM, CAPP	switch from ACIS to C3D[27]	ADEM	ADEM Group	Russia
+Windows	CAE	Parasolid	ADINA Modeler	ADINA R&D Inc.	United States
+Windows	CAD, AEC, GIS	ShapeManager	AutoCAD	Autodesk	United States
+Windows	MCAD	ShapeManager	Inventor	Autodesk	United States
+Windows, Mac	Solid Modeler & Machiner	ShapeManager	Autodesk Fusion	Autodesk	United States
+Windows, Linux, Mac	MCAD, AEC	ACIS	BricsCAD	Bricsys	Belgium
+Windows, Mac	CAD, CAM, CAE	Parasolid	Siemens NX	Siemens Digital Industries Software	United States, Germany
+Windows	MCAD	Parasolid	SolidFace	SolidFace	United States, Brazil
+Windows	MCAD	Parasolid (previous versions used ACIS)	Solid Edge	Siemens Digital Industries Software	United States, Germany
+Windows	MCAD	Parasolid	SolidWorks	Dassault Systèmes	United States, France
+Windows	AEC	Parasolid (previous versions used ACIS)	MicroStation	Bentley Systems	United States
+Windows, Unix	CAD, CAM, CAE, AEC	Convergence Geometric Modeler	CATIA	Dassault Systèmes	France
+Windows	Solid Modeler	GRANITE[28]	Creo Elements	Parametric Technology Corporation	United States
+Windows	CAD	GRANITE[28]	Creo Parametric	Parametric Technology Corporation	United States
+SaaS	Solid Modeler	Parasolid,[29] FeatureScript	Onshape	Onshape	United States
+Windows, SaaS	Solid Modeler	Parasolid & ACIS	IRONCAD	IRONCAD	United States
+Windows	CAD	ACIS	GstarCAD	Suzhou Gstarsoft Co., Ltd	China
+Windows, Mac	AEC, BIM	Own Kernel	ArchiCAD	Graphisoft	Hungary
+Windows, Linux, Mac	MCAD, AEC	ACIS	ZW3D	ZWSoft	China
+Windows	MCAD	ACIS	Cimatron	3D Systems (Cimatron Ltd.)	Israel
+Windows	MCAD	ACIS[30]	SpaceClaim	ANSYS Inc	United States
+Windows	MCAD	European Solid Modeller ESM[31]	HiCAD	ISD Group	German
+Mac, Windows	MCAD	ACIS[30]	Cobalt, Xenon, Argon	Ashlar	United States
+Windows, Linux	CAD Optimization	Own Kernel[32]	CAESES	Friendship Systems	Germany
+Windows, macOS, Linux,	CAD, CAM, BIM	Open Cascade, Coin3D,	FreeCAD	FreeCAD	
+Windows, macOS, Linux, iOS, Android	CAD, AEC, BIM	Geometry Kernel	IFCEngine, STEPEngine	RDF	Bulgaria
+Windows	CAD, AEC	Overdrive	ZW3D, ZWCAD	ZWSoft	China
+Windows	CAD, Reverse Engineering	ACIS	Zeiss Reverse Engineering	ZEISS Industrial Metrology	Germany
+Windows, macOS, Linux	MCAD	Parasolid	Plasticity	Plastic Software, LLC	United States
+References
+ Tyrka, Katherine (2001-12-01). "Kernel strategies". Design News. Archived from the original on 2007-09-27. Retrieved 2006-12-28.
+ Shah, Jami (2004-06-27). Parametric and Feature-Based CAD/CAM. John Wiley & Sons, Inc. p. 449. ISBN 0-471-00214-3.
+ SMLib
+ Yares, Evan. "Spatial, ACIS, CGM, and the future of geometric modelers". 3D CAD World. Retrieved 18 May 2013.
+ "Autodesk - Produktivität, Performance und Präzision: Neue Version der Autodesk Inventor-Familie". www.autodesk.de. Archived from the original on 15 March 2012. Retrieved 12 January 2022.
+ "GRANITE Interoperability Kernel FAQ". PTC Inc. Archived from the original on 3 July 2013. Retrieved 18 May 2013.
+ Levin, David. "Geometric Kernels and Irremovability of Presidents from Office". LEDAS Ltd. Retrieved April 15, 2013.
+ Yares, Evan (April 2013). "Russian CAD". Design World. 8 (4). WTWH Media, LLC. ISSN 1941-7217. Archived from the original on 2015-01-30. Retrieved 2015-01-30.
+ "Geometros Solid Geometry Engine for C++, C#, Objective-C, Java - sgCore". www.geometros.com. Retrieved 2019-10-02.
+ "About the developer". Innovation and research center "GeoS". Archived from the original on 9 July 2016. Retrieved 9 August 2016.
+ "SOLIDS++". IntegrityWare, Inc. Retrieved 17 August 2016.
+ "APM Studio". Research and Software Development Centre APM. Archived from the original on 20 August 2016. Retrieved 18 August 2016.
+ "Геометрическое ядро APM Engine". sapr. Retrieved 18 August 2016.
+ "На ядре". isicad. Retrieved 18 August 2016.
+ "3D Software Development with Kubotek Kosmos". Kubotek Kosmos. Retrieved 26 May 2023.
+ "Kubotek Kosmos Announces the 5.0 Release of its 3D Framework Modeling Kernel". EIN Presswire. Retrieved 13 April 2023.
+ "The IRIT modeling environment - Home Page". www.cs.technion.ac.il. Archived from the original on 2019-10-19. Retrieved 2019-10-02.
+ "GTS - The GNU Triangulated Surface Library". gts.sourceforge.net. Retrieved 2019-10-02.
+ "Geometry Kernel Library Packages". www.rdf.bg. RDF.
+ "Russian 3D-kernel RGK: Functionality, Advantages, and Integration". Isicad.net. 2013-05-24. Retrieved 2016-07-27.
+ "Does the CAD world need another geometry kernel?". gfxspeak.com. 2013-06-06. Retrieved 2016-08-17.
+ "Features of RGK". RGK. Retrieved 15 August 2016.
+ "Вопрос распараллеливания в разработке ядра геометрического моделирования" (PDF). Singularis Lab. Archived from the original (PDF) on November 3, 2022. Retrieved 15 August 2016.
+ Ushakov, Dmitry. "Russian National 3D Kernel". LEDAS Ltd. Retrieved April 3, 2012.
+ "Renga Architecture". ASCON Group. 2015-03-17. Archived from the original on 2015-04-02. Retrieved 2015-03-19.
+ "Renga Architecture is brand-new AEC software by an MCAD vendor". WorldCAD Access. 2015-03-13.
+ "Геометрическое ядро C3D станет частью российской CAM-системы ADEM". c3dlabs.com. December 20, 2021.
+ "Creo GRANITE Interoperability Kernel".
+ "How Does Onshape Really Work?".
+ "SpaceClaim General FAQ".
+ "Software für 2D-/3D-CAD und PDM | HiCAD und HELiOS".
+ "CAESES Software › CAESES".
+vte
+Computer-aided design (CAD) software
+Free and
+open-source	
+Mechanical	
+2D (CADD)	
+LibreCADQCADrattleCADSteamCADXTrackCAD [uk]
+2D/3D (CAx/FEx)	
+BRL-CADFreeCADFREE!ship [uk]gCAD3DLeoCADOpenRocket [uk]OpenSCADOpenVSPSalomeSolveSpaceXFLR5 [uk]
+Architectural (AEC)	
+Sweet Home 3D
+Electrical	
+ElectricFreePCBFritzinggEDAHorizon EDAKiCadkTechLabMagicngspiceOreganopcb-rndQUCSSPICEXCircuit
+Optical	
+Astree/Foucault2ATMOSGeopterInkscape#Ray OpticsFreeCAD#Optics Workbench
+Garment	
+Inkscape#Ink/StitchValentina
+Proprietary	
+Mechanical	
+ABViewerAlibre DesignAutoCADAutodesk AliasAutodesk InventorAutoTURNBrickLink StudioBricsCADCATIACimatronCobaltCreo Elements/Direct Drafting Creo ParametricDesignSpark MechanicalFastCAD (EasyCAD)FINEFORANFusion 360GstarCADIRONCADKeyCreator (CADKEY)Lego Digital DesignerMEDUSA4MicroStationNXOnshapePDMSPro/DESKTOPRhinoceros 3D Grasshopper 3DrattleCAD 4.0Shapr3DSolid EdgeSolidWorksSonata (RUCAPS)SpaceClaimT-FLEX CADTinkercadTurboCADVariCADZWCAD
+Architectural (AEC)	
+ArchicadAutodesk RevitLIRA [uk]List of building information modeling software
+Electrical	
+Allegro (OrCAD)Altium Designer (Protel (Autotrax (Easytrax, Tango PCB)), P-CAD)AutoCAD ElectricalBoardStation, IntegraStation, PADS, XpeditionCADSTARCircuitMakerCR-2000, CR-3000, CR-5000, CR-8000DesignSpark PCBDipTraceEAGLEEasyEDALTspiceMicro-CapMultisimPCBProteusPulsonixSolidWorks ElectricalTARGETTopoR (Delta Design, FreeStyle)UltiboardUpverter
+Optical	
+AberOSLOZemax
+Garment	
+Clo3DEmbird
+File formats	
+3MFACISAMFC3DCKDDSNDWFDWFXDWGDXFIGESOBJOpenDWGPLYPSpiceSESSTEPSTL
+Modeling
+kernels	
+ACISC3DDigital Geometric Kernel (KernelCAD)IntelliCADOpen Cascade TechnologyOpen Design Alliance (Teigha)Romulus (Parasolid)RGKShapeManagerSMLib
+Historic	
+DAC-1 (1963)Sketchpad (1963)UNISURF (1968)
+Italics = discontinued
+Computer-aided industrial design • Comparison • History
+
+Wikimedia Commons logo Media related to CAD at Wikimedia Commons • icon Engineering portal • Glossary of terms
+Categories: 3D graphics softwareComputer-aided design
+This page was last edited on 28 February 2026, at 09:50 (UTC).
+
+-
+ategory:3D graphics software
+
+Category
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+This page always uses small font size
+
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+Help
+From Wikipedia, the free encyclopedia
+Wikimedia Commons logo
+Wikimedia Commons has media related to 3D computer graphics by software.
+The main article for this category is 3D computer graphics software.
+Contents
+Top0–9A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+Subcategories
+This category has the following 13 subcategories, out of 13 total.
+
+0–9
+3D computer graphics software for Linux (3 C, 15 P)
+ 3D modeling software for Windows (1 P)
+A
+ Anatomical simulation (28 P)
+3D animation software (1 C, 29 P)
+ AutoCAD (8 P)
+F
+Free 3D graphics software (1 C, 59 P)
+ Freeware 3D graphics software (14 P)
+G
+ Global illumination software (28 P)
+P
+ Photogrammetry software (15 P)
+R
+ Rendering systems (21 P, 1 F)
+ RenderMan (5 P)
+S
+ SGI graphics (12 P)
+ Shading languages (15 P)
+Pages in category "3D graphics software"
+The following 200 pages are in this category, out of approximately 253 total. This list may not reflect recent changes.
+
+(previous page) (next page)
+ 
+3D computer graphics software
+3D scanning
+Comparison of 3D computer graphics software
+.
+.3ds
+0–9
+2D to 3D conversion
+3D computer graphics
+3D Slash
+3D Wayfinder
+3Dc
+3DCrafter
+3Delight
+3DML
+3DMLW
+3dvia
+A
+AC3D
+ACIS
+Adobe Atmosphere
+Adobe Fuse CC
+The Advanced Visualizer
+Airfight
+Aladdin4D
+Alibre Design
+Amapi
+Amazon Lumberyard
+Amiga Reflections
+Amira (software)
+Anim8or
+List of 3D animation software
+Animation:Master
+Antics3D
+Aphelion (software)
+Aqsis
+Archicad
+Armature (computer animation)
+ASi-Profile
+Autodesk 3ds Max
+Autodesk 123D
+Autodesk Arnold
+Autodesk Maya
+Autodesk Media and Entertainment
+Autodesk MotionBuilder
+Autodesk Softimage
+AutoShade
+Avizo (software)
+B
+BGS Groundhog Desktop
+BIMx
+Biosphere3D
+Blend4Web
+Brazil R/S
+BricsCAD
+Bridge Software Institute
+Bryce (software)
+C
+C3D Toolkit
+Russian Geometric Kernel
+Cadwork
+Cadwork informatik AG
+Cadwork Engineer
+Canoma
+Carrara (software)
+Chaos Corona
+Cheetah3D
+Chromium (computer graphics)
+Cinebench
+Cinema 4D
+Cl3ver
+Clara.io
+Cobalt (CAD program)
+Cobra (game engine)
+COLLADA
+COOL 3D
+CorelCAD
+Creation Engine
+Creo Elements/View
+Crystal Tools
+D
+David Laserscanner
+Daz 3D
+Decima (game engine)
+Dielectric Shader
+Digital Image Processing with Sound
+Digital sculpting
+DISLIN
+DX Studio
+Dynamation (software)
+E
+E-on Vue
+Electric Image Animation System
+F
+Faceware Technologies
+Fatpaint
+FBX
+List of films made with Autodesk 3ds Max
+Flux (graphics software)
+Fork Particle
+Form-Z
+Fox Engine
+FreeFlyer
+Frostbite (game engine)
+G
+General Mission Analysis Tool
+Generative Modelling Language
+Geometric modeling kernel
+Glu3d
+Gmax
+Golaem Crowd
+Grome
+H
+Hexagon (software)
+HiCAD
+Holomatix Rendition
+Houdini (software)
+HyperFun
+I
+IClone
+Id Tech 5
+Id Tech 6
+Id Tech 7
+ILNumerics
+Imagine (3D modeling software)
+Infini-D
+Integrated Data Viewer
+Interactive Scenario Builder
+IRIS GL
+IW (game engine)
+J
+Jake2
+Java 3D
+Java OpenGL
+K
+Keyshot
+Kubity
+L
+LDraw
+LightWave 3D
+List of 3D computer graphics software
+List of 3D modeling software
+List of 3D printing software
+List of 3D rendering software
+List of automotive engineering software
+List of BIM software
+List of Maya plugins
+List of ray tracing software
+Luminous Engine
+M
+MacPerspective
+Makers Empire 3D
+Mario Artist
+MASSIVE (software)
+Materialise Mimics
+MEDUSA4
+Mental Images
+MeshLab
+MeshLib
+Messiah (software)
+Metasequoia (software)
+MeVisLab
+Miarmy
+Mining simulator
+Mirai (software)
+Modo (software)
+MojoWorld Generator
+Morph target animation
+MPDS4
+MSC Software
+MT Framework
+Autodesk Mudbox
+N
+N-World
+Nato.0+55+3d
+Navisworks
+NEAT Particles
+Ninithi
+Noesis (software)
+Nouveau (software)
+Nvidia RTX
+O
+Open 3D Engine
+Open Cascade Technology
+Open Game Engine Exchange
+OpenCTM
+OpenFrameworks
+OpenQwaq
+OpenSCAD
+OZ Virtual
+P
+Paint 3D
+PCon.planner
+Photosynth
+Pix4D
+Pixar RenderMan
+Plasticity (software)
+Point Cloud Library
+Polygon Cruncher
+Poser (software)
+POV-Ray
+PowerAnimator
+Q
+Qlone
+QuickTime VR
+R
+Ray Dream Studio
+RE Engine
+Reactor (software)
+Real3D (3D modeling software)
+RealFlow
+RealityCapture
+Realsoft 3D
+Remo 3D
+Template:RenderMan
+RenderMan Interface Specification
+Rhinoceros 3D
+Rockstar Advanced Game Engine
+Romulus (modelling kernel)
+S
+SANDDE
+Scaleform GFx
+(previous page) (next page)
+Categories: Image processing software3D computer graphicsComputer-aided design softwareComputer-aided engineering software
+Hidden categories: Commons category link from WikidataCategory main article does not match category titleTemplate Category TOC via Automatic category TOC on category with 201–300 pagesAutomatic category TOC generates standard Category TOC

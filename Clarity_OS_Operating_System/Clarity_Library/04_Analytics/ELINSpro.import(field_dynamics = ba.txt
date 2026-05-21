@@ -1,0 +1,9 @@
+ELINSpro.import(field_dynamics = basin_vectors)
+ELINSpro.import(pressure_signatures = curvature_inputs)
+ELINSpro.import(coherence_conditions = projection_accuracy)
+ELINSpro.import(attractors = {stabilization, escalation})
+ELINSpro.import(transitions = {phase_shift, inflection})
+
+ELINSpro.runtime(drift_detection = projection_error,
+                 propagation = cross_basin_projection,
+                 stabilization = smoothing_functions)

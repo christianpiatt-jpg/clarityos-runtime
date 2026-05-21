@@ -1,0 +1,30 @@
+DATE:
+2026-03-19
+
+INTAKE:
+- FT Lex Newsletter
+- WSJ 10‑Point
+- Al Jazeera live updates
+- Any additional basin signals
+
+SHAPING:
+- Two tag/dewey entries (FT + WSJ)
+- Fused ELINS global update
+- Optional event cards (Larijani, Gulf pivot, Fed dissent)
+
+QC:
+- A: 9/10
+- C: 7/10
+- E: 6.5/10
+- Global: 8/10
+
+DASHBOARD UPDATE:
+- Curvature map refreshed
+- Volatility ranking updated
+- 72‑hour forecast posted
+- Cross‑basin interactions mapped
+
+ARCHIVE:
+- Store all entries in library
+- Update Dewey spine
+- Add cross‑references

@@ -1,0 +1,35 @@
+ELINS_2026_04_10 = {
+  "pressure_zones": {
+    "PZ1": "Energy shock + chokepoint governance",
+    "PZ2": "Institutional strain + legitimacy drift",
+    "PZ3": "Human impact + displacement + infrastructure risk"
+  },
+  "identity_vectors": {
+    "global": "S1→S2→S3→S4→S5",
+    "basins": {
+      "AlJazeera": "S1→S2",
+      "LeMonde": "S2→S3",
+      "WaPo": "S3→S4",
+      "Spiegel": "S1/S2→S3→S4",
+      "FT_Bloomberg": "S4→S5",
+      "WSJ_Barrons": "S3→S4→S5"
+    }
+  },
+  "invariants": [
+    "Infrastructure as identity substrate",
+    "Legitimacy as scarce resource",
+    "Systemic fragility as narrative baseline"
+  ],
+  "markov_state": {
+    "current": "S3.7→S4.2",
+    "forecast": "S4→S5",
+    "drivers": [
+      "Hormuz toll regime",
+      "Inflation spike",
+      "Institutional legitimacy strain",
+      "Civilian infrastructure targeting",
+      "Climate-linked disruptions"
+    ]
+  },
+  "clarity": "Identity pressure is moving through infrastructure, institutions, and social order, revealing systemic fragility."
+}

@@ -1,0 +1,114 @@
+#tags: #clarityOS, #v3, #schema, #markov, #state-vector
+
+===========================================
+V3 STATE SCHEMA — X_t STRUCTURE
+===========================================
+
+Each Markov state X_t is a structured object composed of eight fields.
+Each field is a minimal, serializable snapshot of the corresponding v2 module.
+
+-------------------------------------------
+1. GEOMETRY (G_t)
+-------------------------------------------
+Fields:
+- active_shape
+- dimensionality
+- curvature_profile
+- symmetry_class
+- transformation_history
+
+-------------------------------------------
+2. PATTERNS (P_t)
+-------------------------------------------
+Fields:
+- dominant_pattern
+- pattern_family
+- recurrence_score
+- interference_map
+- pattern_history
+
+-------------------------------------------
+3. ENERGY (E_t)
+-------------------------------------------
+Fields:
+- charge_distribution
+- flow_intensity
+- dissipation_rate
+- resonance_points
+- energy_history
+
+-------------------------------------------
+4. QC (Q_t)
+-------------------------------------------
+Fields:
+- qc_score
+- drift_index
+- stability_band
+- error_surface
+- qc_history
+
+-------------------------------------------
+5. IDENTITY (I_t)
+-------------------------------------------
+Fields:
+- identity_vector
+- coherence_score
+- boundary_map
+- identity_phase
+- identity_history
+
+-------------------------------------------
+6. AGENCY (A_t)
+-------------------------------------------
+Fields:
+- agency_mode
+- activation_level
+- constraint_map
+- posture_vector
+- agency_history
+
+-------------------------------------------
+7. SYSTEM GEOMETRY (S_t)
+-------------------------------------------
+Fields:
+- sphere_state
+- pentagon_alignment
+- axial_balance
+- system_tension
+- geometry_history
+
+-------------------------------------------
+8. TEMPORAL MODEL (M_t)
+-------------------------------------------
+Fields:
+- markov_position
+- temporal_slope
+- volatility_index
+- expected_drift
+- temporal_history
+
+-------------------------------------------
+SERIALIZATION FORMAT
+-------------------------------------------
+
+X_t is stored as a JSON-like block:
+
+{
+  "G": {...},
+  "P": {...},
+  "E": {...},
+  "Q": {...},
+  "I": {...},
+  "A": {...},
+  "S": {...},
+  "M": {...}
+}
+
+-------------------------------------------
+NOTES
+-------------------------------------------
+
+- This schema defines what v3_status prints.
+- This schema defines what v3_init captures.
+- This schema defines what v3_step reads and writes.
+- This schema is the backbone of the v3 evolution engine.

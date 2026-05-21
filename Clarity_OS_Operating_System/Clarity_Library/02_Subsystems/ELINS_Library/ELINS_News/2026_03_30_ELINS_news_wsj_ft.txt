@@ -1,0 +1,1665 @@
+The Wall Street Journal
+
+
+
+
+The 10 Point.
+
+
+
+
+
+
+
+
+✏️ OpenAI’s decision to scrap Sora, its nascent video-generator, reveals the brutal math of the artificial-intelligence era: how to allocate finite computing power. Despite a $1 billion commitment from Disney’s Bob Iger, Sam Altman pulled the plug to conserve AI chips—the industry’s most precious commodity—for a new AI model, code-named Spud. Sora now looks like an expensive strategic miscalculation, one led by key employees at the center of the AI talent war raging across Silicon Valley. The Journal’s Berber Jin and Jessica Toonkel go inside the sudden fall of OpenAI’s most hyped product since ChatGPT.
+
+
+
+
+
+Emma Tucker
+Editor in Chief, The Wall Street Journal
+
+
+
+
+
+TODAY'S HEADLINES
+1
+
+
+
+
+President Trump is weighing a military operation to extract nearly 1,000 pounds of uranium from Iran.
+The U.S. is shooting down cheap Iranian drones with missiles that can cost upward of a million dollars. Follow live coverage of the conflict.
+Ukrainian President Volodymyr ​​Zelensky toured Gulf countries under attack from Iran in search of new, rich allies.
+In India, criminals have taken digital ploys to a new level—and are looking elsewhere for victims. 
+To lure top AI talent, startups are turning to cold hard cash.
+
+
+
+
+LIVE FROM THE MARKETS
+2
+
+
+
+
+LAST	CHG	%CHG
+ DJIA Futures 
+45569.00	145.00	0.32
+ S&P 500 Futures 
+6436.00	23.75	0.37
+ Nasdaq 100 Futures 
+23399.00	70.50	0.30
+Source: Factset, Market data as of 3/30/2026, 5:56:40 AM ET
+
+
+
+
+
+📈 Follow our live financial coverage all day.
+
+Utility stocks haven’t shined since the Iran war broke out, but they can still offer safety in this market, writes Jinjoo Lee.
+
+
+
+
+READ IT HERE FIRST
+3
+
+
+
+
+Private credit’s exposure to the ailing software industry is bigger than advertised.
+
+
+
+
+Many private-credit fund managers are playing down their exposure to software as fears spread about threats from AI. A detailed analysis by the WSJ revealed four large funds marketed to individual investors by Apollo Global Management, Ares Management, Blackstone and Blue Owl Capital have more exposure to the software industry than their filings suggest. Investors’ concerns about the industry’s software exposure helped prompt record withdrawals from private-credit funds in the first quarter. Fund managers contend that AI will affect each software company differently and that some will adapt or even benefit, report Jack Pitcher and Matt Wirz.
+
+
+
+
+
+
+
+
+
+4
+
+
+
+
+Iran’s wealth is parked on London’s Billionaires’ Row.
+
+
+
+
+Several sprawling mansion plots along a residential stretch of North London dubbed Billionaires’ Row make up a chunk of the extensive London property holdings funded by Iranian money that Western officials have linked to the country’s Islamic Revolutionary Guard Corps. Now frozen by British sanctions, the properties have fallen into disrepair, the overgrown lots a blight on an upscale street lined with manicured gardens and iron gates. But they are nonetheless an illustration of how Iran has been able to move money internationally for years despite Western sanctions, reports Jenny Strasburg.
+
+
+
+
+
+Make sense of AI’s impact on business.
+
+Sign up for WSJ AI & Business, a free weekly newsletter packed with news, insights and data from our global team of technology journalists.
+
+
+
+
+
+
+
+
+
+MESSAGE FROM: MARKETWATCH PICKS
+6 Money Pros On Whether a CD Is Right For You
+
+With many CDs still offering 4% APY and up, we asked financial experts when a certificate of deposit is a smart move — and when it isn't.
+
+Read More
+
+
+
+
+
+EXPERT TAKE
+5
+
+
+
+
+Q: What is Artemis II, NASA’s next big mission?
+
+
+
+
+The mission to fly astronauts around the moon would be the deepest humans have traveled in space in decades, reports Micah Maidenberg.
+
+
+
+
+
+A: NASA is set to launch the Artemis II mission on April 1. The 10-day trip from Florida’s Kennedy Space Center will carry NASA astronauts Reid Wiseman, Victor Glover and Christina Koch, alongside Canada’s Jeremy Hansen.
+
+The biggest goal for Artemis II: Safely fly the crew on vehicles that have never carried astronauts before. The towering Space Launch System rocket has the job of lofting a vehicle called Orion into space and on its way to the moon. Orion is designed to carry the crew around the moon and back.
+
+The astronauts will evaluate how the spacecraft flies, practice emergency procedures and capture images of the far side of the moon for scientific and exploration purposes. They may become the first humans to see parts of the far side of the lunar surface.
+
+Assuming it goes well, NASA will march on to Artemis III, scheduled for next year. During that operation, NASA plans to launch Orion with crew members on board and have the ship practice docking with lunar-lander vehicles that Elon Musk’s SpaceX and Jeff Bezos’ Blue Origin have been developing.
+
+
+
+
+
+SEE THE STORY
+6
+
+
+
+
+The cost of your coffee has soared—and isn’t going down soon.
+
+
+
+
+
+
+
+
+
+After commodity coffee prices dipped in recent months, concerns about the Iran war and stepped-up trading in coffee futures markets are driving them up again. A mix of often-hidden factors, from tariffs and crop failures to higher rents and labor costs, is pushing up the cost of doing business for artisanal purveyors. To drill down into why retail coffee prices have risen—and keep going up—WSJ took a deep dive into one roaster’s expenses.
+
+
+
+
+
+HAPPENING TODAY
+7
+
+
+
+
+Federal Reserve Chair Jerome Powell joins a moderated discussion at a Harvard University economics class at 10:30 a.m. ET, where he could field questions on central-bank independence and interest rates.
+The Elite Eight round of the women’s March Madness tournament ends, determining the Final Four.
+📰 Today's paper
+
+
+
+
+THE NUMBER
+8
+
+
+
+
+$7,000
+
+
+
+
+The estimated amount Diony Elias, 45, and his girlfriend spent to see Bad Bunny in Puerto Rico last summer. The price of concert tickets has been increasing for years, a reflection of both rising touring costs and ravenous demand for the top stars. Now music lovers face another potential financial hurdle: As some stars who used to trek from town to town choose to play multiple times in a smaller number of locations instead, many fans also have to drum up additional money for travel and lodging.
+
+
+
+
+
+AND FINALLY...
+9
+
+
+
+
+Working in America has become so joyless. Here’s why.
+
+
+
+
+A malaise is sweeping office life at American companies, which appear to be in a race to find inefficiencies and cut costs. The curtailing of perks, from offsites to travel, is happening against the backdrop of an AI push that employees say seems aimed at squeezing more work out of fewer people. The upshot, many employees say, is that work has been stripped of fun. Middle managers say they’re on the front lines.
+
+
+
+
+
+BEYOND THE NEWSROOM
+10
+
+
+
+
+Opinion: The Democratic Party’s plan to “restore democracy” assumes that the Trump years represent democratic backsliding. The case for this claim is weak.
+WSJ | Buy Side: See our guide to wealth management firms that can help you reach your financial goals.
+
+
+
+
+
+About Us
+The 10-Point is your guide to The Wall Street Journal's reporting and analysis you can't get anywhere else. Your subscription makes our journalism possible. 
+
+Today's newsletter was curated and edited by Morgan Smith and Gary Mitchell in collaboration with Editor in Chief Emma Tucker. Got a tip for us? Here's how to submit.
+
+
+-
+March 30 2026
+Good morning and welcome back to FirstFT. In today’s newsletter:
+
+President Donald Trump considers seizing oil export hub Kharg Island
+
+How Hungary sidesteps Europe’s anti-graft watchdog
+
+ABN Amro’s chief on the Dutch lender’s restructuring
+
+Risks and opportunities in private credit
+
+&zwnj;
+President Donald Trump has told the FT he is considering seizing strategic Kharg Island, saying he wants to “take the oil in Iran”.
+
+What to know: “Maybe we take Kharg Island, maybe we don’t. We have a lot of options,” the US president told the FT. “I don’t think they have any defence. We could take it very easily,” he said, adding that “it would also mean we had to be there [in Kharg Island] for a while”. The US is sending thousands of troops to the Middle East. Read the exclusive story.
+
+The latest: On board Air Force One last night, Trump told reporters he was “pretty sure” of reaching a “deal” with Iran, but warned “it’s possible we won’t” reach an agreement.
+
+The conflict intensified over the weekend with attacks on civilian infrastructure, even as diplomats held talks with little sign of progress in an attempt to de-escalate the conflict. A $270mn US jet critical to air battle management was also damaged.
+
+Asian stocks slid as oil climbed back above $116 a barrel. Read our live blog for more updates.
+
+Read more of our coverage of the conflict:
+
+Consumer goods: Companies had been preparing to cut prices to boost sales, but the war has now left them with difficult decisions.
+
+Trapped seafarers: The near-closure of the Strait of Hormuz has left thousands of ships stuck in the Gulf with limited protection for crew.
+
+Emirates war insurance: The airline is paying an “outrageously” low additional premium of about $100,000 a week while rivals face far higher charges.
+
+UK energy bill relief: The government is exploring a scheme to help households if they are hit with soaring energy costs this winter as it seeks to shield public finances from the war’s fallout.
+
+Here’s what else I’m keeping tabs on today:
+
+Economic data: Germany reports inflation figures, while the UK posts February’s Adzuna jobs report and Zoopla house prices for March. Israel announces its interest rate decision.
+
+Motor finance redress: The UK’s Financial Conduct Authority will unveil its approach to an £11bn compensation scheme, as banks and claims companies prepare legal challenges that could prolong the five-year saga.
+
+Results: Virgin Galactic and Bank of China report earnings.
+
+New York Fed: President John Williams delivers remarks on the economic outlook and monetary policy.
+
+Five more top stories
+1. Exclusive: Hungary recovered and handed over just 18 per cent of funds flagged for potential fraud between 2015 and 2024, according to data from EU anti-corruption watchdog Olaf. The issue has been costly both for the country and Prime Minister Viktor Orbán, who is trailing in the polls ahead of next month’s election.
+
+2. The Trump administration is poised to sink $1.6bn into a lossmaking miner seeking to extract rare earths and make high-tech magnets in the US, even though the company has yet to do either commercially. Read more on a string of similar deals struck over the past year.
+
+3. Exclusive: TotalEnergies dominated the Middle East’s physical oil market in March, taking advantage of the wartime disruption to make a bumper profit. A person close to the French group said its traders had made more than $1bn after buying up every cargo of crude oil produced in the United Arab Emirates and Oman, amounting to more than double its purchases in February.
+
+Ineos project delay: The chemicals group has warned of further disruptions to its Project One plant in Antwerp as the Middle East war risks leaving two crucial components stranded in the Gulf.
+
+4. Britain must agree to regular increases in NHS drug prices and phase out a multibillion-pound rebate scheme if Eli Lilly is to resume investment in the UK, the US pharmaceutical group has said. Read more on the company’s talks with UK ministers.
+
+A $2bn deal: An agreement with a Hong Kong-listed company that uses AI for drug discovery gives Lilly exclusive rights to sell a GLP-1 drug for diabetes.
+
+5. Exclusive: A former Conservative Party treasurer, England rugby players, a reality television personality and a Bangladeshi official accused of corruption are among the group of borrowers that took out loans from Market Financial Solutions before its collapse last month.
+
+The Big Read
+Montage of a handshake, the logos of Blackstone and Apollo, and the New York Stock Exchange building
+
+© FT montage/Getty Images
+
+Targeting individual investors has become part of the rise of private capital. But as strains emerge and investors seek to pull out their money, the $22tn industry rejects comparisons with 2008. Regulators are less convinced. Meanwhile, for some, it could be their greatest money-making opportunity since the financial crisis.
+
+We’re also reading . . . 
+ABN Amro: “You don’t want to be a herbivore in a world of carnivores” — chief executive Marguerite Bérard on job cuts at the Dutch lender, AI and Europe.
+
+‘Rude wake-up call’: How a penny stock investor cashed in on the AI-linked $17bn market panic triggered by a karaoke machine seller-turned-logistics company.
+
+Portfolio management: It’s time to rethink risk factor-based investing and focus on transformational themes such as innovation, writes Ulrike Hoffmann-Burchardi of UBS.
+
+Chart of the day
+Knowledge, in the language of economics, is a “public good” potentially available to everybody. Yet, while the internet has reduced the marginal cost of distributing it to almost zero, producing reliable information remains far from free, writes Martin Wolf.
+
+
+
+Take a break from the news . . . 
+The discovery of an old airstrip in Chad’s far north opens the door for an adventure deep into the Sahara in search of mysterious rock paintings, writes Sophy Roberts.
+
+A person walks across sand dunes in the Tibesti Mountains with rocky cliffs and a clear sky in the background
+
+Crossing sand dunes in Tibesti © Sophy Roberts
+
+Additional contributions from Benjamin Wilhelm
+
+‌
+‌
+Markets at 0530 BST
+Indices
+Hang Seng▼ -0.90% at 24,728
+Nikkei 225▼ -3.30% at 51,611
+S&P 500▼ -1.67% at 6,369
+Eurofirst 300▼ -0.88% at 2,296
+Nasdaq 100▼ -1.93% at 23,133
+FTSE 100▼ -0.05% at 9,967
+Currencies
+€ / $▲ +0.07% at 1.1515
+$ / ¥▼ -0.31% at 159.7500
+£ / $▲ +0.11% at 1.3270
+€ / £▼ -0.02% at 0.8675
+Commodities
+Brent Crude▲ +2.29% at 115.15
+WTI Crude Oil▲ +1.74% at 101.37
+Comex Gold▼ -0.14% at 4,486.00
+Copper▲ +0.16% at 5.48
+Natural Gas▼ -2.45% at 2.95
+10-year bond yields
+US▼ -0.04 at 4.400
+UK▲ 0.02 at 4.992
+Japan▼ -0.007 at 2.364
+Bund▲ 0.011 at 3.109
+For the latest prices go to FT.com
+
+‌
+‌
+Recommended newsletters for you
+One Must-Read	
+One Must-Read
+Remarkable journalism you won’t want to miss.
+Sign up here
+The Week Ahead	
+The Week Ahead
+Start every week with a preview of what’s on the agenda.
+Sign up here
+How satisfied are you with The FirstFT Europe/Africa Newsletter?
+‌
+‌
+Are you enjoying this newsletter? Please let us know how we can improve. Complete our short survey and you could win £50 of book vouchers.*
+
+Very Dissatisfied
+Dissatisfied
+Neither
+Satisfied
+Very satisfied
+Very
+dissatisfied	 	 	 	Very
+satisfied
+Your personal data will only be used for improving our newsletter programme and for the facilitation of the prize draw. For more information on your rights and how we use your data, please read our Privacy Policy.
+* Terms and Conditions apply.
+
+‌
+Unsubscribe ‌ ‌ Terms & Conditions ‌ ‌ Privacy Policy ‌ ‌ Cookie Policy ‌ ‌ Newsletter Help
+‌
+© THE FINANCIAL TIMES LTD 2026. All rights reserved.
+
+You have received this email because you have signed up from the Emails & Alerts page or by using a one-click sign-up link from either an FT email or via FT.com. This email was sent by a company owned by Financial Times Group Limited (FT Group), registered office at Bracken House, 1 Friday Street, London EC4M 9BT. Registered in England and Wales with company number 879531.
+
+-
+The Wall Street Journal
+
+
+
+
+The 10 Point.
+
+
+
+
+Sponsored By  
+
+
+
+
+
+
+
+
+
+✏️ She was Venezuela’s first lady—and an alleged crime lord in her own right. Cilia Flores, who has declared her innocence, stands accused of conspiring with officials to smuggle hundreds of tons of cocaine into the U.S. During her husband Nicolás Maduro’s 13-year grip on power, she cultivated a family criminal enterprise known in Venezuela as “El Jardín de Flores,” or the Garden of Flowers—a play on her surname. While Maduro oversaw the country’s economic collapse, Flores’s network flourished, with her family’s patronage system woven through Venezuela’s criminal economy.
+
+
+
+
+
+Emma Tucker
+Editor in Chief, The Wall Street Journal
+
+
+
+
+
+TODAY'S HEADLINES
+1
+
+
+
+
+America’s 31st Marine Expeditionary Unit arrived in the Middle East, giving President Trump more options, while Iran suffered one of the war's worst days for civilian deaths. Follow our live coverage of the war.
+Pakistan, once isolated by Washington for harboring Osama bin Laden, is assuming a surprisingly prominent position in the effort to push the U.S. and Iran toward talks.
+Investigators searched the office of a FEMA contractor as they investigate a network of aides former DHS Secretary Kristi Noem and adviser Corey Lewandowski seeded throughout the department during their turbulent tenure.
+Trump’s relationship with the Supreme Court risks getting even worse as the justices prepare to consider the president’s push to end birthright citizenship. 
+
+
+
+
+FROM THE MARKETS
+2
+
+
+
+
+The worst rout in Treasurys since April’s tariff chaos is a stark demonstration of how war’s disruptions to oil flows are leaving investors with few places to shelter. 
+Stocks haven’t fallen as much as you might expect given the Iran war, and there are several good reasons for that, writes James Mackintosh.
+Officially, Federal Reserve policymakers are still projecting interest-rate cuts later this year, but the most probable path may be no move at all. 
+
+
+
+
+READ IT HERE FIRST
+3
+
+
+
+
+The Venezuelan first lady’s other job: tending a family crime dynasty.
+
+
+
+
+When DEA agents flew Nicolás Maduro to New York to face narcoterrorism charges, beside him was his wife, Cilia Flores. Pursued for years by the Drug Enforcement Administration, Flores was an alleged crime lord in her own right. A federal indictment unsealed the day U.S. commandos pulled Flores and Maduro from Caracas accused her of conspiring with Venezuelan officials to smuggle cocaine into the U.S., accepting bribes to allow drug-trafficking flights and ordering murders over unpaid debts. According to court records and former associates, she rewarded a web of relatives with drug routes, state contracts and impunity, report Angus Berwick and Juan Forero. In a January appearance in federal court, Flores pleaded not guilty and said she was “completely innocent.”
+
+
+
+
+
+
+
+
+
+4
+
+
+
+
+Is another financial crisis lurking in private credit?
+
+
+
+
+For some, news that certain private-credit funds have capped withdrawals recalls the summer of 2007, when a European bank limited withdrawals from funds stuffed with securities linked to subprime mortgages. The global financial crisis had begun. Like subprime, private credit in just a few decades went from niche to major asset class. And like subprime, private credit is opaque, mostly unregulated and connected to other parts of the financial system. So do private credit’s troubles herald a systemic shock similar to what we saw two decades ago? Probably not, writes Grep Ip—with the caveat that crises are inherently unpredictable.
+
+
+
+
+
+Make sense of AI’s impact on business.
+
+Sign up for WSJ AI & Business, a free weekly newsletter packed with news, insights and data from our global team of technology journalists.
+
+
+
+
+
+
+
+
+
+CONTENT FROM: EY-PARTHENON
+Latest M&A Insights: The EY-Parthenon Merger Monthly Report
+
+Looking for timely insights into the M&A market? The EY-Parthenon Merger Monthly report provides regular updates on dealmaking activity to help inform your M&A strategy.
+
+Subscribe now
+
+
+
+
+
+EXPERT TAKE
+5
+
+
+
+
+Q: Apple says it’s fixing the iPhone’s autocorrect feature. Do the new updates work?
+
+
+
+
+Users have complained about autocorrect for years. Personal tech columnist Nicole Nguyen wrote about what iOS 26.4 does to improve your typing—and offers tips to help you reclaim your keyboard.
+
+
+
+
+
+A: I was worried my fine motor skills were failing. Over the past few years, my texts have become rife with mangled words and strange punctuation. When did I become such a terrible iPhone typist?
+
+Apparently, I wasn’t the only one. I’ve heard from countless readers, especially within the past year, complaining about typos. Lots and lots of typos.
+
+Then, in Apple’s latest software iOS 26.4, an update made me think the errors weren’t totally our fault: “Improved keyboard accuracy when typing quickly.”
+
+Finally! After years of glaring typing issues, Apple is acknowledging there was a problem. But does iOS 26.4 really offer a fix?
+
+I put the new update to the test, and I have good and bad news: The improvement is real, but it only fixes some of our autocorrect woes. The iPhone running 26.4 produced fewer errors, but only marginally. The new update still produced some single-word mess-ups, while the older software had more gibberish phrases. Both devices got most words right.
+
+
+
+
+
+HEAR THE STORY
+6
+
+
+
+
+Hear the voices of five people whose lives were caught up in the Middle East conflict.
+
+
+
+
+
+ILLUSTRATION: CAMILLE BRESSANGE
+
+
+
+
+
+The war in the Middle East has spread to more than a dozen countries, upending lives and sending the global economy into a tailspin. These are the voices of civilians whose lives are directly entwined in the conflict, including a pregnant 39-year-old woman in Tehran who lies awake at night amid the sound of explosions from Israeli bombardment and a 64-year-old woman in Beit Shemesh, Israel, who survived an Iranian missile strike that destroyed her house.
+
+
+
+
+
+HAPPENING THIS WEEK
+7
+
+
+
+
+Monday: Pakistan hosts talks aimed at finding ways to end the war. The Elite Eight round of the women’s March Madness tournament ends, determining the Final Four.
+Tuesday: The Conference Board’s consumer confidence survey for March will offer signs of how rising energy prices are impacting consumer sentiment. In men's soccer, playoffs will determine the last six teams to qualify for this year's World Cup.
+Wednesday: The Supreme Court will hear oral arguments on Trump's executive order seeking to end birthright citizenship.
+Friday: Jobs data for March will provide a snapshot of the health of the labor market just as energy prices rise sharply due to war in the Middle East. Stock markets will be closed for Good Friday.
+
+
+
+
+THE NUMBER
+8
+
+
+
+
+21%
+
+
+
+
+How much average tax refunds have increased from 2025 in California so far this tax season, according to an analysis by Navy Federal Credit Union of member deposits, compared with an average of 11% nationally among the credit union’s members. After last year’s tax law raised the cap for the deduction of state and local taxes to $40,000 from $10,000, refunds have been growing faster than the national average for people in some higher-tax states, such as California, New York, Virginia and Maryland. 
+
+
+
+
+
+AND FINALLY...
+9
+
+
+
+
+People are snapping up Japanese houses that locals won’t touch.
+
+
+
+
+A growing number of foreigners are buying up the country’s akiya, translated as empty or vacant homes. There are over nine million of these properties, which remain unpopular among locals. Some towns have even tried giving them away. But to foreigners undaunted by a fixer-upper, buying an akiya is a chance to own something permanent in Japan. Against the weak yen, many of them can be relatively affordable.
+
+
+
+
+
+BEYOND THE NEWSROOM
+10
+
+
+
+
+WSJ | Buy Side: Progressive, Travelers and Geico are among the top car insurance companies in our extensive analysis.
+
+
+
+
+About Us
+The 10-Point is your guide to The Wall Street Journal's reporting and analysis you can't get anywhere else. Your subscription makes our journalism possible. 
+
+Today's newsletter was curated and edited by Conor Grant and Cristina Roca in collaboration with Editor in Chief Emma Tucker. Got a tip for us? Here's how to submit.
+
+
+
+
+
+
+
+
+
+
+
+Unsubscribe
+Newsletters & Alerts
+Contact Us
+Privacy Notice
+Cookie Notice
+
+
+
+
+Dow Jones & Company, Inc. 4300 U.S. Ro‌ute 1 No‌rth Monm‌outh Junc‌tion, N‌J 088‌52 
+You are currently subscribed as christian.piatt@outlook.com. For further assistance, please contact Customer Service at support@wsj.com or 1-800-JOURNAL.
+
+
+
+
+Copyright 2026 Dow Jones & Company, Inc.   |   All Rights Reserved.
+-
+
+
+	Please use the sharing tools found via the share button at the top or side of articles. Copying articles to share with others is a breach of FT.com T&Cs and Copyright Policy. Email licensing@ft.com to buy additional rights. Subscribers may share up to 10 or 20 articles per month using the gift article service. More information can be found at https://help.ft.com/faq/gifting-and-sharing-an-article/what-is-a-gift-article/.
+	https://www.ft.com/content/ea38510c-4d7c-4192-a44b-a3ccd0e68d98?%20Canada=&mi_cmp=9dbbf439ee2e2a8a~13785976~~~~~04_15_2025_15_12_30_49000~&mi_ecmp=b2c%7Cq122%7Ctrialonboarding&mi_ign=2026-03-28&mi_sc=t&mi_u=aaa93972-ed79-4efb-a51e-f7054132d513&uuid=&xnpe_tifc=xFxdbf4sOFnJ4kn8xFnZhypJVdUZMds_OueLbI_DOIVZtfU_4D_A4kUubNJL4IestfbjxFolxIxZhFopxjpNxFU.hFxl4FYp4.V74IPs&syn-25a6b1a6=1
+
+	 customise your FT trial experience? Book a personalised call with our subscriber engagement team at a time that suits you. Discover content and features to tailor your subscription to your interests. 
+FT Swamp Notes  European UnionAdd to myFT
+Can Europe make a difference?
+The backlash against Big Tech in America might be an opportunity for the EU
+
+© OLIVIER HOSLET/EPA/Shutterstock
+Can Europe make a difference? on x (opens in a new window)
+Can Europe make a difference? on facebook (opens in a new window)
+Can Europe make a difference? on linkedin (opens in a new window)
+
+Share
+
+Save
+current progress 94%
+Rana Foroohar
+
+Published35 MINUTES AGO
+
+0
+Print this page
+This article is an on-site version of our Swamp Notes newsletter. Premium subscribers can sign up here to get the newsletter delivered every Monday and Friday. Standard subscribers can upgrade to Premium here, or explore all FT newsletters
+
+I was in Italy last week to attend the Aspen Europe security conference, but also to escape the sense of dread I’ve felt since the Iran war began. As Ruchir Sharma recently wrote in the pages of the FT, America’s fundamental economic strengths keep allowing Donald Trump to wreak havoc around the world without totally tanking the US economy (at least not yet). Yes, there’s a good chance the Democrats will sweep not only the House but Senate in the midterms, and then we’ll see what they have to offer up as policy (more on that in a future Note). But in the meantime, I fear that makes Trump even more dangerous.
+
+He and those around him may well be the subject of investigations should Democrats take Congress, and some people in and around the administration could be facing jail time. Like all strongmen, Trump will do whatever he can to prevent that (including, I suspect, trying to derail elections in some way, or perhaps use a reconciliation bill to pay out fiscal stimulus to voters in cheques that he personally signs in advance of voting day). He may also continue to stir up trouble abroad in various ways to further confuse and distract the electorate.
+
+Assuming things don’t get better in the US in the short term, one must ask if they will get better in Europe. Meaning, will Europe recommit to itself to deeper integration? As I’ve written before, I think that if there were a true fiscal union and cross-border risk and burden-sharing between member states, we’d see capital flow into the EU because investors are looking for a dollar hedge. Yes, gold has gone down during the Iran war, but that’s more about the dollar-oil peg and the fact that investors had to sell gold to cover some of the leveraged losses that came from plunging US stocks.
+
+Of course, it’s always easier to see the upside for Europe when you are writing from the US. Various colleagues believe that things have to get a lot worse in Europe before things get better. As my colleague Martin Sandbu noted, last week’s “EU Inc” effort to try and streamline business regulation across the bloc was a poor substitute for real legal and capital integration. It almost makes one wish (almost, not quite) that Trump had invaded Greenland, because a sovereign threat may be what it takes to push European nations to recommit to their own common future.
+
+One might argue that even if that happened, Europe is at a huge disadvantage technologically relative to China and the US. Yes, true enough, there isn’t a European equivalent of the Magnificent Seven or China’s own digital giants. Nor do Europeans want the sort of surveillance state that both China and America seem to be settling for. Yet that might be something of a competitive advantage given that we are starting to see a significant political backlash around Big Tech in the US. Witness last week’s ruling that Meta and Google actually are endangering child mental health with social media, or the pushback in industry and among the general public about the way in which AI data centres are sucking up electricity and raising prices. If Europe could figure out a way to move into the digital future with a stack and a regulatory regime that is more compatible with democratic values, perhaps it could carve out more of a place for itself in the digital world — particularly as AI moves into industry, where European companies are still often world-beaters.
+
+I’m sure some Swamp readers will regard this analysis as Panglossian. But I am looking for bright spots in a dark world, and I think Europe is still one of them. To help me parse these ideas and lay out what can happen — and what is happening — to increase competitiveness on the continent, I’m joined in the Swamp this week by Max von Thun, who runs the Brussels branch of the Open Markets Institute, a non-profit think-tank which is dedicated to combating concentrated power and supporting democratic values.
+
+Max, tell me where Europe is making progress, and where it could still make some. Is there any way that Europe could lead a coalition of “middle powers” of the sort that Mark Carney discussed in his now famous Davos speech? Those powers would represent 40 per cent of global GDP relative to 20 per cent for the US and 20 per cent for China. Help us understand what needs to happen for Europe to get off the sidelines and take a real leadership position in the global economy again.
+
+Recommended reading
+Daniel Immerwahr made a smart point in this New Yorker piece about Trump’s war on Iran, and how it exposes America’s rejection of imperialism (which I found both persuasive and counter-intuitive).
+
+This rather spooky Bloomberg story looks at what we are still learning about long Covid.
+
+And the Free Press reports on how some people on Ozempic — which inhibits desire not only of food but of much else — are reporting disturbing side effects.
+
+I loved this New Yorker profile of the Swedish pop star Robyn, who makes me believe that the modern music business still has room for originals.
+
+In the FT, my colleague Gillian Tett outlines how Iran has (once again) shown the value of “hard” industries. Fellow Swampian Ed Luce interviews death row lawyer Bryan Stevenson in a Deep South soul food spot. And I’ll certainly be trying all the Brooklyn pastries in this FT Globetrotter list.
+
+Max von Thun replies
+Rana, I share your view that Europe has a real opportunity to take advantage of Trump’s political and economic vandalism. The question is whether it is willing to do the hard work necessary to seize the moment.
+
+The good news is that Europe’s political class is beginning to understand both what is at stake and the need to move fast. At a high-level summit last month, Europe’s leaders announced a plan to strengthen Europe’s economic competitiveness and strategic autonomy, under the catchily titled (by EU-lingo standards) “One Europe, One Market” strategy. 
+
+Creating a truly European market is less about one big bang and more about countless smaller reforms across sectors and member states that cumulatively amount to something substantial. There is genuine progress under way, including plans for a common European “digital wallet”, harmonised rules on start-up creation, and a package of measures unifying Europe’s fragmented capital markets (which currently prevent those start-ups from raising the funds they need to scale). And as you point out, the EU also needs much more fiscal integration if it is to act as a coherent economic actor both internally and on the global stage. 
+
+To foster a dynamic market that generates and circulates wealth locally, Europe also needs to tackle its profound foreign dependencies — whether on US Big Tech or Chinese clean energy equipment. Here as well there’s progress in fixing the problem, including new EU laws like the Digital Markets Act and Foreign Subsidies Regulation, which target Big Tech dominance and state-funded mercantilism respectively. This is coupled with a renewed drive to scale European alternatives, including by allowing public authorities to favour local players in procurement contracts. 
+
+While there’s lots to be encouraged about, Europe continues to be its own worst enemy in many ways. The Greenland debacle has destroyed any remaining illusions about the Trump administration’s reliability, yet Europe is still too scared about provoking its ire, particularly when it comes to reining in US tech. This is inextricably linked to justified fears of US security withdrawal from Europe and Nato, yet the latest efforts to secure Europe’s military autonomy are still not ambitious enough. 
+
+I’m also worried that Europe’s focus on promoting economic competitiveness is being pursued in ways that risk having the opposite effect. The EU is currently in the process of watering down many of its landmark environmental, social and digital protections, all in the name of competitiveness. As you point out, in a world of rising authoritarianism, political instability and corporate predation, Europe will attract talent and investment by offering a rules-based and democratic alternative, not peddling a diet version of Doge. Instead of recreating an inferior replica of the deeply flawed US model, Europe should have the courage to do something fundamentally different. 
+
+Finally, you asked whether Europe could lead the kind of “middle power” coalition proposed by Mark Carney. The answer, in my view, is yes — the EU is itself a union of such powers and is thus well placed to bring them together internationally. Whether it will actually do so is another question. While the bloc has done well recently to strike major trade deals with India and Mercosur, Europe’s political leaders aren’t currently providing the moral and political leadership needed to rally countries around an alternative vision for the global economy. 
+
+Having said that, I’m still optimistic that Europe can prove its critics wrong and be more than a museum and regulator of others’ innovation. If it plays its cards right, Europe could lead the way for social democracy and global co-operation in the 21st century.  
+
+-
+
+	Please use the sharing tools found via the share button at the top or side of articles. Copying articles to share with others is a breach of FT.com T&Cs and Copyright Policy. Email licensing@ft.com to buy additional rights. Subscribers may share up to 10 or 20 articles per month using the gift article service. More information can be found at https://help.ft.com/faq/gifting-and-sharing-an-article/what-is-a-gift-article/.
+	https://www.ft.com/content/35923259-841c-40aa-b182-68b73dd4c89d?%20Canada=&mi_cmp=9dbbf439ee2e2a8a~13786060~~~~~04_15_2025_15_12_30_49000~&mi_ecmp=b2c%7Cq122%7Ctrialonboarding&mi_ign=2026-03-28&mi_sc=t&mi_u=aaa93972-ed79-4efb-a51e-f7054132d513&uuid=&xnpe_tifc=xFxdbf4sOFnJ4kn8xFnZhypJVdUZMds_OueLbI_DOIVZtfU_4D_A4kUubNJL4IestfbjxFolxIxZhFopxjpNxFU.hFxl4FYp4.V74IPs&syn-25a6b1a6=1
+
+	Want to customise your FT trial experience? Book a personalised call with our subscriber engagement team at a time that suits you. Discover content and features to tailor your subscription to your interests. 
+Opinion US employment
+America’s gig economy
+Self-employment, at both the high and the low end, is keeping consumption afloat — but for how long?
+
+RANA FOROOHARAdd to myFT
+
+© Matt Kenyon
+America’s gig economy on x (opens in a new window)
+America’s gig economy on facebook (opens in a new window)
+America’s gig economy on linkedin (opens in a new window)
+
+Share
+
+Save
+current progress 100%
+Rana Foroohar
+
+Published10 HOURS AGO
+
+77
+Print this page
+Do Americans start businesses and otherwise strike out on our own — as consultants, day-traders or workers for hire — in higher numbers than in many other countries because we are brave enough to risk it all for more freedom? Or is it because we live in a country where gig work is slowly taking over the labour market?
+
+It’s a question that’s particularly relevant to the strange signals coming from recent employment numbers. While payroll growth, which reflects formal employment, has been weak for the past few months, unemployment claims have been flat. That’s different than in 2023, when payroll growth was also decelerating, but unemployment claims were up.
+
+Meanwhile, the number of new business applications, which has turned up sharply since the pandemic, recently reached an all-time high. These statistics reflect not only the creation of traditional standalone businesses — whether that means a new software company or a hair salon — but also high-end self-employment. Consultants, marketing professionals, writers and other sorts of white-collar workers might file such an application.
+
+What does it all mean? One interpretation: the American labour market is slowly but surely turning towards more freelance and contract work, at both the upper and lower ends of the socio-economic spectrum. While that implies flexibility and entrepreneurialism, it also may mean an economy in which labour markets — and growth — will be more volatile and precarious than in the past.
+
+We know that lower-end gig work has been booming for years now (a Federal Reserve report looking at 2024 data found 22 per cent of US adults engaged in gig activities like driving, delivery and odd jobs). But the number of wealthy freelancers is surging as well. One 2025 survey found 5.6mn Americans were earning a six-figure living with gig work.
+
+Technology has been the big enabler of it. As TS Lombard managing director Steve Blitz pointed out in a recent note to clients, there is an interesting chiming between the sectors where new businesses are being created — such as retail, professional, scientific and technical services — and those areas where companies are laying white-collar workers off.
+
+As he writes, “social media lowers the barrier for selling, making the rise in retailing easy to explain. Professional services, essentially a shift from employee to consultant, also has a low barrier to entry with virtual meetings, etc.” While gig work such as driving an Uber doesn’t require you to make a business application, higher-end professional work does — which would seem to be what’s driving those flat unemployment claims, even amid a tough labour market.
+
+As Blitz put it to me, “the gig economy isn’t just about ride sharing — you might be a TikTok influencer, or an author or a consultant”. Whatever the case, he notes, if you are making more in the freelance economy than you would be in unemployment insurance (which is pretty easy in the US) then your changed circumstances aren’t showing up in the labour market data very clearly.
+
+A larger K-shaped gig economy — along with asset growth among the rich — goes a long way towards explaining why consumer spending is a lot more robust than many analysts expected it to be at this point in the economic cycle, given dismal payrolls and the economic turmoil caused by President Donald Trump. And yet it also explains the sense of fear and anxiety that many workers feel. In a country with almost no social safety net, freelance labourers must cover all their own pension and healthcare costs and have no paid time off or other corporate extras.
+
+This sense of pessimism is especially prevalent among younger, college-educated workers who aren’t seeing the economic upside of their costly college degrees (only 28 per cent say it’s a good time to find a job, according to new Gallup data).  
+
+In his upcoming book Mutiny: The Rise and Revolt of the College-Educated Working Class, Noam Scheiber looks at how four-year college graduates who would once have stepped into decently paid jobs in their field of interest are still — six years after Covid — settling for contract retail jobs and part-time restaurant gigs. The unemployment rate for new college graduates remains stubbornly high.
+
+This gets to another big takeaway from the rise of contract work: the political rise of young, college-educated populists. The people that elected New York mayor Zohran Mamdani to office were young, middle-class, college-educated workers for whom the American dream — if you define it as the ability to have a home, children and retirement — is now out of reach. This is particularly true for college-educated people of colour. For non-white people born in the 1980s, the lifetime value of a college degree is “statistically indistinguishable from zero”, according to St Louis Fed research.
+
+This brings me to a final thought about labour markets. Consumption is roughly 70 per cent of the US economy. Sustaining that requires not only income, but also security. Employment is now more precarious at both ends of the K-shaped economy. Artificial intelligence will exacerbate the trend. Policymakers and market participants might consider how quickly growth could shift if the precariat decides to stop spending.
+
+rana.foroohar@ft.com
+
+-
+The Wall Street Journal
+
+
+
+
+
+
+The 10 Point.
+
+
+
+
+
+
+Sponsored By  
+
+
+
+
+
+
+
+
+
+
+
+
+
+✏️ How long will the Iran war last? Yesterday we got mixed signals. As the Pentagon weighed sending thousands more troops to the Middle East and Israel began to ration its best high-end missile interceptors, President Trump continued posting on social-media about potential off-ramps. Wall Street, meanwhile, was trading like the worst pain from the war is yet to come.
+
+
+
+
+
+
+
+Emma Tucker
+Editor in Chief, The Wall Street Journal
+
+
+
+
+
+
+
+TODAY'S HEADLINES
+1
+
+
+
+
+
+
+Yemen’s Houthis launched a missile at Israel, their first attack in the fast-expanding war. Twelve U.S. troops were wounded in an Iranian strike on a base in Saudi Arabia. Follow our live coverage here.
+Israel is rationing its best missile interceptors as the war drags on—and Iran’s ballistic missiles are getting through.
+With Trump considering sending sending another 10,000 ground troops to the Middle East, this is what the influx of forces could do.
+Trump signed an executive order to pay TSA workers, bypassing a gridlocked Congress after the latest proposal to fund the broader DHS failed.
+ICE plans to spend $38.3 billion on a new detention model that includes acquiring warehouses and converting them into detention centers.
+Mark Lanier, the veteran plaintiff’s lawyer from Texas who beat Meta and Google in a recent social-media addiction case, moonlights as a preacher—and it shows.
+
+
+
+
+
+
+FROM THE MARKETS
+2
+
+
+
+
+
+
+All three major stock indexes fell for a fourth-straight week, notching their worst percentage declines since April’s tariff turmoil.
+The market dive points to Wall Street’s growing alarm over the Iran war, which comes despite reassurances from Trump.
+📊 Charts: See how Trump’s tariffs are choking trade between the U.S. and China.
+
+
+
+
+
+
+READ IT HERE FIRST
+3
+
+
+
+
+
+
+A decadelong feud is reshaping the future of AI.
+
+
+
+
+
+
+Anthropic CEO Dario Amodei has built the company’s public brand around the idea that its approach to AI is fundamentally safer than that of its rivals, particularly OpenAI, which he left in late 2020 over concerns about safety. But the reasons for Amodei’s departure also include personal wounds that have never healed, including those from his long-running rivalry with OpenAI chief Sam Altman. Now, as both companies hurtle toward an IPO, the philosophical and personal differences between their leaders have metastasized—and they are defining how the world encounters the technology, reports Keach Hagey.
+
+
+
+
+
+
+
+
+
+
+
+
+
+4
+
+
+
+
+
+
+What this year’s CPAC tells us about the Republican divide on Iran.
+
+
+
+
+
+
+Trump’s decision to go to war loomed over the annual Conservative Political Action Conference. The confab has often served as a sort of MAGA pep rally, with near universal support for Trump and his agenda. But this year the conference laid bare the rift among Trump’s MAGA base over the Middle East conflict, reports Sabrina Rodriguez. “What happened to America First? Why aren’t we paying attention to what’s going on here?” said 22-year-old attendee Maxwell Eckhardt. Still, many prominent speakers showered Trump with praise. And even when they expressed skepticism on Iran, many called for unity against Democrats in the midterms.
+
+
+
+
+
+
+
+☀️ Improve your day with WSJ’s Healthy Habits challenge.
+
+In this four-week email course, WSJ’s personal health and wellness team will help you implement simple science-based strategies to make each part of your day a little better. Sign up here.
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONTENT FROM: EY-PARTHENON
+Pathways to New Value and Growth During Uncertainty
+
+How do leaders balance cost discipline while still investing in growth, AI and transformation? Register to join this EY-Parthenon webcast, Pathways to new value and growth during uncertainty, on April 8, 2026, to learn how top executives are using strategic reinvention to navigate disruption.
+
+Register now
+
+
+
+
+
+
+
+EXPERT TAKE
+5
+
+
+
+
+
+
+Q: When will airport security lines go back to normal?
+
+
+
+
+
+
+Trump’s executive order means Transportation Security Administration workers can be paid again. But it will be days—or longer—before U.S. air travel fully recovers, writes reporter Joseph Pisani.
+
+
+
+
+
+
+
+A: Some TSA agents could start getting paid as early as Monday, according to the Department of Homeland Security. However, tens of thousands of agents just missed their second paycheck in a row.
+
+Security lines improving depends on whether TSA agents who have been calling out start showing up to work again before their back pay arrives.
+
+What’s more, airports are also absorbing a crush of travelers during this spring break season. Travel demand was projected to be 4% higher than last year, with an average of 2.8 million passengers a day expected to fly between March 1 and April 30, according to a forecast from Airlines for America, the trade association for big airlines.
+
+Travelers should check social-media accounts of airports for wait times, but expect longer lines during the morning, when people are trying to get on early flights. Several airports say their busiest times are before 7 a.m. Lines can start getting longer again between 4 p.m. and 8 p.m., when business travelers head to the airport after work.
+
+
+
+
+
+
+
+SEE THE STORY
+6
+
+
+
+
+
+
+Will this “miracle” battery finally change your mind about EVs?
+
+
+
+
+
+
+
+PHOTO ILLUSTRATION: PETER CROWTHER
+
+
+
+
+
+
+
+Donut Lab, a Finnish startup, claims to have created the first production-ready solid-state battery for the EV industry. It’s fair to say the entire car-making world is deeply skeptical: How did an obscure startup beat Toyota, Stellantis and the entire nation of China to the holy grail of energy storage? But whether Donut’s hype is to be believed or not, solid-state technology is coming—and it’s a potential disrupter for the entire EV business, writes Dan Neil. 
+
+
+
+
+
+
+
+HAPPENING THIS WEEKEND
+7
+
+
+
+
+
+
+Saturday: Demonstrators are expected to protest against Trump at “No Kings” rallies across the U.S.
+Sunday: The Elite Eight round of the men’s March Madness tournament concludes, determining the Final Four. In the women’s tournament, the Elite Eight round begins.
+📰 Today's paper
+
+
+
+
+
+
+THE NUMBER
+8
+
+
+
+
+
+
+No. 20
+
+
+
+
+
+
+The spot on Billboard’s Hot R&B Songs chart that the AI-generated song “How Was I Supposed to Know?” by AI avatar Xania Monet reached last year. The song was made using Suno, an AI music-generator platform. The popularity of the platform has catapulted Suno’s 39-year-old CEO, Mikey Shulman, into the music industry’s elite—and made him enemy number one in some circles. 
+
+
+
+
+
+
+
+AND FINALLY...
+9
+
+
+
+
+
+
+Here’s a last-minute traveler’s guide to this summer’s biggest events.
+
+
+
+
+
+
+Did you jump on presale tickets to the World Cup quarterfinals months ago? Are you catching the August eclipse from an expedition cruise in the Arctic? We’re happy for you. Fortunately, there’s still fun to be had for procrastinators. Here’s what you’ve already missed, what’s still on the table—and some curveball alternatives.
+
+
+
+
+
+
+
+BEYOND THE NEWSROOM
+10
+
+
+
+
+
+
+Opinion: Even after the pandemic, high-tax states continue to lose tens of billions of dollars in taxable income to low-tax states.
+WSJ | Buy Side: Don’t miss these Amazon deals to keep your phone, tablet or laptop going all day and beyond.
+
+
+
+
+
+
+
+About Us
+The 10-Point is your guide to The Wall Street Journal's reporting and analysis you can't get anywhere else. Your subscription makes our journalism possible. 
+
+Today's newsletter was curated and edited by Conor Grant and Will Horner in collaboration with Editor in Chief Emma Tucker. Got a tip for us? Here's how to submit.
+-
+The Wall Street Journal
+
+
+
+
+
+
+
+
+The 10 Point.
+
+
+
+
+
+
+
+
+Sponsored By  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+✏️ Elon Musk is cooking up a memorable stock-market debut for SpaceX, and not just because it’s expected to be the biggest one ever. The billionaire is writing his own playbook—from investor visits to how shares are allocated—for the blockbuster initial public offering, which is being timed for mid-June before his 55th birthday. SpaceX is expected to file confidentially with regulators for its IPO in the coming days, report the Journal’s Corrie Driebusch and Alexander Saeedy. Musk and his team are betting on massive orders for the IPO, which is expected to raise between $40 billion and $80 billion.
+
+
+
+
+
+
+
+
+
+Emma Tucker
+Editor in Chief, The Wall Street Journal
+
+
+
+
+
+
+
+
+
+TODAY'S HEADLINES
+1
+
+
+
+
+
+
+
+
+The Pentagon is considering sending up to 10,000 additional ground troops to the Middle East even as President Trump weighs peace talks with Iran. Follow our live coverage here.
+The U.S. and Israel have pounded—but not eliminated—Iran’s missile threat.
+Senators passed funding for most of Homeland Security, moving to end the TSA staffing shortage. They excluded funding for immigration enforcement.
+A federal judge halted the Trump administration’s designation of Anthropic as a supply-chain risk.
+Steve Cahillane, the CEO of Kraft Heinz who has twice broken up companies, now takes on the surprise challenge of keeping one together.
+
+
+
+
+
+
+
+
+LIVE FROM THE MARKETS
+2
+
+
+
+
+
+
+
+
+LAST	CHG	%CHG
+ DJIA Futures 
+46150.00	-80.00	0.17
+ S&P 500 Futures 
+6518.00	-7.00	0.11
+ Nasdaq 100 Futures 
+23750.75	-43.50	0.18
+Source: Factset, Market data as of 3/27/2026, 6:00:18 AM ET
+
+
+
+
+
+
+
+
+
+📈 Follow our live financial coverage all day.
+
+📊 In charts: See how the Iran war compares with past market shocks.
+The private-credit industry is facing a dual dilemma as surging withdrawals collide with a fundraising slowdown.
+Investors were right to be wary of Blue Owl’s $1.4 billion deal, writes Jonathan Weil. Here’s why.
+
+
+
+
+
+
+
+
+READ IT HERE FIRST
+3
+
+
+
+
+
+
+
+
+An AI upheaval is coming for the media. This journalist is already all in.
+
+
+
+
+
+
+
+
+Nick Lichtenberg produced more stories in six months than any of his colleagues at Fortune delivered in a year. One Wednesday in February, he cranked out seven. His work involves what some view as the third rail of journalism: artificial intelligence playing a leading role not just in researching, but in writing stories. AI-assisted stories accounted for nearly 20% of Fortune’s web traffic in the second half of 2025. Most were written by Lichtenberg. The 42-year-old, who has penned more than 600 stories since rejoining Fortune in July, may be a bellwether for where much of the media business is headed, reports Isabella Simonetti.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4
+
+
+
+
+
+
+
+
+Meet the European leader who says no to Trump.
+
+
+
+
+
+
+
+
+For the past year, most of Europe has walked on eggshells with Trump. Spanish Prime Minister Pedro Sánchez has been trialing an alternative tactic: the “Just Say No” theory of Trump diplomacy. He is betting the Western alliance will be healthier if America’s allies candidly air their disagreements with the president, rather than tiptoe around him. Spain, rarely the center of gravity in European affairs, has become the standard-bearer for Europeans frustrated at the continent’s fear of standing up to a U.S. president. Trump’s threats on Greenland and the unpopularity of the Iran war with voters have brought more Europeans around to his position, report Drew Hinshaw, Marcus Walker and Gordon Fairclough.
+
+🎥 Video: In an interview, Sánchez said that alignment with the U.S. over Iran is a "mistake," arguing for a more autonomous Europe.
+
+
+
+
+
+
+
+
+Enjoy the best of the Journal’s feature writing.
+
+Get a weekly look at our most colorful, thought-provoking and original features on the business of life. Sign up for the WSJ Weekend Reads newsletter.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONTENT FROM: EY-PARTHENON
+How Divesting While Integrating Can Keep Growth on Track
+
+Managing an organization’s portfolio increasingly requires divesting and integrating at the same time. Explore EY-Parthenon insights to understand the key signals guiding these decisions and the actions that strengthen deal confidence.
+
+Get more insights
+
+
+
+
+
+
+
+
+
+EXPERT TAKE
+5
+
+
+
+
+
+
+
+
+Q: What’s next for the weight-loss drug market?
+
+
+
+
+
+
+
+
+The market for weight-loss drugs is exploding and patients may have several new options in coming years, reports Peter Loftus.
+
+
+
+
+
+
+
+
+
+A: The obesity-drug market has long been dominated by two shots, Wegovy and Zepbound, and their diabetes versions, Ozempic and Mounjaro. That is about to change.
+
+Pills have just started to enter the market, and drugmakers are racing to develop next-generation medications in hopes of helping people lose even more weight with fewer side effects. Some of the drugs in development are designed to be taken less often than those already out there.
+
+A once-daily pill from Eli Lilly could get approved as soon as April, while a weekly shot from Novo Nordisk could get approved by the end of 2026. Then there are more weekly and monthly weight-loss shots in development from companies like Pfizer and Amgen.
+
+These experimental drugs might help people lose weight so quickly that they will be marketed for more severe forms of obesity. Other, less powerful drugs might end up being “maintenance” medications for people after they have already lost a substantial amount of weight. Any number of these drugs might be used in combinations.
+
+
+
+
+
+
+
+
+
+SEE THE STORY
+6
+
+
+
+
+
+
+
+
+Après-ski, minus the crowds? These homeowners built their own bars.
+
+
+
+
+
+
+
+
+
+PHOTO: RYAN ANGEL MEZA FOR WSJ
+
+
+
+
+
+
+
+
+
+For alpine-sports lovers, warming up with a few drinks after a day on the slopes is a time-honored tradition. But instead of heading to a crowded bar for cocktails, more and more wealthy homeowners are hosting friends at private bar areas with high-end, mountain-inspired finishes, real-estate agents say. These cozy areas become additional focal points within the house, like a fireplace or a wine room. They have features like specialty ice makers, open wine-storage columns and dramatic finishes.
+
+
+
+
+
+
+
+
+
+HAPPENING TODAY
+7
+
+
+
+
+
+
+
+
+Trump is scheduled to speak at the FII Priority Summit at 5:30 p.m. ET. G-7 foreign ministers are meeting in France. UNSC meeting about the war. The U.N. Security Council is scheduled to hold a closed-door meeting Friday on the Middle East.
+Economic data: The University of Michigan will release its final consumer-sentiment figures for March at 10 a.m. ET.
+Earnings: Carnival
+📰 Today's paper
+
+
+
+
+
+
+
+
+THE NUMBER
+8
+
+
+
+
+
+
+
+
+6.38%
+
+
+
+
+
+
+
+
+The average rate for a 30-year fixed mortgage this week, up from 6.22% last week, according to Freddie Mac. It is the fourth consecutive week rates have climbed, taking them to the highest level since September. The timing couldn’t be worse for the housing market, which has been stuck in a low gear for three years due to high home prices and elevated rates. March typically marks the start of the busiest stretch of the year for home sales.
+
+
+
+
+
+
+
+
+
+AND FINALLY...
+9
+
+
+
+
+
+
+
+
+Is doomscrolling giving you wrinkles? You may have “tech neck.”
+
+
+
+
+
+
+
+
+Technology has been the alleged culprit behind everything from spiraling anxiety to vanishing attention spans to social isolation. Now, it has something else on its charge sheet: Wrinkles. Behold “tech neck,” a name for those lines that develop across your neck with age and apparently worsen with incessant smartphone use. Anxiety about the affliction is spreading, and the race for a cure is on. The beauty industry is offering up a bevy of solutions, including futuristic-looking LED red-light collars.
+
+
+
+
+
+
+
+
+
+BEYOND THE NEWSROOM
+10
+
+
+
+
+
+
+
+
+Opinion: From its dire position, the Iranian regime has been offered a cease-fire that reportedly includes the removal of all sanctions. By scorning this offer, as Iranian officials now suggest, the regime makes the case for Trump to give the war more time and see the mission through.
+WSJ | Buy Side: We evaluated adviser credentials, fees, available services and more to find some of the best financial adviser firms.
+
+
+
+
+
+
+
+
+
+About Us
+The 10-Point is your guide to The Wall Street Journal's reporting and analysis you can't get anywhere else. Your subscription makes our journalism possible. 
+
+Today's newsletter was curated and edited by Morgan Smith and Will Horner in collaboration with Editor in Chief Emma Tucker. Got a tip for us? Here's how to submit.
+-
+FT author
+Irwin Cruz
+Digital Editor
+‌
+‌
+ 
+March 27 2026
+Good morning, happy Friday and welcome back. In today’s newsletter:
+
+Iran seeks tight controls on traffic through Strait of Hormuz
+
+Israeli military doubts war will topple Iranian regime
+
+Vladimir Putin asks oligarchs to donate to budget
+
+A ‘city of peace’ wrestles with weapons pivot to save VW jobs
+
+&zwnj;
+We begin with Iran’s moves to consolidate its hold on the Strait of Hormuz by working to establish a system of approved passage for ships through the crucial waterway.
+
+What to know: This week Iran’s foreign ministry said “non-hostile” vessels would be allowed to pass through the strait “in co-ordination with the competent Iranian authorities” — but that US, Israeli or any other “participants in the aggression” would not.
+
+Foreign minister Abbas Araghchi said Tehran would impose a new order in the strait after the war, insisting that the country exercises sovereignty over it “even if some might like to view it as international waters”.
+
+Such assertions raise far-reaching questions about access to what is one of the world’s most important shipping routes.
+
+Meanwhile the United Arab Emirates is pushing for an international force to reopen the strait, telling allies it would deploy its own navy in joint efforts to secure safe passage. Read the exclusive story.
+
+The latest: Brent crude traded around $107.17 a barrel, down 0.8 per cent from yesterday. Asian stock markets meanwhile reversed steep early losses.
+
+Israel again stepped up attacks on Tehran this morning. Follow our live blog for more updates.
+
+Read more of our coverage of the conflict:
+
+Fuel for ships: The shipping industry is reeling from $5bn of extra costs due to the war. Vessels are forgoing cargo as bunker fuel inventories run low.
+
+US bond market: The $30tn US Treasury market is showing growing signs of strain, as the war drives swings in bonds that underpin the financial system.
+
+Here’s what else I’m keeping tabs on today and over the weekend:
+
+Economic data: Spain releases inflation data for March.
+
+Biennial meeting: The World Trade Organization’s ministerial conference in Yaoundé, Cameroon, continues until Sunday.
+
+Vatican City: Pope Leo XIV leads Palm Sunday celebrations.
+
+How well did you keep up with the news this week? Take our quiz.
+
+Five more top stories
+1. The Israeli military is increasingly sceptical that regime change in Iran will be possible in the coming weeks, casting doubt on one of Prime Minister Benjamin Netanyahu’s war aims as the Islamic republic shows its ability to endure intense bombardment.
+
+Iran’s hardline new leaders: Analysts say the conflict has created a regime that looks more hawkish and militaristic at home and abroad.
+
+2. Vladimir Putin has asked oligarchs to donate to Russia’s budget in an effort to stabilise the country’s finances as the president presses on with his war against Ukraine, according to three people familiar with the matter. Read the full story.
+
+Block Putin act: US senators are set to introduce a bill calling for sanctions to be imposed on Hungarian officials involved in blocking aid to Ukraine.
+
+3. The Pentagon has been blocked by a US court from punishing Anthropic over the AI start-up’s refusal to allow unrestricted use of its technology in warfare, in a setback to the Trump administration amid its row with the company. Read more on the decision.
+
+4. Exclusive: Société Générale has offloaded “shadow” trading floors after deciding that investment bankers can work from home if its main facilities are out of action. The French bank opted to get rid of backup sites that can be used during emergencies after overhauling its crisis contingency plans.
+
+Boardroom battle: As chief executive, Luigi Lovaglio helped rescue Monte dei Paschi. Then Italy’s oldest bank turned on him.
+
+5. Exclusive: Sir Keir Starmer is preparing to offer a peerage to London mayor Sir Sadiq Khan, in a move to mollify one of his most high-profile Labour critics, according to people familiar with the matter. Read the full story.
+
+News in-depth
+Aerial view of the Volkswagen Osnabrück factory complex with large industrial buildings and surrounding streets
+
+Volkswagen spent more than a year searching for a partner to take the Osnabrück plant off its hands © Friso Gentsch/eye-work/Volkswagen
+
+Germany’s “city of peace” is grappling with the idea that its embattled Volkswagen factory could only be saved if it switches from making cars to producing components for Israel’s Iron Dome air defence system. The plan has caused unease among some residents.
+
+We’re also reading . . .
+Drag to growth: Mastercard is seeking to sell the real-time payments unit that it bought from Denmark’s Nets Group in a move that would unwind its largest ever takeover deal.
+
+Chernobyl’s damaged roof: About €500mn is needed to repair the hole left by a Russian drone and make the site safe again. Donors welcome.
+
+Ramaphosa disinvited: Pretoria said France withdrew its invitation to the South African president to attend this year’s G7 summit due to US pressure.
+
+Counterterrorism: Behavioural scientists are seeing a rising caseload of children at risk of being radicalised online. Helen Warrell finds out how MI5 is intervening.
+
+Chart of the day
+The Iran war is unleashing a global food crisis. From Minnesota in the US to Punjab in India, fertiliser costs are up and harvests are set to be hit due to halts in production and disruption to key shipping routes, putting the world’s poorest at grave risk.
+
+Top 10 sulphur, urea and ammonia importers in 2025 by source of supply, mn tonnes
+
+Take a break from the news . . . 
+Forty years ago, a group of young fashion designers travelled to London from Belgium to present their work at the British Designers Show. Little did they know that they were on the cusp of a major fashion moment. Today “The Antwerp Six” are a legend. A retrospective opening tomorrow pays homage to their bold creativity.
+
+Six people cross the road on a zebra crossing
+
+The Antwerp Six in 1987, from left: Ann Demeulemeester, Dirk Van Saene, Marina Yee, Dries Van Noten, Walter Van Beirendonck and Dirk Bikkembergs © Philippe Costes
+
+Additional contributions from Benjamin Wilhelm and Gordon Smith
+
+‌
+‌
+Markets at 0531 GMT
+Indices
+Hang Seng▲ +0.81% at 25,058
+Nikkei 225▲ +0.15% at 53,684
+S&P 500▼ -1.74% at 6,477
+Eurofirst 300▼ -1.25% at 2,316
+Nasdaq 100▼ -2.38% at 23,587
+FTSE 100▼ -1.33% at 9,972
+Currencies
+€ / $▲ +0.12% at 1.1542
+$ / ¥▼ -0.13% at 159.6200
+£ / $▲ +0.08% at 1.3343
+€ / £▲ +0.03% at 0.8649
+Commodities
+Brent Crude▼ -0.74% at 107.21
+WTI Crude Oil▼ -0.90% at 93.63
+Comex Gold     0% at 4,375.50
+Copper     0% at 5.45
+Natural Gas▼ -0.13% at 3.00
+10-year bond yields
+US▼ -0.006 at 4.410
+UK▼ -0.017 at 4.956
+Japan▲ 0.048 at 2.322
+Bund▲ 0.016 at 3.079
+For the latest prices go to FT.com
+
+‌
+‌
+Recommended newsletters for you
+One Must-Read	
+One Must-Read
+Remarkable journalism you won’t want to miss.
+Sign up here
+The Week Ahead	
+The Week Ahead
+Start every week with a preview of what’s on the agenda.
+Sign up here
+How satisfied are you with The FirstFT Europe/Africa Newsletter?
+‌
+‌
+Are you enjoying this newsletter? Please let us know how we can improve. Complete our short survey and you could win £50 of book vouchers.*
+
+Very Dissatisfied
+Dissatisfied
+Neither
+Satisfied
+Very satisfied
+Very
+dissatisfied	 	 	 	Very
+satisfied
+Your personal data will only be used for improving our newsletter programme and for the facilitation of the prize draw. For more information on your rights and how we use your data, please read our Privacy Policy.
+* Terms and Conditions apply.
+
+‌
+Unsubscribe ‌ ‌ Terms & Conditions ‌ ‌ Privacy Policy ‌ ‌ Cookie Policy ‌ ‌ Newsletter Help

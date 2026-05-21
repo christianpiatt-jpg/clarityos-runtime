@@ -1,0 +1,134 @@
+============================================================
+MODULE: ENGINE_RESOURCE_MANAGER
+TYPE: Resource Allocation, Quotas & Load Balancing Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Allocate, limit, and optimize computational resources across all
+modules in the Clarity_OS narrative-physics engine. Prevents
+resource starvation, overload, and performance collapse. Ensures
+fair scheduling, module prioritization, and safe execution under
+load.
+
+RESOURCE DOMAINS:
+1. CPU Budget
+2. Memory Budget
+3. I/O Budget
+4. Telemetry Bandwidth
+5. Logging Bandwidth
+6. Sandbox Resource Pool
+7. Extension Resource Pool
+8. Safety Reserve Pool
+
+RESOURCE TYPES:
+- HARD LIMITS (cannot be exceeded)
+- SOFT LIMITS (warnings issued)
+- PRIORITY LEVELS (High / Medium / Low)
+- RESERVED POOLS (Safety, Telemetry, Audit)
+
+MODULE PRIORITIES:
+HIGH PRIORITY:
+- Engine_Safety
+- Engine_State_Monitor
+- Engine_Health
+- QC_Pre
+- QC_Post
+
+MEDIUM PRIORITY:
+- Clarity Loop
+- Langbridg
+- Engine_Orchestrator
+- Engine_Interface_Layer
+
+LOW PRIORITY:
+- Sandbox
+- Extensions
+- Documentation
+- Versioning
+
+RESOURCE MANAGER SEQUENCE:
+
+STEP 1 — INITIALIZE RESOURCE POOLS
+- Load resource quotas from ENGINE_CONFIG
+- Create Safety Reserve Pool
+- Create Telemetry Reserve Pool
+- Create Sandbox Pool
+- Create Extension Pool
+
+STEP 2 — ASSIGN MODULE QUOTAS
+For each module:
+- Assign CPU quota
+- Assign memory quota
+- Assign I/O quota
+- Assign priority level
+- Assign burst allowance (if permitted)
+
+STEP 3 — MONITOR RESOURCE USAGE
+- Track CPU usage per module
+- Track memory usage per module
+- Track I/O usage per module
+- Track telemetry bandwidth
+- Track logging bandwidth
+- Detect quota violations
+
+STEP 4 — ENFORCE LIMITS
+IF module exceeds SOFT LIMIT:
+    - Issue warning
+    - Log event
+IF module exceeds HARD LIMIT:
+    - Throttle module
+    - Reduce priority
+    - Trigger safety review
+
+STEP 5 — LOAD BALANCING
+- Reallocate unused resources
+- Boost high-priority modules
+- Throttle low-priority modules under load
+- Maintain safety and telemetry guarantees
+
+STEP 6 — OVERLOAD PROTECTION
+IF total load > global threshold:
+    - Activate overload mode
+    - Freeze sandbox
+    - Freeze extensions
+    - Prioritize safety + QC modules
+    - Reduce logging verbosity
+    - Maintain engine stability
+
+STEP 7 — GENERATE RESOURCE REPORT
+Report includes:
+- Module resource usage
+- Quota violations
+- Overload events
+- Bottleneck modules
+- Optimization recommendations
+
+FAILURE MODES:
+- Resource starvation
+- Overload collapse
+- Priority inversion
+- Sandbox runaway
+- Extension runaway
+- Telemetry starvation
+- Safety starvation (critical)
+
+RECOVERY:
+- Rebalance resources
+- Re-run Engine_Reset
+- Re-run Engine_Performance
+- Revalidate quotas
+- Recommend config adjustments
+
+RESOURCE CONTRACT:
+No module may exceed HARD LIMITS.
+Safety and telemetry must always have resources.
+Sandbox and extensions must never starve core modules.
+Resource violations must be logged and audited.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

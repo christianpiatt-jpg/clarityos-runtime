@@ -1,0 +1,40 @@
+       #tags: #clarityOS, #v2, #architecture, #system-file, #operator-layer
+	          ┌──────────────────────────────┐
+                 │   [1] GEOMETRIC_INTERPRETER  │
+                 │   Raw geometry extraction     │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │     [2] PATTERNED_SHAPES     │
+                 │   Pattern & force-vector map │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │       [3] ER_TRANSLATOR      │
+                 │   Energy → representation    │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │         [4] QC_ENGINE        │
+                 │   Probabilities & thresholds │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │     [5] IDENTITY_LAYER_V2    │
+                 │   Clear-self & reference     │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │     [6] AGENCY_ENGINE_V2     │
+                 │   Options & bounded action   │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │ [7] PENTAGON_SPHERE_GEOMETRY │
+                 │   Multi-scale system mapping │
+                 └───────────────┬──────────────┘
+                                 ↓
+                 ┌──────────────────────────────┐
+                 │         [8] MARKOV_QC         │
+                 │   Temporal weighting & drift │
+                 └──────────────────────────────┘

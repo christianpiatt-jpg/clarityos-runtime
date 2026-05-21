@@ -1,0 +1,22 @@
+notepad 001_Geometry.idx
+
+[Record]
+Name = Geometry Layer
+Code = 001
+Path = ../../01_Constitution/02_Geometry/
+Description = Core physics and geometric primitives of ClarityOS, including hydronics, emotional physics, relational systems, and ePrimary.
+
+[Files]
+Emotional_Physics = Emotional Physics & System Architecture (Full Entry Update).pdf
+Hydronic_Model = Hydronic Model.pdf
+Hydronic_Interpretations = Hydronic Interpretations.pdf
+Relational_Systems = relational systems.pdf
+ePrimary = ePrimary.pdf
+
+[Links]
+Parent = 000_Constitution.idx
+
+[Crosslinks]
+Up = None
+Across = 000,002,003,004,005
+Down = 300–304

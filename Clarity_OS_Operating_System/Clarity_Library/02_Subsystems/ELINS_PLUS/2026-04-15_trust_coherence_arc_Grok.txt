@@ -1,0 +1,47 @@
+Below is a clear conceptual "trust–coherence curve" you can use to design and evaluate hydronic tension. I describe the axes, key regions, decision thresholds, what to measure at each point, and practical design/response actions you can take to keep an audience inside the productive tension zone.
+
+1) Axes and basic shape
+- X axis: Coherence (match between expectation and experienced reality). Ranges from 0 (complete incoherence) to 1 (perfect coherence).  
+- Y axis: Sustained tension (hydronic tension / sustained arousal). Rises from low at extremes to a peak in the mid‑coherence range; shape is an inverted-U (low at very low and very high coherence, maximal at intermediate coherence).
+
+2) Key regions along the curve
+- High coherence (0.75–1.0): Predictable, trusted context. Tension low because expectations are met reliably; arousal minimal. Good for anchor/deposit phases.  
+- Productive tension band (approx. 0.4–0.75): Partial, recoverable violations of expectation. Reappraisal required but trust remains reparable; this is the optimal zone for sustained hydronic tension.  
+- Collapse region (0–0.4): Coherence so low that epistemic trust breaks; viewers disengage or interpret violations as errors/deception, causing tension and engagement to drop.
+
+3) Critical thresholds and operational rules
+- Anchor threshold (≥0.75): Use early to establish genre/trust. Provide sufficient cues so the audience accepts the frame.  
+- Perturbation entry (~0.75 → 0.6): First planned violations should lower coherence into the productive band without dropping below ~0.4.  
+- Repair threshold (~0.4): If coherence dips below this, initiate rapid repair signals; otherwise expect disengagement.  
+- Meta‑coherence rule: Over sessions, keep the average coherence above the collapse threshold while allowing within‑session fluctuations that traverse the productive band.
+
+4) Measurement proxies mapped to regions
+- Coherence estimate: compute label-match rate (expected label vs. viewer label) and narrative plausibility score from participant ratings. Normalize to 0–1.  
+- Tension/engagement: continuous physiological (skin conductance, HRV), continuous subjective arousal ratings, and behavioral engagement (view time, micro‑pauses).  
+- Collapse indicators: sustained drop in view time, lack of recovery in physiology after perturbation, qualitative reports of “confusion” or “feeling misled.”
+
+5) Design actions tied to curve position
+- If coherence >0.75 (low tension): introduce controlled ambiguity (small perturbation), incrementally reduce coherence into 0.4–0.75.  
+- If coherence in 0.4–0.75 (productive): vary the size and timing of violations; use linguistic labels and repair cues to prolong reappraisal cycles without breaching the repair threshold.  
+- If coherence <0.4 (danger): deploy rapid repair: clarifying language, narrative justification, restore familiar motifs, explicit framing cues. If repair fails, consider a temporary pause or meta‑commentary to re‑establish trust.
+
+6) Temporal dynamics and budgeting
+- Trust budget: treat coherence reserves like currency. Early anchors deposit trust; each violation spends it. Schedule larger violations only after fresh deposits or after successful small repairs.  
+- Cycle timing: short perturbation–repair cycles (seconds to minutes) sustain tension; long unresolved incoherence (minutes+) risks collapse.
+
+7) Example application (micro‑sequence)
+- Deposit phase: establish anchor with clear genre cue and repeated ritual phrase (coherence ~0.85).  
+- Perturbation: present ambiguous expression + misleading soundtrack (coherence drops to ~0.6). Viewers’ arousal rises.  
+- Repair: immediately follow with a reframing line or shot that plausibly explains the ambiguity (coherence returns to ~0.7). Tension remains elevated but sustainable.
+
+8) Using the curve in evaluation
+- Predefine acceptable coherence band (e.g., 0.45–0.75) for your project. Collect coherence proxies in pilot runs and compute time‑in‑band. Aim for high time‑in‑band with frequent safe perturbation–repair cycles.  
+- Track moments when coherence dips below threshold and annotate what cue produced the dip; use that to adjust cue magnitude, labeling, or pacing.
+
+9) Ethical and interpretive notes
+- The curve assumes audience consent to playful or crafted mismatch. For research or public media, ensure audience understands the mediated nature when necessary to prevent harmful real‑world belief changes.  
+- The target band may shift by population; calibrate with your intended audience.
+
+If you want, I can:
+- produce a simple numeric simulation (time series) showing coherence and tension over a 10‑minute sequence, or  
+- convert this into a one‑page visual spec (labels, thresholds, legend) you can hand to designers. Which would you prefer?

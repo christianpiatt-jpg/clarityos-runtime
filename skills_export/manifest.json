@@ -1,0 +1,56 @@
+{
+  "name": "clarityos_reasoning_modes",
+  "version": "1.0.0",
+  "description": "Five reasoning modes used by the ClarityOS founder, packaged for external LLM products to emulate. NOT consumed by ClarityOS at runtime.",
+  "intended_consumer": "external_llm_products",
+  "not_a_runtime_dependency": true,
+  "boundary_doc": "../ARCHITECTURE.md",
+  "skills": [
+    {
+      "name": "emotional_physics",
+      "type": "reasoning_skill",
+      "domain": "affect, motivation, conflict",
+      "path": "emotional_physics/",
+      "manifest": "emotional_physics/manifest.json"
+    },
+    {
+      "name": "clarity",
+      "type": "transformation_skill",
+      "domain": "structure, simplification, refactoring",
+      "path": "clarity/",
+      "manifest": "clarity/manifest.json"
+    },
+    {
+      "name": "markov",
+      "type": "sequence_skill",
+      "domain": "timelines, transitions, state machines",
+      "path": "markov/",
+      "manifest": "markov/manifest.json"
+    },
+    {
+      "name": "physics",
+      "type": "constraint_skill",
+      "domain": "limits, invariants, feasibility",
+      "path": "physics/",
+      "manifest": "physics/manifest.json"
+    },
+    {
+      "name": "galileo_meta",
+      "type": "orchestrator_skill",
+      "domain": "skill selection, routing, meta-reasoning",
+      "path": "galileo_meta/",
+      "manifest": "galileo_meta/manifest.json",
+      "orchestrates": ["emotional_physics", "clarity", "markov", "physics"]
+    }
+  ],
+  "layout": {
+    "manifest.json": "machine-readable contract",
+    "model_spec.md": "human-readable description",
+    "prompts/system_prompt.txt": "drop-in system prompt for an external LLM",
+    "prompts/examples.md": "before/after demonstrations",
+    "schemas/inputs.json": "JSON Schema for input shape",
+    "schemas/outputs.json": "JSON Schema for output shape",
+    "docs/theory.md": "short whitepaper",
+    "docs/usage_patterns.md": "when to invoke this mode"
+  }
+}

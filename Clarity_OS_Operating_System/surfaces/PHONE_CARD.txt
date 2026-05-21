@@ -1,0 +1,26 @@
++--------------------------------------------------------------+
+|                     OPERATOR INDEX: PHONE                    |
++--------------------------------------------------------------+
+| Dewey Path        : 380.145_PHONE                            |
+| Index File        : 380_PHONE.idx                            |
+| Record Location   : /Index_Records/03_Operator/              |
+| Scope             : Call threads, outreach, follow-ups       |
++--------------------------------------------------------------+
+| Primary Functions :                                          |
+|  • Track active and pending phone threads                    |
+|  • Anchor emotional physics around voice interactions        |
+|  • Log outcomes, risks, and next actions                     |
++--------------------------------------------------------------+
+| Hot Commands      :                                          |
+|  phone open       -> open PHONE index file                   |
+|  phone today      -> filter to today’s entries               |
+|  phone pending    -> show unresolved threads                 |
++--------------------------------------------------------------+
+| Status            : ________________________________         |
+| Last Updated      : ________________________________         |
++--------------------------------------------------------------+
+| Notes             :                                          |
+|  _________________________________________________________   |
+|  _________________________________________________________   |
+|  _________________________________________________________   |
++--------------------------------------------------------------+

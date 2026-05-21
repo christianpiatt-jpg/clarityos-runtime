@@ -1,0 +1,20 @@
+notepad 000_Constitution.idx
+
+[Record]
+Name = Constitution Layer
+Code = 000
+Path = ../01_Constitution/
+Description = Root layer of ClarityOS containing definitions, geometry, runtime, identity, imports, and boundary conditions.
+
+[Links]
+Definitions = ../01_Constitution/01_Definitions/
+Geometry = ../01_Constitution/02_Geometry/
+Runtime = ../01_Constitution/03_Runtime/
+Identity = ../01_Constitution/04_Identity/
+Imports = ../01_Constitution/05_Imports/
+Boundary = ../01_Constitution/06_Boundary/
+
+[Crosslinks]
+Up = None
+Across = 001,002,003,004,005
+Down = 100–119,400–404

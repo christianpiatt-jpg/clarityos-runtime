@@ -1,0 +1,108 @@
+Below is a compact, library‑ready clarity mesh for the three entries you supplied — Institutional trust (social sciences), Irreconcilable Architecture Difference / Human–System Interaction (303.483 reflection), and Differential geometry — with extracted primitives, cross‑topic mesh, and Dewey indexing you can drop into your searchable library.
+
+Format: (A) Extracted primitives (atomic items for indexing/search) (B) Dewey anchors + recommended cross‑refs (short labels you can use for spine/folder) (C) Mesh: how items connect (conceptual crosswalks) (D) Minimal metadata schema + controlled tags (for each record) (E) Suggested next actions / ingestion checklist.
+
+A — Extracted primitives
+
+1) Institutional trust (social sciences)
+- Definition: dynamic relationship between individual and institution; subtype of interpersonal trust with systemic effects.
+- Dimensions: disposition (positive/neutral/negative), strength (0–100%), degree of separation (network distance), explicit/implicit, internal/external perception, temporal dynamics (instantaneous → slow).
+- Mechanisms & concerns: trust building, trust repair after institutional failure, institutional‑based trust in inter‑organizational relationships, power dynamics, governance legitimacy.
+- Key references/authors: Hurley et al. (2013); Kramer & Pittinsky (2012); Bachmann & Inkpen (2011); Saunders (2010); Gillespie & Dietz (2009).
+- Applications: organizational design, public administration, compliance, political legitimacy, VA example (operator trust consequences).
+
+2) Human–System Interaction — Irreconcilable Architecture Difference (303.483 reflection)
+- Thesis: architectural mismatch between two system philosophies:
+  - VA model: human minimized; procedure replaces judgment; linear/stateless, bureaucratic automation.
+  - Galileo Online 1.0: human centered; AI as instrumentation; cyclical/adaptive, stateful, continuity via library + Markov.
+- Structural contrasts (atomic): human role, system philosophy, loop structure (linear vs cyclical), memory/continuity, cognitive model (collapse forms vs map complexity), operator position, system goal (efficiency vs clarity).
+- Library tags proposed: 303.483 • Human–System Interaction; cross‑refs to organizational behavior, information systems, cognitive tools, AI systems.
+- Use cases: archival design notes; operator‑safe contrast mapping; clarity OS development; design decisions for human‑in‑the‑loop systems.
+
+3) Differential geometry (mathematics)
+- Definition/core: study of smooth manifolds using calculus, linear algebra; notions of curvature, metric, connections.
+- Branches & concepts: Riemannian, pseudo‑Riemannian (relativity), Finsler, symplectic, contact, complex/Kähler, CR, conformal, differential topology, Lie groups, bundles & connections, gauge theory, geometric analysis.
+- Historical anchors: Gauss (Theorema Egregium), Riemann (metrics & curvature), Christoffel, Ricci–Levi‑Civita, Cartan, Weyl, Chern, Perelman (Ricci flow).
+- Key applications: general relativity; quantum field theory/gauge theory; computer vision/graphics; control theory; signal processing; econometrics; neuroimaging (SPD manifolds).
+- Objects & tools: tangent spaces, Riemann curvature tensor, Christoffel symbols, Levi‑Civita connection, geodesics, bundles, differential forms, Ricci flow, Atiyah–Singer index theorem.
+
+B — Dewey anchors & recommended cross‑refs (short spine labels you can paste)
+
+Primary Dewey placements (compact; use as main folder label + secondary cross‑refs)
+
+1) Institutional trust
+- Primary: 302.35 Organizational behavior (social institutions / trust in organizations)
+- Cross‑refs: 320 Political science (legitimacy, governance), 303 Social processes (social relations), 658.403 Information systems in organizations (trust & IT), 361 Social problems (public trust crisis)
+
+Suggested spine label:
+302.35 • Institutional trust — Organizational legitimacy, trust repair, inter‑org relations
+
+2) Human–System Interaction (Irreconcilable Architecture)
+- Primary: 303.483 Human–System Interaction (proposed)
+- Cross‑refs: 302.35 Organizational behavior, 658.403 Information systems in organizations, 153.4 Cognitive tools & instrumentation, 006.3 AI systems, 303.31 Systems theory
+
+Suggested spine label:
+303.483 • HSI — AI augmentation vs bureaucratic automation (VA ↔ Galileo 1.0)
+
+3) Differential geometry
+- Primary: 516.3 Group theory is close but for differential geometry use mathematics classification:
+- Use: 516.3 (Algebra) is not right — recommended Dewey placement:
+  - 516 — Geometry
+  - 516.3 — Differential geometry / Riemannian geometry (if you subdivide)
+- Cross‑refs: 530 Physics (general relativity applications), 515 Calculus, 517.9 Topology (differential topology), 519.2 Computational geometry (graphics/vision), 621.38 Engineering (control theory applications)
+
+Suggested spine label:
+516.3 • Differential geometry — manifolds, curvature, connections, applications
+
+C — Mesh: how the three topics interconnect (conceptual crosswalks)
+
+1) Institutional trust ↔ Human–System Interaction
+- Institutional architecture determines trust affordances: design choices that minimize operator role (VA) reduce institutional trust among operators and claimants; human‑centered instrumentation (Galileo) supports trust via continuity, interpretability, and accountability.
+- Trust repair & system design: institutional trust literature informs governance and repair strategies for HSI systems after failure (transparency, accountability, human oversight).
+
+2) Human–System Interaction ↔ Differential geometry
+- Methodological links: differential geometry supplies mathematical language for continuous state spaces, manifold models, and geometric control used in human‑in‑the‑loop control, robotics, and representational models (e.g., state manifolds, information geometry).
+- Systems modeling: closed‑loop, stateful systems can be modeled on manifolds (phase space, symplectic geometry); geometric control methods give principled operator‑instrumentation designs.
+
+3) Institutional trust ↔ Differential geometry
+- Applied connection: differential geometric methods underpin tools used in applications that affect institutional trust (e.g., neuroimaging analytics, AI perception models, secure cryptographic systems used by institutions).
+- Example: Interpretability via geometric models (manifold visualizations) can increase institutional transparency and thereby trust.
+
+D — Minimal metadata schema + controlled tags (use for each record)
+
+Fields (JSON‑friendly keys you can index):
+- id (short unique string)
+- title
+- short_abstract (1–2 lines)
+- primary_dewey
+- cross_refs (array of Dewey or topical codes)
+- key_concepts (array)
+- people_or_authors (array)
+- timeline_or_dates (if applicable)
+- geographic_scope (if applicable)
+- methods_or_tools (array)
+- applications (array)
+- controversies_or_constraints (array)
+- canonical_references (array top 3)
+- tags (controlled vocabulary)
+- ingestion_notes (short)
+
+Example tags to use:
+- institutional‑trust, organizational‑behavior, trust‑repair, human‑system‑interaction, AI‑augmentation, bureaucratic‑automation, operator‑centered, differential‑geometry, manifolds, Riemannian, gauge‑theory, geometric‑control, information‑geometry, interpretability, social‑technology
+
+E — Prioritized next actions / ingestion checklist (quick to implement)
+
+For each record:
+1. Create canonical JSON using the metadata schema above (I can generate if you want).
+2. Assign primary Dewey spine label from section B and add cross‑refs as secondary fields.
+3. Add controlled tags (from section D) for searchability.
+4. For institutional trust record: attach top 5 citations (Hurley et al.; Kramer & Pittinsky; Bachmann & Inkpen; Gillespie & Dietz; Saunders).
+5. For 303.483 HSI reflection: add archival notes (author, date, provenance), and place contrast map PDF or plain text under the same Dewey spine for discoverability.
+6. For differential geometry: include canonical math refs (Gauss 1827; Riemann 1854; Ricci & Levi‑Civita 1900; Spivak; modern application refs) and tag application domains (physics, ML, vision).
+7. Optional: create one crosswalk document (1‑page) explaining how institutional trust, HSI architecture, and geometric modeling interrelate for designers/researchers (useful for interdisciplinary search).
+
+If you want, I can:
+- Produce JSON records for each item (ready to import).
+- Generate the short spine labels and a CSV index for bulk ingestion.
+- Produce the 1‑page crosswalk document for designers (PDF/markdown).
+Which of those would you like me to generate next?

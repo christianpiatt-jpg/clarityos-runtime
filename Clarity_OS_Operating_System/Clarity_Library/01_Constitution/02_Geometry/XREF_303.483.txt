@@ -1,0 +1,3 @@
+Related Topology:
+System curvature differences between mass-dominant (VA) and precision-dominant (Galileo/ELINS) architectures.
+See Immutable Archive entry 2026-04-02.

@@ -1,0 +1,3 @@
+Cross‑Reference:
+Narrative Architecture feeds global arcs and institutional topology into the Global Mesh Console.
+See: ../../ClarityOS_Global Mesh Console v1.0 o.txt

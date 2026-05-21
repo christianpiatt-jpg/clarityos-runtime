@@ -1,0 +1,207 @@
+============================================================
+FILE: ENGINE_GLOBAL_MANIFOLD
+TYPE: Global Narrative-Physics Map & Clarity Retina
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Define the global manifold: a unified, multi-layer narrative-
+physics map that integrates metadata intake, ELINS extraction,
+Markov/Markoff chain-state transitions, drift/basin/pressure
+vectors, legitimacy signals, and regional stress indicators.
+
+The manifold serves as:
+    - the engine’s global clarity retina
+    - the central reference frame for narrative physics
+    - the integration layer for ELINS and Markov
+    - the operator’s high-level situational awareness surface
+
+============================================================
+SECTION 2 — MANIFOLD STRUCTURE
+============================================================
+
+The manifold is composed of:
+
+1. GLOBAL_LAYER
+    - global drift vector
+    - global basin geometry
+    - global pressure field
+    - global legitimacy vector
+    - global stress index
+
+2. REGIONAL_LAYERS
+    - North America
+    - Europe
+    - Eastern Europe / Russia
+    - Middle East / North Africa
+    - Sub-Saharan Africa
+    - South Asia
+    - East Asia
+    - Latin America
+
+3. NARRATIVE_DOMAINS
+    - political
+    - economic
+    - military
+    - social
+    - institutional
+    - environmental
+    - technological
+
+4. TEMPORAL_LAYERS
+    - T0 (current)
+    - T-1 (previous cycle)
+    - T-2 (previous day)
+    - T-7 (previous week)
+    - T-30 (previous month)
+
+============================================================
+SECTION 3 — INPUTS
+============================================================
+
+The manifold receives inputs from:
+
+1. METACRAWLER (metadata packets)
+2. ELINS (narrative-physics extraction)
+3. MARKOV/MARKOFF (chain-state transitions)
+4. PHYSICS ENGINE (drift/basin/pressure)
+5. IDENTITY ENGINE (institutional identity signals)
+6. BOUNDARY ENGINE (regional boundary integrity)
+7. OPERATOR SNAPSHOTS (manual overlays)
+
+============================================================
+SECTION 4 — MANIFOLD UPDATE CYCLE
+============================================================
+
+Triggered by:
+    - METACRAWLER_INGEST_COMPLETE
+    - ENGINE_MANIFOLD_REFRESH
+    - OPERATOR_REQUEST
+
+UPDATE STEPS:
+
+STEP 1 — INGEST
+    - receive metadata packets
+    - validate region/language/source_id
+    - timestamp alignment
+
+STEP 2 — ELINS EXTRACTION
+    - extract narrative physics
+    - extract legitimacy signals
+    - extract stress indicators
+    - extract domain classification
+
+STEP 3 — MARKOV INTEGRATION
+    - update chain-state
+    - update transition probabilities
+    - update temporal drift
+
+STEP 4 — PHYSICS INTEGRATION
+    - update drift vectors
+    - update basin geometry
+    - update pressure maps
+
+STEP 5 — REGIONAL SYNTHESIS
+    - compute regional stress index
+    - compute regional legitimacy vector
+    - compute regional drift/basin/pressure
+
+STEP 6 — GLOBAL SYNTHESIS
+    - compute global drift vector
+    - compute global basin geometry
+    - compute global pressure field
+    - compute global legitimacy vector
+    - compute global stress index
+
+STEP 7 — LOGGING
+    - manifold update log
+    - ELINS extraction log
+    - Markov integration log
+
+============================================================
+SECTION 5 — REGIONAL SLICES
+============================================================
+
+Each region maintains:
+
+    region_id
+    region_legitimacy_vector
+    region_stress_index
+    region_drift_vector
+    region_basin_geometry
+    region_pressure_map
+    region_narrative_domains
+    region_metadata_count
+    region_ELINS_signatures
+
+Regional slices are accessible via:
+    ENGINE_MANIFOLD_REGION <region>
+
+============================================================
+SECTION 6 — GLOBAL INDICATORS
+============================================================
+
+GLOBAL_DRIFT_VECTOR
+    - direction and magnitude of global narrative movement
+
+GLOBAL_BASIN_GEOMETRY
+    - shape of global narrative attractors
+
+GLOBAL_PRESSURE_FIELD
+    - intensity of narrative forces across regions
+
+GLOBAL_LEGITIMACY_VECTOR
+    - institutional stability and trust signals
+
+GLOBAL_STRESS_INDEX
+    - composite indicator of global instability
+
+============================================================
+SECTION 7 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_MANIFOLD
+    Display global manifold summary.
+
+ENGINE_MANIFOLD_REGION <region>
+    Display regional slice.
+
+ENGINE_MANIFOLD_REFRESH
+    Force manifold update.
+
+ENGINE_MANIFOLD_SNAPSHOT
+    Save manifold state.
+
+ENGINE_MANIFOLD_COMPARE <snapshot_id>
+    Compare current manifold to snapshot.
+
+============================================================
+SECTION 8 — FAILURE MODES
+============================================================
+
+Potential failures:
+    - ELINS extraction failure
+    - Markov integration failure
+    - malformed metadata
+    - regional imbalance
+    - manifold drift
+    - pressure collapse
+    - basin inversion
+
+Recovery:
+    - re-run ELINS
+    - re-run Markov integration
+    - re-run physics engine
+    - fallback to previous manifold snapshot
+    - notify operator
+
+============================================================
+STATUS:
+Global Manifold Installed.
+
+============================================================
+END OF FILE
+============================================================

@@ -1,0 +1,39 @@
+:root {
+  /* Spacing */
+  --space-outer: 24px;
+  --space-inner: 16px;
+  --space-gap: 12px;
+
+  /* Layout widths */
+  --sidebar-width: 240px;
+  --insights-width: 320px;
+
+  /* Borders */
+  --border-1: 1px solid rgba(255,255,255,0.15);
+  --border-cyan: 2px solid #00F0FF;
+  --border-red: 2px solid #E02020;
+
+  /* Radii */
+  --radius-none: 0px;
+  --radius-small: 4px;
+
+  /* Colors */
+  --color-bg-void: #000000;
+  --color-bg-surface: #0A0A0A;
+  --color-bg-surface-alt: #111111;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #888888;
+  --color-accent-cyan: #00F0FF;
+  --color-accent-red: #E02020;
+
+  /* Typography */
+  --font-sans: system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-size-base: 14px;
+  --font-size-small: 12px;
+  --line-height-chat: 1.5;
+  --line-height-data: 1.2;
+
+  /* Gridlines */
+  --gridline-cyan: rgba(0, 240, 255, 0.15);
+}

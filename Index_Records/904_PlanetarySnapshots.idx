@@ -1,0 +1,18 @@
+904_PlanetarySnapshots.idx
+
+[Record]
+Name = Planetary Snapshots
+Code = 904
+Path = ../../Index_Records/
+Description = Preserved global states, mesh snapshots, and cross-scale captures of the planetary system at key moments.
+
+[Files]
+Mesh_Snapshots = mesh_snapshots.txt
+Global_State = global_state.txt
+CrossScale_Snapshots = crossscale_snapshots.txt
+Planetary_Timelines = planetary_timelines.txt
+Snapshot_Crosswalk = snapshot_crosswalk.txt
+
+[Links]
+Parent = 900_PlanetaryMesh.idx
+Siblings = 901_GlobalFlows.idx, 902_CrossScaleDynamics.idx, 903_PlanetaryDiagnostics.idx

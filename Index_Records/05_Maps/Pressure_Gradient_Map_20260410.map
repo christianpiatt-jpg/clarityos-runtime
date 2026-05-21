@@ -1,0 +1,10 @@
+[MAP]
+name: Pressure Gradient Map
+version: 20260410
+
+[GRADIENT]
+fear → safety
+confusion → clarity
+reactivity → stability
+
+[END]

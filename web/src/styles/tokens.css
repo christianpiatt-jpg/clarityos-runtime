@@ -1,0 +1,54 @@
+/* ClarityOS COMPUTER — design tokens.
+   "Operator cockpit" palette: pure black void, red boundary, cyan focus.
+   Single source of truth for the SPA. Mirrors the phone's designSystem.ts
+   intent (high contrast, geometric, minimal) with the cockpit accent set. */
+
+:root {
+  /* Surface */
+  --os-void: #000000;
+  --os-deep: #0a0a0a;
+  --os-surface: #111111;
+  --os-elevated: #1a1a1a;
+
+  /* Boundaries + accents */
+  --os-boundary: #E02020;          /* red — frame, danger, discard */
+  --os-focus: #00F0FF;             /* cyan — active, focus, primary action */
+  --os-focus-deep: #2563eb;        /* blue — gradient mid */
+  --os-focus-violet: #8b5cf6;      /* violet — gradient deep */
+
+  /* Text */
+  --os-text-primary: #FFFFFF;
+  --os-text-secondary: #A0A0A0;
+  --os-text-tertiary: #585858;
+
+  /* Lines / washes */
+  --os-line: rgba(255, 255, 255, 0.06);
+  --os-line-strong: rgba(255, 255, 255, 0.16);
+  --os-surface-wash: rgba(0, 0, 0, 0.4);
+  --os-nav-wash: rgba(0, 0, 0, 0.7);
+
+  /* Status */
+  --os-ok: #4ade80;
+  --os-warn: #fbbf24;
+  --os-err: var(--os-boundary);
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Sizing */
+  --frame: 20px;
+  --gap: 12px;
+  --gap-lg: 20px;
+  --pad: 12px;
+  --rail-w: 220px;
+  --status-h: 36px;
+  --topbar-h: 56px;
+  --radius-0: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  /* Effects */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --focus-ring: 0 0 0 2px rgba(0, 240, 255, 0.45);
+}

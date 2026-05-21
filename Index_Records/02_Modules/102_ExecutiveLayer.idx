@@ -1,0 +1,18 @@
+notepad 102_ExecutiveLayer.idx
+
+[Record]
+Name = Executive Layer
+Code = 102
+Path = ../../02_Subsystems/Executive_Layer/
+Description = Governance subsystem responsible for decision-making, authority boundaries, command routing, and operator-grade executive posture.
+
+[Files]
+Executive_Primitives = executive_primitives.txt
+Decision_Logic = decision_logic.txt
+Authority_Boundaries = authority_boundaries.txt
+Command_Routing = command_routing.txt
+Executive_Posture = executive_posture.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx

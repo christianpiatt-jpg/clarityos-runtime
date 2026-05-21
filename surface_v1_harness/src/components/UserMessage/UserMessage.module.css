@@ -1,0 +1,22 @@
+.message {
+  border-right: var(--border-red);
+  padding: var(--space-inner);
+  margin-bottom: var(--space-gap);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  align-self: flex-end;
+  max-width: 75%;
+}
+
+.body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-chat);
+  margin-bottom: var(--space-gap);
+}
+
+.timestamp {
+  font-size: 11px;
+  color: #666666;
+  text-align: right;
+}

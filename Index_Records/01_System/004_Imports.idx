@@ -1,0 +1,22 @@
+notepad 004_Imports.idx
+
+[Record]
+Name = Imports Layer
+Code = 004
+Path = ../../01_Constitution/05_Imports/
+Description = External references, imported primitives, cross-system dependencies, and upstream conceptual inputs required for ClarityOS operation.
+
+[Files]
+Imports_List = imports_list.txt
+External_Primitives = external_primitives.txt
+Cross_System_Inputs = cross_system_inputs.txt
+Upstream_Models = upstream_models.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 001_Geometry.idx, 002_Runtime.idx, 003_Identity.idx
+
+[Crosslinks]
+Up = None
+Across = 000,001,002,003,005
+Down = None

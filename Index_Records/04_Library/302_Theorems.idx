@@ -1,0 +1,18 @@
+302_Theorems.idx
+
+[Record]
+Name = Theorems Library
+Code = 302
+Path = ../../04_Library/Theorems/
+Description = Core theorems governing system behavior, emotional physics, propagation dynamics, stability envelopes, and operator mechanics.
+
+[Files]
+Theorem_List = theorem_list.txt
+Theorem_Statements = theorem_statements.txt
+Proof_Links = proof_links.txt
+Use_Cases = use_cases.txt
+Theorem_Crosswalk = theorem_crosswalk.txt
+
+[Links]
+Parent = 300_Primitives.idx
+Siblings = 301_Proofs.idx, 303_CaseStudies.idx, 304_CanonicalEntries.idx

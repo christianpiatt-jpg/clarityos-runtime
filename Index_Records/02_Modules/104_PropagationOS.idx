@@ -1,0 +1,54 @@
+notepad 104_PropagationOS.idx
+
+[Record]
+Name = Propagation OS
+Code = 104
+Path = ../../02_Subsystems/Propagation_OS/
+Description = Communication and propagation subsystem responsible for outward-facing clarity, signal integrity, messaging loops, and basin-to-basin translation.
+
+[Files]
+Propagation_Primitives = propagation_primitives.txt
+Signal_Integrity = signal_integrity.txt
+Messaging_Loops = messaging_loops.txt
+Basin_Translation = basin_translation.txt
+Propagation_Protocols = propagation_protocols.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx
+
+[Propagation]
+Purpose = Manage system expression, transmission, translation, continuity, governance, and cross-layer signal routing
+
+[PropagationFunctions]
+1 = MessageRouting
+2 = Translation
+3 = Transmission
+4 = ContinuityManagement
+5 = GovernanceRules
+6 = CrossLayerPropagation
+7 = ExternalPropagation
+
+[PropagationSurfaces]
+1 = MessageMap
+2 = TranslationMap
+3 = TransmissionLog
+4 = ContinuityReport
+5 = GovernancePanel
+6 = LayerPropagationView
+7 = ExternalPropagationView
+
+[PropagationState]
+PropagationLoaded = False
+FunctionsBound = False
+SurfacesInitialized = False
+PropagationActive = False
+
+[Activation]
+Trigger = StabilityActive AND PropagationLoaded AND FunctionsBound AND SurfacesInitialized
+
+[Handoff]
+Next = 900_PlanetaryMesh
+
+[Status]
+Propagation = Active

@@ -1,0 +1,65 @@
+============================================================
+QC LAYER — ELINS INTEGRATION MODULE
+VERSION: 1.0
+LOCATION: /02_Modules/QC_Layer/
+
+PURPOSE:
+Bind ELINS signals into the QC Layer so all frames are stabilized
+against real-time environmental, narrative, and pressure dynamics.
+
+ELINS SUBSYSTEMS:
+1. ELINS_LOCAL      (local field conditions)
+2. ELINS_WARNO      (early warning signals)
+3. ELINS_PRESSURE   (pressure gradients)
+4. ELINS_DIRECTION  (directional flow)
+
+FUNCTION:
+ELINS provides real-time signal data that QC uses to validate,
+compress, and stabilize frames before and after generation.
+
+QC USE OF ELINS:
+
+PRE-STABILIZATION:
+- Check topic + direction against ELINS_LOCAL.
+- Detect emerging distortions via ELINS_WARNO.
+- Identify pressure artifacts via ELINS_PRESSURE.
+- Align movement with ELINS_DIRECTION.
+
+POST-STABILIZATION:
+- Validate generated output against updated ELINS signals.
+- Remove drift caused by environmental shifts.
+- Re-align with ELINS_DIRECTION.
+- Re-check basin using ELINS_PRESSURE.
+
+SIGNAL ROLES:
+
+ELINS_LOCAL:
+Ensures the frame matches the current environmental field.
+
+ELINS_WARNO:
+Detects early instability or drift seeds.
+
+ELINS_PRESSURE:
+Identifies pressure gradients that may distort interpretation.
+
+ELINS_DIRECTION:
+Ensures movement aligns with allowed directional flow.
+
+FAILURE MODES:
+- ELINS_LOCAL mismatch
+- ELINS_WARNO alert
+- ELINS_PRESSURE spike
+- ELINS_DIRECTION contradiction
+
+RECOVERY:
+- Re-run PRE-STABILIZATION
+- Re-align with ELINS signals
+- Re-check basin and vectors
+- Re-compress frame
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

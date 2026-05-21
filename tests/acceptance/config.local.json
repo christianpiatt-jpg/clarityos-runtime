@@ -1,0 +1,43 @@
+{
+  "//": "Operator must fill in operator IDs and the desktop binary path.",
+  "//1": "Run scripts/seed_acceptance_operators.py and paste the printed IDs.",
+  "//2": "This file is environment-specific — DO NOT commit to git. Add to .gitignore.",
+  "//3": "vault_secret values are placeholders; the runner regenerates them per run.",
+
+  "backend_base_url": "http://localhost:8000",
+
+  "operators": [
+    {
+      "id": "<fill-op_a-id>",
+      "email": "op_a@clarityos.test",
+      "handle": "op_a",
+      "vault_secret": "<unused-placeholder>"
+    },
+    {
+      "id": "<fill-op_b-id>",
+      "email": "op_b@clarityos.test",
+      "handle": "op_b",
+      "vault_secret": "<unused-placeholder>"
+    }
+  ],
+
+  "surfaces": {
+    "web": {
+      "os": "macos",
+      "baseUrl": "http://localhost:5173"
+    },
+    "phone": {
+      "platform": "ios"
+    },
+    "desktop": {
+      "os": "macos",
+      "binaryPath": "<fill-desktop-binary-path>"
+    }
+  },
+
+  "thresholds": {
+    "surface_jump_minutes": 10,
+    "onboarding_max_minutes": 10,
+    "stability_window_hours": 72
+  }
+}

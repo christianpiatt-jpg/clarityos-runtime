@@ -1,0 +1,144 @@
+omplexity theory and organizations
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+This article is about the application of complexity science to strategy. For its application to the problems of economics, see Complexity economics. For other uses, see Complexity theory (disambiguation).
+Complexity theory and organizations, also called complexity strategy or complex adaptive organizations, is the use of the study of complexity systems in the field of strategic management and organizational studies.[1][2][3][4] It draws from research in the natural sciences that examines uncertainty and non-linearity.[5] Complexity theory emphasizes interactions and the accompanying feedback loops that constantly change systems. While it proposes that systems are unpredictable, they are also constrained by order-generating rules.[6]: 74 
+
+Complexity theory has been used in the fields of strategic management and organizational studies. Application areas include understanding how organizations or firms adapt to their environments and how they cope with conditions of uncertainty. Organizations have complex structures in that they are dynamic networks of interactions, and their relationships are not aggregations of the individual static entities. They are adaptive; in that, the individual and collective behavior mutate and self-organize corresponding to a change-initiating micro-event or collection of events.[7][8]
+
+Key concepts
+Complex adaptive systems
+Organizations can be treated as complex adaptive systems (CAS) as they exhibit fundamental CAS principles like self-organization, complexity, emergence,[9] interdependence, space of possibilities, co-evolution,[10][11][12] chaos,[13][14][11][12] and self-similarity.[7][15][11][12]
+
+CAS are contrasted with ordered and chaotic systems by the relationship that exists between the system and the agents which act within it.[13] In an ordered system the level of constraint means that all agent behavior is limited to the rules of the system. In a chaotic system, the agents are unconstrained and susceptible to statistical and other analyses. In a CAS, the system and the agents co-evolve; the system lightly constrains agent behavior, but the agents modify the system by their interaction with it. This self-organizing nature is an important characteristic of CAS; and its ability to learn to adapt, differentiate it from other self-organizing systems.[7][13][14][11][12]
+
+Organizational environments can be viewed as complex adaptive systems where coevolution generally occurs near the edge of chaos, and it should maintain a balance between flexibility and stability to avoid organizational failure.[16][13][4][10][11][12] As a response to coping with turbulent environments; businesses bring out flexibility, creativity,[17] agility, and innovation near the edge of chaos; provided the organizational structure has sufficient decentralized, non-hierarchical network structures.[16][13][4][11]
+
+Implications for organizational management
+CAS approaches to strategy seek to understand the nature of system constraints and agent interaction and generally takes an evolutionary or naturalistic approach to strategy. Some research integrates computer simulation and organizational studies.
+
+Complexity theory and knowledge management
+Complexity theory also relates to knowledge management (KM) and organizational learning (OL). "Complex systems are, by any other definition, learning organizations."[18] Complexity Theory, KM, and OL are all complementary and co-dependent.[18] “KM and OL each lack a theory of how cognition happens in human social systems – complexity theory offers this missing piece”.[18]
+
+Complexity theory and project management
+Complexity theory is also being used to better understand new ways of doing project management, as traditional models have been found lacking to current challenges.[19]: 23  This approaches advocates forming a "culture of trust" that "welcomes outsiders, embraces new ideas, and promotes cooperation."[19]: 35 
+
+Recommendations for managers
+Complexity Theory implies approaches that focus on flatter, more flexible organizations, rather than top-down, command-and-control styles of management.[6]: 84 [4][16]
+
+Practical examples
+A typical example for an organization behaving as CAS is Wikipedia,[20] which is collaborated and managed by a loosely organized management structure[20] that is composed of a complex mix of human–computer interactions.[21][22][23] By managing behavior, and not only content, Wikipedia uses simple rules to produce a complex, evolving knowledge base that has largely replaced older sources in popular use.[citation needed]
+
+Other examples include:
+
+the complex global macroeconomic network within a country or group of countries;
+stock market and complex web of cross-border holding companies;
+manufacturing businesses;
+and any human social group-based endeavor in a particular ideology and social system such as political parties, communities, geopolitical organizations, and terrorist networks of both hierarchical and leaderless nature.[24]
+This new macro level state may create difficulty for an observer in explaining and describing the collective behavior in terms of its constituent parts, as a result of the complex dynamic networks of interactions, outlined earlier.[7]
+
+See also
+Complexity theory (disambiguation)
+Cynefin Centre for Organisational Complexity
+The Santa Fe Institute
+Global brain
+Self-organization
+The New England Complex Systems Institute
+Ralph Douglas Stacey
+Complex Adaptive Leadership
+References
+ M. Eisenhardt, Kathleen; McKelvey, Bill (2011). Section 29, Complexity Theory and Corporate Strategy, from book - The SAGE Handbook of Complexity and Management edited by Peter Allen, Steve Maguire, Bill McKelvey. SAGE, 2011. p. 506. ISBN 9781446209745. Retrieved 23 August 2020.
+ Forgues, Bérnard; Thietart, Alain (2011). Section 2, Complexity science and organization, from book - The SAGE Handbook of Complexity and Management edited by Peter Allen, Steve Maguire, Bill McKelvey. SAGE, 2011. p. 53. ISBN 9781446209745. Retrieved 23 August 2020.
+ Mak, Wai Ming (2012). Section 7, Rethinking Business Strategy with Complexity Theory, from book - Systems Theory and Practice in the Knowledge Age, edited by Gillian Ragsdell, Daune West, Jennifer Wilby. Springer Science & Business Media, 2012. p. 321. doi:10.1007/978-1-4615-0601-0_37. ISBN 9781461506010. Retrieved 23 August 2020.
+ L. Levy, David. "Applications and Limitations of Complexity Theory in Organization Theory and Strategy" (PDF). umb.edu. Retrieved 23 August 2020.
+ Grobman, Gary M. (2005). "Complexity Theory: a new way to look at organizational change" (PDF). Public Administration Quarterly. 29 (3): 351–384. doi:10.1177/073491490502900305. Archived from the original (PDF) on 7 August 2016. Retrieved 10 July 2016.
+ Burnes, Bernard (2005). "Complexity theories and organizational change". International Journal of Management Reviews. 7 (2): 73–90. doi:10.1111/j.1468-2370.2005.00107.x.
+ "Insights from Complexity Theory: Understanding Organisations better". by Assoc. Prof. Amit Gupta, Student contributor - S. Anish, IIM Bangalore. Retrieved 1 June 2012.
+ "Ten Principles of Complexity & Enabling Infrastructures" (PDF). by Professor Eve Mitleton-Kelly, Director Complexity Research Programme, London School of Economics. Archived from the original (PDF) on 29 December 2009. Retrieved 1 June 2012.
+ "Complex Adaptive Systems as a Model for Evaluating Organisational Change Caused by the Introduction of Health Information Systems" (PDF). Kieren Diment, Ping Yu, Karin Garrety, Health Informatics Research Lab, Faculty of Informatics, University of Wollongong, School of Management, University of Wollongong, NSW. uow.edu.au. Archived from the original (PDF) on 5 September 2012. Retrieved 25 August 2012.
+ Kauffman, Stuart (15 January 1992). "Coevolution in Complex Adaptive Systems". Santa Fe Institute. Retrieved 24 August 2020.
+ Terra, Leonardo Augusto Amaral; Passador, João Luiz (2016). "Symbiotic Dynamic: The Strategic Problem from the Perspective of Complexity". Systems Research and Behavioral Science. 33 (2): 235. doi:10.1002/sres.2379.
+ Terra, L. A. A.; Passador, J. L. (2019). "The nature of social organization of production: From firms to complex dynamics". Systems Research and Behavioral Science. 36 (4): 514–531. doi:10.1002/sres.2567. S2CID 149946425.
+ Berreby, David (1 April 1996). "Between Chaos and Order: What Complexity Theory Can Teach Business". strategy-business.com. Retrieved 23 August 2020.
+ Birkinshaw, Julian (11 November 2013). "Managing Complexity Is the Epic Battle Between Emergence and Entropy". Harvard Business Review. Retrieved 23 August 2020.
+ "Page 3, Similar fundamental between CAS and organisations, from paper "Ten Principles of Complexity & Enabling Infrastructures"" (PDF). by Professor Eve Mitleton-Kelly, Director Complexity Research Programme, London School of Economics. Archived from the original (PDF) on 12 May 2013. Retrieved 1 June 2012.
+ B. Porter, Terry. "Coevolution as a research framework for organizations and the natural environment" (PDF). University of Maine. Retrieved 23 August 2020.
+ A Lambert, Philip (June 2018). "The Order-Chaos Dynamic of Creativity". University of New Brunswick. Retrieved 24 August 2020.
+ McElroy, Mark W. (2000). "Integrating complexity theory, knowledge management and organizational learning". Journal of Knowledge Management. 4 (3): 195–203. doi:10.1108/13673270010377652. Retrieved 20 March 2016.
+ Saynisch, Manfred (2010). "Beyond frontiers of traditional project management: An approach to evolutionary, self-organizational principles and the complexity theory—results of the research program". Project Management Journal. 41 (2): 21–37. doi:10.1002/pmj.20159. S2CID 47040850.
+ Faucher, Jean-Baptiste. "A Complex Adaptive Organization Under the Lens of the LIFE Model:The Case of Wikipedia". Egosnet.org. Retrieved 25 August 2012.
+ "The Internet Analyzed as a Complex Adaptive System". Archived from the original on 29 May 2019. Retrieved 25 August 2012.
+ "Cyberspace: The Ultimate Complex Adaptive System" (PDF). The International C2 Journal. Retrieved 25 August 2012. by Paul W. Phister Jr
+ "Complex Adaptive Systems" (PDF). mit.edu. 2001. Retrieved 25 August 2012. by Serena Chan, Research Seminar in Engineering Systems
+ "Toward a Complex Adaptive Intelligence Community The Wiki and the Blog". D. Calvin Andrus. cia.gov. Archived from the original on 13 June 2007. Retrieved 25 August 2012.
+Further reading
+Axelrod, R. A.; Cohen, M. D. (2000). Harnessing Complexity: Organizational Implications of a Scientific Frontier. New York: The Free Press.
+Bar-Yam, Yaneer (2005). Making Things Work: Solving Complex Problems in a Complex World. Cambridge, MA: Knowledge Press.
+Beautement, P.; Broenner, C. (2010). Complexity Demystified: A Guide for Practitioners. Axminster: Triarchy Press. Retrieved 19 July 2025.
+Biermann, Frank; Kim, R. E. (2020). yes (ed.). Architectures of Earth System Governance: Institutional Complexity and Structural Transformation. Cambridge University Press. doi:10.1017/9781108784641. ISBN 978-1-108-78464-1.
+Brown, S. L.; Eisenhardt, K. M. (1997). "The Art of Continuous Change". Administrative Science Quarterly. 42: 1–34. doi:10.2307/2393807. JSTOR 2393807.
+Burns, S.; Stalker, G. M. (1961). The Management of Innovation. London: Tavistock Publications.
+Davis, J. P.; Eisenhardt, K. M.; Bingham, C. B. (2009). "Optimal Structure, Market Dynamism, and the Strategy of Simple Rules". Administrative Science Quarterly. 54 (3): 413–452. doi:10.2189/asqu.2009.54.3.413.
+De Toni, A. F.; Comello, L. (2010). Journey into Complexity. Udine: Lulu Publisher.
+Fonseca, J. (2001). Complexity and Innovation in Organizations. London: Routledge.
+Douma, S.; Schreuder, H. (2013). Economic Approaches to Organizations (6th ed.). Harlow: Pearson.
+Gell-Mann, M. (1994). The Quark and the Jaguar: Adventures in the Simple and the Complex. New York: WH Freeman.
+Kauffman, S. (1993). The Origins of Order. New York, NY: Oxford University Press.
+Levinthal, D. (1997). "Adaptation on Rugged Landscapes". Management Science. 43 (7): 934–950. doi:10.1287/mnsc.43.7.934.
+Liang, T. Y. (2016). Complexity-Intelligence Strategy: A New Paradigmatic Shift. Singapore: World Scientific Publishing.
+March, J. G. (1991). "Exploration and Exploitation in Organizational Learning" (PDF). Organization Science. 2 (1): 71–87. doi:10.1287/orsc.2.1.71. Retrieved 19 July 2025.
+McKelvey, B. (1999). "Avoiding Complexity Catastrophe in Coevolutionary Pockets". Organization Science. 10 (3): 249–321. doi:10.1287/orsc.10.3.294.
+McMillan, E. (2004). Complexity, Organizations and Change. London: Routledge. ISBN 041531447X.
+Moffat, James (2003). Complexity Theory and Network Centric Warfare.
+Obolensky, Nick (2010). Complex Adaptive Leadership – Embracing Paradox and Uncertainty.
+Perrow, C. Complex Organizations: A Critical Essay. Glenville, Illinois: Scott, Foresman & Co.
+Rivkin, J. W. (2000). "Imitation of Complex Strategies". Management Science. 46 (6): 824–844. doi:10.1287/mnsc.46.6.824.11940.
+Rivkin, J.; Siggelkow, N. (2003). "Balancing Search and Stability". Management Science. 49: 290–311. doi:10.1287/mnsc.49.3.290.12740.
+Rudolph, J.; Repenning, N. (2002). "Disaster Dynamics: Understanding the Role of Quantity in Organizational Collapse". Administrative Science Quarterly. 47: 1–30. doi:10.2307/3094889. JSTOR 3094889.
+Schilling, M. A. (2000). "Toward a General Modular Systems Theory". Academy of Management Review. 25 (2): 312–334. doi:10.2307/259016. JSTOR 259016.
+Siggelkow, S. (2002). "Evolution toward Fit". Administrative Science Quarterly. 47: 125–159. doi:10.2307/3094893. JSTOR 3094893.
+Simon, H. A. (1996). The Sciences of the Artificial (3rd ed.). Cambridge, MA: MIT Press.
+Smith, Edward (2006). Complexity, Networking, and Effects Based Approaches to Operations.
+Snowden, D. J.; Boone, M. (2007). "A Leader's Framework for Decision Making". Harvard Business Review: 69–76.
+Weick, K. E. (1976). "Educational Organizations as Loosely Coupled Systems". Administrative Science Quarterly. 21 (1): 1–19. doi:10.2307/2391875. JSTOR 2391875.
+vte
+Aspects of organizations
+Topics	
+ArchitectureBehaviorBlameCapitalCellsChartCitizenship behaviorClimateCommitmentCommunicationComplexityConflictCultureDesignDevelopmentDiagnosticsDissentEcologyEffectivenessEngineeringEthicsFieldHierarchyIdentificationIntelligenceJusticeLearningLife cycleMachiavellianismNarcissismNetwork analysisOmbudsmanPatternsPerceived supportPerformancePsychologyResilienceRetaliatory behaviorSafetySpaceStorytellingStructureTheoryWorkshop
+See also	
+History of organizationsOrganization studiesOutline of organizational theory
+ See also templatesAspects of corporationsAspects of jobsAspects of occupationsAspects of workplaces
+Categories: Systems scienceBusiness economicsOrganizational theoryTechnology strategyComplex systems theoryCybernetics

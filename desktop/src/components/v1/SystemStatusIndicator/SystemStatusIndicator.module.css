@@ -1,0 +1,7 @@
+.status {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  color: var(--color-text-primary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

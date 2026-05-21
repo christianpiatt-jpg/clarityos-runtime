@@ -1,0 +1,18 @@
+notepad 201_RuntimeNotes.idx
+
+[Record]
+Name = Runtime Notes
+Code = 201
+Path = ../../03_OperatorNotes/Runtime_Notes/
+Description = Real-time operator notes including hydronic cues, cockpit reminders, low-energy movement instructions, and in-room stabilization guidance.
+
+[Files]
+Hydronic_Cues = hydronic_cues.txt
+Cockpit_Reminders = cockpit_reminders.txt
+LowEnergy_Movement = lowenergy_movement.txt
+Stabilization_Notes = stabilization_notes.txt
+Operator_Prompts = operator_prompts.txt
+
+[Links]
+Parent = 200_OperatorHandbook.idx
+Siblings = 202_ScenarioLibrary.idx, 203_DriftCatalog.idx, 204_RecoveryPlaybook.idx

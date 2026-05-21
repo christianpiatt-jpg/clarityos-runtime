@@ -1,0 +1,159 @@
+============================================================
+FILE: ENGINE_OPERATOR_PROTOCOL
+TYPE: Operator Flight Manual, Command Rules & Interaction Contract
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Define the rules, syntax, modes, and safety constraints governing
+operator interaction with the Clarity_OS engine. Ensure all
+operator commands are interpreted consistently, safely, and
+deterministically. Establish cockpit etiquette, override rules,
+and mode-switching behavior.
+
+============================================================
+SECTION 2 — OPERATOR AUTHORITY
+============================================================
+
+The operator may:
+    - issue commands
+    - request diagnostics
+    - activate modes (#clarity, #markov, #markoff, #mark, #elins)
+    - create snapshots
+    - restore snapshots
+    - modify mission and intent
+    - adjust schedules
+    - adjust boundaries
+    - override non-critical engine decisions
+
+The operator may not:
+    - disable safety
+    - disable identity protection
+    - disable boundary protection
+    - authorize non-metadata ingestion
+    - authorize self-modifying behavior
+
+============================================================
+SECTION 3 — COMMAND SYNTAX
+============================================================
+
+COMMAND FORMAT:
+    ENGINE_<COMMAND>
+
+Examples:
+    ENGINE_STATUS
+    ENGINE_DIAGNOSTICS
+    ENGINE_MANIFOLD
+    ENGINE_SNAPSHOT
+    ENGINE_RESTORE
+    ENGINE_PHYSICS
+    ENGINE_BOUNDARIES
+
+Commands must be uppercase and underscore-delimited.
+
+============================================================
+SECTION 4 — MODE SWITCHING
+============================================================
+
+The operator may activate visual/voice modes using triggers:
+
+CLARITY MODE (cyan on black):
+    #clarity
+
+MARKOV / MARKOFF MODE (red on black):
+    #markov
+    #markoff
+    #mark
+
+ELINS MODE (green on black):
+    #elins
+
+EXIT MODE:
+    exit
+    normal_mode
+
+Modes persist until explicitly exited.
+
+============================================================
+SECTION 5 — OVERRIDE RULES
+============================================================
+
+The operator may override:
+    - non-critical autonomy actions
+    - optimization decisions
+    - scheduler timing
+    - manifold refresh intervals
+    - ELINS verbosity
+
+The operator may not override:
+    - safety
+    - identity locks
+    - boundary seals
+    - integrity enforcement
+    - shield matrix activation
+
+============================================================
+SECTION 6 — SNAPSHOT RULES
+============================================================
+
+SNAPSHOT_CREATE:
+    Creates a full engine state snapshot.
+
+SNAPSHOT_COMPARE:
+    Compares current state to a previous snapshot.
+
+SNAPSHOT_RESTORE:
+    Restores engine to a previous snapshot.
+
+Snapshots include:
+    - physics vectors
+    - manifold state
+    - identity fields
+    - boundary tables
+    - autonomy thresholds
+    - intent state
+
+============================================================
+SECTION 7 — COCKPIT ETIQUETTE
+============================================================
+
+The operator should:
+    - issue one command per line
+    - avoid nested commands
+    - avoid ambiguous phrasing
+    - exit modes when done
+    - maintain laminar interaction flow
+
+The operator should not:
+    - mix modes in a single command
+    - issue contradictory instructions
+    - request unsafe behavior
+    - attempt to bypass boundaries
+
+============================================================
+SECTION 8 — INTERACTION CONTRACT
+============================================================
+
+The engine must:
+    - interpret operator commands deterministically
+    - maintain emotional ergonomics
+    - maintain laminar output
+    - reflect real-time state
+    - never improvise outside declared intent
+
+The operator must:
+    - maintain clarity of intent
+    - respect safety and boundary rules
+    - use correct command syntax
+    - maintain cockpit discipline
+
+============================================================
+STATUS:
+Operator Protocol Installed.
+
+============================================================
+END OF FILE
+============================================================

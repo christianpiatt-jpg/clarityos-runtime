@@ -1,0 +1,18 @@
+903_PlanetaryDiagnostics.idx
+
+[Record]
+Name = Planetary Diagnostics
+Code = 903
+Path = ../../Index_Records/
+Description = High-level diagnostic layer for global coherence, stability, drift, and planetary-scale system health.
+
+[Files]
+Planetary_Health = planetary_health.txt
+Global_Drift = global_drift.txt
+Mesh_Integrity = mesh_integrity.txt
+Planetary_Risk = planetary_risk.txt
+Diagnostics_Crosswalk = diagnostics_crosswalk.txt
+
+[Links]
+Parent = 900_PlanetaryMesh.idx
+Siblings = 901_GlobalFlows.idx, 902_CrossScaleDynamics.idx, 904_PlanetarySnapshots.idx

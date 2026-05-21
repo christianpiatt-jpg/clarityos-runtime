@@ -1,0 +1,32 @@
+Category,Vendor,Description
+Office Expenses,Adobe,Software subscription
+Office Expenses,Microsoft,Software subscription
+Office Expenses,Apple,iCloud/storage/developer tools
+Office Expenses,Audible,Professional development audio
+Office Expenses,GoDaddy,Domains and hosting
+Office Expenses,Domain Registrar,Domain renewals
+Office Expenses,Cloud Services,Cloud compute and SaaS tools
+Office Expenses,Fiverr,Digital goods (non-labor)
+
+Supplies,Home Depot,Tools and materials under $2,500
+Supplies,Staples,Office supplies
+Supplies,Amazon,Office items and small electronics
+Supplies,Amazon,Cables/adapters/peripherals
+
+Contract Labor,Fiverr,Freelance labor (design/editing/etc.)
+Contract Labor,Contractor,Independent contractor services
+
+Meals,GrubHub,Business meals (50% deductible)
+Meals,Restaurant,Business meals (50% deductible)
+Meals,Coffee Shop,Business meals (50% deductible)
+
+Bank Fees,Bank,Service charges
+Bank Fees,Payment Processor,Processing fees
+
+Other Expenses,Amazon,Misc business tools
+Other Expenses,Digital Services,Misc digital services
+Other Expenses,Utilities,Small business utilities
+Other Expenses,Tools,Misc small tools
+
+Non-Deductible,Employer,Salary deposits (not a business expense)
+Non-Deductible,Personal,Personal purchases (excluded)

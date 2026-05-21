@@ -1,0 +1,5 @@
+Cross‑Reference:
+See: ../../../Index_Records/09_Archive/Immutable/2026-04-02_303.483_VA-vs-Galileo_Architecture-Divergence.txt
+
+Relevance:
+ELINS is designed to preserve operator-centered interpretation and avoid bureaucratic collapse. This archival entry explains the architectural divergence that makes ELINS necessary.

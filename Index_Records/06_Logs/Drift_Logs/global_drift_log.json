@@ -1,0 +1,23 @@
+[
+  {
+    "day": "2026-04-02",
+    "counts": {
+      "conflict": 51,
+      "motion": 17,
+      "collapse": 3,
+      "resource": 2,
+      "legitimacy": 4,
+      "cooperation": 8,
+      "identity": 5
+    },
+    "drift": {
+      "conflict": 51,
+      "motion": 17,
+      "collapse": 3,
+      "resource": 2,
+      "legitimacy": 4,
+      "cooperation": 8,
+      "identity": 5
+    }
+  }
+]

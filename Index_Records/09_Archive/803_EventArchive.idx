@@ -1,0 +1,18 @@
+803_EventArchive.idx
+
+[Record]
+Name = Event Archive
+Code = 803
+Path = ../../09_Archive/Event_Archive/
+Description = Archival of major events, runtime sequences, drift events, recovery events, and historical timelines.
+
+[Files]
+Event_History = event_history.txt
+Runtime_Sequences = runtime_sequences.txt
+Drift_Events = drift_events.txt
+Recovery_Events = recovery_events.txt
+Event_Crosswalk = event_crosswalk.txt
+
+[Links]
+Parent = 800_SystemArchive.idx
+Siblings = 801_SubsystemArchive.idx, 802_OperatorArchive.idx, 804_SnapshotArchive.idx

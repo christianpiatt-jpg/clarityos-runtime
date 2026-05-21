@@ -1,0 +1,30 @@
+# Cross-Scale Turbulence Map  
+## Local–Global Turbulence Resonance
+
+### Purpose
+Map turbulence at:
+- operator level
+- institutional level
+- basin/global level
+
+### Inputs
+- Micro_Turbulence: from Diagnostic Subsystem  
+- Macro_Turbulence: from ELINS  
+
+### Core Logic
+For each time window:
+- Measure Micro_TurbulenceDensity
+- Measure Macro_TurbulenceDensity
+- Detect resonance when both exceed thresholds
+
+### Outputs
+- Turbulence_Resonance_Flag
+- Resonance_Intensity_Score
+- Affected_Nodes (micro)
+- Affected_Basins (macro)
+
+### Notes
+Resonance indicates:
+- shared pressure sources
+- cross-scale instability
+- potential cascade risk

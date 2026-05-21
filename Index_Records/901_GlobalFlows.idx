@@ -1,0 +1,23 @@
+901_GlobalFlows.idx
+
+[Record]
+Name = Global Flows
+Code = 901
+Path = ../../Index_Records/
+Description = Tracks global-scale flows, inter-basin dynamics, and long-range propagation patterns across the planetary mesh.
+
+[Files]
+Flow_Maps = flow_maps.txt
+InterBasin_Flows = interbasin_flows.txt
+Global_Gradients = global_gradients.txt
+Flow_Health = flow_health.txt
+Flow_Crosswalk = flow_crosswalk.txt
+
+[Links]
+Parent = 900_PlanetaryMesh.idx
+Siblings = 902_CrossScaleDynamics.idx, 903_PlanetaryDiagnostics.idx, 904_PlanetarySnapshots.idx
+
+[Crosslinks]
+Up = 900
+Across = 902–904
+Down = None

@@ -1,0 +1,40 @@
+[INDEX_RECORD]
+id: 305
+name: Structural Inventory
+class: library
+layer: 04_Library
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Canonical index for structural inventories, folder maps, and system-level
+directory definitions. Serves as the authoritative reference for all
+ClarityOS folder structures, naming conventions, and directory schemas.
+
+[ARTIFACTS]
+File_Folders_20260410.txt
+
+[PATHS]
+artifact_root: /Library_Clarity_OS/Index_Records/04_Library/
+
+[DEWEY]
+000.01  ; System Architecture — Structural Maps & Inventories
+
+[LINKS]
+upstream: 000_Constitution.idx
+adjacent: 300_Primitives.idx, 304_CanonicalEntries.idx
+downstream: 400_SystemMaps.idx, 401_SubsystemMaps.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+notes: "Structural inventory must remain drift-free; update only with
+explicit operator intent."
+
+[END]
+
+[CHECKSUM]
+algorithm: SHA256
+value: <pending>
+generated: 2026-04-10
+notes: "Checksum must be regenerated after any modification to the artifact."

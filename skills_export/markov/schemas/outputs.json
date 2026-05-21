@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "markov.outputs.v1",
+  "title": "Markov — output",
+  "type": "object",
+  "required": ["summary", "states", "transitions", "current_state", "trajectories", "absorbing", "cycles"],
+  "properties": {
+    "summary": { "type": "string", "maxLength": 600 },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name":             { "type": "string" },
+          "description":      { "type": "string" },
+          "entry_conditions": { "type": "array", "items": { "type": "string" } },
+          "exit_conditions":  { "type": "array", "items": { "type": "string" } },
+          "signatures":       { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "trigger"],
+        "properties": {
+          "from":       { "type": "string" },
+          "to":         { "type": "string" },
+          "trigger":    { "type": "string" },
+          "likelihood": { "enum": ["low", "medium", "high"] },
+          "timescale":  { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "current_state": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } },
+        { "type": "null" }
+      ]
+    },
+    "trajectories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path":       { "type": "array", "items": { "type": "string" } },
+          "likelihood": { "enum": ["low", "medium", "high"] },
+          "horizon":    { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "absorbing": { "type": "array", "items": { "type": "string" } },
+    "cycles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["states"],
+        "properties": {
+          "states":  { "type": "array", "items": { "type": "string" } },
+          "trigger": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

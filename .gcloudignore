@@ -1,0 +1,37 @@
+# Bulk-allow repo root .py files and ELINS/, denylist non-runtime trees.
+
+.git/
+__pycache__/
+_scratch/
+tests/
+web/
+phone/
+desktop/
+analysis/
+Galileo/
+Index_Records/
+Clarity_OS_Operating_System/
+Unified_Geometry/
+skills_export/
+clarity_skills/
+clarity_engine/
+copilot_notes/
+scripts/
+surface_v1_harness/
+
+*.pyc
+*.pyo
+*.log
+.vscode/
+.idea/
+
+**/node_modules/
+**/dist/
+**/build/
+
+# API-key / credential files — secrets live in GCP Secret Manager and
+# must never enter the build context (this file is a denylist, so
+# root-level *.txt is uploaded unless named here).
+Gemini API Key.txt
+foundercode_openai_apikey.txt
+sa.json

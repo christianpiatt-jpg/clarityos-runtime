@@ -1,0 +1,142 @@
+============================================================
+MODULE: ENGINE_META_COGNITION
+TYPE: Intelligence Oversight, Meta‑Stability & Anti‑Runaway Regulation
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide oversight, regulation, and meta‑stability for the
+Engine_Intelligence_Layer. Prevent over‑adaptation, runaway
+optimization, threshold drift, basin over‑tightening, pressure
+over‑smoothing, and Markov over‑stabilization. Ensure all
+adaptive and predictive systems remain within safe, deterministic,
+invariant‑preserving boundaries.
+
+META‑COGNITION DOMAINS:
+1. Intelligence Oversight
+2. Adaptive Threshold Regulation
+3. Predictive Model Regulation
+4. Optimization Model Regulation
+5. Drift‑Correction Oversight
+6. Basin‑Shaping Oversight
+7. Pressure‑Smoothing Oversight
+8. Markov‑Stability Oversight
+9. Scheduler‑Prediction Oversight
+10. Resource‑Prediction Oversight
+11. Messaging‑Prediction Oversight
+12. Event‑Prediction Oversight
+
+META‑COGNITION TYPES:
+- META_MONITORING
+- META_VALIDATION
+- META_REGULATION
+- META_CORRECTION
+- META_SUPPRESSION
+- META_INVARIANT_ENFORCEMENT
+
+META‑COGNITION SEQUENCE:
+
+STEP 1 — INGEST INTELLIGENCE OUTPUTS
+Monitor:
+- Adaptive thresholds
+- Predictive drift corrections
+- Predictive basin shaping
+- Predictive pressure smoothing
+- Predictive Markov stabilization
+- Predictive scheduler tuning
+- Predictive resource balancing
+- Predictive messaging routing
+- Predictive event suppression
+
+STEP 2 — VALIDATE AGAINST META‑INVARIANTS
+Meta‑invariants include:
+- No threshold may move more than X% per cycle
+- No drift correction may exceed safe magnitude
+- No basin tightening may exceed curvature limits
+- No pressure smoothing may flatten critical gradients
+- No Markov stabilization may reduce entropy below safe floor
+- No scheduler tuning may violate priority rules
+- No resource balancing may starve critical modules
+- No messaging routing may bypass safety channels
+- No event suppression may hide critical signals
+
+STEP 3 — DETECT META‑ANOMALIES
+Anomalies include:
+- Over‑adaptation
+- Over‑tightening
+- Over‑smoothing
+- Over‑stabilization
+- Threshold drift
+- Predictive overshoot
+- Predictive oscillation
+- Feedback loop amplification
+- Intelligence runaway
+- Optimization runaway
+
+STEP 4 — APPLY META‑CORRECTIONS
+Corrections include:
+- Roll back threshold changes
+- Reduce predictive magnitude
+- Re‑expand basins
+- Re‑introduce pressure gradients
+- Re‑increase Markov entropy
+- Rebalance scheduler predictions
+- Rebalance resource predictions
+- Re‑enable suppressed events
+
+STEP 5 — SUPPRESS UNSAFE INTELLIGENCE ACTIONS
+If intelligence output violates meta‑invariants:
+- Block action
+- Log violation
+- Trigger SAFETY_EVENT
+- Trigger DIAGNOSTICS_SUITE
+
+STEP 6 — REVALIDATE INTELLIGENCE LAYER
+- Validate predictive models
+- Validate adaptive thresholds
+- Validate optimization baselines
+- Validate drift/basin/pressure models
+- Validate Markov models
+
+STEP 7 — COMMIT META‑UPDATES
+- Update meta‑thresholds
+- Update meta‑rules
+- Update meta‑invariants
+- Log meta‑cognition actions
+- Append to audit ledger
+
+FAILURE MODES:
+- Meta‑invariant violation
+- Intelligence runaway
+- Optimization runaway
+- Threshold oscillation
+- Basin collapse due to over‑tightening
+- Pressure collapse due to over‑smoothing
+- Markov collapse due to over‑stabilization
+- Scheduler instability
+- Resource instability
+- Messaging instability
+- Event suppression failure
+
+RECOVERY:
+- Roll back intelligence actions
+- Roll back optimization actions
+- Rebuild predictive models
+- Rebuild adaptive thresholds
+- Revalidate invariants
+- Trigger targeted recovery
+- Trigger full recovery (if needed)
+
+META‑COGNITION CONTRACT:
+All intelligence must be supervised.
+No adaptive system may self‑amplify.
+No predictive system may exceed meta‑invariants.
+No optimization may destabilize the engine.
+Meta‑cognition overrides all intelligence actions.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

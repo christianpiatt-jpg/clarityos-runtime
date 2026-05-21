@@ -1,0 +1,32 @@
+[INDEX_RECORD]
+id: 306
+name: Naming Conventions
+class: library
+layer: 04_Library
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Canonical naming conventions for files, folders, indexes, and modules.
+Defines allowed characters, date formats, numbering rules, and structural
+prefixes for all ClarityOS artifacts.
+
+[CONVENTIONS]
+file_format: <Name>_<YYYYMMDD>.<ext>
+index_format: <###>_<Name>.idx
+folder_format: <##>_<FolderName>
+module_format: <###>_<ModuleName>
+
+[DEWEY]
+000.02  ; System Architecture — Naming Standards
+
+[LINKS]
+upstream: 305_StructuralInventory.idx
+adjacent: 300_Primitives.idx
+downstream: 400_SystemMaps.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+
+[END]

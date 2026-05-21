@@ -1,0 +1,98 @@
+#tags: #clarityOS, #v2, #module, #operator-layer, #spine, #geometry-first, #identity, #library-object, #crosslinked
+
+# IDENTITY LAYER v2 — OPERATOR NOTES
+Version: v2
+Layer: Self Geometry → Stabilized Identity
+
+------------------------------------------------------------
+## PURPOSE
+IDENTITY_LAYER_V2 stabilizes the operator’s sense of self by grounding it
+in geometry rather than narrative.
+
+Its core function:
+→ Produce a clear, nonreactive, structurally stable reference frame.
+
+This layer ensures that identity is:
+- downstream of interpretation
+- insulated from emotional turbulence
+- anchored in structure, not story
+- stable under pressure
+
+It is the “center of gravity” of ClarityOS v2.
+
+------------------------------------------------------------
+## INPUTS
+- QC_ENGINE.output (probabilities, thresholds, force-weights)
+- Environmental context (optional)
+- System load (optional)
+
+------------------------------------------------------------
+## OUTPUTS
+- clear_self  
+- nonreactive_posture  
+- stable_reference_frame  
+- identity-neutral interpretation  
+
+These outputs feed directly into:
+- AGENCY_ENGINE_V2  
+- MARKOV_QC  
+- Executive layers (v1) indirectly  
+
+------------------------------------------------------------
+## OPERATOR POSTURE
+When using this module, the operator maintains:
+
+- calm neutrality  
+- grounded presence  
+- slow identity movement  
+- separation of self from signal  
+- structural awareness  
+
+The operator asks:
+“What is *me* and what is *the environment*?”
+
+Not:
+“What does this say about who I am?”
+
+------------------------------------------------------------
+## FAILURE MODES
+Identity becomes unstable when:
+
+- QC is bypassed  
+- emotional charge is high  
+- the operator personalizes external patterns  
+- narrative overrides geometry  
+- the system is overloaded  
+
+Symptoms include:
+- identity wobble  
+- reactivity  
+- over-identification  
+- collapsing self into the situation  
+- agency distortion  
+
+------------------------------------------------------------
+## RECOVERY PROTOCOL
+If identity destabilizes:
+
+1. Pause all interpretation.  
+2. Return to QC probabilities and thresholds.  
+3. Remove all personal meaning.  
+4. Re-anchor in geometric self-description:
+   - “Where am I?”
+   - “What is my posture?”
+   - “What is the shape of my role here?”
+5. Re-establish the stable reference frame.  
+
+This restores identity clarity.
+
+------------------------------------------------------------
+## CROSS-LINKS
+- QC_ENGINE  
+- AGENCY_ENGINE_V2  
+- MARKOV_QC  
+- 04_Executive_Layer (downstream)  
+- 05_Meta_Executive (oversight)  
+
+------------------------------------------------------------
+# END OF FILE

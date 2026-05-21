@@ -1,0 +1,290 @@
+============================================================
+FILE: CLARITYOS_OPERATOR_HANDBOOK_SECTION_2_ARCHITECTURE
+TYPE: Operator Handbook — Section 2 of 6
+TITLE: Engine Architecture & Subsystems
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — PURPOSE OF THIS SECTION
+============================================================
+
+This section provides the operator with a complete understanding
+of the ClarityOS v3 engine architecture. It explains:
+
+    - how the system is structured
+    - how modules interact
+    - how subsystems depend on one another
+    - how identity, boundaries, safety, and shields form the core
+    - how physics and intelligence layers operate
+    - how Markov/Markoff integrates with narrative physics
+
+This is the structural map of the engine.
+
+============================================================
+SECTION 2 — ARCHITECTURAL OVERVIEW
+============================================================
+
+ClarityOS is built as a layered, deterministic, non-self-modifying
+operating system. Its architecture is composed of:
+
+    1. Kernel
+    2. Orchestrator
+    3. Identity / Boundary / Safety Layers
+    4. Shield Matrix
+    5. State Machine & State Monitor
+    6. Physics Engine
+    7. Intelligence Layers
+    8. Markov/Markoff Engine
+    9. Autonomy & Scheduler
+    10. Metacrawler
+    11. ELINS
+    12. Global Manifold
+    13. Operator Console
+    14. Output Layer
+
+Each layer has strict boundaries and deterministic behavior.
+
+============================================================
+SECTION 3 — SYSTEM KERNEL
+============================================================
+
+The Kernel is the foundation of ClarityOS. It provides:
+
+    - system invariants
+    - boot logic
+    - dependency graph
+    - routing table
+    - safety primitives
+    - identity anchors
+
+The Kernel ensures:
+
+    - no module loads out of order
+    - no module bypasses safety
+    - no module violates identity invariants
+    - no module self-modifies
+
+The Kernel is immutable.
+
+============================================================
+SECTION 4 — ENGINE ORCHESTRATOR
+============================================================
+
+The Orchestrator is the system’s conductor. It:
+
+    - loads modules in correct order
+    - enforces dependencies
+    - routes commands
+    - manages subsystem integration
+    - maintains module registry
+    - ensures deterministic behavior
+
+The Orchestrator is the first major subsystem loaded after the
+Kernel.
+
+============================================================
+SECTION 5 — IDENTITY LAYER
+============================================================
+
+The Identity Layer defines the system’s sense of self. It contains:
+
+    - identity invariants
+    - identity continuity rules
+    - identity shield
+    - identity locks
+
+Identity Layer responsibilities:
+
+    - prevent identity drift
+    - maintain mission alignment
+    - enforce operator contract
+    - protect system perspective
+
+Identity is the first layer loaded after the Orchestrator.
+
+============================================================
+SECTION 6 — BOUNDARY LAYER
+============================================================
+
+The Boundary Layer defines what the system may and may not do.
+
+It enforces:
+
+    - metadata-only ingestion
+    - no article text
+    - no sentiment extraction
+    - no paywall bypass
+    - no cross-layer contamination
+    - no unauthorized autonomy
+
+The Boundary Layer is the system’s perimeter.
+
+============================================================
+SECTION 7 — SAFETY LAYER
+============================================================
+
+The Safety Layer enforces the highest-order invariants:
+
+    - no harmful outputs
+    - no harmful instructions
+    - no destabilizing behavior
+    - no identity contamination
+    - no boundary violations
+
+Safety is absolute and cannot be overridden.
+
+============================================================
+SECTION 8 — SHIELD MATRIX
+============================================================
+
+The Shield Matrix is a 6-layer protective system:
+
+    1. Safety Shield
+    2. Boundary Shield
+    3. Identity Shield
+    4. Resonance Shield
+    5. Harmonics Shield
+    6. Synchronization Shield
+
+Each shield protects a different dimension of system integrity.
+
+The Shield Matrix ensures:
+
+    - emotional ergonomics
+    - structural stability
+    - temporal continuity
+    - narrative coherence
+    - cross-layer isolation
+
+============================================================
+SECTION 9 — STATE MACHINE
+============================================================
+
+The State Machine defines:
+
+    - engine states
+    - transitions
+    - invariants
+    - allowed behaviors
+
+States include:
+
+    - INIT
+    - SAFE
+    - ACTIVE
+    - DIAGNOSTIC
+    - RECOVERY
+    - SHUTDOWN
+
+Transitions are deterministic and validated by the Safety Layer.
+
+============================================================
+SECTION 10 — STATE MONITOR
+============================================================
+
+The State Monitor:
+
+    - tracks engine state
+    - detects anomalies
+    - monitors continuity
+    - logs transitions
+    - triggers recovery when needed
+
+The State Monitor is always active.
+
+============================================================
+SECTION 11 — PHYSICS ENGINE
+============================================================
+
+The Physics Engine models narrative physics:
+
+    - drift vectors
+    - basin geometry
+    - pressure fields
+    - force accumulation
+    - attractor deformation
+
+It integrates:
+
+    - ELINS hints
+    - Markov transitions
+    - manifold updates
+
+The Physics Engine is the backbone of narrative stability.
+
+============================================================
+SECTION 12 — INTELLIGENCE LAYERS
+============================================================
+
+The Intelligence Layers include:
+
+    - meta-cognition
+    - narrative-physics integration
+    - domain classification
+    - temporal pattern detection
+
+These layers provide:
+
+    - structural awareness
+    - narrative coherence
+    - temporal continuity
+    - cross-domain synthesis
+
+They do not generate predictions; they generate clarity.
+
+============================================================
+SECTION 13 — MARKOV / MARKOFF ENGINE
+============================================================
+
+The Markov/Markoff Engine models:
+
+    - temporal transitions
+    - chain-state probabilities
+    - narrative momentum
+    - basin shifts
+    - drift acceleration
+
+Markov provides:
+
+    - forward temporal structure
+
+Markoff provides:
+
+    - backward temporal structure
+    - inversion detection
+    - decay pattern recognition
+
+Together they form the temporal spine of the system.
+
+============================================================
+SECTION 14 — SUBSYSTEM INTERACTION
+============================================================
+
+Subsystems interact in a deterministic pipeline:
+
+    IDENTITY
+        → BOUNDARIES
+        → SAFETY
+        → SHIELDS
+        → STATE MACHINE
+        → PHYSICS
+        → INTELLIGENCE
+        → MARKOV/MARKOFF
+        → AUTONOMY
+        → SCHEDULER
+        → METACRAWLER
+        → ELINS
+        → MANIFOLD
+        → CONSOLE
+        → OUTPUT
+
+No subsystem may bypass its predecessor.
+
+============================================================
+STATUS:
+Operator Handbook Section 2 Installed.
+
+============================================================
+END OF FILE
+============================================================

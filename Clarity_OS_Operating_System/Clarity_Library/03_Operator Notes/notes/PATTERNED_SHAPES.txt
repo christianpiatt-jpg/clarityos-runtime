@@ -1,0 +1,93 @@
+#tags: #clarityOS, #v2, #module, #operator-layer, #spine, #geometry-first, #pattern-recognition, #library-object, #crosslinked
+# PATTERNED SHAPES — OPERATOR NOTES
+Version: v2
+Layer: Relational Field → Pattern Extraction
+
+------------------------------------------------------------
+## PURPOSE
+PATTERNED_SHAPES identifies the recurring relational structures that appear
+when humans, groups, institutions, or systems interact.
+
+It does not interpret meaning or intent.
+It simply extracts:
+
+- relational patterns  
+- force vectors  
+- shape signatures  
+- world‑system echoes  
+- historical recurrences  
+
+This module is the “pattern reader” of ClarityOS v2.
+
+------------------------------------------------------------
+## INPUTS
+- Geometric forms from GEOMETRIC_INTERPRETER  
+- Cultural and historical references  
+- Relational geometry from 01_Environmental_Geometry  
+- Environmental or institutional context  
+
+------------------------------------------------------------
+## OUTPUTS
+- shape_patterns  
+- force_vectors  
+- relational_signatures  
+- pattern categories  
+- pre‑force geometry for ER_TRANSLATOR  
+
+These outputs feed directly into:
+- ER_TRANSLATOR  
+- QC_ENGINE  
+
+------------------------------------------------------------
+## OPERATOR POSTURE
+When using this module, the operator maintains:
+
+- curiosity  
+- non‑attachment  
+- pattern‑first framing  
+- no personal attribution  
+- no moral overlay  
+
+The operator asks:
+“What pattern is this part of?”
+
+Not:
+“Why are they doing this to me?”
+
+------------------------------------------------------------
+## FAILURE MODES
+The module becomes noisy when:
+
+- the operator personalizes the pattern  
+- emotional charge distorts recognition  
+- the operator assumes intent or motive  
+- the pattern is collapsed into a story  
+- the operator overfits (seeing patterns that aren’t there)  
+
+Symptoms include:
+- misclassification  
+- premature conclusions  
+- narrative contamination  
+- pattern inflation  
+
+------------------------------------------------------------
+## RECOVERY PROTOCOL
+If the module degrades:
+
+1. Return to raw geometry from GEOMETRIC_INTERPRETER.  
+2. Identify only the relational positions.  
+3. Remove all motive‑language.  
+4. Re‑run the geometry through the pattern extractor.  
+
+This restores pattern clarity.
+
+------------------------------------------------------------
+## CROSS‑LINKS
+- GEOMETRIC_INTERPRETER  
+- ER_TRANSLATOR  
+- QC_ENGINE  
+- 06_Propagation_OS (pattern diffusion)  
+- 07_Global_OS (macro‑patterns)  
+
+------------------------------------------------------------
+# END OF FILE

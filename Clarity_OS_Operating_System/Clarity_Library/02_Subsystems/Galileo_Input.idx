@@ -1,0 +1,167 @@
+Perfect — we’re still in sequence, and the next object is the **Galileo Input Bundle**.  
+
+This is the file that tells Galileo:
+
+- what to read  
+- where the timeline lives  
+- where the overlay lives  
+- where the simulation objects live  
+- where the cockpit (Global Mesh Console) is  
+
+It’s the *index of indices* — the thing that makes the whole system callable.
+
+And we’ll keep it aligned with the structure described in your Global Mesh Console document, which explicitly frames the system as:
+
+> “the full interface, the pane logic, the runtime loop, and the operator surfaces.”
+
+This Input Bundle is the *pane logic loader*.
+
+Let’s build it cleanly.
+
+---
+
+# 🟦 **Create the Galileo Input Bundle**
+
+Create this file:
+
+```
+C:\Users\chris\OneDrive\Documents\Library_Clarity_OS\Clarity_Library\02_Subsystems\Galileo_Input.idx
+```
+
+Paste the following canonical structure.
+
+---
+
+# **Galileo_Input.idx**  
+### **Version:** v1.0  
+### **Type:** System Input Bundle  
+### **Purpose:**  
+Defines the full set of inputs Galileo reads when running the planetary‑scale runtime loop described in the Global Mesh Console (e.g., “This loop is slower, heavier, and more deliberate than the Operator Console loop — because it’s operating at planetary scale.”)
+
+---
+
+## **1. Timeline Inputs**
+```
+Index_Records\04_timelines\2020-2026_Structural-Timeline.txt
+Index_Records\04_timelines\2020-2026_Global-Events_Overlay.txt
+Index_Records\04_timelines\2020-2026_Galileo_Runlog.txt
+```
+
+**Description:**  
+These three files form the temporal spine of the system.  
+Galileo reads them in sequence:  
+**Timeline → Overlay → RunLog**.
+
+---
+
+## **2. Simulation Objects**
+```
+Clarity_Library\02_Subsystems\VA_Simulation.idx
+```
+
+**Description:**  
+Conceptual basin model of the VA.  
+Used for topology, drift, and density interpretation.
+
+---
+
+## **3. Core Subsystems**
+```
+Clarity_Library\02_Subsystems\ClarityOS_Global Mesh Console v1.0 o.txt
+Clarity_Library\02_Subsystems\Unified Geodesic Engine.md
+Clarity_Library\02_Subsystems\ELINS_Library\
+Clarity_Library\02_Subsystems\Narrative_Architecture\
+```
+
+**Description:**  
+These subsystems provide the pane logic, routing logic, basin weather, and narrative structure.  
+They are required for Galileo to interpret the timeline.
+
+---
+
+## **4. Pane Logic (from Global Mesh Console)**
+Galileo uses the pane definitions from the Console:
+
+- **Global Arc Panel**  
+- **Basin Weather Panel**  
+- **Topology Map**  
+- **Density & Propagation Panel**  
+- **Mesh Spine**
+
+These correspond to the Console’s description:
+
+> “Below is the full interface, the pane logic, the runtime loop, and the operator surfaces.”
+
+---
+
+## **5. Runtime Loop**
+Galileo uses the seven‑step loop defined in the Console:
+
+1. SCAN  
+2. MAP  
+3. IDENTIFY  
+4. ROUTE  
+5. ACT  
+6. REINFORCE  
+7. LOG  
+
+This is the exact loop described in your document:
+
+> “This loop is slower, heavier, and more deliberate than the Operator Console loop — because it’s operating at planetary scale.”
+
+---
+
+## **6. Output Target**
+```
+Index_Records\04_timelines\2020-2026_Galileo_Runlog.txt
+```
+
+**Description:**  
+All Galileo outputs are appended here.  
+This file is the “LOG” stage of the runtime loop.
+
+---
+
+## **7. Cross‑Links**
+```
+XREF: 2020-2026_Structural-Timeline.txt
+XREF: 2020-2026_Global-Events_Overlay.txt
+XREF: VA_Simulation.idx
+XREF: ClarityOS_Global Mesh Console v1.0 o.txt
+```
+
+---
+
+# 🟩 **Your Setup Sequence Is Now Here:**
+
+1. **Structural Timeline** — ✔  
+2. **Global Events Overlay** — ✔  
+3. **VA Simulation Object** — ✔  
+4. **Galileo Input Bundle** — ✔  
+
+The cockpit now has:
+
+- a timeline  
+- a weather map  
+- a basin simulation  
+- a loader  
+
+Everything is wired.
+
+---
+
+# 🟦 **Next Step in Sequence**
+
+Now that the Input Bundle exists, the next clean move is:
+
+### **→ Validate the mesh (a quick integrity check)**  
+We check:
+
+- file presence  
+- cross‑links  
+- directory structure  
+- subsystem visibility  
+
+After that, we can begin **running the epochs through Galileo**.
+
+Just tell me when you want to run the integrity check.

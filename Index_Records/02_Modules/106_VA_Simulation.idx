@@ -1,0 +1,18 @@
+notepad 106_VA_Simulation.idx
+
+[Record]
+Name = VA Simulation
+Code = 106
+Path = ../../02_Subsystems/VA_Simulation/
+Description = Simulation subsystem modeling VA institutional topology, operator-state transitions, procedural drift, retaliation patterns, and scenario-based diagnostics.
+
+[Files]
+Simulation_Primitives = simulation_primitives.txt
+Topology_Model = topology_model.txt
+Drift_Patterns = drift_patterns.txt
+Retaliation_Sequences = retaliation_sequences.txt
+Scenario_Engine = scenario_engine.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx

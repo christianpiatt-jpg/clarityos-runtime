@@ -1,0 +1,8 @@
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-gap);
+  border-top: var(--border-1);
+  padding: var(--space-inner);
+  background: var(--color-bg-void);
+}

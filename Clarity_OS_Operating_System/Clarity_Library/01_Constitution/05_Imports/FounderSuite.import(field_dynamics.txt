@@ -1,0 +1,9 @@
+FounderSuite.import(field_dynamics = {vision, execution, narrative})
+FounderSuite.import(pressure_signatures = {overload, drift, fragmentation})
+FounderSuite.import(coherence_conditions = founder_alignment)
+FounderSuite.import(attractors = {momentum, clarity})
+FounderSuite.import(transitions = {ideation, build, deploy})
+
+FounderSuite.runtime(drift_detection = founder_drift,
+                     propagation = console_routing,
+                     stabilization = clarity_protocols)

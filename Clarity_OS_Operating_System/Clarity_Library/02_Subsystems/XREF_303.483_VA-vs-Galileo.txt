@@ -1,0 +1,5 @@
+Cross‑Reference:
+See: ../../Index_Records/09_Archive/Immutable/2026-04-02_303.483_VA-vs-Galileo_Architecture-Divergence.txt
+
+Reason:
+This reflection explains the architectural divergence between VA-style bureaucratic automation and Galileo/ELINS human-in-the-loop clarity systems. Relevant to all subsystem design, especially ELINS, Narrative Architecture, and ingestion pipelines.

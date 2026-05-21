@@ -1,0 +1,26 @@
+#tags: #clarityOS, #v2, #handbook, #operator-layer, #library-object
+[1] GEOMETRIC_INTERPRETER
+        ↓
+[2] PATTERNED_SHAPES
+        ↓
+[3] ER_TRANSLATOR
+        ↓
+[4] QC_ENGINE
+        ↓
+[5] IDENTITY_LAYER_V2
+        ↓
+[6] AGENCY_ENGINE_V2
+        ↓
+[7] PENTAGON_SPHERE_GEOMETRY
+        ↓
+[8] MARKOV_QC
+
+ClarityOS_v2_Operator_Notes_Index.txt
+GEOMETRIC_INTERPRETER_Notes.txt
+PATTERNED_SHAPES.txt
+ER_TRANSLATOR_NOTES.txt
+QC_ENGINE.txt
+IDENTITY_LAYER_V2_notes.txt
+AGENCY_ENGINE_V2_notes.txt
+PENTAGON_SPHERE_GEOMETRY_Notes.txt
+MARKOV_QC_Notes.txt

@@ -1,0 +1,24 @@
+[ClarityOS acceptance] timing drift — {{interpretation}}
+
+Detected at: {{detected_at}}
+
+Per-iteration mean (scenario 05):
+  baseline (first window): {{baseline_ms}} ms
+  current  (last window):  {{current_ms}} ms
+  drift:                   {{drift_pct}}
+  slope:                   {{slope_ms_per_run}} ms / run
+  runs in series:          {{n_runs}}
+
+Interpretation: {{interpretation}}
+
+Threshold reference (tests/acceptance/stability_curves.md):
+  drift_pct  ≤ +5%       stable          no action
+  +5% to +15%            mild drift      track; investigate if sustained
+  +15% to +30%           meaningful      P2 — profile slowest endpoint
+  > +30%                 severe          P1 — likely to fail scenario-05 ratio gate
+
+Open the curve view for full context:
+  {{dashboard_url}}
+
+If the drift is sustained for 5+ consecutive runs, escalate severity
+by one bucket and post an incident at /founder/acceptance/incidents.

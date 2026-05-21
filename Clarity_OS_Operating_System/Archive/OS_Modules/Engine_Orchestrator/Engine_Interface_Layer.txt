@@ -1,0 +1,122 @@
+============================================================
+MODULE: ENGINE_INTERFACE_LAYER
+TYPE: External Interface & API Boundary
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide a safe, stable, and version-aware interface for external
+systems, applications, agents, or services to call the
+Clarity_OS narrative-physics engine. Ensures strict input
+validation, safe routing, and consistent output formatting.
+
+INTERFACE TYPES:
+1. Direct Call Interface
+2. Structured Input Interface
+3. Structured Output Interface
+4. Version-Aware Routing Interface
+5. Safety-Aware Routing Interface
+6. Extension-Aware Routing Interface
+
+INPUT CONTRACT:
+External callers must provide:
+- Topic
+- Direction
+- Optional: Version Target
+- Optional: Extension Set
+- Optional: Config Overrides (validated)
+
+OUTPUT CONTRACT:
+Engine returns:
+- ≤3 Bullet Output
+- Version Used
+- Safety Status
+- Health Snapshot (optional)
+- Execution Metadata (optional)
+
+INTERFACE SEQUENCE:
+
+STEP 1 — RECEIVE EXTERNAL INPUT
+- Accept Topic + Direction
+- Accept optional version target
+- Accept optional extension set
+- Accept optional config overrides
+
+STEP 2 — VALIDATE INPUT
+- Validate Topic integrity
+- Validate Direction integrity
+- Validate version target
+- Validate extension set
+- Validate config overrides
+- Reject malformed or unsafe inputs
+
+STEP 3 — SELECT ENGINE VERSION
+IF version target provided:
+    - Route to requested version (if compatible)
+ELSE:
+    - Route to latest stable version
+
+STEP 4 — APPLY SAFETY WRAPPER
+- Check safety thresholds
+- Check drift risk
+- Check basin stability
+- Check pressure risk
+- Check Markov stability
+- Reject unsafe execution attempts
+
+STEP 5 — APPLY EXTENSION WRAPPER
+- Load requested extensions (if allowed)
+- Validate extension compatibility
+- Validate extension safety level
+
+STEP 6 — CALL ENGINE ORCHESTRATOR
+- Pass validated input
+- Receive final stabilized output
+
+STEP 7 — FORMAT OUTPUT
+- Ensure ≤3 bullets
+- Ensure one sentence per bullet
+- Ensure tone neutrality
+- Ensure structural integrity
+- Attach metadata (version, safety, health)
+
+STEP 8 — RETURN OUTPUT
+- Provide final response to external caller
+
+SAFETY RULES:
+- No external input may bypass QC_Pre
+- No external input may bypass QC_Post
+- No external input may increase bullet count
+- No external input may disable safety stops
+- No external input may override drift thresholds
+- No external input may destabilize tone
+- No external input may alter basin logic
+
+FAILURE MODES:
+- Invalid input
+- Unsafe input
+- Version mismatch
+- Extension mismatch
+- Safety violation
+- Drift introduction attempt
+- Basin instability attempt
+- Pressure distortion attempt
+
+RECOVERY:
+- Reject request
+- Provide error report
+- Provide safety notes
+- Provide recommended corrections
+
+INTERFACE CONTRACT:
+All external calls must pass through this layer.
+No external system may access internal modules directly.
+All inputs must be validated.
+All outputs must be stabilized.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

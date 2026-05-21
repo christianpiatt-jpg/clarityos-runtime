@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180" role="img" aria-label="Placeholder for WEB surface illustration">
+  <rect width="320" height="180" fill="#FFFFFF"/>
+  <rect x="40" y="30" width="240" height="120" fill="none" stroke="#000000" stroke-width="2"/>
+  <line x1="40" y1="50" x2="280" y2="50" stroke="#000000" stroke-width="2"/>
+  <circle cx="52" cy="40" r="3" fill="#000000"/>
+  <circle cx="64" cy="40" r="3" fill="#000000"/>
+  <circle cx="76" cy="40" r="3" fill="#000000"/>
+  <rect x="56" y="64" width="80" height="76" fill="none" stroke="#E5E5E5" stroke-width="1"/>
+  <rect x="148" y="64" width="120" height="36" fill="none" stroke="#E5E5E5" stroke-width="1"/>
+  <rect x="148" y="108" width="120" height="32" fill="none" stroke="#E5E5E5" stroke-width="1"/>
+  <text x="160" y="170" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="10" fill="#555555">WEB</text>
+</svg>

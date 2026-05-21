@@ -1,0 +1,18 @@
+notepad 109_ForecastingEngine.idx
+
+[Record]
+Name = Forecasting Engine
+Code = 109
+Path = ../../02_Subsystems/Forecasting_Engine/
+Description = Forward-modeling subsystem responsible for hydronic projection, scenario forecasting, long-arc geometry, and stability envelope prediction.
+
+[Files]
+Forecasting_Primitives = forecasting_primitives.txt
+Scenario_Models = scenario_models.txt
+Hydronic_Projection = hydronic_projection.txt
+Stability_Envelopes = stability_envelopes.txt
+Long_Arc_Geometry = long_arc_geometry.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx

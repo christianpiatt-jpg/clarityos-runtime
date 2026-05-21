@@ -1,0 +1,208 @@
+{
+  "schema_version": "1.0",
+  "description": "Index of corpora evaluated under the UP M1/M2/M3 contract. New corpora are appended to the array. Existing entries are not overwritten.",
+  "corpora": [
+    {
+      "id": "outlook_30d_v52_2",
+      "type": "real_world",
+      "source": "FT/WSJ/Economist/WaPo newsletters",
+      "rows": 88,
+      "days": 30,
+      "regions": [
+        "US",
+        "EU",
+        "Markets"
+      ],
+      "contract_version": "v1.0.0",
+      "v1_0_verdict": "UP_not_supported",
+      "v1_1_quorum": "not_met",
+      "result_file": "_scratch/up_m123_outlook_corpus_result.json",
+      "quorum_file": "_scratch/up_m123_v1_1_quorum_check_region_alt.json",
+      "report_file": "analysis/physics/alternator/UP_M123_OUTLOOK_30D_REPORT.md"
+    },
+    {
+      "id": "local_libraries_v1_2",
+      "status": "evaluated",
+      "corpus": "local_libraries_v1_2",
+      "type": "real_world_local",
+      "source": "ClarityOS local library subsystems (ELINS_Library, Lawbridg References, Narrative_Architecture)",
+      "paths": [
+        "C:\\Users\\chris\\ClarityOS_Library\\Clarity_Library\\02_Subsystems\\ELINS_Library",
+        "C:\\Users\\chris\\ClarityOS_Library\\Clarity_Library\\02_Subsystems\\Lawbridg References",
+        "C:\\Users\\chris\\ClarityOS_Library\\Clarity_Library\\02_Subsystems\\Narrative_Architecture"
+      ],
+      "contract_version": "v1.1.0",
+      "amendment_applied": "library_alternators_v1_4",
+      "rows": 33,
+      "rows_alternator_grid": 55,
+      "v1_0_verdict": "UP_not_supported",
+      "v1_1_quorum": "met_with_robustness_caveats",
+      "v1_1_quorum_robust_count": 4,
+      "v1_1_quorum_caveats_count": 6,
+      "prereg_file": "analysis/physics/alternator/UP_M123_PREREG_v1_2_LOCAL_LIBRARIES.md",
+      "result_file": "_scratch/up_m123_local_libraries_v1_4_result.json",
+      "tokens_file": "_scratch/up_m123_summary_local_libraries_v1_4_v1_1_tokens.json",
+      "quorum_file": "_scratch/up_m123_v1_1_quorum_check_local_libraries.json",
+      "report_file": "analysis/physics/alternator/UP_M123_LOCAL_LIBRARIES_V1_4_REPORT.md",
+      "preflight_text_file_counts": {
+        "ELINS_Library": 121,
+        "Lawbridg References": 0,
+        "Narrative_Architecture": 112
+      },
+      "preflight_note": "Lawbridg References shows zero .json/.md/.txt files at depth <= 3 at prereg time; ingestion produced 4 PDF rows after pdfminer extraction. All 33 rows have region_label=Unknown; library alternators v1.4 used for inference."
+    },
+    {
+      "id": "lawbridg_pdf_v1_3",
+      "type": "local_library_pdf",
+      "rows": null,
+      "contract_version": "v1.1.0",
+      "status": "preregistered",
+      "paths": [
+        "C:\\Users\\chris\\ClarityOS_Library\\Clarity_Library\\02_Subsystems\\Lawbridg References"
+      ],
+      "note": "PDF-only subsystem; v1.3 prereg expands allowed formats.",
+      "preflight_pdf_count": 72,
+      "prereg_file": "analysis/physics/alternator/UP_M123_PREREG_v1_3_LAWBRIDG_PDF_CONVERSION.md"
+    },
+    {
+      "id": "combined_101_v1_2",
+      "type": "multi_source",
+      "sources": [
+        "outlook",
+        "elins_library"
+      ],
+      "rows": 101,
+      "rows_alternator_grid": 40,
+      "contract_version": "v1.1.0",
+      "v1_0_verdict": "UP_not_supported",
+      "v1_1_quorum": "not_met",
+      "result_file": "_scratch/up_m123_summary_combined_region_alt_full.csv",
+      "tokens_file": "_scratch/up_m123_summary_combined_region_alt_full_v1_1_tokens.json",
+      "quorum_file": "_scratch/up_m123_v1_1_quorum_check_combined.json",
+      "report_file": "analysis/physics/alternator/UP_M123_COMBINED_101_REPORT.md"
+    },
+    {
+      "id": "library_alternators_v1_4",
+      "type": "amendment",
+      "contract_version": "v1.1.0",
+      "status": "preregistered",
+      "applies_to_corpus": "local_libraries_v1_2",
+      "alternators_added": [
+        "alt_library_elins",
+        "alt_library_lawbridg",
+        "alt_library_narrative"
+      ],
+      "alternator_class": "domain_indicator",
+      "independence_basis": "structural (filesystem location, not derived from E_over_r)",
+      "preflight_prevalence": {
+        "alt_library_elins": {"positive": 13, "negative": 20},
+        "alt_library_lawbridg": {"positive": 4, "negative": 29, "low_prevalence": true},
+        "alt_library_narrative": {"positive": 16, "negative": 17}
+      },
+      "rationale": "v1.2 ingestion produced 33 rows all tagged region_label=Unknown; alt_region_* are degenerate. Library subsystem identity is a domain indicator under v1.0/v1.1 §2 and is graph-extrinsic by construction.",
+      "prereg_file": "analysis/physics/alternator/UP_M123_PREREG_v1_4_LIBRARY_ALTERNATORS.md"
+    },
+    {
+      "id": "local_libraries_v1_2_result_v1_4",
+      "type": "evaluation_result",
+      "timestamp": "2026-05-08T11:56:46Z",
+      "prereg": "v1.4",
+      "runner": "library_alternators_v1_4",
+      "applies_to_corpus": "local_libraries_v1_2",
+      "result_json": "_scratch/up_m123_local_libraries_v1_4_result.json",
+      "report_md": "analysis/physics/alternator/UP_M123_LOCAL_LIBRARIES_V1_4_REPORT.md",
+      "verdict": {
+        "v1_0_UP_detected": false,
+        "v1_1_modulation_quorum": true,
+        "robust_cells": 4,
+        "robust_primary_DV": false,
+        "notes": "caveated; low-prevalence; sign-inconsistent; perm_p near alpha"
+      }
+    },
+    {
+      "id": "contract_v2_0_0_lock",
+      "type": "contract_release",
+      "contract_version": "v2.0.0",
+      "status": "locked",
+      "locked_at": "2026-05-08T12:00:00Z",
+      "supersedes_corpus_quorum_in": "v1.1.0",
+      "preserves_per_cell_classifier_from": "v1.1.0",
+      "applies_to": "future runs citing contract_version: v2.0.0 (prospective per §6)",
+      "amendments_added": [
+        "primary_DV_participation_required",
+        "sign_consistency_across_robust_cells",
+        "low_prevalence_exclusion",
+        "stricter_perm_p_threshold_for_low_prevalence",
+        "Pattern_5_exclusion_from_modulation_robust",
+        "numeric_independence_required_for_quorum_contribution"
+      ],
+      "tokens_added": [
+        "canonical_misspecified",
+        "structurally_independent_numerically_correlated"
+      ],
+      "thresholds_default": {
+        "MIN_PREVALENCE": "max(8, ceil(0.10 * N))",
+        "SAFE_PREVALENCE": "max(15, ceil(0.20 * N))",
+        "perm_p_threshold_safe": 0.05,
+        "perm_p_threshold_low_prevalence": 0.01,
+        "pattern_5_shrinkage_factor": 0.5,
+        "pattern_5_se_blowup_multiplier": 5.0,
+        "numeric_independence_threshold_corr": 0.20
+      },
+      "motivating_artifact": "local_libraries_v1_2 × library_alternators_v1_4 (4 robust cells, 6 robustness caveats)",
+      "contract_file": "analysis/physics/alternator/UP_M123_CONTRACT_v2.0.0.md",
+      "report_referenced": "analysis/physics/alternator/UP_M123_LOCAL_LIBRARIES_V1_4_REPORT.md"
+    },
+    {
+      "id": "local_libraries_v1_2_result_v2_0",
+      "type": "evaluation_result",
+      "timestamp": "2026-05-08T08:44:19Z",
+      "prereg": "v1.4",
+      "contract_version": "v2.0.0",
+      "runner": "_scratch/run_up_m123_library_alt_v2_0.py",
+      "applies_to_corpus": "local_libraries_v1_2",
+      "result_summary": "_scratch/up_m123_summary_local_libraries_v2_0.csv",
+      "result_tokens": "_scratch/up_m123_summary_local_libraries_v2_0_v2_0_tokens.json",
+      "result_quorum": "_scratch/up_m123_v2_0_quorum_check_local_libraries.json",
+      "report_md": "analysis/physics/alternator/UP_M123_LOCAL_LIBRARIES_V2_0_REPORT.md",
+      "v2_0_verdict": "UP_not_supported",
+      "v2_0_quorum": "not_met",
+      "v2_0_gates_triggered": ["A_primary_DV_participation", "E_pattern_5", "F_numeric_independence"],
+      "verdict": {
+        "v1_0_UP_detected": false,
+        "v2_0_modulation_quorum": false,
+        "n_cells_total": 55,
+        "n_quorum_eligible": 1,
+        "robust_primary_DV": false,
+        "quorum_eligible_cells": [
+          {"DV": "delta_total_weight", "alt": "alt_library_narrative"}
+        ],
+        "notes": "v2.0 retracts the v1.4 quorum-pass. Of the 4 v1.4-robust cells under v1.1 rules: 1 retained modulation_robust (delta_total_weight x narrative); 1 reclassified canonical_misspecified (delta_total_weight x elins, Gate E - 74x M3 shrinkage); 2 reclassified structurally_independent_numerically_correlated (delta_total_weight x lawbridg + delta_inv_weight x lawbridg, Gate F - |corr|=0.52). Single survivor is on a secondary DV; Gate A blocks corpus-level claim because no quorum-eligible cell uses delta_pct_total_weak."
+      }
+    },
+    {
+      "id": "audit_v52_2_overwrite_2026_05_08",
+      "type": "audit_trail_amendment",
+      "logged_at": "2026-05-08T09:30:00Z",
+      "event": "frozen_artifact_overwrite_via_boot_chain_smoke_test",
+      "summary": "Boot Step 9 (clarityos_desktop_initiator) smoke test dispatched the frozen v1.0 runner, which writes hard-coded paths up_m123_summary_v52_2.{csv,json}. Those paths were declared frozen by preregs v1.2/v1.3/v1.4/v2.0. Mtime moved 2026-05-07T15:48 -> 2026-05-08T09:06; sizes unchanged (8085 / 20040 bytes); content reasoned byte-identical via runner determinism (np.random.seed(12345)) and unchanged input CSV.",
+      "files_affected": [
+        "_scratch/up_m123_summary_v52_2.csv",
+        "_scratch/up_m123_summary_v52_2.json"
+      ],
+      "freeze_attestation_status": "downgraded_to_content_equivalent_rewrite",
+      "preventive_measure": {
+        "type": "initiator_dry_run_flag",
+        "flag": "--dry-run",
+        "applied_to": "_scratch/clarityos_desktop_initiator.py",
+        "applied_at": "2026-05-08T09:30:00Z"
+      },
+      "deferred_long_term_fix": {
+        "type": "v2_1_contract_amendment",
+        "summary": "Versioned per-runner output paths; archive-only treatment of frozen runners",
+        "status": "deferred"
+      },
+      "audit_file": "_scratch/up_m123_v52_2_audit.json"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ClarityOS — Operator-grade reasoning runtime</title>
+<meta name="description" content="ClarityOS is a deterministic operator-grade reasoning runtime that holds context across phone, web, and cloud surfaces.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">ClarityOS</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
+      <ul id="primary-nav" class="nav-list">
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="product.html">Product</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section hero">
+    <div class="container">
+      <h1 class="hero-title">A reasoning runtime that keeps its state.</h1>
+      <p class="hero-lede">
+        ClarityOS is an operator-grade orchestration layer that holds
+        context across phone, web, and cloud. The model does the
+        compute. The OS holds the state. The contract between them
+        does not drift.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="contact.html">Request Access</a>
+        <a class="btn btn-link" href="product.html">See how it works &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-bordered">
+    <div class="container">
+      <h2 class="section-title">Three surfaces. One runtime.</h2>
+      <p class="section-lede">
+        The same kernel state is reachable from every device. No
+        re-prompting. No re-uploading. No re-explaining.
+      </p>
+
+      <div class="grid grid-3">
+        <article class="card">
+          <img class="card-image" src="assets/img/surface-phone.svg" alt="" width="320" height="180">
+          <h3 class="card-title">PHONE</h3>
+          <p>
+            Native mobile runtime built on Expo. Reads + writes the
+            same operator vault as web and cloud. Designed for
+            offline-tolerant capture and quick replay.
+          </p>
+        </article>
+
+        <article class="card">
+          <img class="card-image" src="assets/img/surface-web.svg" alt="" width="320" height="180">
+          <h3 class="card-title">WEB</h3>
+          <p>
+            Browser cockpit for long-form work. Surfaces threads,
+            projects, the operator timeline, and the regression-first
+            protocol panel. Auth-gated; no anonymous state.
+          </p>
+        </article>
+
+        <article class="card">
+          <img class="card-image" src="assets/img/surface-cloud.svg" alt="" width="320" height="180">
+          <h3 class="card-title">CLOUD</h3>
+          <p>
+            FastAPI backend on Cloud Run. Per-user encrypted vault,
+            timeline, threads, projects, and the intelligence kernel.
+            Every endpoint is session-scoped.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">The interpreter holds the contract.</h2>
+      <p class="section-prose">
+        ClarityOS does not load plugins, does not register skills, and
+        does not branch behavior on whether some external manifest is
+        present. The interpreter is plain Python in the kernel. It
+        owns context assembly, model routing, and result coercion.
+        The model receives that context, returns text. Nothing else
+        crosses the boundary.
+      </p>
+      <p class="section-prose">
+        Reasoning modes are kernel functions, not loadable add-ons.
+        Each one has a deterministic surface, a stable schema, and a
+        graceful degrade path. When a model call fails, the kernel
+        does not raise &mdash; it returns a structured result that
+        downstream code can rely on.
+      </p>
+      <p class="section-cta">
+        <a class="btn btn-link" href="about.html">Read the architecture &rarr;</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-bordered cta-band">
+    <div class="container">
+      <h2 class="cta-title">Operators only.</h2>
+      <p class="cta-prose">
+        Access is gated by cohort. Request a slot and we will reply
+        with onboarding next steps.
+      </p>
+      <p>
+        <a class="btn btn-primary" href="contact.html">Request Access</a>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p class="footer-brand">ClarityOS</p>
+    <ul class="footer-links">
+      <li><a href="product.html">Product</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <p class="footer-meta">An operator-grade reasoning runtime.</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>

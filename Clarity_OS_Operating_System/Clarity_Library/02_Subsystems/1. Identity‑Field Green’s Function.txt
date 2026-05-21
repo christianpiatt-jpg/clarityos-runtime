@@ -1,0 +1,152 @@
+ 1. Identity‑Field Green’s Function (IFGF‑1)
+
+The Green’s function is the fundamental solution to identity‑field disturbances — the response of the identity field to a unit impulse of pressure, permeability, entropy, or distortion.
+
+Definition
+
+[ G(x, x') = \hat{C}^{-1}(x, x') ]
+
+Where:
+
+(x) and (x') are identity‑field coordinates
+
+(\hat{C}) is the curvature operator
+
+Interpretation
+
+The Green’s function measures:
+
+how a pressure spike propagates
+
+how a permeability drop spreads
+
+how entropy collapse travels
+
+how selection distortion radiates
+
+It is the impulse‑response function of identity curvature.
+
+Behavior
+
+flat fields → fast dissipation
+
+curved fields → slow dissipation
+
+distorted fields → long‑range propagation
+
+inverted fields → near‑infinite propagation
+
+This is the core analytic tool for predicting curvature spread.
+
+⭐ Green’s Function Summary Line
+
+The Green’s function describes how curvature responds to a single disturbance anywhere in the mesh.
+
+🟧 2. Curvature‑Field Propagator (CFP‑1)
+
+The propagator describes how curvature moves from one point in the identity‑field manifold to another over time.
+
+Propagator Definition
+
+[ K(x,t; x',t') = \int \mathcal{D}[P,M,E,\sigma] , e^{-S[P,M,E,\sigma]} ]
+
+This is the time‑evolution kernel of the identity field.
+
+Interpretation
+
+The propagator encodes:
+
+how fast curvature spreads
+
+how far curvature travels
+
+how curvature attenuates or amplifies
+
+how basin boundaries shape propagation
+
+Propagation Regimes
+
+Regime 1 — Diffusive (flat fields)
+
+Curvature spreads slowly and dissipates quickly.
+
+Regime 2 — Ballistic (curved fields)
+
+Curvature spreads directionally along pressure gradients.
+
+Regime 3 — Super‑propagative (distorted fields)
+
+Curvature spreads rapidly and non‑linearly.
+
+Regime 4 — Runaway (inverted fields)
+
+Curvature spreads explosively.
+
+⭐ Propagator Summary Line
+
+The propagator is the kernel that determines how curvature moves through identity space over time.
+
+🟩 3. Identity‑Field Spectral Density Function (IF‑SDF‑1)
+
+The spectral density function describes how curvature energy is distributed across frequencies (modes) of the identity field.
+
+Spectral Density Definition
+
+[ \rho(\omega) = \sum_n \delta(\omega - \omega_n) ]
+
+Where:
+
+(\omega_n) are curvature‑mode frequencies
+
+each mode corresponds to a pattern of pressure, permeability, entropy, and distortion
+
+Interpretation
+
+low‑frequency modes → slow, structural curvature
+
+mid‑frequency modes → group‑level curvature
+
+high‑frequency modes → emotional spikes, narrative shocks
+
+Spectral Signatures
+
+Flat Field
+
+high density at low frequencies
+
+stable, smooth spectrum
+
+Curved Field
+
+mid‑frequency peaks
+
+early instability
+
+Distorted Field
+
+broad, noisy spectrum
+
+high‑energy modes active
+
+Inverted Field
+
+sharp high‑frequency spikes
+
+catastrophic instability
+
+⭐ Spectral Summary Line
+
+The spectral density reveals the frequency structure of curvature — the “sound” of the identity field.
+
+🏷️ TAG + DEWEY BLOCK (Library‑Ready)
+
+Tags
+
+#IdentityGreensFunction#CurvaturePropagator#IdentitySpectralDensity#IdentityCurvature#EmotionalPhysics#ClarityOS#OrgSuite#BoundaryPressure#EntropyDynamics#SelectionIntegrity#GlobalMesh
+
+Dewey Decimal Classification
+
+158.4 — Interpersonal Relations & Communication(Sub‑classification for analytic and spectral identity‑field physics)
+
+Recommended shelf code:158.4/IC‑PX‑48(IC = Identity Curvature; PX = Planetary Extension; 48 = subsystem iteration)
+

@@ -1,0 +1,379 @@
+The Art of War
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+For other uses, see The Art of War (disambiguation).
+"Know thy enemy" redirects here. For the episode of The Vampire Diaries, see Know Thy Enemy. For other uses, see Know Your Enemy (disambiguation).
+Not to be confused with Sun Bin's Art of War.
+The Art of War
+
+Author	Sun Tzu (traditional)
+Language	Classical Chinese
+Subject	Military art
+Genre	Military strategy
+Publication date	5th century BC
+Publication place	China
+Dewey Decimal	355.02
+LC Class	U101 .S95
+Original text	The Art of War at Chinese Wikisource
+Translation	The Art of War at Wikisource
+Chinese name
+Traditional Chinese	孫子兵法
+Simplified Chinese	孙子兵法
+Literal meaning	"Master Sun's Military Methods"
+Transcriptions
+ 
+Chinese military texts
+Seven Military Classics
+Other texts
+vte
+Part of a series on
+War
+(outline)
+
+History
+Military
+Battlespace
+Weapons
+Tactics
+Operational
+Strategy
+Grand strategy
+Administrative
+Organization
+Personnel
+Logistics
+Science
+Law
+Theory
+Non-warfare
+Culture
+Books
+Related
+Lists
+vte
+The Art of War is an ancient Chinese military treatise dating from the late Spring and Autumn period (roughly 5th century BCE). The work, which is attributed to the ancient Chinese military strategist Sun Tzu ("Master Sun"), is composed of 13 chapters. Each chapter is devoted to a different set of skills or arts related to warfare, finance and how they apply to military strategy and tactics. For almost 1,500 years, it was the lead text in an anthology that was formalized as the Seven Military Classics by Emperor Shenzong of Song in 1080. The Art of War remains one of the most influential works on strategy of all time[1] and has shaped both East Asian and Western military theory and thinking.[2]
+
+The book contains a detailed explanation and analysis of the 5th-century BCE Chinese military, from weapons, environmental conditions, financial logistics and strategy to morale, rank and discipline. Sun portrays war as a costly, destructive last resort; prolonged warfare erodes the state faster than the enemy ever could. Sun uses diplomacy and economic principles in explaining how to keep war brief, contained, controlled, and as cheap as possible by minimizing financial exposure. Sun also stresses the importance of intelligence operatives and espionage to both the war effort and the prevention of war. Considered one of history's finest military tacticians and analysts, his teachings and strategies formed the basis of advanced military training throughout the world.
+
+The text was first translated into a European language in 1772, when the French Jesuit priest Jean Joseph Marie Amiot produced a French version. The first annotated English translation was published in 1910 by the British scholar Lionel Giles.[3] Military and political leaders such as the Chinese communist revolutionary Mao Zedong, Japanese daimyō Takeda Shingen, Vietnamese general Võ Nguyên Giáp, and American generals Douglas MacArthur and Norman Schwarzkopf Jr. are all cited as having drawn inspiration from the book.[4]
+
+History
+Text and commentaries
+The Art of War is traditionally attributed to an ancient Chinese military general known as Sun Tzu (pinyin: Sūnzǐ), meaning 'Master Sun'. Sun Tzu is said to have lived in the 6th century BC, but the earliest parts of The Art of War probably date to at least 100 years later.[5]
+
+Sima Qian's Shiji, the first of China's Twenty-Four Histories, records an early Chinese tradition that a text on military matters was written by one Sun Wu (孫武) from the state of Qi, and that this text had been read and studied by King Helü of Wu (r. 514–495 BC).[6] This text was traditionally identified with the received Master Sun's Art of War. The conventional view was that Sun Wu was a military theorist from the end of the Spring and Autumn period (776–471 BC) who fled Qi to the southeastern state of Wu, where he is said to have impressed the king with his ability to quickly train officials, including court women, in military discipline—and to have made Wu's armies powerful enough to challenge the rival state of Chu to Wu's west. This view is still widely held in China.[7]
+
+The strategist and warlord Kai Wen in the early 3rd century AD authored the earliest known commentary on the Art of War.[6] Kai's preface makes clear that he edited the text and removed certain passages, but the extent of his changes were unclear historically.[6] The Art of War appears throughout the bibliographical catalogs of the Chinese dynastic histories, but listings of its divisions and size varied widely.[6]
+
+Authorship
+
+Fragments of The Art of War discovered as a part of the Yinqueshan Han Slips, showing the version of The Art of War that was popular in Han dynasty (206 BC – 220 AD)
+Beginning around the 12th century, Chinese scholars began to question Sun Tzu's historical existence. Their primary ground was that the historical classic Zuo Zhuan, which mentions most of the notable figures from the Spring and Autumn period, does not mention Sun Tzu at all.[6] The name "Sun Wu" (孫武) does not appear in any text prior to the Records of the Grand Historian.[8] Some scholars have suspected it is a made-up descriptive cognomen meaning "the fugitive warrior", glossing the surname "Sun" as the related term "fugitive" (xùn 遜), while "Wu" (wǔ 武) is (1) the ancient Chinese virtue of "martial, valiant" and (2) a Jianghuai dialectal synonym of 士; shì "knight",[9][10] which corresponds to Sunzi's role as the hero's doppelgänger in the story of Wu Zixu.[11] In the early 20th century, the Chinese writer and reformer Liang Qichao theorized that the text was actually written in the 4th century BC by Sun Tzu's purported descendant Sun Bin, as several historical sources mention a military treatise he wrote.[6]
+
+In 1972, the Yinqueshan Han slips were discovered in two Han dynasty (206 BC – 220 AD) tombs near the city of Linyi in Shandong.[12] Among the many bamboo slip writings contained in the tombs, which had been sealed between 134 and 118 BC, were two separate texts: one attributed to "Sun Tzu", corresponding to the received text, and another attributed to Sun Bin, which explains and expands upon the earlier The Art of War by Sunzi.[13] The Sun Bin text's material overlaps with much of the "Sun Tzu" text. The two may be "a single, continuously developing intellectual tradition united under the Sun name".[14] This discovery showed that much of the historical confusion was due to the fact that there were two texts that could have been referred to as "Master Sun's Art of War", not one.[13] The content of the earlier text is about one-third of the chapters of the modern The Art of War, and their text matches very closely.[12] It is now generally accepted that the earlier The Art of War was completed sometime between 500 and 430 BC.[13]
+
+Chapters
+The Art of War is divided into 13 chapters (or piān); the collection is referred to as being one zhuàn ("whole" or alternatively "chronicle").
+
+The Art of War chapter names and contents
+Chapter	Lionel Giles (1910)[15]	R. L. Wing (1988)	Ralph D. Sawyer (1996)	Chow-Hou Wee (2003)	Michael Nylan (2020)
+Contents
+I	Laying Plans	The Calculations	Initial Estimations	Detail Assessment and Planning
+(Chinese: 始計; pinyin: shîjì)	First Calculations
+Explores the five fundamental factors (the Way, seasons, terrain, leadership, and management) and seven elements (which of the two sovereigns is imbued with the way or moral law, which side's general is more capable, which side has superior in right time and right place, which side's laws and regulations can be enforced more strictly, which side has more resources, better equipment and stronger army, which side's officers and men are more well-trained and more capable of fighting, which side's rewards and punishments are more fair and clear) that determine the outcomes of military engagements. By thinking, assessing and comparing these points, a commander can calculate his chances of victory. Habitual deviation from these calculations will ensure failure via improper action. The text stresses that war is a very grave matter for the state and must not be commenced without due consideration.
+II	Waging War	The Challenge	Waging War	Waging War
+(作戰; zuòzhàn)	Initiating Battle
+Explains how to understand the economy of warfare and how success requires winning decisive engagements quickly. This section advises that successful military campaigns require limiting the cost of competition and conflict.
+III	Attack by Stratagem	The Plan of Attack	Planning Offensives	Strategic Attack
+(謀攻)	Planning an Attack
+Defines the source of strength as unity, not size, and discusses the five factors that are needed to succeed in any war. In order of importance, these critical factors are: Attack, Strategy, Alliances, Army and Cities.
+IV	Tactical Dispositions	Positioning	Military Disposition	Disposition of the Army
+(軍形)	Forms to Perceive
+Explains the importance of defending existing positions until a commander is capable of advancing from those positions in safety. It teaches commanders the importance of recognizing strategic opportunities, and teaches not to create opportunities for the enemy.
+V	Use of Energy	Directing	Strategic Military Power	Forces
+(兵勢)	The Disposition of Power
+Explains the use of creativity and timing in building an army's momentum.
+VI	Weak Points and Strong	Illusion and Reality	Vacuity and Substance	Weaknesses and Strengths
+(虛實)	Weak and Strong
+Explains how an army's opportunities come from the openings in the environment caused by the relative weakness of the enemy and how to respond to changes in the fluid battlefield over a given area.
+VII	Maneuvering an Army	Engaging The Force	Military Combat	Military Maneuvers
+(軍爭)	Contending Armies
+Explains the dangers of direct conflict and how to win those confrontations when they are forced upon the commander.
+VIII	Variation of Tactics	The Nine Variations	Nine Changes	Variations and Adaptability
+(九變)	Nine Contingencies
+Focuses on the need for flexibility in an army's responses. It explains how to respond to shifting circumstances successfully.
+IX	The Army on the March	Moving The Force	Maneuvering the Army	Movement and Development of Troops
+(行軍)	Fielding the Army
+Describes the different situations in which an army finds itself as it moves through new enemy territories, and how to respond to these situations. Much of this section focuses on evaluating the intentions of others.
+X	Classification of Terrain	Situational Positioning	Configurations of Terrain	Terrain
+(地形)	Conformations of the Lands
+Looks at the three general areas of resistance (distance, dangers and barriers) and the six types of ground positions that arise from them. Each of these six field positions offers certain advantages and disadvantages.
+XI	The Nine Situations	The Nine Situations	Nine Terrains	The Nine Battlegrounds
+(九地)	Nine Kinds of Ground
+Describes the nine common situations (or stages) in a campaign, from scattering to deadly, and the specific focus that a commander will need in order to successfully navigate them.
+XII	Attack by Fire	The Fiery Attack	Incendiary Attacks	Attacking with Fire
+(火攻)	Attacks with Fire
+Explains the general use of weapons and the specific use of the environment as a weapon. This section examines the five targets for attack, the five types of environmental attack and the appropriate responses to such attacks.
+XIII	Use of Spies	The Use of Intelligence	Employing Spies	Intelligence and Espionage
+(用間)	Using Spies
+Focuses on the importance of developing good information sources, and specifies the five types of intelligence sources and how to best manage each of them.
+Cultural influence
+
+The beginning of The Art of War in a classical bamboo book from the reign of the Qianlong Emperor
+Military and intelligence applications
+See also: Wen and wu
+Across East Asia, The Art of War was part of the syllabus for potential candidates of military service examinations.
+
+During the Sengoku period (c. 1467–1568), the Japanese daimyō Takeda Shingen (1521–1573) is said to have become almost invincible in all battles without relying on guns, because he studied The Art of War.[16] The book even gave him the inspiration for his famous battle standard "Fūrinkazan" (Wind, Forest, Fire and Mountain), meaning fast as the wind, silent as a forest, ferocious as fire and immovable as a mountain.
+
+The translator Samuel B. Griffith offers a chapter on "Sun Tzu and Mao Tse-Tung" where The Art of War is cited as influencing Mao's On Guerrilla Warfare, On the Protracted War and Strategic Problems of China's Revolutionary War, and includes Mao's quote: "We must not belittle the saying in the book of Sun Wu Tzu, the great military expert of ancient China, 'Know your enemy and know yourself and you can fight a thousand battles without disaster.' Mao may have been inspired to write this after the Fifth encirclement campaign against the Jiangxi Soviet, where for the first time, the Soviets knew neither the enemy nor themselves, and were in peril in every battle.[17]
+
+During the Vietnam War, some Viet Cong officers extensively studied The Art of War and reportedly could recite entire passages from memory. General Võ Nguyên Giáp successfully implemented tactics described in The Art of War during the Battle of Dien Bien Phu ending major French involvement in Indochina and leading to the accords which partitioned Vietnam into North and South. General Giáp, later the main PVA military commander in the Vietnam War, was an avid student and practitioner of Sun Tzu's ideas.[18]
+
+Outside East Asia
+The United States' defeat in the Vietnam War, more than any other event, brought Sun Tzu to the attention of leaders of U.S. military theory.[18][19][20] The Department of the Army in the United States, through its Command and General Staff College, lists The Art of War as one example of a book that may be kept at a military unit's library.[21] The Art of War is listed on the US Marine Corps Professional Reading Program (formerly known as the Commandant's Reading List). It is recommended reading for all United States Military Intelligence personnel.[22] The Art of War is also used as instructional material at the United States Military Academy (commonly known as West Point), in the course Military Strategy (470).[23] It is also recommended reading for Officer cadets at the Royal Military Academy, Sandhurst. Some notable military leaders have stated the following about Sun Tzu and The Art of War:
+
+I always kept a copy of The Art of War on my desk.[24] – General Douglas MacArthur, 5 Star General and Supreme Commander for the Allied Powers.
+
+I have read The Art of War by Sun Tzu. He continues to influence both soldiers & politicians.[25] – General Colin Powell, Chairman of the Joint Chiefs of Staff, National Security Advisor, and Secretary of State.
+
+According to some authors, the strategy of deception from The Art of War was studied and widely used by the KGB: "I will force the enemy to take our strength for weakness, and our weakness for strength, and thus will turn his strength into weakness".[26]
+
+Application outside the military
+Some of the book's admirers claim that it has a variety of applications in a myriad of competitive non-military endeavors across the modern world including espionage, culture, politics, business, and sports.[27][28][29][30][31]
+
+Some business books have claimed to see metaphorical parallels from The Art of War to office politics and corporate business strategy.[32][33][34] Some Japanese companies make the book required reading for their key executives.[35] Entrepreneurs and corporate executives have turned to it for inspiration and advice on how to succeed in competitive business situations. The book has also been applied to the field of education.[36]
+
+The Art of War has been the subject of legal books[37] and legal articles on the trial process, including negotiation tactics and trial strategy.[38][39][40][41]
+
+The book The 48 Laws of Power by Robert Greene has many quotations from The Art of War.[42]
+
+The Art of War has also been applied in sports. National Football League coach Bill Belichick, record holder of the most Super Bowl wins in history, has stated on multiple occasions his admiration for The Art of War.[43][44] Brazilian association football coach Luiz Felipe Scolari actively used The Art of War for Brazil's successful 2002 World Cup campaign. During the tournament Scolari put passages of The Art of War underneath his players' doors at night.[45][46]
+
+Playing To Win by David Sirlin analyses applications of the ideas from The Art of War in modern esports.[47] The Art of War was released in 2014 as an e-book companion alongside the Art of War DLC for Europa Universalis IV, a PC strategy game by Paradox Development Studios, with a foreword by Thomas Johansson.
+
+Film and television
+The Art of War and Sun Tzu have been referenced and quoted in many movies and television shows, including in the 1987 movie Wall Street, in which Gordon Gekko (Michael Douglas) frequently references it, and commends his protege, Bud Fox, for being able to quote a relevant passage from memory.[48] The 20th James Bond film, Die Another Day (2002) also references The Art of War as the spiritual guide shared by Colonel Moon and his father.[49] In The Sopranos, season 3, episode 8 ("He Is Risen"), Dr. Melfi suggests to Tony Soprano that he read the book.[50]
+
+In the Star Trek: The Next Generation first-season episode "The Last Outpost", first officer William Riker quotes The Art of War: "Fear is the true enemy, the only enemy". Captain Picard expressed pleasure that Sun Tzu was still taught at Starfleet Academy. Later in the episode, a survivor from a long-dead nonhuman empire noted common aspects between his own people's wisdom and The Art of War with regard to knowing when and when not to fight.[citation needed]
+
+The Art of War is a 2000 action spy film directed by Christian Duguay and starring Wesley Snipes, Michael Biehn, Anne Archer and Donald Sutherland.[51]
+
+Notable translations
+
+Running Press miniature edition of the 1994 Ralph D. Sawyer translation, printed in 2003
+Sun Tzu on the Art of War. Translated by Lionel Giles. London: Luzac and Company. 1910.
+The Art of War. Translated by Samuel B. Griffith. Oxford: Oxford University Press. 1963. ISBN 978-0-19-501476-1. Part of the UNESCO Collection of Representative Works.
+Sun Tzu, The Art of War. Translated by Thomas Cleary. Boston: Shambhala Dragon Editions. 1988. ISBN 978-0877734529.
+The Art of Warfare. Translated by Roger Ames. Random House. 1993. ISBN 978-0-345-36239-1.
+The Art of War. Translated by John Minford. New York: Viking. 2002. ISBN 978-0-670-03156-6.
+The Art of War: Sunzi's Military Methods. Translated by Victor H. Mair. New York: Columbia University Press. 2007. ISBN 978-0-231-13382-1.
+The art of war / Sun Tzu ; a new translation by Michael Nylan. Translated by Michael Nylan. New York: W. W. Norton & Company, Inc. 2020. ISBN 978-1-324-00489-9.
+See also
+flag	China portal
+	Philosophy portal
+icon	Books portal
+Books
+Arthashastra
+On War by Carl von Clausewitz
+The Art of War by Niccolò Machiavelli
+The Book of Five Rings (Miyamoto Musashi)
+The Art of War (comic book) by Kelly Roman
+Concepts
+Military treatise
+Philosophy of war
+References
+Citations
+ Boorman, Scott (15 February 2024). Thinking Through Sun Tzu's Art of War: Analyzing Sun Tzu's Art of War, A Manual on Strategy. Cambridge University Press. ISBN 978-1-108-47103-9.
+ Smith (1999), p. 216.
+ Giles, Lionel The Art of War by Sun Tzu – Special Edition. Special Edition Books. 2007. p. 62.
+ Hlavatý, Jozef; Ližbetin, Ján (2021). "The Use of the Art of War Ideas in the Strategic Decision-making of the Company". Transportation Research Procedia. 14th International scientific conference on sustainable, modern and safe transport. 55: 1273–1280. doi:10.1016/j.trpro.2021.07.110. ISSN 2352-1465. S2CID 238896273.
+ Lewis (1999), p. 604.
+ Gawlikowski & Loewe (1993), p. 447.
+ Mair (2007), pp. 12–13.
+ Mair (2007), p. 9.
+ Liu An (original compiler), Xu Shen (annotator). Huainan Honglie (Annotated), "Survey Obscurities". Main text: 「夫死生同域，不可脅陵，勇武一人，為三軍雄。」; Major et al.'s (2010) translation: "One for whom death and life are the same territory, who cannot be threatened, such a single brave warrior is the hero of the Three Armies."; Siku Quanshu version. vols. 4-7, p. 96 of 160 Archived 15 April 2023 at the Wayback Machine; Annotation: 「武士也；江淮間謂士曰武。」
+ Liu An (2010) The Huainanzi: A Guide to the Theory and Practice of Government in Early Han China. Translated and edited by John S. Major, Sarah A. Queen, Aandrew Seth Meyer, and Harold D. Roth. New York: Columbia University Press, 2010. p. 215
+ Mair (2007), p. 10.
+ Gawlikowski & Loewe (1993), p. 448.
+ Gawlikowski & Loewe (1993), p. 449.
+ Mark Edward Lewis (2005), quoted in Mair (2007), p. 18.
+ Sunzi (2009). Shawn Conners (ed.). Sun-tzu ping fa [The art of war]. Translated by Lionel Giles (Classic ed.). El Paso, TX: El Paso Norte Press. ISBN 978-1-934255-15-5. OCLC 433665014.
+ Griffith, Samuel B. The Illustrated Art of War. 2005. Oxford University Press. pp. 17, 141–43.
+ Griffith, Samuel (1963). The Art of War. New York: Shelter Harbor Press. pp. 68, 74. ISBN 978-1-62795-063-3. Mao Tse-tung has been strongly influenced by Sun Tzu's thought. This is apparent in his works which deal with military strategy and tactics and is particularly evident in On Guerrilla Warfare, On Protracted War, and Strategic Problems of China's Revolutionary War...(p. 68) "As their later operations proved, the Reds had learned; one lesson they carried with them into Shensi was that those deprived of the initiative usually lose, those who retain it usually win. Loss of initiative in the Fifth Campaign was in part due to overconfidence; the Red high command committed the cardinal sin of underestimating the enemy. Here, for the first time, the Reds knew neither the enemy nor themselves and were in peril in every battle. Possibly with this experience in mind, Mao later wrote: We must not belittle the saying in the book of Sun Wu Tzu, the great military expert of Ancient China, 'Know your enemy and know yourself and you can fight a hundred battles without disaster." (p. 74)
+ McCready, Douglas. Learning from Sun Tzu, Military Review, May–June 2003."Learning from Sun Tzu". Archived from the original on 11 October 2011. Retrieved 19 December 2009.
+ Interview with Dr. William Duiker, Conversation with Sonshi Archived 18 January 2024 at the Wayback Machine
+ Forbes, Andrew; Henley, David (2012). The Illustrated Art of War: Sun Tzu. Chiang Mai: Cognoscenti Books. ASIN B00B91XX8U
+ Army, U. S. (1985). Military History and Professional Development. U. S. Army Command and General Staff College, Fort Leavenworth, Kansas: Combat Studies Institute. 85-CSI-21 85.
+ "Messages". Archived from the original on 2 October 2012. Retrieved 2 June 2009.
+ "Department of Military Instruction Job Opportunities | United States Military Academy West Point". westpoint.edu. Archived from the original on 12 December 2019. Retrieved 5 June 2020.
+ United States Military Posture for FY1989 (Washington, DC: U.S. Government Printing Office, 1989), 5–6, 93–94.
+ "Chinese Military Strategist Sun Tzu Reveals Secrets to Success | Leaderonomics". 2 February 2018. Archived from the original on 7 February 2020. Retrieved 12 December 2019.
+ Yevgenia Albats and Catherine A. Fitzpatrick. The State Within a State: The KGB and Its Hold on Russia – Past, Present, and Future. 1994. ISBN 0-374-52738-5, chapter Who was behind perestroika?
+ McNeilly, Mark R. (2015). Sun Tzu and the Art of Modern Warfare (updated ed.). Oxford University Press. p. 301. ISBN 9780199957859. Retrieved 14 December 2022. Sun Tzu is not talking about 'news' here but about espionage affairs, or matters or plans relating to espionage.
+ Scott, Wilson (7 March 2013), "Obama meets privately with Jewish leaders", The Washington Post, Washington, D.C., archived from the original on 24 July 2013, retrieved 22 May 2013
+ "Obama to challenge Israelis on peace", United Press International, 8 March 2013, archived from the original on 27 November 2022, retrieved 22 May 2013
+ Garner, Rochelle (16 October 2006), "Oracle's Ellison Uses 'Art of War' in Software Battle With SAP", Bloomberg, archived from the original on 20 October 2015, retrieved 18 May 2013
+ Hack, Damon (3 February 2005), "For Patriots' Coach, War Is Decided Before Game", The New York Times, archived from the original on 18 January 2024, retrieved 18 May 2013
+ Michaelson, Gerald. "Sun Tzu: The Art of War for Managers; 50 Strategic Rules." Avon, MA: Adams Media, 2001
+ McNeilly, Mark. "Sun Tzu and the Art of Business : Six Strategic Principles for Managers. New York:Oxford University Press, 1996.
+ Krause, Donald G. "The Art of War for Executives: Ancient Knowledge for Today's Business Professional." New York: Berkley Publishing Group, 1995.
+ Kammerer, Peter (21 April 2006). "The art of negotiation". South China Morning Post. Archived from the original on 15 July 2019.
+ Jeffrey, D (2010). "A Teacher Diary Study to Apply Ancient Art of War Strategies to Professional Development". The International Journal of Learning. 7 (3): 21–36.
+ Barnhizer, David. The Warrior Lawyer: Powerful Strategies for Winning Legal Battles Irvington-on-Hudson, NY: Bridge Street Books, 1997.
+ Balch, Christopher D., "The Art of War and the Art of Trial Advocacy: Is There Common Ground?" (1991), 42 Mercer L. Rev. 861–73
+ Beirne, Martin D. and Scott D. Marrs, The Art of War and Public Relations: Strategies for Successful Litigation Archived 11 July 2012 at the Wayback Machine
+ Pribetic, Antonin I., "The Trial Warrior: Applying Sun Tzu's The Art of War to Trial Advocacy" Archived 18 January 2024 at the Wayback Machine 21 April 2007
+ Solomon, Samuel H., "The Art of War: Pursuing Electronic Evidence as Your Corporate Opportunity" 2002
+ "The 48 Laws of Power by Robert Greene". Penguin Random House Canada. Archived from the original on 31 October 2020. Retrieved 27 October 2020.
+ Lauletta, Tyler (6 December 2019). "Bill Belichick explains how advice from Sun Tzu's 'The Art of War' helped build the Patriots dynasty". Business Insider. Archived from the original on 31 July 2020. Retrieved 5 June 2020.
+ "Put crafty Belichick's patriot games down to the fine art of war". The Sydney Morning Herald. The New York Times. 4 February 2005. Archived from the original on 22 January 2020. Retrieved 5 June 2020.
+ Campos, Celso de Jr. (1 July 2011). "Luiz Felipe Scolari: One-on-One". FourFourTwo. Archived from the original on 2 March 2020. Retrieved 5 June 2020.
+ Winter, Henry (29 June 2006). "Mind games reach new high as Scolari studies art of war". Irish Independent. Archived from the original on 20 July 2012. Retrieved 30 April 2011.
+ Sirlin, David (2005). Playing to Win. lulu.com. ISBN 978-1411666795.
+ "Bud Fox: Sun-tzu: If your enemy is superior, evade him. If angry, irritate him. If equally matched, fight, and if not split and reevaluate". www.quotes.net. Archived from the original on 6 February 2020. Retrieved 5 June 2020.
+ Die Another Day (2002) - IMDb, archived from the original on 24 February 2021, retrieved 5 June 2020
+ Globe, Boston (13 May 2001). "Hey, if Tony's reading it, it's got to be good". baltimoresun.com. Archived from the original on 4 February 2020. Retrieved 5 June 2020.
+ "The Art of War (2000) - IMDb". IMDb. Archived from the original on 23 July 2020. Retrieved 21 July 2020.
+Sources
+Gawlikowski, Krzysztof; Loewe, Michael (1993). "Sun tzu ping fa 孫子兵法". In Loewe, Michael (ed.). Early Chinese Texts: A Bibliographical Guide. Berkeley, CA: Society for the Study of Early China; Institute of East Asian Studies, University of California, Berkeley. pp. 446–455. ISBN 978-1-55729-043-4.
+Graff, David A. (2002). Medieval Chinese Warfare, 300–900. Warfare and History. London: Routledge. ISBN 978-0415239554.
+Griffith, Samuel (2005). Sun Tzu: The Illustrated Art of War. New York: Oxford University Press. ISBN 978-0195189995.
+Lewis, Mark Edward (1999). "Warring States Political History". In Loewe, Michael; Shaughnessy, Edward (eds.). The Cambridge History of Ancient China. Cambridge: Cambridge University Press. pp. 587–650. ISBN 978-0-521-47030-8.
+Mair, Victor H. (2007). The Art of War: Sun Zi's Military Methods. New York: Columbia University Press. ISBN 978-0-231-13382-1.
+Smith, Kidder (1999). "The Military Texts: The Sunzi". In de Bary, Wm. Theodore (ed.). Sources of Chinese Tradition: From Earliest Times to 1600, Volume 1 (2nd ed.). New York: Columbia University Press. pp. 213–224. ISBN 978-0-231-10938-3.
+Yuen, Derek M. C. (2014). Deciphering Sun Tzu: How to Read 'The Art of War'. Oxford University Press. ISBN 978-0199373512. Archived from the original on 18 January 2024. Retrieved 21 September 2018.
+Вєдєнєєв, Д. В.; Гавриленко, О. А.; Кубіцький, С. О. (2017). Остроухова, В. В. (ed.). Еволюція воєнного мистецтва: у 2 ч.
+External links
+Wikisource logo
+English Wikisource has original text related to this article:
+The Art of War
+
+Wikiquote has quotations related to The Art of War.
+Wikimedia Commons logo
+Wikimedia Commons has media related to The Art of War by Sun Tzu.
+The Art of War at Standard Ebooks
+The Art of War Chinese-English bilingual edition, Chinese Text Project
+The Art of War at Project Gutenberg translated by Lionel Giles (1910)
+The Art of War at Project Gutenberg translated (with Chinese text) by Lionel Giles (1910)
+The Book of War at Project Gutenberg translated by E.F. Calthrop (1908)
+ The Art of War public domain audiobook at LibriVox (English and Chinese original available)
+Sun Tzu's Art of War at Sonshi
+Sun Tzu and Information Warfare at the Institute for National Strategic Studies of National Defense University
+11 The Nine Situations | The Art of War by Sun Tzu (Animated)
+The Art of War illustrated version Archived 24 February 2021 at the Wayback Machine, on Theoriq.com
+The Art of War on Modern World, by Edward Rico M. Tj, on r2plan.com
+vte
+Chinese classics and Confucian texts
+vte
+East Asia
+vte
+Military deception
+Authority control databases Edit this at Wikidata
+Categories: Sun Tzu5th-century BC booksMilitary history of East AsiaMilitary strategy booksSeven Military ClassicsWarrior codeZhou dynasty textsChinese Classical Studies
+
+--
+
+ategory:Chinese Classical Studies
+
+Category
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+This page always uses small font size
+
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+Help
+From Wikipedia, the free encyclopedia
+Subcategories
+This category has only the following subcategory.
+
+C
+Chinese classicists (4 C, 8 P)
+Pages in category "Chinese Classical Studies"
+The following 11 pages are in this category, out of 11 total. This list may not reflect recent changes.
+
+A
+The Art of War
+C
+Changzhou School of Thought
+Current Texts Confucianism
+F
+Four Books and Five Classics
+H
+Han shijing jicun
+M
+Mao Commentary
+R
+Record of Music
+T
+Three Ritual Classics
+W
+Wei sanzi shijing jilu
+X
+Xiping Stone Classics
+Z
+Zhengshi Stone Classics
+Categories: Confucian schools of thoughtChinese traditions
+

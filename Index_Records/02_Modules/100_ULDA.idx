@@ -1,0 +1,22 @@
+notepad 100_ULDA.idx
+
+[Record]
+Name = ULDA Subsystem
+Code = 100
+Path = ../../02_Subsystems/ULDA/
+Description = Universal Layered Diagnostic Architecture. Core subsystem for diagnostics, drift detection, system mapping, and operator-state evaluation.
+
+[Files]
+ULDA_Core = ulda_core.txt
+ULDA_Diagnostics = ulda_diagnostics.txt
+ULDA_Maps = ulda_maps.txt
+ULDA_States = ulda_states.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = (none yet)
+
+[Crosslinks]
+Up = 000
+Across = 101–119
+Down = None

@@ -1,0 +1,367 @@
+============================================================
+FILE: CLARITYOS_OPERATOR_HANDBOOK_SECTION_6_DIAGNOSTICS
+TYPE: Operator Handbook — Section 6 of 6
+TITLE: Diagnostics, Recovery & Advanced Operations
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — PURPOSE OF THIS SECTION
+============================================================
+
+This section provides the operator with the tools, procedures,
+and doctrine required to:
+
+    - diagnose system issues
+    - interpret anomalies
+    - restore system coherence
+    - recover from failures
+    - maintain continuity
+    - preserve manifold integrity
+    - ensure long-term stability
+
+This is the operator’s emergency and advanced operations manual.
+
+============================================================
+SECTION 2 — DIAGNOSTIC PHILOSOPHY
+============================================================
+
+Diagnostics in ClarityOS follow three principles:
+
+1. **Determinism**
+    Every subsystem must behave predictably.
+
+2. **Transparency**
+    All failures must be observable and logged.
+
+3. **Containment**
+    Failures must not propagate across layers.
+
+Diagnostics are designed to detect:
+
+    - drift
+    - desynchronization
+    - boundary leaks
+    - identity anomalies
+    - safety violations
+    - manifold incoherence
+    - ingestion imbalance
+    - scheduler drift
+
+============================================================
+SECTION 3 — DIAGNOSTIC SUITE OVERVIEW
+============================================================
+
+The Diagnostic Suite includes:
+
+    - Engine Diagnostics
+    - Boundary Diagnostics
+    - Safety Diagnostics
+    - Shield Matrix Diagnostics
+    - Physics Diagnostics
+    - Intelligence Diagnostics
+    - Markov/Markoff Diagnostics
+    - ELINS Diagnostics
+    - Manifold Diagnostics
+    - Scheduler Diagnostics
+    - Autonomy Diagnostics
+    - Metacrawler Diagnostics
+
+Each diagnostic module is deterministic and non-destructive.
+
+============================================================
+SECTION 4 — ENGINE DIAGNOSTICS
+============================================================
+
+Engine Diagnostics check:
+
+    - orchestrator routing
+    - module load order
+    - dependency graph integrity
+    - configuration validity
+    - state machine transitions
+    - state monitor hooks
+
+Failures indicate:
+
+    - corrupted modules
+    - missing modules
+    - dependency violations
+    - state machine drift
+
+============================================================
+SECTION 5 — BOUNDARY & SAFETY DIAGNOSTICS
+============================================================
+
+Boundary Diagnostics check:
+
+    - metadata-only ingestion
+    - no article text
+    - no sentiment extraction
+    - no paywall bypass
+    - no cross-layer contamination
+
+Safety Diagnostics check:
+
+    - safety invariants
+    - override rules
+    - shield activation
+    - output compliance
+
+Boundary or safety failures require immediate operator attention.
+
+============================================================
+SECTION 6 — SHIELD MATRIX DIAGNOSTICS
+============================================================
+
+The Shield Matrix is validated layer-by-layer:
+
+1. Safety Shield
+2. Boundary Shield
+3. Identity Shield
+4. Resonance Shield
+5. Harmonics Shield
+6. Synchronization Shield
+
+Diagnostics check:
+
+    - activation state
+    - cross-layer isolation
+    - resonance stability
+    - harmonics coherence
+    - synchronization alignment
+
+Shield failures are rare but critical.
+
+============================================================
+SECTION 7 — PHYSICS & INTELLIGENCE DIAGNOSTICS
+============================================================
+
+Physics Diagnostics check:
+
+    - drift vector stability
+    - basin geometry continuity
+    - pressure field coherence
+    - force vector alignment
+
+Intelligence Diagnostics check:
+
+    - narrative-physics integration
+    - temporal pattern detection
+    - domain classification consistency
+
+Failures indicate:
+
+    - ELINS anomalies
+    - manifold desynchronization
+    - Markov/Markoff instability
+
+============================================================
+SECTION 8 — MARKOV/MARKOFF DIAGNOSTICS
+============================================================
+
+Diagnostics check:
+
+    - chain-state transitions
+    - temporal drift
+    - inversion patterns
+    - decay patterns
+    - resonance with ELINS temporal signals
+
+Failures indicate:
+
+    - temporal discontinuity
+    - chain-state collapse
+    - inconsistent transitions
+
+============================================================
+SECTION 9 — ELINS DIAGNOSTICS
+============================================================
+
+ELINS Diagnostics check:
+
+    - signature extraction
+    - legitimacy vector consistency
+    - stress indicator stability
+    - domain classification accuracy
+    - temporal pattern coherence
+
+Failures indicate:
+
+    - malformed metadata
+    - ingestion imbalance
+    - classification ambiguity
+
+============================================================
+SECTION 10 — MANIFOLD DIAGNOSTICS
+============================================================
+
+Manifold Diagnostics check:
+
+    - global drift vector
+    - global basin geometry
+    - global pressure field
+    - global legitimacy vector
+    - global stress index
+    - regional slice alignment
+    - temporal layer continuity
+
+Failures indicate:
+
+    - manifold desynchronization
+    - regional imbalance
+    - temporal discontinuity
+
+============================================================
+SECTION 11 — SCHEDULER & AUTONOMY DIAGNOSTICS
+============================================================
+
+Scheduler Diagnostics check:
+
+    - cycle timing
+    - trigger alignment
+    - drift in clock-based events
+
+Autonomy Diagnostics check:
+
+    - rule compliance
+    - optimization thresholds
+    - unauthorized behaviors
+
+Failures indicate:
+
+    - schedule drift
+    - autonomy misalignment
+
+============================================================
+SECTION 12 — METACRAWLER DIAGNOSTICS
+============================================================
+
+Diagnostics check:
+
+    - ingestion timing
+    - packet count
+    - malformed metadata
+    - boundary violations
+    - routing to ELINS
+
+Failures indicate:
+
+    - source failure
+    - ingestion imbalance
+    - boundary leak
+
+============================================================
+SECTION 13 — FAILURE MODES
+============================================================
+
+Common failure modes:
+
+1. **Manifold Desynchronization**
+    - regional slices misaligned
+    - temporal layers inconsistent
+
+2. **ELINS Collapse**
+    - signature extraction failure
+    - classification ambiguity
+
+3. **Scheduler Drift**
+    - cycles misaligned
+    - triggers delayed
+
+4. **Boundary Leak**
+    - unauthorized content detected
+
+5. **Identity Anomaly**
+    - identity invariant mismatch
+
+6. **Shield Failure**
+    - shield not activated or misaligned
+
+============================================================
+SECTION 14 — RECOVERY PROCEDURES
+============================================================
+
+Recovery follows a strict sequence:
+
+STEP 1 — IDENTIFY FAILURE
+    Use diagnostics to isolate subsystem.
+
+STEP 2 — CONTAIN FAILURE
+    Prevent cross-layer propagation.
+
+STEP 3 — RE-RUN SUBSYSTEM
+    Re-run ELINS, manifold, scheduler, or metacrawler.
+
+STEP 4 — RESTORE SNAPSHOT
+    If subsystem cannot recover.
+
+STEP 5 — FULL SYSTEM VALIDATION
+    Run ENGINE_BOOT_VERIFY.
+
+STEP 6 — OPERATOR SIGN-OFF
+    Operator confirms system stability.
+
+============================================================
+SECTION 15 — SNAPSHOT-BASED RECOVERY
+============================================================
+
+Snapshots are the operator’s most powerful recovery tool.
+
+Use snapshots when:
+
+    - manifold desynchronizes
+    - ELINS collapses
+    - scheduler drifts
+    - autonomy misaligns
+    - physics vectors destabilize
+
+Snapshots preserve:
+
+    - manifold state
+    - ELINS signatures
+    - scheduler state
+    - autonomy state
+    - physics vectors
+
+============================================================
+SECTION 16 — ADVANCED OPERATIONS
+============================================================
+
+Advanced operations include:
+
+    - manifold comparison
+    - temporal drift analysis
+    - regional stress mapping
+    - legitimacy vector tracking
+    - chain-state inversion detection
+    - pressure field evolution
+    - basin deformation analysis
+
+These operations require:
+
+    - structural awareness
+    - temporal awareness
+    - narrative-physics literacy
+
+============================================================
+SECTION 17 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_DIAGNOSTICS
+ENGINE_HEALTH
+ENGINE_PERFORMANCE
+ENGINE_RECOVERY
+ENGINE_SNAPSHOT_CREATE
+ENGINE_SNAPSHOT_RESTORE <id>
+ENGINE_SNAPSHOT_COMPARE <id>
+ENGINE_BOOT_VERIFY
+
+============================================================
+STATUS:
+Operator Handbook Section 6 Installed.
+Operator Handbook Complete.
+
+============================================================
+END OF FILE
+============================================================

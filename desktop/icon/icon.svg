@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ClarityOS desktop icon — placeholder geometry.
+
+  This SVG is the source of truth for the icon set. It captures the
+  pyramid-and-sphere geometry described in the v50 desktop spec.
+  Production builds should swap in the real PM artwork by either
+  replacing this file (and re-running ``python build_icons.py``) or
+  by dropping a 1024x1024 PNG at ``icon-source.png`` next to this file
+  — the generator prefers the PNG when present.
+
+  Geometry:
+    * 1024x1024 viewport, transparent background
+    * Pyramid: 4-sided, isometric-ish, deep void fill, accent stroke
+    * Sphere: positioned above the pyramid apex with a soft glow ring
+    * Subtle accent halo behind the whole composition
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1024 1024"
+     width="1024" height="1024">
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="55%" r="55%">
+      <stop offset="0%"   stop-color="#88f0d0" stop-opacity="0.18"/>
+      <stop offset="60%"  stop-color="#88f0d0" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#88f0d0" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="sphere-fill" cx="42%" cy="38%" r="62%">
+      <stop offset="0%"  stop-color="#d6fff1"/>
+      <stop offset="38%" stop-color="#88f0d0"/>
+      <stop offset="78%" stop-color="#1f5b4d"/>
+      <stop offset="100%" stop-color="#0a1816"/>
+    </radialGradient>
+
+    <radialGradient id="sphere-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="60%"  stop-color="#88f0d0" stop-opacity="0"/>
+      <stop offset="80%"  stop-color="#88f0d0" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#88f0d0" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="pyramid-front" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#1d2730"/>
+      <stop offset="100%" stop-color="#04121b"/>
+    </linearGradient>
+    <linearGradient id="pyramid-side"  x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#0d1820"/>
+      <stop offset="100%" stop-color="#020a10"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Halo behind everything. -->
+  <circle cx="512" cy="540" r="460" fill="url(#halo)"/>
+
+  <!-- Pyramid: 4-sided, viewed slightly from the front-right.
+       Apex (512, 360); base corners (front-left, front-right, back). -->
+  <g>
+    <!-- Right side (slightly darker) -->
+    <polygon
+      points="512,360 836,820 512,720"
+      fill="url(#pyramid-side)"
+      stroke="#88f0d0" stroke-width="3" stroke-opacity="0.55"
+      stroke-linejoin="round"/>
+    <!-- Front face -->
+    <polygon
+      points="512,360 188,820 836,820"
+      fill="url(#pyramid-front)"
+      stroke="#88f0d0" stroke-width="6" stroke-opacity="0.85"
+      stroke-linejoin="round"/>
+    <!-- Apex highlight stroke -->
+    <line x1="512" y1="360" x2="512" y2="720"
+          stroke="#88f0d0" stroke-width="2" stroke-opacity="0.35"/>
+  </g>
+
+  <!-- Glow ring behind the sphere. -->
+  <circle cx="512" cy="280" r="190" fill="url(#sphere-glow)"/>
+
+  <!-- Sphere (sits above the pyramid apex). -->
+  <circle cx="512" cy="280" r="120" fill="url(#sphere-fill)"
+          stroke="#88f0d0" stroke-width="2" stroke-opacity="0.6"/>
+
+  <!-- Sphere highlight specular. -->
+  <ellipse cx="475" cy="240" rx="32" ry="18"
+           fill="#ffffff" fill-opacity="0.28"
+           transform="rotate(-30 475 240)"/>
+</svg>

@@ -1,0 +1,18 @@
+notepad 117_ContinuityEngine.idx
+
+[Record]
+Name = Continuity Engine
+Code = 117
+Path = ../../02_Subsystems/Continuity_Engine/
+Description = Long-arc subsystem responsible for generational durability, cross-epoch stability, identity preservation under change, and OS continuity across time.
+
+[Files]
+Continuity_Primitives = continuity_primitives.txt
+Epoch_Models = epoch_models.txt
+Identity_Preservation = identity_preservation.txt
+LongArc_Stability = longarc_stability.txt
+Generational_Durability = generational_durability.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx, 113_AutoAdjustEngine.idx, 114_RecoveryEngine.idx, 115_TransmissionEngine.idx, 116_TranslationEngine.idx

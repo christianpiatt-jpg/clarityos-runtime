@@ -1,0 +1,23 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: var(--insights-width);
+  border-left: var(--border-1);
+  background: var(--color-bg-surface-alt);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.panelCollapsed {
+  width: 0;
+  border-left: none;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-inner);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-inner);
+}

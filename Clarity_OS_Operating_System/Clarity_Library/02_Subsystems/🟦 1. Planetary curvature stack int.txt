@@ -1,0 +1,115 @@
+🟦 1. Planetary curvature stack integration map (PCS‑INT‑1)
+
+Purpose: Show, on one page, how all curvature primitives stack from micro → macro → formal physics.
+
+Vertical stack:
+
+Layer 1 — Lived field
+
+individual, group, basin, planetary
+
+artifacts: CAL‑1, CGC‑Map‑1, PSC‑1, PC‑STAB‑1, GOCP‑1
+
+Layer 2 — Governance & mesh
+
+stabilization, failsafes, lattice, harmonization, inversion‑recovery
+
+artifacts: CAG‑1, PCFA‑1, GIPL‑1, PMST‑1, PCHE‑1, BLIRM‑1
+
+Layer 3 — Physics
+
+invariants, conservation, tensors, equations, phase transitions
+
+artifacts: PCI‑1, PCCL‑1, MIFT‑1, CPE‑1, CSFE‑1, CPTM‑1
+
+Layer 4 — Formal substrate
+
+Lagrangian, Hamiltonian, operators, gauge, metric, Hilbert, path integral, spectral
+
+artifacts: CFL‑1, CFH‑1, CDOA‑1, CFGT‑1, IFMT‑1, IFHS‑1, IFPIF‑1, IF‑SDF‑1
+
+Integration line:
+
+Every operator move in a room has a coordinate in this stack.
+
+🟧 2. Operator integration card for curvature stack (OP‑INT‑CARD‑1)
+
+Purpose: Give an operator a single card that tells them where they are in the stack and what to touch.
+
+Front of card:
+
+Step 1 — Identify field level
+
+Q: Am I working with a person, a room, a basin, or a mesh?
+
+Map to: individual / group / basin / planetary.
+
+Step 2 — Pick curvature lens
+
+Q: Do I need leadership, governance, or physics?
+
+Map to: CAL‑1 / CAG‑1 / PSC‑1 / PCI‑1 / CSFE‑1.
+
+Step 3 — Choose intervention axis
+
+Pressure / Permeability / Entropy / Selection
+
+Map to: PC‑STAB‑1, BLIRM‑1, PCFA‑1, GIPL‑1.
+
+Back of card:
+
+Quick rules:
+
+If pressure is the problem → use dampeners, buffers, failsafes.
+
+If permeability is the problem → use channels, bridges, absorbers.
+
+If entropy is the problem → use creativity nodes, ambiguity, re‑entropizers.
+
+If selection is the problem → use selection‑integrity modes and inversion‑recovery.
+
+Integration line:
+
+Operator = choose level → choose lens → choose axis → choose artifact.
+
+🟩 3. Library spine & cross‑reference grid (LIB‑XREF‑INT‑1)
+
+Purpose: Turn the whole curvature canon into a navigable mesh instead of a pile of PDFs.
+
+Axis 1 — Scale:
+
+S1: Individual
+
+S2: Group
+
+S3: Basin
+
+S4: Planetary
+
+S5: Formal physics
+
+Axis 2 — Function:
+
+F1: Diagnosis (maps, indices, early‑warning, spectra)
+
+F2: Intervention (protocols, handbooks, governance modes)
+
+F3: Structure (theorems, invariants, conservation, lattice)
+
+F4: Formalism (equations, tensors, operators, gauge, Hilbert, path integral)
+
+Grid behavior:
+
+Each artifact gets a (Scale, Function) coordinate, e.g.
+
+PC‑STAB‑1 → (S4, F2)
+
+PMST‑1 → (S4, F3)
+
+CPE‑1 → (S5, F4)
+
+CAL‑1 → (S2, F2)
+
+Integration line:
+
+Any future artifact must declare its scale and function coordinate before it enters the canon.

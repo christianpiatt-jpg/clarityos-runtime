@@ -1,0 +1,517 @@
+nformation Age
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+This article is about the historical period. For the album by dead prez, see Information Age (album). For publisher, see Information Age Publishing.
+Third Industrial Revolution
+1947–present
+ Second Industrial Revolution	Fourth Industrial Revolution class-skin-invert-image
+
+A laptop connected to the Internet displaying information from Wikipedia. Long-distance communication between computer systems is a hallmark of the Information Age.
+Location	Worldwide
+Key events	Invention of the transistor
+Computer miniaturization
+Invention of the Internet
+Part of a series on
+Human history
+↑ Prehistory (Stone Age)   (Pleistocene epoch)
+Holocene
+Ancient
+Postclassical
+Modern
+↓ Future   
+vte
+History of technology
+By technological eras
+By historical regions
+By type of technology
+Technology timelines
+Article indices
+vte
+The Information Age[a] is a historical period that began in the mid-20th century. It is characterized by a rapid shift from traditional industries, as established during the Industrial Revolution, to an economy centered on information technology. The onset of the Information Age has been linked to the development of the transistor in 1947.[2] This technological advance has had a significant impact on the way information is processed and transmitted.
+
+According to the United Nations Public Administration Network, the Information Age was formed by capitalizing on computer miniaturization advances,[3] which led to modernized information systems and internet communications as the driving force of social evolution.[4]
+
+There is ongoing debate concerning whether the Third Industrial Revolution has already ended and recent breakthroughs in areas such as artificial intelligence and biotechnology have spawned a Fourth Industrial Revolution.[5] This next transition has been theorized to harken the advent of the Imagination Age, the Internet of things (IoT), and rapid advances in machine learning.
+
+History
+Further information: History of computing hardware
+The digital revolution converted technology from analog format to digital format. By doing this, it became possible to make copies that were identical to the original. In digital communications, for example, repeating hardware was able to amplify the digital signal and pass it on with no loss of information in the signal. Of equal importance to the revolution was the ability to easily move the digital information between media and to access or distribute it remotely. One turning point of the revolution was the change from analog to digitally recorded music.[6] During the 1980s, the digital format of optical compact discs gradually replaced analog formats, such as vinyl records and cassette tapes, as the popular medium of choice.[7]
+
+Previous inventions
+Humans have manufactured tools for counting and calculating since ancient times, such as the abacus, astrolabe, equatorium, and mechanical timekeeping devices. More complicated devices started appearing in the 1600s, including the slide rule and mechanical calculators. By the early 1800s, the Industrial Revolution had produced mass-market calculators like the arithmometer and the enabling technology of the punch card. Charles Babbage proposed a mechanical general-purpose computer called the Analytical Engine, but it was never successfully built, and was largely forgotten by the 20th century, and unknown to most of the inventors of modern computers.
+
+The Second Industrial Revolution, in the last quarter of the 19th century, developed useful electrical circuits and the telegraph. In the 1880s, Herman Hollerith developed electromechanical tabulating and calculating devices using punch cards and unit record equipment, which became widespread in business and government.
+
+Meanwhile, various analog computer systems used electrical, mechanical, or hydraulic systems to model problems and calculate answers. These included an 1872 tide-predicting machine, differential analysers, perpetual calendar machines, the Deltar for water management in the Netherlands, network analyzers for electrical systems, and various machines for aiming military guns and bombs. The construction of problem-specific analog computers continued in the late 1940s and beyond, with FERMIAC for neutron transport, Project Cyclone for various military applications, and the Phillips Machine for economic modeling.
+
+Building on the complexity of the Z1 and Z2, German inventor Konrad Zuse used electromechanical systems to complete in 1941 the Z3, the world's first working programmable, fully automatic digital computer. Also, during World War II, Allied engineers constructed electromechanical bombes to break the German Enigma machine encoding. The base-10 electromechanical Harvard Mark I was completed in 1944, and was to some degree improved with inspiration from Charles Babbage's designs.
+
+1947–1969: Origins
+See also: Early history of video games and Early mainframe games
+
+A Pennsylvania state historical marker in Philadelphia cites the creation of ENIAC, the "first all-purpose digital computer", in 1946 as the beginning of the Information Age.
+In 1947, the first working transistor, the germanium-based point-contact transistor, was invented by John Bardeen and Walter Houser Brattain while working under William Shockley at Bell Labs.[8] This led the way to more advanced digital computers. From the late 1940s, universities, the military, and businesses developed computer systems to digitally replicate and automate previously manually performed mathematical calculations, with the LEO being the first commercially available general-purpose computer.
+
+Digital communication became economical for widespread adoption after the invention of the personal computer in the 1970s. Claude Shannon, a Bell Labs mathematician, is generally credited with laying the foundations of digitalization in his pioneering 1948 article, A Mathematical Theory of Communication.[9]
+
+In 1948, Bardeen and Brattain patented an insulated-gate transistor (IGFET) with an inversion layer. Their concept forms the basis of CMOS and DRAM technology today.[10] In 1957, at Bell Labs, Frosch and Derick were able to manufacture planar silicon dioxide transistors,[11] later a team at Bell Labs demonstrated a working MOSFET.[12] The first integrated circuit milestone was achieved by Jack Kilby in 1958.[13]
+
+Other important technological developments included the invention of the monolithic integrated circuit chip by Robert Noyce at Fairchild Semiconductor in 1959,[14] made possible by the planar process developed by Jean Hoerni.[15] In 1963, complementary MOS (CMOS) was developed by Chih-Tang Sah and Frank Wanlass at Fairchild Semiconductor.[16] The self-aligned gate transistor, which further facilitated mass production, was invented in 1966 by Robert Bower at Hughes Aircraft[17][18] and independently by Robert Kerwin, Donald Klein, and John Sarace at Bell Labs.[19]
+
+In 1962, AT&T deployed the T-carrier for long-haul pulse-code modulation (PCM) digital voice transmission. The T1 format carried 24 pulse-code modulated, time-division multiplexed speech signals, each encoded in 64 kbit/s streams, leaving 8 kbit/s of framing information, which facilitated the synchronization and demultiplexing at the receiver. Over the subsequent decades, the digitisation of voice became the norm for all but the last mile (where analogue continued to be the norm right into the late 1990s).
+
+Following the development of MOS integrated circuit chips in the early 1960s, MOS chips reached higher transistor density and lower manufacturing costs than bipolar integrated circuits by 1964. MOS chips further increased in complexity at a rate predicted by Moore's law, leading to large-scale integration (LSI) with hundreds of transistors on a single MOS chip by the late 1960s. The application of MOS LSI chips to computing was the basis for the first microprocessors, as engineers began recognizing that a complete computer processor could be contained on a single MOS LSI chip.[20] In 1968, Fairchild engineer Federico Faggin improved MOS technology with his development of the silicon-gate MOS chip, which he later used to develop the Intel 4004, the first single-chip microprocessor.[21] It was released by Intel in 1971 and laid the foundations for the microcomputer revolution that began in the 1970s.
+
+MOS technology also led to the development of semiconductor image sensors suitable for digital cameras.[22] The first such image sensor was the charge-coupled device, developed by Willard S. Boyle and George E. Smith at Bell Labs in 1969,[23] based on MOS capacitor technology.[22]
+
+1969–1989: Invention of the internet, rise of home computers
+See also: History of arcade video games, First generation of video game consoles, Second generation of video game consoles, Third generation of video game consoles, and Fourth generation of video game consoles
+
+A visualization of the various routes through a portion of the Internet (created via The Opte Project)
+The public was first introduced to the concepts that led to the Internet when a message was sent over the ARPANET in 1969. Packet switched networks such as ARPANET, Mark I, CYCLADES, Merit Network, Tymnet, and Telenet, were developed in the late 1960s and early 1970s using a variety of protocols. The ARPANET in particular led to the development of protocols for internetworking, in which multiple separate networks could be joined into a network of networks.
+
+The Whole Earth movement of the 1960s advocated the use of new technology.[24]
+
+In the 1970s, the home computer was introduced,[25] time-sharing computers,[26] the video game console, the first coin-op video games,[27][28] and the golden age of arcade video games began with Space Invaders. As digital technology proliferated, and the switch from analog to digital record keeping became the new standard in business, a relatively new job description was popularized, the data entry clerk. Culled from the ranks of secretaries and typists from earlier decades, the data entry clerk's job was to convert analog data (customer records, invoices, etc.) into digital data.
+
+In developed nations, computers achieved semi-ubiquity during the 1980s as they made their way into schools, homes, businesses, and industry. Automated teller machines, industrial robots, CGI in film and television, electronic music, bulletin board systems, and video games all fueled what became the zeitgeist of the 1980s. Millions of people purchased home computers, making household names of early personal computer manufacturers such as Apple, Commodore, and Tandy. To this day, the Commodore 64 is often cited as the best-selling computer of all time, having sold 17 million units (by some accounts)[29] between 1982 and 1994.
+
+In 1984, the U.S. Census Bureau began collecting data on computer and Internet use in the United States; their first survey showed that 8.2% of all U.S. households owned a personal computer in 1984, and that households with children under the age of 18 were nearly twice as likely to own one at 15.3% (middle and upper middle class households were the most likely to own one, at 22.9%).[30] By 1989, 15% of all U.S. households owned a computer, and nearly 30% of households with children under the age of 18 owned one.[31] By the late 1980s, many businesses were dependent on computers and digital technology.
+
+Motorola created the first mobile phone, the Motorola DynaTac, in 1983. However, this device used analog communication – digital cell phones were not sold commercially until 1991, when the 2G network started to be opened in Finland to accommodate the unexpected demand for cell phones that was becoming apparent in the late 1980s.
+
+Compute! magazine predicted that CD-ROM would be the centerpiece of the revolution, with multiple household devices reading the discs.[32]
+
+The first true digital camera was created in 1988, and the first were marketed in December 1989 in Japan and in 1990 in the United States.[33] By the early 2000s, digital cameras had eclipsed traditional film in popularity.
+
+Digital ink and paint were also invented in the late 1980s. Disney's CAPS system (created in 1988) was used for a scene in 1989's The Little Mermaid and for all their animation films between 1990's The Rescuers Down Under and 2004's Home on the Range.
+
+1989–2005: Invention of the World Wide Web, mainstreaming of the Internet, Web 1.0
+See also: Fifth generation of video game consoles and Sixth generation of video game consoles
+Tim Berners-Lee invented the World Wide Web in 1989.[34] The "Web 1.0 era" ended in 2005, coinciding with the development of further advanced technologies at the beginning of the 21st century.[35]
+
+The first public digital HDTV broadcast was of the 1990 FIFA World Cup that June; it was played in 10 theaters in Spain and Italy. However, HDTV did not become a standard until the mid-2000s outside Japan.
+
+The World Wide Web became publicly accessible in 1991, which had been available only to government and universities.[36] In 1993, Marc Andreessen and Eric Bina introduced Mosaic, the first web browser capable of displaying inline images[37] and the basis for later browsers such as Netscape Navigator and Internet Explorer. Stanford Federal Credit Union was the first financial institution to offer online internet banking services to all of its members in October 1994.[38] In 1996, OP Financial Group, also a cooperative bank, became the second online bank in the world and the first in Europe.[39] The Internet expanded rapidly worldwide, and by 1996, it was part of mass culture, with many businesses listing websites in their ads.[citation needed] By 1999, almost every country had a connection, and nearly half of Americans and people in several other countries used the internet on a regular basis.[citation needed] However, throughout the 1990s, "getting online" entailed complicated configuration, and dial-up was the only connection type affordable by individual users; the present-day mass internet culture was not possible.
+
+In 1989, about 15% of all households in the United States owned a personal computer.[40] For households with children, nearly 30% owned a computer in 1989, and in 2000, 65% owned one.
+
+Cell phones became as ubiquitous as computers by the early 2000s, with movie theaters beginning to show ads telling people to silence their phones. They also became much more advanced than phones of the 1990s, most of which only took calls or at most allowed for the playing of simple games.
+
+Text messaging became widely used worldwide in the late 1990s, except in the United States, where it didn't become commonplace until the early 2000s.[citation needed]
+
+The digital revolution became truly global at this time as well – after revolutionizing society in the developed world in the 1990s, the digital revolution spread to the masses in the developing world in the 2000s.
+
+By 2000, the majority of U.S. households had at least one personal computer and internet access the following year.[41] In 2002, a majority of U.S. survey respondents reported having a mobile phone.[42]
+
+2005–present: Web 2.0, social media, smartphones, digital TV
+Main articles: Web 2.0, Social media, Smartphone, Digital terrestrial television, Digital television transition, Video game industry, Seventh generation of video game consoles, Eighth generation of video game consoles, and Ninth generation of video game consoles
+In late 2005, the number of people with internet access reached 1 billion,[43] and 3 billion people worldwide used cell phones by the end of the decade. High-definition television became the standard television broadcasting format in many countries by the end of the decade. In September and December 2006, respectively, Luxembourg and the Netherlands became the first countries to completely transition from analog to digital television. In September 2007, a majority of U.S. survey respondents reported having broadband internet at home.[44] According to estimates from the Nielsen Media Research, approximately 45.7 million U.S. households in 2006 (or approximately 40 percent of approximately 114.4 million) owned a dedicated home video game console,[45][46] and by 2015, 51 percent of U.S. households owned a dedicated home video game console according to an Entertainment Software Association annual industry report.[47][48] By 2012, over 2 billion people used the Internet, twice the number using it in 2007. Cloud computing had entered the mainstream by the early 2010s. In January 2013, a majority of U.S. survey respondents reported owning a smartphone.[49] By 2016, half of the world's population was connected,[50] and as of 2020, that number has risen to 67%.[51]
+
+Rise in digital technology and commercialization of computers
+Further information: History of the Internet
+In the late 1980s, less than 1% of the world's technologically stored information was in digital format. By 2007, this number increased to 94%, and to more than 99% by 2014.[52]
+
+Moreover, it is estimated that the world's capacity to store information in a digital form has increased from 2.6 (optimally compressed) exabytes in 1986 to approximately 5,000 exabytes in 2014 (5 zettabytes).[52][53]
+
+Number of cell phone subscribers and internet users
+Year	Cell phone subscribers (% of world pop.)	Internet users (% of world pop.)
+1990	12.5 million (0.25%)[54]	2.8 million (0.05%)[55]
+2002	1.5 billion (19%)[55]	631 million (11%)[55]
+2010	4 billion (68%)[56]	1.8 billion (26.6%)[50]
+2020	4.78 billion (62%)[57]	4.54 billion (59%)[58]
+2023	6.31 billion (78%)[59]	5.4 billion (67%)[60]
+Overview of early developments
+
+A timeline of major milestones of the Information Age, from the first message sent by the Internet protocol suite to global Internet access
+Library expansion and Moore's law
+
+A university computer lab containing many desktop PCs
+Library expansion was calculated in 1945 by Fremont Rider to double in capacity every 16 years where sufficient space made available.[61] He advocated replacing bulky, decaying printed works with miniaturized microform analog photographs, which could be duplicated on-demand for library patrons and other institutions.
+
+Rider did not foresee, however, the digital technology that would follow decades later to replace analog microform with digital imaging, storage, and transmission media, whereby vast increases in the rapidity of information growth would be made possible through automated, potentially-lossless digital technologies. Accordingly, Moore's law, formulated around 1965, would calculate that the number of transistors in a dense integrated circuit doubles approximately every two years.[62][63]
+
+By the early 1980s, along with improvements in computing power, the proliferation of the smaller and less expensive personal computers allowed for immediate access to information and the ability to share and store it. Connectivity between computers within organizations enabled access to greater amounts of information.[citation needed]
+
+Information storage and Kryder's law
+Main articles: Data storage and Computer data storage
+
+Hilbert & López (2011). The World's Technological Capacity to Store, Communicate, and Compute Information. Science, 332(6025), 60–65.[64]
+The world's technological capacity to store information grew from 2.6 (optimally compressed) exabytes (EB) in 1986 to 15.8 EB in 1993; over 54.5 EB in 2000; and to 295 (optimally compressed) EB in 2007.[52][65] This is the informational equivalent to less than one 730-megabyte (MB) CD-ROM per person in 1986 (539 MB per person); roughly four CD-ROM per person in 1993; twelve CD-ROM per person in the year 2000; and almost sixty-one CD-ROM per person in 2007.[52] It is estimated that the world's capacity to store information has reached 5 zettabytes in 2014,[53] the informational equivalent of 4,500 stacks of printed books from the earth to the sun.[citation needed]
+
+The amount of digital data stored appears to be growing approximately exponentially, reminiscent of Moore's law. As such, Kryder's law prescribes that the amount of storage space available appears to be growing approximately exponentially.[66][67][68][63]
+
+Information transmission
+The world's technological capacity to receive information through one-way broadcast networks was 432 exabytes of (optimally compressed) information in 1986; 715 (optimally compressed) exabytes in 1993; 1.2 (optimally compressed) zettabytes in 2000; and 1.9 zettabytes in 2007, the information equivalent of 174 newspapers per person daily.[52]
+
+The world's effective capacity to exchange information through two-way Telecommunications networks was 281 petabytes of (optimally compressed) information in 1986; 471 petabytes in 1993; 2.2 (optimally compressed) exabytes in 2000; and 65 (optimally compressed) exabytes in 2007, the information equivalent of six newspapers per person daily.[52] In the 1990s, the spread of the Internet caused a sudden leap in access to and ability to share information in businesses and homes globally. A computer that cost $3000 in 1997 would cost $2000 two years later and $1000 the following year, due to the rapid advancement of technology.[citation needed]
+
+Computation
+The world's technological capacity to compute information with human-guided general-purpose computers grew from 3.0 × 108 MIPS in 1986, to 4.4 × 109 MIPS in 1993; to 2.9 × 1011 MIPS in 2000; to 6.4 × 1012 MIPS in 2007.[52] An article featured in the journal Trends in Ecology and Evolution in 2016 reported that:[53]
+
+Digital technology has vastly exceeded the cognitive capacity of any single human being and has done so a decade earlier than predicted. In terms of capacity, there are two measures of importance: the number of operations a system can perform and the amount of information that can be stored. The number of synaptic operations per second in a human brain has been estimated to lie between 1015 and 1017. While this number is impressive, even in 2007 humanity's general-purpose computers were capable of performing well over 1018 instructions per second. Estimates suggest that the storage capacity of an individual human brain is about 1012 bytes. On a per capita basis, this is matched by current digital storage (5×1021 bytes per 7.2×109 people).
+
+Genetic information
+Genetic code may also be considered part of the information revolution. Now that sequencing has been computerized, genome can be rendered and manipulated as data. This started with DNA sequencing, invented by Walter Gilbert and Allan Maxam[69] in 1976–1977 and Frederick Sanger in 1977, grew steadily with the Human Genome Project, initially conceived by Gilbert and finally, the practical applications of sequencing, such as gene testing, after the discovery by Myriad Genetics of the BRCA1 breast cancer gene mutation. Sequence data in GenBank has grown from the 606 genome sequences registered in December 1982 to the 231 million genomes in August 2021. An additional 13 trillion incomplete sequences are registered in the Whole Genome Shotgun submission database as of August 2021. The information contained in these registered sequences has doubled every 18 months.[70][original research?]
+
+Different stage conceptualizations
+icon
+This section needs additional citations for verification. Please help improve this article by adding citations to reliable sources in this section. Unsourced material may be challenged and removed.
+Find sources: "Information Age" – news · newspapers · books · scholar · JSTOR (February 2024) (Learn how and when to remove this message)
+During rare times in human history, there have been periods of innovation that have transformed human life. The Neolithic Age, the Scientific Revolution and the Industrial Age all, ultimately, induced discontinuous and irreversible changes in the economic, social and cultural elements of the daily life of most people. Traditionally, these epochs have taken place over hundreds, or in the case of the Neolithic Revolution, thousands of years, whereas the Information Age swept to all parts of the globe in just a few years, as a result of the rapidly advancing speed of information exchange.
+
+Between 7,000 and 10,000 years ago during the Neolithic period, humans began to domesticate animals, began to farm grains and to replace stone tools with ones made of metal. These innovations allowed nomadic hunter-gatherers to settle down. Villages formed along the Yangtze River in China in 6,500 B.C., the Nile River region of Africa and in Mesopotamia (Iraq) in 6,000 B.C. Cities emerged between 6,000 B.C. and 3,500 B.C. The development of written communication (cuneiform in Sumeria and hieroglyphs in Egypt in 3,500 B.C. and writing in Egypt in 2,560 B.C. and in Minoa and China around 1,450 B.C.) enabled ideas to be preserved for extended periods to spread extensively. In all, Neolithic developments, augmented by writing as an information tool, laid the groundwork for the advent of civilization.
+
+The Scientific Age began in the period between Galileo's 1543 proof that the planets orbit the Sun and Newton's publication of the laws of motion and gravity in Principia in 1697. This age of discovery continued through the 18th century, accelerated by widespread use of the moveable type printing press by Johannes Gutenberg.
+
+The Industrial Age began in Great Britain in 1760 and continued into the mid-19th century. The invention of machines such as the mechanical textile weaver by Edmund Cartwrite, the rotating shaft steam engine by James Watt and the cotton gin by Eli Whitney, along with processes for mass manufacturing, came to serve the needs of a growing global population. The Industrial Age harnessed steam and waterpower to reduce the dependence on animal and human physical labor as the primary means of production. Thus, the core of the Industrial Revolution was the generation and distribution of energy from coal and water to produce steam and, later in the 20th century, electricity.
+
+The Information Age also requires electricity to power the global networks of computers that process and store data. However, what dramatically accelerated the pace of The Information Age's adoption, as compared to previous ones, was the speed by which knowledge could be transferred and pervaded the entire human family in a few short decades. This acceleration came about with the adoptions of a new form of power. Beginning in 1972, engineers devised ways to harness light to convey data through fiber optic cable. Today, light-based optical networking systems at the heart of telecom networks and the Internet span the globe and carry most of the information traffic to and from users and data storage systems.
+
+
+Three stages of the Information Age
+There are different conceptualizations of the Information Age. Some focus on the evolution of information over the ages, distinguishing between the Primary Information Age and the Secondary Information Age. Information in the Primary Information Age was handled by newspapers, radio and television. The Secondary Information Age was developed by the Internet, satellite televisions and mobile phones. The Tertiary Information Age was emerged by media of the Primary Information Age interconnected with media of the Secondary Information Age as presently experienced.[71][72][73][74][75]
+
+
+Stages of development expressed as Kondratiev waves
+Others classify it in terms of the well-established Schumpeterian long waves or Kondratiev waves. Here authors distinguish three different long-term metaparadigms, each with different long waves. The first focused on the transformation of material, including stone, bronze, and iron. The second, often referred to as Industrial Revolution, was dedicated to the transformation of energy, including water, steam, electric, and combustion power. Finally, the most recent metaparadigm aims at transforming information. It started out with the proliferation of communication and stored data and has now entered the age of algorithms, which aims at creating automated processes to convert the existing information into actionable knowledge.[76]
+
+Information in social and economic activities
+The main feature of the information revolution is the growing economic, social and technological role of information.[77] Information-related activities did not come up with the Information Revolution. They existed, in one form or the other, in all human societies, and eventually developed into institutions, such as the Platonic Academy, Aristotle's Peripatetic school in the Lyceum, the Musaeum and the Library of Alexandria, or the schools of Babylonian astronomy. The Agricultural Revolution and the Industrial Revolution came up when new informational inputs were produced by individual innovators, or by scientific and technical institutions. During the Information Revolution all these activities are experiencing continuous growth, while other information-oriented activities are emerging.
+
+Information is the central theme of several new sciences, which emerged in the 1940s, including Shannon's (1949) Information Theory[78] and Wiener's (1948) Cybernetics. Wiener stated: "information is information not matter or energy". This aphorism suggests that information should be considered along with matter and energy as the third constituent part of the Universe; information is carried by matter or by energy.[79] By the 1990s some writers believed that changes implied by the Information revolution will lead to not only a fiscal crisis for governments but also the disintegration of all "large structures".[80]
+
+The theory of information revolution
+The term information revolution may relate to, or contrast with, such widely used terms as Industrial Revolution and Agricultural Revolution. Note, however, that you may prefer mentalist to materialist paradigm. The following fundamental aspects of the theory of information revolution can be given:[81][82]
+
+The object of economic activities can be conceptualized according to the fundamental distinction between matter, energy, and information. These apply both to the object of each economic activity, as well as within each economic activity or enterprise. For instance, an industry may process matter (e.g. iron) using energy and information (production and process technologies, management, etc.).
+Information is a factor of production (along with capital, labor, land (economics)), as well as a product sold in the market, that is, a commercial good by itself. As such, it acquires use value and exchange value, and therefore a price.
+All products have use value, exchange value, and informational value. The latter can be measured by the information content of the product, in terms of innovation, design, etc.
+Industries develop information-generating activities, the so-called Research and Development (R&D) functions.
+Enterprises, and society at large, develop the information control and processing functions, in the form of management structures; these are also called "white-collar workers", "bureaucracy", "managerial functions", etc.
+Labor can be classified according to the object of labor, into information labor and non-information labor.
+Information activities constitute a large, new economic sector, the information sector along with the traditional primary sector, secondary sector, and tertiary sector, according to the three-sector hypothesis. These should be restated because they are based on the ambiguous definitions made by Colin Clark (1940), who included in the tertiary sector all activities that have not been included in the primary (agriculture, forestry, etc.) and secondary (manufacturing) sectors.[83] The quaternary sector and the quinary sector of the economy attempt to classify these new activities, but their definitions are not based on a clear conceptual scheme, although the latter is considered by some as equivalent with the information sector.
+From a strategic point of view, sectors can be defined as information sector, means of production, means of consumption, thus extending the classical Ricardo-Marx model of the Capitalist mode of production (see Influences on Karl Marx). Marx stressed in many occasions the role of the "intellectual element" in production, but failed to find a place for it into his model.[84][85]
+Innovations are the result of the production of new information, as new products, new methods of production, patents, etc. Diffusion of innovations manifests saturation effects (related term: market saturation), following certain cyclical patterns and creating "economic waves", also referred to as "business cycles". There are various types of waves, such as Kondratiev wave (54 years), Kuznets swing (18 years), Juglar cycle (9 years) and Kitchin (about 4 years, see also Joseph Schumpeter) distinguished by their nature, duration, and, thus, economic impact.
+Diffusion of innovations causes structural-sectoral shifts in the economy, which can be smooth or can create crisis and renewal, a process which Joseph Schumpeter called vividly "creative destruction".
+From a different perspective, Irving E. Fang (1997) identified six 'Information Revolutions': writing, printing, mass media, entertainment, the 'tool shed' (which we call 'home' now), and the information highway. In this work the term 'information revolution' is used in a narrow sense, to describe trends in communication media.[86]
+
+Measuring and modeling the information revolution
+Porat (1976) measured the information sector in the US using the input-output analysis; OECD has included statistics on the information sector in the economic reports of its member countries.[87] Veneris (1984, 1990) explored the theoretical, economic and regional aspects of the informational revolution and developed a systems dynamics simulation computer model.[81][82]
+
+These works can be seen as following the path originated with the work of Fritz Machlup who in his (1962) book "The Production and Distribution of Knowledge in the United States", claimed that the "knowledge industry represented 29% of the US gross national product", which he saw as evidence that the Information Age had begun. He defines knowledge as a commodity and attempts to measure the magnitude of the production and distribution of this commodity within a modern economy. Machlup divided information use into three classes: instrumental, intellectual, and pastime knowledge. He identified also five types of knowledge: practical knowledge; intellectual knowledge, that is, general culture and the satisfying of intellectual curiosity; pastime knowledge, that is, knowledge satisfying non-intellectual curiosity or the desire for light entertainment and emotional stimulation; spiritual or religious knowledge; unwanted knowledge, accidentally acquired and aimlessly retained.[88]
+
+More recent estimates have reached the following results:[52]
+
+the world's technological capacity to receive information through one-way broadcast networks grew at a sustained compound annual growth rate of 7% between 1986 and 2007;
+the world's technological capacity to store information grew at a sustained compound annual growth rate of 25% between 1986 and 2007;
+the world's effective capacity to exchange information through two-way telecommunications networks grew at a sustained compound annual growth rate of 30% during the same two decades;
+the world's technological capacity to compute information with the help of humanly guided general-purpose computers grew at a sustained compound annual growth rate of 61% during the same period.[89]
+Economics
+Eventually, Information and communication technology (ICT)—i.e. computers, computerized machinery, fiber optics, communication satellites, the Internet, and other ICT tools—became a significant part of the world economy, as the development of optical networking and microcomputers greatly changed many businesses and industries.[90][91] Nicholas Negroponte captured the essence of these changes in his 1995 book, Being Digital, in which he discusses the similarities and differences between products made of atoms and products made of bits.[92]
+
+Jobs and income distribution
+The Information Age has affected the workforce in several ways, such as compelling workers to compete in a global job market. One of the most evident concerns is the replacement of human labor by computers that can do their jobs faster and more effectively, thus creating a situation in which individuals who perform tasks that can easily be automated are forced to find employment where their labor is not as disposable.[93] This especially creates issue for those in industrial cities, where solutions typically involve lowering working time, which is often highly resisted. Thus, individuals who lose their jobs may be pressed to move up into more indispensable professions (e.g. engineers, doctors, lawyers, teachers, professors, scientists, executives, journalists, consultants), who are able to compete successfully in the world market and receive (relatively) high wages.[citation needed]
+
+Along with automation, jobs traditionally associated with the middle class (e.g. assembly line, data processing, management, and supervision) have also begun to disappear as result of outsourcing.[94] Unable to compete with those in developing countries, production and service workers in post-industrial (i.e. developed) societies either lose their jobs through outsourcing, accept wage cuts, or settle for low-skill, low-wage service jobs.[94] In the past, the economic fate of individuals would be tied to that of their nation's. For example, workers in the United States were once well paid in comparison to those in other countries. With the advent of the Information Age and improvements in communication, this is no longer the case, as workers must now compete in a global job market, whereby wages are less dependent on the success or failure of individual economies.[94]
+
+In effectuating a globalized workforce, the internet has just as well allowed for increased opportunity in developing countries, making it possible for workers in such places to provide in-person services, therefore competing directly with their counterparts in other nations. This competitive advantage translates into increased opportunities and higher wages.[95]
+
+Automation, productivity, and job gain
+The Information Age has affected the workforce in that automation and computerization have resulted in higher productivity coupled with net job loss in manufacturing. In the United States, for example, from January 1972 to August 2010, the number of people employed in manufacturing jobs fell from 17,500,000 to 11,500,000 while manufacturing value rose 270%.[96] Although it initially appeared that job loss in the industrial sector might be partially offset by the rapid growth of jobs in information technology, the recession of March 2001 foreshadowed a sharp drop in the number of jobs in the sector. This pattern of decrease in jobs would continue until 2003,[97] and data has shown that, overall, technology creates more jobs than it destroys even in the short run.[98]
+
+Information-intensive industry
+Main article: Information industry
+Industry has become more information-intensive while less labor- and capital-intensive. This has left important implications for the workforce, as workers have become increasingly productive as the value of their labor decreases. For the system of capitalism itself, the value of labor decreases, the value of capital increases.
+
+In the classical model, investments in human and financial capital are important predictors of the performance of a new venture.[99] However, as demonstrated by Mark Zuckerberg and Facebook, it now seems possible for a group of relatively inexperienced people with limited capital to succeed on a large scale.[100]
+
+Innovations
+
+A visualization of the various routes through a portion of the Internet
+Revolutions in digital technology created the Information Age. These revolutions built on the developments of the Technological Revolution.
+
+Transistors
+Main articles: Transistor, History of the transistor, and MOSFET
+Further information: Semiconductor device
+The onset of the Information Age can be associated with the development of transistor technology.[2] The concept of a field-effect transistor was first theorized by Julius Edgar Lilienfeld in 1925.[101] The first practical transistor was the point-contact transistor, invented by the engineers Walter Houser Brattain and John Bardeen while working for William Shockley at Bell Labs in 1947. This was a breakthrough that laid the foundations for modern technology.[2] Shockley's research team also invented the bipolar junction transistor in 1952.[102][101] The most widely used type of transistor is the metal–oxide–semiconductor field-effect transistor (MOSFET), invented by Mohamed M. Atalla and Dawon Kahng at Bell Labs in 1960.[103] The complementary MOS (CMOS) fabrication process was developed by Frank Wanlass and Chih-Tang Sah in 1963.[104]
+
+Computers
+Main articles: Computer and History of computing hardware
+Further information: Integrated circuit, Invention of the integrated circuit, Microprocessor, and Moore's law
+Before the advent of electronics, mechanical computers, like the Analytical Engine in 1837, were designed to provide routine mathematical calculation and simple decision-making capabilities. Military needs during World War II drove development of the first electronic computers, based on vacuum tubes, including the Z3, the Atanasoff–Berry Computer, Colossus computer, and ENIAC.
+
+The invention of the transistor enabled the era of mainframe computers (1950s–1970s), typified by the IBM 360. These large, room-sized computers provided data calculation and manipulation that was much faster than humanly possible, but were expensive to buy and maintain, so were initially limited to a few scientific institutions, large corporations, and government agencies.
+
+The germanium integrated circuit (IC) was invented by Jack Kilby at Texas Instruments in 1958.[105] The silicon integrated circuit was then invented in 1959 by Robert Noyce at Fairchild Semiconductor, using the planar process developed by Jean Hoerni, who was in turn building on Mohamed Atalla's silicon surface passivation method developed at Bell Labs in 1957.[106][107] Following the invention of the MOS transistor by Mohamed Atalla and Dawon Kahng at Bell Labs in 1959,[103] the MOS integrated circuit was developed by Fred Heiman and Steven Hofstein at RCA in 1962.[108] The silicon-gate MOS IC was later developed by Federico Faggin at Fairchild Semiconductor in 1968.[109] With the advent of the MOS transistor and the MOS IC, transistor technology rapidly improved, and the ratio of computing power to size increased dramatically, giving direct access to computers to ever smaller groups of people.
+
+The first commercial single-chip microprocessor launched in 1971, the Intel 4004, which was developed by Federico Faggin using his silicon-gate MOS IC technology, along with Marcian Hoff, Masatoshi Shima and Stan Mazor.[110][111]
+
+Along with electronic arcade machines and home video game consoles pioneered by Nolan Bushnell in the 1970s, the development of personal computers like the Commodore PET and Apple II (both in 1977) gave individuals access to computers. However, data sharing between individual computers was either non-existent or largely manual, at first using punched cards and magnetic tape, and later floppy disks.
+
+Data
+Further information: History of telecommunication, Computer memory, Computer data storage, Data compression, Internet access, and Social media
+The first developments for storing data were initially based on photographs, starting with microphotography in 1851 and then microform in the 1920s, with the ability to store documents on film, making them much more compact. Early information theory and Hamming codes were developed about 1950, but awaited technical innovations in data transmission and storage to be put to full use.
+
+Magnetic-core memory was developed from the research of Frederick W. Viehe in 1947 and An Wang at Harvard University in 1949.[112][113] With the advent of the MOS transistor, MOS semiconductor memory was developed by John Schmidt at Fairchild Semiconductor in 1964.[114][115] In 1967, Dawon Kahng and Simon Sze at Bell Labs described in 1967 how the floating gate of an MOS semiconductor device could be used for the cell of a reprogrammable ROM.[116] Following the invention of flash memory by Fujio Masuoka at Toshiba in 1980,[117][118] Toshiba commercialized NAND flash memory in 1987.[119][116]
+
+Copper wire cables transmitting digital data connected computer terminals and peripherals to mainframes, and special message-sharing systems leading to email, were first developed in the 1960s. Independent computer-to-computer networking began with ARPANET in 1969. This expanded to become the Internet (coined in 1974). Access to the Internet improved with the invention of the World Wide Web in 1991. The capacity expansion from dense wave division multiplexing, optical amplification and optical networking in the mid-1990s led to record data transfer rates. By 2018, optical networks routinely delivered 30.4 terabits/s over a fiber optic pair, the data equivalent of 1.2 million simultaneous 4K HD video streams.[120]
+
+MOSFET scaling, the rapid miniaturization of MOSFETs at a rate predicted by Moore's law,[121] led to computers becoming smaller and more powerful, to the point where they could be carried. During the 1980s–1990s, laptops were developed as a form of portable computer, and personal digital assistants (PDAs) could be used while standing or walking. Pagers, widely used by the 1980s, were largely replaced by mobile phones beginning in the late 1990s, providing mobile networking features to some computers. Now commonplace, this technology is extended to digital cameras and other wearable devices. Starting in the late 1990s, tablets and then smartphones combined and extended these abilities of computing, mobility, and information sharing. Metal–oxide–semiconductor (MOS) image sensors, which first began appearing in the late 1960s, led to the transition from analog to digital imaging, and from analog to digital cameras, during the 1980s–1990s. The most common image sensors are the charge-coupled device (CCD) sensor and the CMOS (complementary MOS) active-pixel sensor (CMOS sensor).
+
+Electronic paper, which has origins in the 1970s, allows digital information to appear as paper documents.
+
+Personal computers
+Main article: History of personal computers
+By 1976, there were several firms racing to introduce the first truly successful commercial personal computers. Three machines, the Apple II, Commodore PET 2001 and TRS-80 were all released in 1977,[122] becoming the most popular by late 1978.[123] Byte magazine later referred to Commodore, Apple, and Tandy as the "1977 Trinity".[124] Also in 1977, Sord Computer Corporation released the Sord M200 Smart Home Computer in Japan.[125]
+
+Apple II
+Main article: Apple II
+
+April 1977: Apple II.
+Steve Wozniak (known as "Woz"), a regular visitor to Homebrew Computer Club meetings, designed the single-board Apple I computer and first demonstrated it there. With specifications in hand and an order for 100 machines at US$500 each from the Byte Shop, Woz and his friend Steve Jobs founded Apple Computer.
+
+About 200 of the machines sold before the company announced the Apple II as a complete computer. It had color graphics, a full QWERTY keyboard, and internal slots for expansion, which were mounted in a high quality streamlined plastic case. The monitor and I/O devices were sold separately. The original Apple II operating system was only the built-in BASIC interpreter contained in ROM. Apple DOS was added to support the diskette drive; the last version was "Apple DOS 3.3".
+
+Its higher price and lack of floating point BASIC, along with a lack of retail distribution sites, caused it to lag in sales behind the other Trinity machines until 1979, when it surpassed the PET. It was again pushed into 4th place when Atari, Inc. introduced its Atari 8-bit computers.[126]
+
+Despite slow initial sales, the lifetime of the Apple II was about eight years longer than other machines, and so accumulated the highest total sales. By 1985, 2.1 million had sold and more than 4 million Apple II's were shipped by the end of its production in 1993.[127]
+
+Optical networking
+Further information: Fiber-optic communication, Image sensor, and Optical fiber
+Optical communication plays a crucial role in communication networks. Optical communication provides the transmission backbone for the telecommunications and computer networks that underlie the Internet, the foundation for the Digital Revolution and Information Age.
+
+The two core technologies are the optical fiber and light amplification (the optical amplifier). In 1953, Bram van Heel demonstrated image transmission through bundles of optical fibers with a transparent cladding. The same year, Harold Hopkins and Narinder Singh Kapany at Imperial College succeeded in making image-transmitting bundles with over 10,000 optical fibers, and subsequently achieved image transmission through a 75 cm long bundle which combined several thousand fibers.
+
+Gordon Gould invented the optical amplifier and the laser, and also established the first optical telecommunications company, Optelecom, to design communication systems. The firm was a co-founder in Ciena Corp., the venture that popularized the optical amplifier with the introduction of the first dense wave division multiplexing system.[128] This massive scale communication technology has emerged as the common basis of all telecommunications networks.[129][failed verification] and, thus, a foundation of the Information Age.[130][131]
+
+Economy, society, and culture
+Manuel Castells authored The Information Age: Economy, Society and Culture. He writes of our global interdependence and the new relationships between economy, state and society, what he calls "a new society-in-the-making." He writes:
+
+It is in fact, quite the opposite: history is just beginning, if by history we understand the moment when, after millennia of a prehistoric battle with Nature, first to survive, then to conquer it, our species has reached the level of knowledge and social organization that will allow us to live in a predominantly social world. It is the beginning of a new existence, and indeed the beginning of a new age, The Information Age, marked by the autonomy of culture vis-à-vis the material basis of our existence.[132]
+
+Thomas Chatterton Williams wrote about the dangers of anti-intellectualism in the Information Age in a piece for The Atlantic. Although access to information has never been greater, most information is irrelevant or insubstantial. The Information Age's emphasis on speed over expertise contributes to "superficial culture in which even the elite will openly disparage as pointless our main repositories for the very best that has been thought."[133]
+
+See also
+icon	Internet portal
+icon	Technology portal
+	World portal
+Technological revolutions
+First Industrial Revolution
+Second Industrial Revolution
+Fourth Industrial Revolution
+Attention economy
+Attention inequality
+Big data
+Cognitive-cultural economy
+Cyberwarfare
+Democratization of knowledge
+Digital dark age
+Digital detox
+Digital divide
+Digital transformation
+Imagination age
+Information explosion
+Information society
+Internet governance
+Netocracy
+Space Age
+Footnotes
+ Also known as the Third Industrial Revolution, Computer Age, Digital Age, Silicon Age, New Media Age, Internet Age, or the Digital Revolution[1]
+References
+ Hoover, Stewart M. (26 April 2006). Religion in the Media Age. Media, Religion and Culture (1st ed.). New York: Routledge. ISBN 978-0-415-31423-7.
+ Manuel, Castells (1996). The information age : economy, society and culture. Oxford: Blackwell. ISBN 978-0631215943. OCLC 43092627.
+ Kluver, Randy. "Globalization, Informatization, and Intercultural Communication". un.org. Archived from the original on 19 July 2013. Retrieved 18 April 2013.
+ "The History of Computers". thought.co. Archived from the original on 1 August 2020. Retrieved 17 October 2019.
+ "Regulation for the Fourth Industrial Revolution". gov.uk. Archived from the original on 26 September 2024. Retrieved 16 September 2024.
+ "Museum Of Applied Arts And Sciences – About". Museum of Applied Arts and Sciences. Archived from the original on 26 October 2019. Retrieved 22 August 2017.
+ "The Digital Revolution Ahead for the Audio Industry," Business Week. New York, 16 March 1981, p. 40D.
+ Phil Ament (17 April 2015). "Transistor History – Invention of the Transistor". Archived from the original on 13 August 2011. Retrieved 17 April 2015.
+ Shannon, Claude E.; Weaver, Warren (1963). The mathematical theory of communication (4. print. ed.). Urbana: University of Illinois Press. p. 144. ISBN 0252725484.
+ Howard R. Duff (2001). "John Bardeen and transistor physics". AIP Conference Proceedings. Vol. 550. pp. 3–32. doi:10.1063/1.1354371.
+ Frosch, C. J.; Derick, L (1957). "Surface Protection and Selective Masking during Diffusion in Silicon". Journal of the Electrochemical Society. 104 (9): 547. doi:10.1149/1.2428650. Archived from the original on 23 December 2024. Retrieved 23 September 2024.
+ Lojek, Bo (2007). History of Semiconductor Engineering. Berlin, Heidelberg: Springer-Verlag Berlin Heidelberg. p. 321. ISBN 978-3-540-34258-8.
+ "Milestones:First Semiconductor Integrated Circuit (IC), 1958". IEEE Global History Network. IEEE. Archived from the original on 4 March 2015. Retrieved 3 August 2011.
+ Saxena, Arjun (2009). Invention of Integrated Circuits: Untold Important Facts. pp. x–xi.
+ Saxena, Arjun (2009). Invention of Integrated Circuits: Untold Important Facts. pp. 102–103.
+ "1963: Complementary MOS Circuit Configuration is Invented". Computer History Museum. Archived from the original on 23 July 2019. Retrieved 6 July 2019.
+ US3472712A, Bower, Robert W., "Field-effect device with insulated gate", issued 14 October 1969 Archived 11 February 2025 at the Wayback Machine
+ US3615934A, Bower, Robert W., "Insulated-gate field-effect device having source and drain regions formed in part by ion implantation and method of making same", issued 26 October 1971 Archived 29 November 2024 at the Wayback Machine
+ US3475234A, Kerwin, Robert E.; Klein, Donald L. & Sarace, John C., "Method for making mis structures", issued 28 October 1969 Archived 29 November 2024 at the Wayback Machine
+ Shirriff, Ken (30 August 2016). "The Surprising Story of the First Microprocessors". IEEE Spectrum. 53 (9). Institute of Electrical and Electronics Engineers: 48–54. doi:10.1109/MSPEC.2016.7551353. S2CID 32003640. Archived from the original on 4 October 2022. Retrieved 13 October 2019.
+ "1971: Microprocessor Integrates CPU Function onto a Single Chip". Computer History Museum. Archived from the original on 12 August 2021. Retrieved 31 July 2019.
+ Williams, J. B. (2017). The Electronics Revolution: Inventing the Future. Springer. pp. 245–8. ISBN 9783319490885. Archived from the original on 7 March 2025. Retrieved 15 February 2024.
+ James R. Janesick (2001). Scientific charge-coupled devices. SPIE Press. pp. 3–4. ISBN 978-0-8194-3698-6. Archived from the original on 5 March 2025. Retrieved 15 February 2024.
+ "History of Whole Earth Catalog". Archived from the original on 13 February 2021. Retrieved 17 April 2015.
+ "Personal Computer Milestones". Archived from the original on 2 August 2021. Retrieved 17 April 2015.
+ Criss, Fillur (14 August 2014). "2,076 IT jobs from 492 companies". ICTerGezocht.nl (in Dutch). Archived from the original on 12 August 2021. Retrieved 19 August 2017.
+ "Atari – Arcade/Coin-op". Archived from the original on 2 November 2014. Retrieved 17 April 2015.
+ Vincze Miklós (15 June 2013). "Forgotten arcade games let you shoot space men and catch live lobsters". io9. Archived from the original on 14 February 2015. Retrieved 17 April 2015.
+ "How many Commodore 64 computers were really sold?". pagetable.com. Archived from the original on 6 March 2016. Retrieved 17 April 2015.
+ "Archived copy" (PDF). Archived from the original (PDF) on 2 April 2013. Retrieved 20 December 2017.
+ Kominski, Robert (February 1991). "Computer Use in the United States: 1989. Current Population Reports, Special Studies". Bureau of the Census (DOC), Suitland, Md. Population Div. Archived from the original on 10 April 2025. Retrieved 26 March 2025 – via ERIC (Education Resources Information Center).
+ "COMPUTE! magazine issue 93 Feb 1988". February 1988. If the wheels behind the CD-ROM industry have their way, this product will help open the door to a brave, new multimedia world for microcomputers, where the computer is intimately linked with the other household electronics, and every gadget in the house reads tons of video, audio, and text data from CD-ROM disks.
+ "1988". Archived from the original on 29 July 2020. Retrieved 17 April 2015.
+ "A short history of the Web". CERN. 25 January 2024. Archived from the original on 16 February 2024. Retrieved 16 February 2024.
+ "World Wide Web and Its Journey from Web 1.0 to Web 4.0" (PDF). ijcsit. Archived (PDF) from the original on 30 January 2025. Retrieved 20 January 2025.
+ Martin Bryant (6 August 2011). "20 years ago today, the World Wide Web was born – TNW Insider". The Next Web. Archived from the original on 11 April 2015. Retrieved 17 April 2015.
+ "The World Wide Web". PBS. Archived from the original on 18 June 2000. Retrieved 17 April 2015.
+ "Stanford Federal Credit Union Pioneers Online Financial Services" (Press release). 21 June 1995. Archived from the original on 21 December 2018. Retrieved 21 December 2018.
+ "History – About us – OP Group". Archived from the original on 21 December 2018. Retrieved 15 February 2024.
+ Cheeseman Day, Jennifer; Janus, Alex; Davis, Jessica (October 2005). "Computer and Internet Use in the United States: 2003" (PDF). Census Bureau. Archived from the original (PDF) on 6 March 2009. Retrieved 10 March 2009.
+ File, Thom (May 2013). Computer and Internet Use in the United States (PDF) (Report). Current Population Survey Reports. Washington, D.C.: U.S. Census Bureau. Archived (PDF) from the original on 3 July 2019. Retrieved 11 February 2020.
+ Tuckel, Peter; O'Neill, Harry (2005). Ownership and Usage Patterns of Cell Phones: 2000–2005 (PDF) (Report). JSM Proceedings, Survey Research Methods Section. Alexandria, VA: American Statistical Association. p. 4002. Archived (PDF) from the original on 16 August 2021. Retrieved 25 September 2020.
+ "One Billion People Online!". Archived from the original on 22 October 2008. Retrieved 17 April 2015.
+ "Demographics of Internet and Home Broadband Usage in the United States". Pew Research Center. 7 April 2021. Archived from the original on 30 August 2021. Retrieved 19 May 2021.
+ Arendt, Susan (5 March 2007). "Game Consoles in 41% of Homes". WIRED. Condé Nast. Archived from the original on 9 July 2021. Retrieved 29 June 2021.
+ Statistical Abstract of the United States: 2008 (PDF) (Report). Statistical Abstract of the United States (127 ed.). U.S. Census Bureau. 30 December 2007. p. 52. Archived (PDF) from the original on 9 July 2021. Retrieved 29 June 2021.
+ North, Dale (14 April 2015). "155M Americans play video games, and 80% of households own a gaming device". VentureBeat. Archived from the original on 9 July 2021. Retrieved 29 June 2021.
+ 2015 Essential Facts About the Computer and Video Game Industry (Report). Essential Facts About the Computer and Video Game Industry. Vol. 2015. Entertainment Software Association. Archived from the original on 1 May 2020. Retrieved 29 June 2021.
+ "Demographics of Mobile Device Ownership and Adoption in the United States". Pew Research Center. 7 April 2021. Archived from the original on 3 September 2019. Retrieved 19 May 2021.
+ "World Internet Users Statistics and 2014 World Population Stats". Archived from the original on 23 June 2011. Retrieved 17 April 2015.
+ Clement. "Worldwide digital population as of April 2020". Statista. Archived from the original on 12 February 2024. Retrieved 21 May 2020.
+ Hilbert, Martin; López, Priscila (2011). "The World's Technological Capacity to Store, Communicate, and Compute Information". Science. 332 (6025): 60–65. Bibcode:2011Sci...332...60H. doi:10.1126/science.1200970. ISSN 0036-8075. PMID 21310967. S2CID 206531385.
+ Gillings, Michael R.; Hilbert, Martin; Kemp, Darrell J. (2016). "Information in the Biosphere: Biological and Digital Worlds". Trends in Ecology & Evolution. 31 (3): 180–189. Bibcode:2016TEcoE..31..180G. doi:10.1016/j.tree.2015.12.013. PMID 26777788. S2CID 3561873. Archived from the original on 4 June 2016. Retrieved 22 August 2016.
+ "Worldmapper: The world as you've never seen it before – Cellular Subscribers 1990". Archived from the original on 18 April 2018. Retrieved 17 April 2015.
+ "Worldmapper: The world as you've never seen it before – Communication Maps". Archived from the original on 17 March 2018. Retrieved 17 April 2015.
+ Arms, Michael (2013). "Cell Phone Dangers – Protecting Our Homes From Cell Phone Radiation". Computer User. Archived from the original on 29 March 2014.
+ "Number of mobile phone users worldwide 2015–2020". Statista. Archived from the original on 26 December 2020. Retrieved 19 February 2020.
+ "Global digital population 2020". Statista. Archived from the original on 12 February 2024. Retrieved 19 February 2020.
+ "Fact and Figure 2023 – Mobile phone ownership". International Telecommunication Union. Archived from the original on 10 September 2024. Retrieved 10 September 2024.
+ "Facts and Figures 2023 – Internet Use". Statista. Archived from the original on 10 September 2024. Retrieved 10 September 2024.
+ Rider, Fredmont (1944). The Scholar and the Future of the Research Library. New York City: Hadham Press.
+ "Moore's Law to roll on for another decade". Archived from the original on 9 July 2015. Retrieved 27 November 2011. Moore also affirmed he never said transistor count would double every 18 months, as is commonly said. Initially, he said transistors on a chip would double every year. He then recalibrated it to every two years in 1975. David House, an Intel executive at the time, noted that the changes would cause computer performance to double every 18 months.
+ Roser, Max, and Hannah Ritchie. 2013. "Technological Progress". Archived 2021-09-10 at the Wayback Machine Our World in Data. Retrieved 9 June 2020.
+ Hilbert, Martin; López, Priscila (April 2011). "The World's Technological Capacity to Store, Communicate, and Compute Information". Science. 332 (6025): 60–65. Bibcode:2011Sci...332...60H. doi:10.1126/science.1200970. ISSN 0036-8075. PMID 21310967. Archived from the original on 12 June 2018. Retrieved 20 July 2024.
+ Hilbert, Martin R. (2011). Supporting online material for the world's technological capacity to store, communicate, and compute infrormation. Science/AAAS. OCLC 755633889.
+ Gantz, John; David Reinsel (2012). "The Digital Universe in 2020: Big Data, Bigger Digital Shadows, and Biggest Growth in the Far East". Archived 2020-06-10 at the Wayback Machine IDC iView. S2CID 112313325. View multimedia content Archived 2020-05-24 at the Wayback Machine.
+ Rizzatti, Lauro. 14 September 2016. "Digital Data Storage is Undergoing Mind-Boggling Growth". EE Times. Archived from the original on 16 September 2016.
+ "The historical growth of data: Why we need a faster transfer solution for large data sets". Archived 2019-06-02 at the Wayback Machine Signiant, 2020. Retrieved 9 June 2020.
+ Maxam, A M; Gilbert, W (February 1977). "A new method for sequencing DNA". Proceedings of the National Academy of Sciences. 74 (2): 560–564. Bibcode:1977PNAS...74..560M. doi:10.1073/pnas.74.2.560. PMC 392330. PMID 265521.
+ Lathe III, Warren C.; Williams, Jennifer M.; Mangan, Mary E.; Karolchik, Donna (2008). "Genomic Data Resources: Challenges and Promises". Nature Education. Archived from the original on 6 December 2021. Retrieved 5 December 2021.
+ Iranga, Suroshana (2016). Social Media Culture. Colombo: S. Godage and Brothers. ISBN 978-9553067432.
+ Di Giambattista, Chiara (16 March 2021). Presentare il futuro nella Digital Age. La convergenza semiotica tra arte e IxD design nella pratica del Future Casting (Thesis). doi:10.5281/zenodo.6627276.
+ Code, Jillianne; Ralph, Rachel; Forde, Kieran (2022). "A Disorienting Dilemma: Teaching and Learning in Technology Education During a Time of Crisis". Canadian Journal of Science, Mathematics and Technology Education. 22 (1): 170–189. Bibcode:2022CJSMT..22..170C. doi:10.1007/s42330-022-00191-9. PMC 8881051. PMID 38624945. Preprint.
+ Goodarzi, M., Fahimifar, A., Shakeri Daryani, E. (2021). "New Media and Ideology: A Critical Perspective". Journal of Cyberspace Studies, 5(2), 137–162. https://www.ssoar.info/ssoar/bitstream/handle/document/77017/ssoar-jcss-2021-2-goodarzi_et_al-New_Media_and_Ideology_a.pdf Archived 4 January 2025 at the Wayback Machine
+ Wang, Xuan; Yang, Zhihui (2022). "Research on the Youth Group's Expectations for the Future Development of self-Media while in the Digital Economy". Frontiers in Business, Economics and Management. 3 (3): 43–48. doi:10.54097/fbem.v3i3.315.
+ Hilbert, Martin (2020). "Digital technology and social change: The digital transformation of society from a historical perspective". Dialogues in Clinical Neuroscience. 22 (2): 189–194. doi:10.31887/DCNS.2020.22.2/mhilbert. PMC 7366943. PMID 32699519.
+ Krishnapuram, Raghu (September 2013). "Global trends in information technology and their implication". 2013 1st International Conference on Emerging Trends and Applications in Computer Science. IEEE. pp. v. doi:10.1109/icetacs.2013.6691382. ISBN 978-1-4673-5250-5.
+ Shannon, C. E. and W. Weaver (1949) The Mathematical Theory of Communication, Urbana, Ill., University of Illinois Press.
+ Wiener, Norbert (1948) Cybernetics, MIT Press, CA, \\\, p. 155
+ William Rees-Mogg; James Dale Davidson (1997). The Sovereign Individual. Simon & Schuster. p. 7. ISBN 978-0684832722.
+ Veneris, Y. (1984), The Informational Revolution, Cybernetics and Urban Modeling, PhD Thesis, submitted to the University of Newcastle upon Tyne, UK (British Library microfilm no. : D55307/85).
+ Veneris, Y. (1990). "Modeling the transition from the Industrial to the Informational Revolution". Environment and Planning A. 22 (3): 399–416. Bibcode:1990EnPlA..22..399V. doi:10.1068/a220399. S2CID 144963523. Archived from the original on 2 December 2024. Retrieved 17 February 2024.
+ Clark, C. (1940), Conditions of Economic Progress, MacMillan and Co., London.
+ Ricardo, D. (1978) The Principles of Political Economy and Taxation, Dent, London. (first published in 1817) ISBN 0486434613.
+ Marx, K. (1977) Capital, Progress Publishers, Moscow.
+ Fang, Irving E. (1997) A History of Mass Communication: Six Information Revolutions Archived 2012-04-17 at the Wayback Machine, Focal Press ISBN 0240802543
+ Porat, M.-U. (1976) The Information Economy, PhD Thesis, Univ. of Stanford. This thesis measured the role of the Information Sector in the US Economy.
+ Machlup, F. (1962) The Production and Distribution of Knowledge in the United States, Princeton UP.
+ "video animation on The World’s Technological Capacity to Store, Communicate, and Compute Information from 1986 to 2010 Archived 2012-01-18 at the Wayback Machine
+ "Information Age Education Newsletter". Information Age Education. August 2008. Archived from the original on 14 September 2015. Retrieved 4 December 2019.
+ Moursund, David. "Information Age". IAE-Pedia. Archived from the original on 1 August 2020. Retrieved 4 December 2019.
+ "Negroponte's articles". Archives.obs-us.com. 30 December 1996. Archived from the original on 4 September 2011. Retrieved 11 June 2012.
+ Porter, Michael. "How Information Gives You Competitive Advantage". Harvard Business Review. Archived from the original on 23 June 2015. Retrieved 9 September 2015.
+ McGowan, Robert. 1991. "The Work of Nations by Robert Reich" (book review). Human Resource Management 30(4):535–38. doi:10.1002/hrm.3930300407. ISSN 1099-050X.
+ Bhagwati, Jagdish N. (2005). In defense of Globalization. New York: Oxford University Press.
+ Smith, Fran (5 October 2010). "Job Losses and Productivity Gains". Competitive Enterprise Institute. Archived from the original on 13 October 2010.
+ Cooke, Sandra D. 2003. "Information Technology Workers in the Digital Economy Archived 2017-06-21 at the Wayback Machine." In Digital Economy. Economics and Statistics Administration, Department of Commerce.
+ Chang, Yongsung; Hong, Jay H. (2013). "Does Technology Create Jobs?". SERI Quarterly. 6 (3): 44–53. Archived from the original on 29 April 2014. Retrieved 29 April 2014.
+ Cooper, Arnold C.; Gimeno-Gascon, F. Javier; Woo, Carolyn Y. (1994). "Initial human and financial capital as predictors of new venture performance". Journal of Business Venturing. 9 (5): 371–395. doi:10.1016/0883-9026(94)90013-2.
+ Carr, David (3 October 2010). "Film Version of Zuckerberg Divides the Generations". The New York Times. ISSN 0362-4331. Archived from the original on 14 November 2020. Retrieved 20 December 2016.
+ Lee, Thomas H. (2003). "A Review of MOS Device Physics" (PDF). The Design of CMOS Radio-Frequency Integrated Circuits. Cambridge University Press. ISBN 9781139643771. Archived (PDF) from the original on 9 December 2019. Retrieved 21 July 2019.
+ "Who Invented the Transistor?". Computer History Museum. 4 December 2013. Archived from the original on 13 December 2013. Retrieved 20 July 2019.
+ "1960 – Metal Oxide Semiconductor (MOS) Transistor Demonstrated". The Silicon Engine. Computer History Museum. Archived from the original on 27 October 2019. Retrieved 21 July 2019.
+ "1963: Complementary MOS Circuit Configuration is Invented". Archived from the original on 23 July 2019.
+ Kilby, Jack (2000), Nobel lecture (PDF), Stockholm: Nobel Foundation, archived (PDF) from the original on 29 May 2008, retrieved 15 May 2008
+ Lojek, Bo (2007). History of Semiconductor Engineering. Springer Science & Business Media. p. 120. ISBN 9783540342588.
+ Bassett, Ross Knox (2007). To the Digital Age: Research Labs, Start-up Companies, and the Rise of MOS Technology. Johns Hopkins University Press. p. 46. ISBN 9780801886393. Archived from the original on 27 July 2020. Retrieved 31 July 2019.
+ "Tortoise of Transistors Wins the Race – CHM Revolution". Computer History Museum. Archived from the original on 10 March 2020. Retrieved 22 July 2019.
+ "1968: Silicon Gate Technology Developed for ICs". Computer History Museum. Archived from the original on 29 July 2020. Retrieved 22 July 2019.
+ "1971: Microprocessor Integrates CPU Function onto a Single Chip". Computer History Museum. Archived from the original on 12 August 2021. Retrieved 22 July 2019.
+ Colinge, Jean-Pierre; Greer, James C.; Greer, Jim (2016). Nanowire Transistors: Physics of Devices and Materials in One Dimension. Cambridge University Press. p. 2. ISBN 9781107052406. Archived from the original on 17 March 2020. Retrieved 22 July 2019.
+ "1953: Whirlwind computer debuts core memory". Computer History Museum. Archived from the original on 3 October 2019. Retrieved 31 July 2019.
+ "1956: First commercial hard disk drive shipped". Computer History Museum. Archived from the original on 31 July 2019. Retrieved 31 July 2019.
+ "1970: MOS Dynamic RAM Competes with Magnetic Core Memory on Price". Computer History Museum. Archived from the original on 26 October 2021. Retrieved 29 July 2019.
+ Solid State Design – Vol. 6. Horizon House. 1965. Archived from the original on 9 June 2021. Retrieved 12 November 2020.
+ "1971: Reusable semiconductor ROM introduced". Computer History Museum. Archived from the original on 3 October 2019. Retrieved 19 June 2019.
+ Fulford, Benjamin (24 June 2002). "Unsung hero". Forbes. Archived from the original on 3 March 2008. Retrieved 18 March 2008.
+ US 4531203 Fujio Masuoka
+ "1987: Toshiba Launches NAND Flash". eWeek. 11 April 2012. Retrieved 20 June 2019.
+ Saarinen, Juha (24 January 2018). "Telstra trial claims world's fasts transmission speed". ITNews Australia. Archived from the original on 17 October 2019. Retrieved 5 December 2021.
+ Sahay, Shubham; Kumar, Mamidala Jagadesh (2019). Junctionless Field-Effect Transistors: Design, Modeling, and Simulation. John Wiley & Sons. ISBN 9781119523536. Archived from the original on 21 December 2019. Retrieved 31 October 2019.
+ Chandler, Alfred Dupont; Hikino, Takashi; Nordenflycht, Andrew Von; Chandler, Alfred D. (30 June 2009). Inventing the Electronic Century. Harvard University Press. ISBN 9780674029392. Archived from the original on 18 January 2022. Retrieved 11 August 2015.
+ Schuyten, Peter J. (6 December 1978). "Technology; The Computer Entering Home". Business & Finance. The New York Times. p. D4. ISSN 0362-4331. Archived from the original on 22 July 2018. Retrieved 9 September 2019.
+ "Most Important Companies". Byte. September 1995. Archived from the original on 18 June 2008. Retrieved 10 June 2008.
+ "M200 Smart Home Computer Series-Computer Museum". Archived from the original on 3 January 2020. Retrieved 18 January 2022.
+ Reimer, Jeremy (14 December 2005). "Total share: 30 years of personal computer market share figures; The new era (2001– )". Ars Technica. p. 9. Archived from the original on 21 February 2008. Retrieved 13 February 2008.
+ Reimer, Jeremy (December 2005). "Personal Computer Market Share: 1975–2004". Ars Technica. Archived from the original on 6 June 2012. Retrieved 13 February 2008.
+ Markoff, John (3 March 1997). "Fiber-Optic Technology Draws Record Stock Value". The New York Times. Archived from the original on 9 November 2021. Retrieved 5 December 2021.
+ Grobe, Klaus; Eiselt, Michael (2013). Wavelength Division Multiplexing: A Practical Engineering Guide. John T Wiley & Sons. p. 2. ISBN 9781118755150. OCLC 849801363.
+ Sudo, Shoichi (1997). Optical Fiber Amplifiers: Materials Devices, and Applications. Artech House, Inc. pp. xi.
+ George, Gilder (4 April 1997). "Fiber Keeps its Promise". Forbes ASAP.
+ Castells, Manuel. The Power of Identity. The Information Age: Economy, Society and Culture Vol. II. Cambridge, MA; Oxford, UK: Blackwell
+ Chatterton Williams, Thomas. "Kanye West, Sam ...." Archived 25 January 2023 at the Wayback Machine The Atlantic. 25 January 2023. 25 January 2023.
+Further reading
+Bollacker, Kurt D. (2010). "Avoiding a Digital Dark Age", American Scientist, March–April 2010, Volume 98, Number 2, p. 106ff
+Castells, Manuel (1996–98). The Information Age: Economy, Society and Culture, 3 vols. Oxford: Blackwell.
+Gelbstein, E. (2006). Crossing the Executive Digital Divide. ISBN 99932-53-17-0.
+Mendelson, Edward (June 2016). "In the Depths of the Digital Age". The New York Review of Books.
+Stengel, Oliver, et al. (2017). Digitalzeitalter - Digitalgesellschaft, Springer ISBN 978-3658117580.
+External links
+Wikibooks logo
+Wikibooks has a book on the topic of: The Information Age
+
+Wikiquote has quotations related to Information Age.
+Wikimedia Commons logo
+Wikimedia Commons has media related to Information Age.
+Articles on the impact of the Information Age on business – at Information Age magazine
+Beyond the Information Age by Dave Ulmer
+Information Age Anthology Vol I by Alberts and Papp (CCRP, 1997) (PDF)
+Information Age Anthology Vol II by Alberts and Papp (CCRP, 2000) (PDF)
+Information Age Anthology Vol III by Alberts and Papp (CCRP, 2001) (PDF)
+Understanding Information Age Warfare by Alberts et al. (CCRP, 2001) (PDF)
+Information Age Transformation by Alberts (CCRP, 2002) (PDF)
+The Unintended Consequences of Information Age Technologies by Alberts (CCRP, 1996) (PDF)
+History & Discussion of the Information Age
+Science Museum – Information Age Archived 2015-10-04 at the Wayback Machine
+vte
+Computer science
+vte
+Western world and culture
+vte
+Economic history of the United States and Commonwealth of Nations countries
+Categories: Information AgeContemporary historyCultural trendsDigital divideDigital mediaHistorical erasHyperrealityMass media technologyPostmodernismSociology of technologyTelecommunicationsWestern culture

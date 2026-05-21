@@ -1,0 +1,184 @@
+Dewey: 200, 000, 300
+
+Mechanical interpretation (brief)
+- Task: produce a PDF artifact representing the engine directory snapshot and operator analysis for import into the Clarity Library.
+- Mode: diagnostic → archival export.
+- Requirements: include Dewey code, artifact shape (Title, Dewey, Summary, Core Concepts, Body, Cross-References), provenance (path, volume serial, timestamps), and the pressure vectors / recommendations from prior analysis.
+- Output constraints: local file creation only (I cannot write files here). I provide a ready-to-run script and instructions to create the PDF on your machine and export it to the Library path.
+
+Recommended PDF metadata and filename
+- Title: Clarity_OS Engine — Directory Snapshot & Diagnostic
+- Dewey: 200, 000, 300
+- Source path: C:\Users\chris\OneDrive\Documents\Library_Clarity_OS\Clarity_OS_Operating_System\engine
+- Volume Serial: F070-5D1F
+- Snapshot time: 2026-04-15 13:49 (as listed)
+- Suggested filename: CLARITY_engine_snapshot_F070-5D1F_2026-04-15.pdf
+- Target export location: C:\Users\chris\OneDrive\Documents\Library_Clarity_OS\Clarity_Library\200-299\Operator_Protocols\CLARITY_engine_snapshot_F070-5D1F_2026-04-15.pdf
+  - (Adjust Dewey-folder path as you maintain)
+
+Ready-to-run Python script (creates the PDF; requires reportlab)
+- Prerequisite: Python 3.x and reportlab. Install with:
+  pip install reportlab
+
+- Script: save as make_engine_snapshot_pdf.py and run from any location. It embeds the directory listing, Dewey mapping, pressure vectors, primitives, and operator recommendations in the PDF following the required artifact shape.
+
+Script content:
+```
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+from reportlab.lib.units import mm
+import datetime
+import os
+
+# --- Editable metadata (set before running) ---
+output_path = r"C:\Users\chris\OneDrive\Documents\Library_Clarity_OS\Clarity_Library\200-299\Operator_Protocols"
+output_filename = "CLARITY_engine_snapshot_F070-5D1F_2026-04-15.pdf"
+source_path = r"C:\Users\chris\OneDrive\Documents\Library_Clarity_OS\Clarity_OS_Operating_System\engine"
+volume_serial = "F070-5D1F"
+snapshot_time = "2026-04-15 13:49"
+dewey_codes = "200, 000, 300"
+
+# --- Data to include (replace or extend as needed) ---
+title = "Clarity_OS Engine — Directory Snapshot & Diagnostic"
+summary = ("Directory snapshot and operational diagnostic for the engine directory. "
+           "Includes file mapping to Dewey shelves, extracted mechanical primitives, pressure vectors, "
+           "Markoff-ready interpretation, and operator recommendations.")
+core_concepts = [
+    "Filesystem snapshot & provenance",
+    "Module mapping to Dewey architecture",
+    "Mechanical primitives: pressure, drift, curvature, boundary, field",
+    "Prioritized pressure vectors and recommended mitigations",
+]
+body_sections = []
+
+# File listing extraction
+def collect_listing(path):
+    lines = []
+    try:
+        for entry in os.scandir(path):
+            stat = entry.stat()
+            size = stat.st_size
+            mtime = datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+            t = "<DIR>" if entry.is_dir() else f"{size} bytes"
+            lines.append(f"{mtime}  {t}  {entry.name}")
+    except Exception as e:
+        lines.append(f"Error reading directory: {e}")
+    return lines
+
+listing_lines = collect_listing(source_path)
+
+# Prior analysis (inserted from prior operator-grade result)
+pressure_vectors_text = [
+    "P1 — Interface compatibility & binding correctness (pressure: high)",
+    "P2 — Build and distribution stability (pressure: high)",
+    "P3 — Core integrity and maintainability (pressure: medium-high)",
+    "P4 — Placeholder/zero-length files risk (pressure: medium)",
+    "P5 — Legacy migration surface (pressure: medium)",
+    "P6 — Scanner / classifier readiness (pressure: medium)",
+]
+
+operator_recommendations = [
+    "1. Inspect zero-length files and correct or remove them.",
+    "2. Validate LangBridge binding and register_PM_protocol schemas.",
+    "3. Perform build dry-run using markoff.spec; ensure build outputs.",
+    "4. Static code analysis and unit tests for markoff_core.py and markoff.py.",
+    "5. Inventory engine_legacy contents and plan migration.",
+    "6. Run library_scanner and primitive_classifier on sample artifact to validate extraction outputs.",
+    "7. Record volume serial and directory snapshot for provenance."
+]
+
+# Build PDF
+doc_path = os.path.join(output_path, output_filename)
+doc = SimpleDocTemplate(doc_path, pagesize=A4, rightMargin=20*mm, leftMargin=20*mm, topMargin=20*mm, bottomMargin=20*mm)
+styles = getSampleStyleSheet()
+normal = styles["Normal"]
+heading = styles["Heading1"]
+subheading = styles["Heading2"]
+ps_mono = ParagraphStyle('Mono', parent=normal, fontName='Courier', fontSize=9)
+
+flow = []
+flow.append(Paragraph(title, heading))
+flow.append(Spacer(1,6))
+
+# Metadata block
+meta_lines = [
+    f"Dewey: {dewey_codes}",
+    f"Source path: {source_path}",
+    f"Volume Serial: {volume_serial}",
+    f"Snapshot time: {snapshot_time}",
+    f"Export time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
+]
+for ml in meta_lines:
+    flow.append(Paragraph(ml, normal))
+flow.append(Spacer(1,8))
+
+# Summary
+flow.append(Paragraph("Summary", subheading))
+flow.append(Paragraph(summary, normal))
+flow.append(Spacer(1,6))
+
+# Core Concepts
+flow.append(Paragraph("Core Concepts", subheading))
+for c in core_concepts:
+    flow.append(Paragraph("- " + c, normal))
+flow.append(Spacer(1,6))
+
+# Body: Directory Listing
+flow.append(Paragraph("Body", subheading))
+flow.append(Paragraph("Directory listing:", normal))
+for ln in listing_lines:
+    flow.append(Paragraph(ln, ps_mono))
+flow.append(Spacer(1,6))
+
+# Pressure vectors
+flow.append(Paragraph("Pressure Vectors (ranked)", subheading))
+for pv in pressure_vectors_text:
+    flow.append(Paragraph(pv, normal))
+flow.append(Spacer(1,6))
+
+# Operator recommendations
+flow.append(Paragraph("Operator Recommendations", subheading))
+for rec in operator_recommendations:
+    flow.append(Paragraph(rec, normal))
+flow.append(Spacer(1,6))
+
+# Cross-References
+flow.append(Paragraph("Cross-References", subheading))
+flow.append(Paragraph("- markoff_core.py, markoff.py, primitive_classifier.py, library_scanner.py", normal))
+flow.append(Paragraph("- markoff.spec, langbridg_binding.txt, register_PM_protocol.txt", normal))
+flow.append(Paragraph("- engine_legacy/, build/, dist/", normal))
+
+# Footer / provenance page break
+flow.append(PageBreak())
+flow.append(Paragraph("Provenance & Notes", subheading))
+flow.append(Paragraph("This PDF was generated from a filesystem snapshot. Verify the repository contents prior to executing any scripts contained in the source path.", normal))
+
+# Generate file
+os.makedirs(output_path, exist_ok=True)
+doc.build(flow)
+print("PDF written to:", doc_path)
+```
+
+How to run
+1. Save the script as make_engine_snapshot_pdf.py.
+2. Edit the top metadata variables (output_path, source_path) if you want a different export location.
+3. Install reportlab: pip install reportlab
+4. Run: python make_engine_snapshot_pdf.py
+5. The script prints the created PDF path. Move or verify the file in your Clarity Library folders.
+
+Windows alternatives
+- If you prefer a simple text-to-PDF approach using pandoc:
+  - Create a Markdown file containing the sections above, then:
+    pandoc input.md -o CLARITY_engine_snapshot.pdf
+  - Install pandoc and a PDF engine (pdflatex or wkhtmltopdf) as needed.
+
+Post-export steps (operator-grade)
+- Place the PDF in the Dewey folder you maintain (example path above).
+- Create a matching artifact text/metadata entry in the Clarity Library index:
+  - Title, Dewey, Summary, Core Concepts, Body (or a reference to the PDF), Cross-References, Path, VolumeSerial, SnapshotTime.
+- Ingest into any library scanner so the file is discoverable and linked to the Dewey shelf.
+
+If you want, I will:
+- produce a Markdown version of the artifact content (ready for pandoc),
+- or produce a smaller/larger PDF layout (include file hashes, full file-by-file metadata such as exact bytes and timestamps) for richer provenance. Which option do you prefer?

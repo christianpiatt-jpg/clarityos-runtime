@@ -1,0 +1,309 @@
+/*
+ * CockpitV2 — scoped stylesheet. References existing tokens from
+ * styles/tokens.css only; declares no new global CSS variables.
+ * Geometric / minimal: no gradients, no shadows, no animations,
+ * no transitions, radius <= 4px (--radius-sm).
+ */
+
+.cv2-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--os-void);
+  color: var(--os-text-primary);
+  font-family: var(--font-sans);
+}
+
+.cv2-shell-center {
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- topbar ---- */
+.cv2-topbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-h);
+  padding: 0 var(--frame);
+  background: var(--os-deep);
+  border-bottom: 1px solid var(--os-line);
+}
+
+.cv2-brand {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.cv2-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+/* ---- grid: fixed left/right, flexible center ---- */
+.cv2-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 340px;
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+.cv2-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.cv2-col-center {
+  overflow: hidden;
+}
+
+/* ---- panel primitive ---- */
+.cv2-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--os-surface);
+  border: 1px solid var(--os-line);
+  border-radius: var(--radius-sm);
+}
+
+.cv2-panel-head {
+  flex: none;
+  padding: var(--pad);
+  border-bottom: 1px solid var(--os-line);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--os-text-secondary);
+}
+
+.cv2-panel-body {
+  padding: var(--pad);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* ---- chat fills the center column ---- */
+.cv2-chat {
+  flex: 1 1 auto;
+}
+
+.cv2-chat-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.cv2-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 80%;
+}
+
+.cv2-msg-user {
+  align-self: flex-end;
+}
+
+.cv2-msg-assistant,
+.cv2-msg-system {
+  align-self: flex-start;
+}
+
+.cv2-msg-role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--os-text-tertiary);
+}
+
+.cv2-msg-body {
+  margin: 0;
+  padding: var(--pad);
+  background: var(--os-elevated);
+  border: 1px solid var(--os-line);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cv2-msg-user .cv2-msg-body {
+  border-color: var(--os-line-strong);
+}
+
+/* ---- composer ---- */
+.cv2-composer {
+  flex: none;
+  display: flex;
+  gap: var(--gap);
+  padding: var(--pad);
+  border-top: 1px solid var(--os-line);
+}
+
+.cv2-composer .cv2-input {
+  flex: 1 1 auto;
+}
+
+/* ---- form primitives ---- */
+.cv2-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cv2-field > span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--os-text-secondary);
+}
+
+.cv2-input {
+  padding: 8px var(--pad);
+  background: var(--os-deep);
+  color: var(--os-text-primary);
+  border: 1px solid var(--os-line-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.cv2-input:focus {
+  outline: none;
+  border-color: var(--os-focus);
+}
+
+.cv2-input:disabled {
+  opacity: 0.5;
+}
+
+/* ---- buttons ---- */
+.cv2-btn {
+  padding: 8px 14px;
+  background: var(--os-elevated);
+  color: var(--os-text-primary);
+  border: 1px solid var(--os-line-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cv2-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cv2-btn-primary {
+  background: var(--os-focus-deep);
+  border-color: var(--os-focus-deep);
+}
+
+/* ---- login ---- */
+.cv2-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 320px;
+  padding: var(--frame);
+  background: var(--os-surface);
+  border: 1px solid var(--os-line);
+  border-radius: var(--radius-sm);
+}
+
+.cv2-login-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.cv2-login-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--os-text-secondary);
+}
+
+.cv2-login-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--os-err);
+}
+
+/* ---- lists + misc primitives ---- */
+.cv2-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cv2-list-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap);
+  width: 100%;
+  padding: 8px var(--pad);
+  background: var(--os-deep);
+  color: var(--os-text-primary);
+  border: 1px solid var(--os-line);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cv2-list-row.is-selected {
+  border-color: var(--os-focus);
+}
+
+.cv2-kv {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cv2-kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+.cv2-kv-row dt {
+  font-size: 12px;
+  color: var(--os-text-secondary);
+}
+
+.cv2-kv-row dd {
+  margin: 0;
+  font-size: 12px;
+}
+
+.cv2-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.cv2-muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--os-text-secondary);
+}
+
+.cv2-err {
+  margin: 0;
+  font-size: 13px;
+  color: var(--os-err);
+}

@@ -1,0 +1,16 @@
+[MAP]
+name: Basin Attractor Map
+version: 20260410
+
+[BASINS]
+ELINS
+GALILEO
+Unified Geometry
+
+[ATTRACTORS]
+identity
+reactivity
+clarity
+drift
+
+[END]

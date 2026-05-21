@@ -1,0 +1,65 @@
+============================================================
+MODULE: CLARITY_LOOP_CONTROLLER
+TYPE: Callable Interface
+VERSION: 1.0
+LOCATION: /02_Modules/Clarity_Loop/
+
+PURPOSE:
+Provide a callable interface for the Clarity Loop module.
+Receives a QC-stabilized frame, runs the Clarity Loop sequence,
+and returns a Single Interpretive Line (SIL).
+
+INPUT:
+- Stabilized Frame (from QC_Pre)
+
+OUTPUT:
+- Single Interpretive Line (SIL)
+
+CONTROLLER SEQUENCE:
+
+STEP 1 — RECEIVE FRAME
+- Accept stabilized frame from QC_Pre
+- Validate input integrity
+- Confirm no multi-center artifacts
+
+STEP 2 — CALL CLARITY LOOP
+- Execute CENTER
+- Execute COMPRESS
+- Execute PRESERVE FRAME
+- Execute REMOVE DRIFT
+- Execute THROUGH-LINE ENFORCEMENT
+
+STEP 3 — VALIDATE OUTPUT
+- Ensure output is a single interpretive line
+- Ensure no drift or narrative inflation
+- Ensure structural integrity
+- Ensure basin alignment
+
+STEP 4 — RETURN SIL
+- Pass Single Interpretive Line to Langbridg
+
+FAILURE MODES:
+- Invalid input frame
+- Multi-center collapse
+- Drift reintroduction
+- Structural fragmentation
+- Through-line failure
+
+RECOVERY:
+- Re-run CENTER
+- Re-run COMPRESS
+- Re-run drift removal
+- Re-stabilize frame
+- Re-check basin
+
+CONTROLLER CONTRACT:
+No output may bypass the Clarity Loop.
+No output may contain more than one interpretive line.
+No output may violate structural, basin, or drift constraints.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

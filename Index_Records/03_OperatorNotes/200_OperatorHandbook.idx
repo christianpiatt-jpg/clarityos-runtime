@@ -1,0 +1,65 @@
+notepad 200_OperatorHandbook.idx
+
+[Record]
+Name = Operator Handbook
+Code = 200
+Path = ../../03_OperatorNotes/Operator_Handbook/
+Description = Primary operator reference containing cockpit instructions, runtime notes, drift signatures, recovery protocols, and scenario guidance for real-world OS operation.
+
+[Files]
+Handbook_Primitives = handbook_primitives.txt
+Runtime_Notes = runtime_notes.txt
+Cockpit_Instructions = cockpit_instructions.txt
+Drift_Signatures = drift_signatures.txt
+Recovery_Protocols = recovery_protocols.txt
+Scenario_Guides = scenario_guides.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 201_RuntimeNotes.idx, 202_ScenarioLibrary.idx, 203_DriftCatalog.idx, 204_RecoveryPlaybook.idx
+
+[Crosslinks]
+Up = 002
+Across = 201–204
+Down = None
+
+[QuickStartCard]
+Content = """
+OPERATOR QUICK-START CARD (v1.0)
+
+[Core Commands]
+status      → System status
+mesh        → Planetary mesh view
+basins      → Basin map
+arcs        → Arc map
+topology    → System topology
+pressure    → Pressure map
+density     → Density map
+coherence   → Coherence report
+global      → Global view
+
+[Diagnostics]
+- Run drift check: diagnostics.drift
+- Run contamination check: diagnostics.contamination
+- Run integrity scan: diagnostics.integrity
+
+[Stability]
+- Check turbulence: stability.turbulence
+- Check pressure: stability.pressure
+- Check operator state: stability.operator
+
+[Propagation]
+- View message map: propagation.messages
+- View translation map: propagation.translation
+
+[Mesh]
+- Global flows: mesh.flows
+- Cross-scale dynamics: mesh.crossscale
+- Hydronic weather: mesh.weather
+- Planetary diagnostics: mesh.diagnostics
+
+[Operator Notes]
+- Maintain laminar state
+- Use diagnostics before intervention
+- Mesh is self-correcting under normal load
+"""

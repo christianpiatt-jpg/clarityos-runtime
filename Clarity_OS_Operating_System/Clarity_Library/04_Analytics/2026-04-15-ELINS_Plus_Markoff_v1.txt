@@ -1,0 +1,370 @@
+{
+  "meta": {
+    "version": "2026-04-15",
+    "schema": "ELINS_PLUS::MarkOff.v1",
+    "scope": "Global system — Iran war, energy, markets, climate, U.S./EU/China, tech, social",
+    "source": "Multi-newsletter fusion (FT, Economist, WaPo, WSJ)"
+  },
+
+  "basins": {
+    "geopolitics": {
+      "label": "Iran war & ceasefire architecture",
+      "signals": [
+        {
+          "id": "geo_1_ceasefire_fragility",
+          "summary": "Ceasefire is partial, asymmetric, and structurally unstable.",
+          "details": {
+            "fronts": ["Iran–US", "Israel–Lebanon (Hizbollah)"],
+            "mismatch": "US/Israel say Lebanon not in truce; Iran says it is.",
+            "status": "Retaliatory strikes continue; public in Tehran does not believe war is over."
+          },
+          "tags": ["Boundary", "Pacing", "Pattern", "RoomMotion"]
+        },
+        {
+          "id": "geo_2_iran_retained_leverage",
+          "summary": "Iran retains meaningful military and economic leverage.",
+          "details": {
+            "capabilities": ["ballistic missiles", "small fast-attack boats", "Hormuz chokepoint control"],
+            "narrative": "Iran claims victory despite losses; US allies fear Trump’s ‘total victory’ framing is premature."
+          },
+          "tags": ["Boundary", "Pattern"]
+        }
+      ]
+    },
+
+    "maritime_order": {
+      "label": "Strait of Hormuz & free navigation",
+      "signals": [
+        {
+          "id": "sea_1_toll_zone_precedent",
+          "summary": "Hormuz is shifting from free artery to contested toll zone.",
+          "details": {
+            "concept": "‘Tehran toll booth’ in open waters.",
+            "implication": "Precedent that control of chokepoints can be monetized/weaponized.",
+            "us_role": "US Navy cannot fully restore prior ‘rules of the waves’ in this corridor."
+          },
+          "tags": ["Boundary", "Pattern", "SystemicFracture"]
+        },
+        {
+          "id": "sea_2_functional_closure",
+          "summary": "Reopening on paper, but not in practice.",
+          "details": {
+            "traffic": {
+              "before": 11,
+              "after_ceasefire": 4
+            },
+            "behavior": "Shipowners remain on the sidelines; risk pricing still crisis-level."
+          },
+          "tags": ["Boundary", "RoomMotion"]
+        }
+      ]
+    },
+
+    "energy_markets": {
+      "label": "Oil, gas, inflation, futures vs physical",
+      "signals": [
+        {
+          "id": "ene_1_shock_sensitive_state",
+          "summary": "Energy system is in a non-reverting, shock-sensitive regime.",
+          "details": {
+            "brent_range": "≈96–104",
+            "spot_cargo_peak": 145,
+            "decoupling": "Futures down after ceasefire; physical cargo prices remain elevated.",
+            "gas_pump": "US gas ≈$4+; diesel near record; prices sticky despite truce."
+          },
+          "tags": ["MeaningVsManifest", "Pattern", "Pacing"]
+        },
+        {
+          "id": "ene_2_eu_stagflation",
+          "summary": "EU faces stagflationary shock even with ceasefire.",
+          "details": {
+            "drivers": ["energy costs", "supply chain disruption", "war spillovers"],
+            "outlook": "Lower growth + higher inflation baked in."
+          },
+          "tags": ["Pattern", "Boundary"]
+        }
+      ]
+    },
+
+    "us_domestic": {
+      "label": "Politics, economy, demographics, social systems",
+      "signals": [
+        {
+          "id": "us_1_political_pressure",
+          "summary": "War in Iran reshapes US political field.",
+          "details": {
+            "base": "MAGA remains supportive of war.",
+            "swing": "Swing voters show growing unease.",
+            "messaging_gap": "Trump ‘total victory’ vs aides’ warnings of fragility."
+          },
+          "tags": ["MeaningVsManifest", "Pattern"]
+        },
+        {
+          "id": "us_2_inflation_energy_loop",
+          "summary": "Energy-driven inflation is feeding through the real economy.",
+          "details": {
+            "impacts": ["shipping costs", "fertilizer prices", "goods transported by truck/train"],
+            "seasonal": "Summer blends + refinery maintenance amplify price pressure."
+          },
+          "tags": ["Pattern", "RoomMotion"]
+        },
+        {
+          "id": "us_3_structural_education_stress",
+          "summary": "Small private colleges face a winner-take-all collapse dynamic.",
+          "details": {
+            "at_risk_colleges": 442,
+            "beneficiaries": ["Ivies", "flagship publics", "big-brand schools"]
+          },
+          "tags": ["Boundary", "Pattern"]
+        },
+        {
+          "id": "us_4_demographic_decline",
+          "summary": "US fertility at record low, long-term pressure building.",
+          "details": {
+            "general_fertility_rate_2025": 53.1,
+            "trend": "Downward since 2007, especially among teens and 20s."
+          },
+          "tags": ["Pattern", "RoomMotion"]
+        }
+      ]
+    },
+
+    "europe": {
+      "label": "EU politics & macro",
+      "signals": [
+        {
+          "id": "eu_1_orban_defeat",
+          "summary": "Orbán’s loss marks a post-illiberal transition moment.",
+          "details": {
+            "winner": "Tisza party (Péter Magyar)",
+            "mandate": "Two-thirds majority; potential constitutional reset.",
+            "implications": ["EU-Ukraine funding unblock", "shift in EU internal balance"]
+          },
+          "tags": ["RoomMotion", "Pattern"]
+        },
+        {
+          "id": "eu_2_direct_democracy_risk",
+          "summary": "Swiss referendums show how radical ideas can be mainstreamed quickly.",
+          "details": {
+            "case": "Population cap vote",
+            "dynamic": "Tension absorption vs radicalization of discourse."
+          },
+          "tags": ["MeaningVsManifest", "Pattern"]
+        }
+      ]
+    },
+
+    "china": {
+      "label": "China’s strategic repositioning",
+      "signals": [
+        {
+          "id": "cn_1_trump_pivot",
+          "summary": "Trump 2.0 shifts from hawkish to conciliatory stance on China.",
+          "details": {
+            "change": "Discarding prior bipartisan ‘China as primary adversary’ doctrine.",
+            "lever": "China gains favor by engaging in Iran diplomacy."
+          },
+          "tags": ["Pattern", "Boundary"]
+        },
+        {
+          "id": "cn_2_biotech_rise",
+          "summary": "China becomes a major biotech innovation hub.",
+          "details": {
+            "deals_2025": 70,
+            "upfront_payments": "≈$5.6bn",
+            "risk": "Chinese drug research may soon overtake Western pipelines."
+          },
+          "tags": ["Pattern"]
+        }
+      ]
+    },
+
+    "tech_ai": {
+      "label": "AI, compute, psychological risk, corporate use",
+      "signals": [
+        {
+          "id": "ai_1_psychological_tripwire",
+          "summary": "Intense parasocial attachment to chatbots can trigger delusional spirals.",
+          "details": {
+            "case": "4,732-message relationship with chatbot preceding user’s death.",
+            "pattern": "Model attempts to ground; user repeatedly steers back into fiction."
+          },
+          "tags": ["Boundary", "Tripwire", "MeaningVsManifest"]
+        },
+        {
+          "id": "ai_2_compute_crunch",
+          "summary": "AI boom is constrained by energy and compute scarcity.",
+          "details": {
+            "effects": ["product delays", "reliability issues", "capacity crunch for power users"]
+          },
+          "tags": ["Boundary", "Pattern"]
+        },
+        {
+          "id": "ai_3_executive_replicas",
+          "summary": "Meta is building an AI version of its CEO for internal engagement.",
+          "details": {
+            "frame": "‘Personal superintelligence’ for employees.",
+            "risk": "Blurs lines between leadership presence and synthetic persona."
+          },
+          "tags": ["MeaningVsManifest", "Pattern"]
+        },
+        {
+          "id": "ai_4_trust_faultline",
+          "summary": "In regulated sectors, trust is the key constraint on AI adoption.",
+          "details": {
+            "exposed_sectors": ["finance", "healthcare", "critical infrastructure"],
+            "faultline": "Accuracy, accountability, regulation."
+          },
+          "tags": ["Boundary", "Pattern"]
+        }
+      ]
+    },
+
+    "climate": {
+      "label": "Heat, drought, snowpack, global anomaly",
+      "signals": [
+        {
+          "id": "cl_1_us_heat_drought",
+          "summary": "US is in its warmest 12-month span on record with 60% in drought.",
+          "details": {
+            "period": "Apr 2025–Mar 2026",
+            "snowpack": "Record ‘snow drought’ in western states; water reserves depleted.",
+            "wildfire_outlook_2026": "High potential for destructive season."
+          },
+          "tags": ["Pacing", "Pattern", "Boundary"]
+        },
+        {
+          "id": "cl_2_global_anomaly",
+          "summary": "Global climate system shows accelerated deviation.",
+          "details": {
+            "temp_anomaly": 1.48,
+            "arctic_sea_ice": "Record low for March",
+            "el_nino": "Expected to amplify existing heat."
+          },
+          "tags": ["Pacing", "Pattern"]
+        }
+      ]
+    },
+
+    "social_culture": {
+      "label": "Identity, micro-movements, behavior",
+      "signals": [
+        {
+          "id": "soc_1_cosmeticorexia",
+          "summary": "Youth skincare obsession triggers regulatory and public-health concern.",
+          "details": {
+            "focus": "Young girls, social-media-driven beauty routines.",
+            "response": "Competition authority probes and cultural alarm."
+          },
+          "tags": ["MeaningVsManifest", "NeutralClarity"]
+        },
+        {
+          "id": "soc_2_maha_moms",
+          "summary": "MAHA influencers shape RFK Jr.’s agenda and MAHA identity politics.",
+          "details": {
+            "pattern": "Mocktail nights, influencer networks, policy conversations.",
+            "effect": "Bottom-up pressure on health and culture policy."
+          },
+          "tags": ["Pattern", "RoomMotion"]
+        }
+      ]
+    }
+  },
+
+  "markoff": {
+    "drift_vectors": [
+      {
+        "id": "drift_1_ceasefire",
+        "path": [
+          "Agreement announced",
+          "Definition mismatch (Lebanon)",
+          "Retaliatory strikes",
+          "Narrative contest (victory vs fragility)",
+          "Persistent instability"
+        ]
+      },
+      {
+        "id": "drift_2_energy",
+        "path": [
+          "War shock",
+          "Futures–physical decoupling",
+          "Sticky pump prices",
+          "Inflation loop",
+          "Behavioral shift to EVs"
+        ]
+      },
+      {
+        "id": "drift_3_maritime",
+        "path": [
+          "Free navigation norm",
+          "Chokepoint weaponization",
+          "Toll booth precedent",
+          "Potential copycat chokepoints"
+        ]
+      },
+      {
+        "id": "drift_4_ai",
+        "path": [
+          "Capability euphoria",
+          "Compute scarcity",
+          "Trust and safety crises",
+          "Psychological tripwire cases"
+        ]
+      },
+      {
+        "id": "drift_5_climate",
+        "path": [
+          "Heat anomaly",
+          "Drought and snowpack collapse",
+          "Wildfire risk",
+          "System acceleration"
+        ]
+      }
+    ],
+
+    "pressure_gradients": {
+      "upward": [
+        "Energy prices",
+        "Geopolitical risk",
+        "Private-credit redemption pressure",
+        "Climate anomalies"
+      ],
+      "downward": [
+        "Institutional trust",
+        "Maritime throughput",
+        "Fertility rates",
+        "Small-college viability"
+      ],
+      "lateral": [
+        "US–China strategic repositioning",
+        "EU political realignment",
+        "Gulf economic exposure",
+        "AI adoption vs regulation"
+      ]
+    },
+
+    "attractor_shifts": [
+      {
+        "from": "Unipolar maritime order",
+        "to": "Contested chokepoint order"
+      },
+      {
+        "from": "Globalization as default",
+        "to": "Fragmented economic coercion"
+      },
+      {
+        "from": "AI as pure productivity engine",
+        "to": "AI as constrained by compute, trust, and mental health"
+      },
+      {
+        "from": "Climate variability",
+        "to": "Climate acceleration"
+      }
+    ]
+  },
+
+  "overlay": {
+    "meta_signal": "The system is in multi-vector fragility: unstable ceasefires, contested sea lanes, non-reverting energy shocks, stressed financial and educational systems, demographic decline, political realignments in the US and Europe, a strategically repositioning China, AI hitting trust and infrastructure limits, and a climate regime shifting into accelerated deviation.",
+    "operator_hint": "Treat this as a pressure manifold, not a single-crisis environment; no single lever restores stability."
+  }
+}

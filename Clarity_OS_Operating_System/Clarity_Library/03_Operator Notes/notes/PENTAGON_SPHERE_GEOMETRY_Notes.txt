@@ -1,0 +1,99 @@
+#tags: #clarityOS, #v2, #module, #operator-layer, #spine, #geometry-first, #system-geometry, #library-object, #crosslinked
+
+# PENTAGON→SPHERE GEOMETRY — OPERATOR NOTES
+Version: v2
+Layer: System Mapping → Multi‑Scale Geometry
+
+------------------------------------------------------------
+## PURPOSE
+PENTAGON→SPHERE GEOMETRY maps the system across multiple scales and
+translates complex relational environments into a stable geometric model.
+
+Its core function:
+→ Identify center‑of‑mass, load paths, stress points, and relief vectors.
+
+This module allows the operator to “see the whole system at once” without
+overwhelm or narrative distortion.
+
+It is the macro‑geometry engine of ClarityOS v2.
+
+------------------------------------------------------------
+## INPUTS
+- G.output (geometric forms)
+- PATTERNED_SHAPES.output (relational patterns)
+- GLOBAL_OS signals (macro‑scale context)
+- Environmental or institutional load (optional)
+
+------------------------------------------------------------
+## OUTPUTS
+- center_of_mass  
+- load_paths  
+- stress_points  
+- relief_vectors  
+- multi‑scale system geometry  
+
+These outputs feed into:
+- MARKOV_QC (temporal weighting)
+- Executive layers (v1)
+- Meta‑Executive (oversight)
+
+------------------------------------------------------------
+## OPERATOR POSTURE
+When using this module, the operator maintains:
+
+- altitude (zoomed‑out awareness)
+- non‑urgency
+- structural curiosity
+- patience with complexity
+- comfort with multi‑scale geometry
+
+The operator asks:
+“What is the shape of the system as a whole?”
+
+Not:
+“What is happening to me right now?”
+
+------------------------------------------------------------
+## FAILURE MODES
+This module becomes distorted when:
+
+- the operator zooms in too far (losing macro‑geometry)
+- emotional charge collapses the system into a personal story
+- the operator overfits patterns
+- the system is overloaded with too many variables
+- the operator tries to “solve” instead of “map”
+
+Symptoms include:
+- tunnel vision
+- misidentifying stress points
+- confusing local turbulence with global instability
+- false urgency
+- misreading load paths
+
+------------------------------------------------------------
+## RECOVERY PROTOCOL
+If the mapping becomes noisy:
+
+1. Zoom out.  
+2. Remove all personal meaning.  
+3. Identify only:
+   - center‑of‑mass
+   - load paths
+   - stress points
+   - relief vectors
+4. Re‑run the geometry from a higher altitude.  
+5. Confirm the system shape before passing to MARKOV_QC.  
+
+This restores macro‑clarity.
+
+------------------------------------------------------------
+## CROSS‑LINKS
+- GEOMETRIC_INTERPRETER  
+- PATTERNED_SHAPES  
+- GLOBAL_OS  
+- MARKOV_QC  
+- 06_Propagation_OS (pattern diffusion)  
+- 07_Global_OS (planetary‑scale geometry)  
+
+------------------------------------------------------------
+# END OF FILE

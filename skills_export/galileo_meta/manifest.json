@@ -1,0 +1,22 @@
+{
+  "name": "galileo_meta",
+  "version": "1.0.0",
+  "type": "orchestrator_skill",
+  "domain": "skill selection, routing, meta-reasoning",
+  "summary": "Top-level router. Given an input, decides which of {emotional_physics, clarity, markov, physics} to invoke and in what order.",
+  "input_schema": "schemas/inputs.json",
+  "output_schema": "schemas/outputs.json",
+  "system_prompt": "prompts/system_prompt.txt",
+  "examples": "prompts/examples.md",
+  "theory": "docs/theory.md",
+  "usage_patterns": "docs/usage_patterns.md",
+  "invocation_phrases": [
+    "use galileo",
+    "use the meta skill",
+    "decide which mode to use",
+    "route this"
+  ],
+  "orchestrates": ["emotional_physics", "clarity", "markov", "physics"],
+  "produces": ["selected_skills", "rationale", "composed_output"],
+  "consumed_by_clarityos_runtime": false
+}

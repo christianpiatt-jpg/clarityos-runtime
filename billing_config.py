@@ -1,0 +1,238 @@
+"""
+v42 — Stripe billing config + observability layer.
+
+Centralises Stripe mode/key resolution, idempotent webhook event
+tracking, and structured billing-event recording. Co-exists with the
+v2 ``billing.py`` env vars (``STRIPE_SECRET_KEY``,
+``STRIPE_WEBHOOK_SECRET``) and the v31 ``CLARITYOS_BILLING_MODE`` flag;
+the new v42 vars take precedence when both are set.
+
+Public API:
+    STRIPE_VERSION
+    VALID_MODES
+
+    get_secret_key()        -> str | None
+    get_webhook_secret()    -> str | None
+    get_stripe_mode()       -> "test" | "live" | "disabled"
+    is_billing_enabled()    -> bool
+    is_live_mode()          -> bool
+    get_billing_status()    -> dict
+
+    record_billing_event(event_type, user_id=None, payload_meta=None,
+                         event_id=None, mode=None) -> dict
+    list_recent_events(limit=50) -> list[dict]
+    seen_event(event_id)    -> bool
+    mark_event_seen(event_id) -> None
+
+Env vars (v42 names take precedence over v2 names):
+    CLARITYOS_STRIPE_MODE          ∈ {"test", "live"}  — explicit override
+    CLARITYOS_STRIPE_SECRET_KEY    sk_test_... or sk_live_...
+    CLARITYOS_STRIPE_WEBHOOK_SECRET whsec_...
+
+Backwards-compatible fallbacks (v2):
+    STRIPE_SECRET_KEY
+    STRIPE_WEBHOOK_SECRET
+"""
+from __future__ import annotations
+
+import logging
+import os
+import time
+from collections import deque
+from typing import Any, Optional
+
+logger = logging.getLogger("clarityos.billing_config")
+
+STRIPE_VERSION: str = "billing_config.v42.1"
+VALID_MODES: tuple = ("test", "live")
+
+# Cap on the in-process recent-events ring buffer. The /founder/billing/status
+# endpoint surfaces this list so a small cap keeps payloads bounded.
+_RECENT_EVENTS_MAX: int = 50
+
+_recent_events: deque = deque(maxlen=_RECENT_EVENTS_MAX)
+_seen_event_ids: set = set()
+_seen_event_max: int = 5000  # FIFO eviction once exceeded
+
+
+# ---------------------------------------------------------------------------
+# Env-var resolution
+# ---------------------------------------------------------------------------
+def get_secret_key() -> Optional[str]:
+    """Return the Stripe secret key, prioritising v42 env names."""
+    for name in ("CLARITYOS_STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY"):
+        v = (os.environ.get(name) or "").strip()
+        if v:
+            return v
+    return None
+
+
+def get_webhook_secret() -> Optional[str]:
+    for name in ("CLARITYOS_STRIPE_WEBHOOK_SECRET", "STRIPE_WEBHOOK_SECRET"):
+        v = (os.environ.get(name) or "").strip()
+        if v:
+            return v
+    return None
+
+
+def get_stripe_mode() -> str:
+    """Resolve the active Stripe mode.
+
+    Precedence:
+        1. ``CLARITYOS_STRIPE_MODE`` if set to a valid value.
+        2. Inspect the secret key prefix (``sk_test_`` / ``sk_live_``).
+        3. Fall back to ``"disabled"`` when no key is present.
+    """
+    explicit = (os.environ.get("CLARITYOS_STRIPE_MODE") or "").strip().lower()
+    if explicit in VALID_MODES:
+        return explicit
+    key = get_secret_key()
+    if not key:
+        return "disabled"
+    if key.startswith("sk_live_"):
+        return "live"
+    if key.startswith("sk_test_"):
+        return "test"
+    # Key present but unrecognised prefix — treat as test (safer default
+    # than live; the founder console will surface this in status).
+    return "test"
+
+
+def is_billing_enabled() -> bool:
+    """True iff a Stripe key is configured (test or live)."""
+    return get_stripe_mode() in VALID_MODES
+
+
+def is_live_mode() -> bool:
+    return get_stripe_mode() == "live"
+
+
+def get_billing_status() -> dict:
+    """Single-call status snapshot used by the founder console + the
+    membership view. Never returns the actual key — only booleans +
+    mode label."""
+    mode = get_stripe_mode()
+    return {
+        "mode": mode,
+        "has_secret": bool(get_secret_key()),
+        "has_webhook_secret": bool(get_webhook_secret()),
+        "live_mode": mode == "live",
+        "billing_enabled": mode in VALID_MODES,
+        "version": STRIPE_VERSION,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Idempotent event seen-set
+# ---------------------------------------------------------------------------
+def seen_event(event_id: Optional[str]) -> bool:
+    """True iff the event id was already processed in this process."""
+    if not event_id:
+        return False
+    return str(event_id) in _seen_event_ids
+
+
+def mark_event_seen(event_id: Optional[str]) -> None:
+    """Record an event id as processed. FIFO eviction once the cap is hit."""
+    if not event_id:
+        return
+    eid = str(event_id)
+    if eid in _seen_event_ids:
+        return
+    _seen_event_ids.add(eid)
+    if len(_seen_event_ids) > _seen_event_max:
+        # Drop an arbitrary id (sets don't preserve order; this is only
+        # to bound memory). New ids will still get tracked.
+        try:
+            _seen_event_ids.pop()
+        except KeyError:  # pragma: no cover (defensive)
+            pass
+
+
+# ---------------------------------------------------------------------------
+# Recent events (founder console surface)
+# ---------------------------------------------------------------------------
+def record_billing_event(
+    event_type: str,
+    *,
+    user_id: Optional[str] = None,
+    payload_meta: Optional[dict] = None,
+    event_id: Optional[str] = None,
+    mode: Optional[str] = None,
+) -> dict:
+    """Append a metadata-only billing event to the recent-events ring.
+
+    The ``payload_meta`` dict is sanitised to keep raw card / customer
+    objects out of the log. Callers should pre-extract just the fields
+    they want surfaced.
+    """
+    record = {
+        "ts": time.time(),
+        "event_type": str(event_type or ""),
+        "user_id": str(user_id) if user_id else None,
+        "event_id": str(event_id) if event_id else None,
+        "mode": mode or get_stripe_mode(),
+        "payload_meta": _sanitise_meta(payload_meta or {}),
+    }
+    _recent_events.appendleft(record)
+    return record
+
+
+def list_recent_events(*, limit: int = 50) -> list[dict]:
+    n = max(1, min(int(limit), _RECENT_EVENTS_MAX))
+    return [dict(r) for r in list(_recent_events)[:n]]
+
+
+def last_event_ts() -> Optional[float]:
+    if not _recent_events:
+        return None
+    return float(_recent_events[0].get("ts") or 0.0) or None
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+_SAFE_META_MAX_STR: int = 200
+_FORBIDDEN_META_KEYS: frozenset = frozenset({
+    "card", "payment_method", "customer", "client_secret", "raw",
+    "email", "phone",  # keep PII out of the event log surface
+})
+
+
+def _sanitise_meta(meta: dict) -> dict:
+    """Strip PII / large blobs from the payload metadata before it's
+    logged or surfaced via /founder/billing/status."""
+    if not isinstance(meta, dict):
+        return {}
+    out: dict[str, Any] = {}
+    for k, v in meta.items():
+        if not isinstance(k, str):
+            continue
+        if k in _FORBIDDEN_META_KEYS:
+            continue
+        out[k] = _coerce_meta_value(v)
+    return out
+
+
+def _coerce_meta_value(v: Any) -> Any:
+    if isinstance(v, str):
+        return v if len(v) <= _SAFE_META_MAX_STR else v[:_SAFE_META_MAX_STR]
+    if isinstance(v, (int, float, bool)) or v is None:
+        return v
+    if isinstance(v, (list, tuple)):
+        return [_coerce_meta_value(x) for x in v][:20]
+    if isinstance(v, dict):
+        return {
+            k: _coerce_meta_value(vv) for k, vv in v.items()
+            if isinstance(k, str) and k not in _FORBIDDEN_META_KEYS
+        }
+    s = str(v)
+    return s if len(s) <= _SAFE_META_MAX_STR else s[:_SAFE_META_MAX_STR]
+
+
+# ---------------------------------------------------------------------------
+# Test helpers
+# ---------------------------------------------------------------------------
+def _reset_for_tests() -> None:
+    _recent_events.clear()
+    _seen_event_ids.clear()

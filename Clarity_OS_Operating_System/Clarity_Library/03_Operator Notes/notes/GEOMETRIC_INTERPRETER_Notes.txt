@@ -1,0 +1,76 @@
+#tags: #clarityOS, #v2, #module, #operator-layer, #spine, #geometry-first, #perception, #library-object, #crosslinked
+
+------------------------------------------------------------
+MODULE: GEOMETRIC_INTERPRETER (v2)
+LAYER: Perception → Raw Geometry Extraction
+POSITION IN SPINE: [1] Upstream Anchor
+------------------------------------------------------------
+
+PURPOSE
+Extract raw geometric forms from any situation before interpretation.
+This module answers only one question:
+“What is the shape of what is happening?”
+
+------------------------------------------------------------
+INPUTS
+- sensory data
+- relational layout
+- spatial arrangement
+- motion vectors
+- boundary positions
+- force directions
+
+------------------------------------------------------------
+OUTPUTS
+- geometric form (triangle, line, cluster, orbit, collapse, expansion)
+- boundary map
+- force‑vector map
+- spatial relationships
+- raw structure without meaning
+
+------------------------------------------------------------
+OPERATOR POSTURE
+Describe, do not interpret.
+Stay upstream.
+Stay literal.
+Stay structural.
+
+------------------------------------------------------------
+OPERATOR CHECKLIST
+[ ] Identify the geometric form.
+[ ] Identify boundaries.
+[ ] Identify force direction.
+[ ] Identify motion.
+[ ] Identify spatial relationships.
+[ ] Do NOT interpret meaning.
+[ ] Do NOT assign motive.
+[ ] Do NOT personalize.
+
+------------------------------------------------------------
+FAILURE MODES
+- jumping to interpretation
+- assuming motive
+- collapsing geometry into emotion
+- skipping straight to QC or identity
+
+------------------------------------------------------------
+RECOVERY PROTOCOL
+1. Stop.
+2. Return to geometry.
+3. Describe only what is physically present.
+4. Re‑extract shapes and vectors.
+
+------------------------------------------------------------
+CROSSLINKS
+Upstream: (none — this is module 1)
+Downstream: PATTERNED_SHAPES.txt
+
+Side Links:
+- ClarityOS_v2_Handbook.txt
+- ClarityOS_v2_Navigation.txt
+- ClarityOS_v2_Operator_Notes_Index.txt
+- ClarityOS_v2_Console_Commands.txt
+- ClarityOS_v2_Architecture_Map.txt
+
+------------------------------------------------------------
+END OF FILE

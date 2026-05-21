@@ -1,0 +1,65 @@
+:: ============================================
+:: CLARITYOS v2 — INSTALL SEQUENCE
+:: ============================================
+
+:: MODULE 01 — GEOMETRIC INTERPRETER
+install /module:GEOMETRIC_INTERPRETER /scope:perception
+set G.mode=active
+set G.reference=external_forms,sociology,history,culture,linguistics
+
+:: --------------------------------------------
+:: MODULE 02 — PATTERNED SHAPES
+install /module:PATTERNED_SHAPES /scope:relational_field
+set PATTERNED_SHAPES.mode=active
+set PATTERNED_SHAPES.sources=sociology,history,world_systems,culture
+set PATTERNED_SHAPES.output=shape_patterns,force_vectors,relational_signatures
+
+:: --------------------------------------------
+:: MODULE 03 — E→r TRANSLATOR
+install /module:ER_TRANSLATOR /scope:signal_processing
+set ER_TRANSLATOR.mode=geometry_first
+set ER_TRANSLATOR.input=G.output,PATTERNED_SHAPES.output
+set ER_TRANSLATOR.output=force_picture,relational_geometry
+
+:: --------------------------------------------
+:: MODULE 04 — QC ENGINE
+install /module:QC_ENGINE /scope:interpretation
+set QC.mode=nonthreatening
+set QC.input=ER_TRANSLATOR.output
+set QC.output=probabilities,possibilities,thresholds,force_weights
+set QC.bias=neutral
+
+:: --------------------------------------------
+:: MODULE 05 — IDENTITY LAYER v2
+install /module:IDENTITY_LAYER_V2 /scope:self_geometry
+set IDENTITY_V2.mode=stable
+set IDENTITY_V2.input=QC.output
+set IDENTITY_V2.output=clear_self,nonreactive_posture,stable_reference_frame
+set IDENTITY_V2.bias=none
+
+:: --------------------------------------------
+:: MODULE 06 — AGENCY ENGINE v2
+install /module:AGENCY_ENGINE_V2 /scope:action_selection
+set AGENCY_V2.mode=bounded
+set AGENCY_V2.input=IDENTITY_V2.output,QC.output
+set AGENCY_V2.output=options,clean_no,clean_yes,wait_states
+set AGENCY_V2.constraints=ethics_engine,boundary_integrity
+
+:: --------------------------------------------
+:: MODULE 07 — PENTAGON→SPHERE GEOMETRY
+install /module:PENTAGON_SPHERE_GEOMETRY /scope:system_mapping
+set PENTAGON_SPHERE.input=G.output,PATTERNED_SHAPES.output,GLOBAL_OS
+set PENTAGON_SPHERE.output=center_of_mass,load_paths,stress_points,relief_vectors
+set PENTAGON_SPHERE.mode=multi_scale
+
+:: --------------------------------------------
+:: MODULE 08 — MARKOV QC LAYER
+install /module:MARKOV_QC /scope:temporal_weighting
+set MARKOV_QC.input=QC.output,TOPOLOGY_STATUS,GLOBAL_ARC_REPORT
+set MARKOV_QC.output=updated_weights,arc_probabilities,drift_alerts
+set MARKOV_QC.mode=nonpanic
+set MARKOV_QC.bias=stability_first
+
+:: ============================================
+:: END CLARITYOS v2 — INSTALL SEQUENCE
+:: ============================================

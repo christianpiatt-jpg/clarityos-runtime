@@ -1,0 +1,62 @@
+# SOS Runtime — Cloud Build config.
+#
+# Triggered by `gcloud builds submit --config cloudbuild.yaml` from
+# the sos_runtime/ directory, OR by a Cloud Build trigger watching
+# the sos_runtime/ path in the repo.
+#
+# Substitution vars (set via --substitutions or trigger config):
+#   _REGION         : Cloud Run region, e.g. us-central1
+#   _SERVICE_NAME   : Cloud Run service name (default: os-runtime)
+#   _ANTHROPIC_KEY_SECRET : Secret Manager secret id (NOT the value)
+#                           that holds SOS_ANTHROPIC_API_KEY
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE_NAME: os-runtime
+  _ANTHROPIC_KEY_SECRET: sos-anthropic-api-key
+
+steps:
+  # 1. Build the container.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - "-t"
+      - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest"
+      - "."
+
+  # 2. Push to Container Registry.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "--all-tags"
+      - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}"
+
+  # 3. Deploy to Cloud Run. Auth is IAM-gated (no --allow-unauthenticated);
+  #    the WordPress connector's service-account principal is the
+  #    only invoker.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE_NAME}"
+      - "--image=gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--ingress=all"
+      - "--no-allow-unauthenticated"
+      - "--port=8080"
+      - "--memory=512Mi"
+      - "--cpu=1"
+      - "--max-instances=10"
+      - "--set-env-vars=SOS_FIRESTORE_BACKEND=firestore,SOS_AUTH_MODE=iam"
+      - "--set-secrets=SOS_ANTHROPIC_API_KEY=${_ANTHROPIC_KEY_SECRET}:latest"
+
+images:
+  - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}"
+  - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

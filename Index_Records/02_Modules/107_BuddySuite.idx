@@ -1,0 +1,18 @@
+notepad 107_BuddySuite.idx
+
+[Record]
+Name = Buddy Suite
+Code = 107
+Path = ../../02_Subsystems/Buddy_Suite/
+Description = Pedagogical subsystem responsible for teaching, translation, operator onboarding, and human-facing clarity tools. Converts OS primitives into learnable, transmissible modules.
+
+[Files]
+Buddy_Primitives = buddy_primitives.txt
+Teaching_Models = teaching_models.txt
+Operator_Tools = operator_tools.txt
+Buddy_Modules = buddy_modules.txt
+Transmission_Protocols = transmission_protocols.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx

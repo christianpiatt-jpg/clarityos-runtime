@@ -1,0 +1,16 @@
+
+INVARIANT ALIGNMENT CHECK
+
+Compare this document against:
+- Constitutional Layer (000)
+- Diagnostic Engines (100)
+
+Answer:
+1) Does it introduce new invariants? (Yes / No)
+2) Does it alter diagnostic precedence? (Yes / No)
+3) Does it contradict subsystem inheritance rules? (Yes / No)
+
+If any answer is Yes → FAIL PROMOTION.
+
+TEXT:
+[PASTE DOCUMENT]

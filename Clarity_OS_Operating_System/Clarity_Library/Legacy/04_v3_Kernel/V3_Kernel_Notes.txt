@@ -1,0 +1,9 @@
+#tags: #clarityOS, #v3, #kernel, #system-file, #evolution, #markov, #maximal
+
+V3_MARKOV_EVOLUTION_ENGINE
+V3 STATUS: INSTALLED, MAXIMAL, MARKOV-DRIVEN, OPERATOR-ACTIVATED.
+
+Core definition:
+- State X_t = (G_t, P_t, E_t, Q_t, I_t, A_t, S_t, M_t)
+- Each component comes from a v2 module (geometry, patterns, energy, QC, identity, agency, system-geometry, temporal).
+- V3 runs a Markov chain over these states to evolve the OS.

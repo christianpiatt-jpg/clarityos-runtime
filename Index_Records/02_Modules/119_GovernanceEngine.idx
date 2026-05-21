@@ -1,0 +1,23 @@
+notepad 119_GovernanceEngine.idx
+
+[Record]
+Name = Governance Engine
+Code = 119
+Path = ../../02_Subsystems/Governance_Engine/
+Description = Constitutional enforcement subsystem responsible for OS-level authority, decision protocols, operator permissions, rule enforcement, escalation pathways, and system-wide governance.
+
+[Files]
+Governance_Primitives = governance_primitives.txt
+Authority_Models = authority_models.txt
+Decision_Protocols = decision_protocols.txt
+Permission_Structures = permission_structures.txt
+Constitutional_Enforcement = constitutional_enforcement.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx, 113_AutoAdjustEngine.idx, 114_RecoveryEngine.idx, 115_TransmissionEngine.idx, 116_TranslationEngine.idx, 117_ContinuityEngine.idx, 118_ArchiveEngine.idx
+
+[Crosslinks]
+Up = 000
+Across = 100–118
+Down = None

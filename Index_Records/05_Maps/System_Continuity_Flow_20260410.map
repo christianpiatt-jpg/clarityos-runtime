@@ -1,0 +1,13 @@
+[MAP]
+name: System Continuity Flow
+version: 20260410
+
+[FLOW]
+input: structural inventory
+processing: continuity engine (117)
+output: stable system state
+
+[PATH]
+305 → 307 → 117 → 703 → 118
+
+[END]

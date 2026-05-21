@@ -1,0 +1,9 @@
+BuddySuite.import(field_dynamics = {affect, tone, posture})
+BuddySuite.import(pressure_signatures = {overclock, collapse, freeze})
+BuddySuite.import(coherence_conditions = emotional_alignment)
+BuddySuite.import(attractors = {connection, repair})
+BuddySuite.import(transitions = {rupture, repair})
+
+BuddySuite.runtime(drift_detection = mismatch_detection,
+                   propagation = tone_routing,
+                   stabilization = grounding_protocols)

@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProblemSolver.REGRESSION_FIRST — Unified Cognitive Signal Packet",
+  "description": "Canonical OUTPUT shape emitted by an LLM operating under skills_export/regression_first/system_prompt.md. The packet merges EL/INS analysis with a regression-first protocol trigger. The ClarityOS problem_solver kernel ingests this packet, extracts regression_chain, and wraps each layer in its own stateful envelope (chain_id + state machine + per-layer status/notes). Operators MUST emit ONLY this JSON block — no prose around it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "EL",
+    "INS",
+    "ratio",
+    "el_signals",
+    "ins_signals",
+    "classification",
+    "operator_intent",
+    "regression_required",
+    "regression_chain",
+    "recommended_system_action"
+  ],
+  "properties": {
+    "EL": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Emotive Load score, 0–5."
+    },
+    "INS": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Institutional Signal score, 0–5."
+    },
+    "ratio": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]{2}$",
+      "description": "EL ÷ INS as a float string with 2 decimals. When INS = 0, emit '0.00' and treat ratio as effectively infinite for classification."
+    },
+    "el_signals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Phrases or tokens from the input that registered as EL."
+    },
+    "ins_signals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Phrases or tokens from the input that registered as INS."
+    },
+    "classification": {
+      "type": "string",
+      "enum": ["emotion-dominant", "balanced", "structure-dominant"],
+      "description": "Bucket derived from EL/INS scoring."
+    },
+    "operator_intent": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short inference of what the operator wants. Precise, no narrative softening."
+    },
+    "regression_required": {
+      "type": "boolean",
+      "description": "True iff the operator reported a problem and Regression-First Protocol must be initiated."
+    },
+    "regression_chain": {
+      "type": "array",
+      "description": "Empty when regression_required is false. Populated with a layered diagnostic walk otherwise.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["layer", "name", "question", "location", "goal"],
+        "properties": {
+          "layer":    { "type": "integer", "minimum": 1 },
+          "name":     { "type": "string",  "minLength": 1 },
+          "question": { "type": "string",  "minLength": 1 },
+          "location": { "type": "string",  "minLength": 1 },
+          "goal":     { "type": "string",  "minLength": 1 }
+        }
+      }
+    },
+    "recommended_system_action": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What ClarityOS should do next given this packet."
+    }
+  }
+}

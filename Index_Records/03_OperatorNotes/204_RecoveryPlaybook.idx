@@ -1,0 +1,18 @@
+notepad 204_RecoveryPlaybook.idx
+
+[Record]
+Name = Recovery Playbook
+Code = 204
+Path = ../../03_OperatorNotes/Recovery_Playbook/
+Description = Operator recovery protocols including collapse reversal, stabilization sequences, hydronic resets, and post-drift restoration procedures.
+
+[Files]
+Collapse_Reversal = collapse_reversal.txt
+Stabilization_Sequences = stabilization_sequences.txt
+Hydronic_Resets = hydronic_resets.txt
+PostDrift_Restoration = postdrift_restoration.txt
+Recovery_Checklists = recovery_checklists.txt
+
+[Links]
+Parent = 200_OperatorHandbook.idx
+Siblings = 201_RuntimeNotes.idx, 202_ScenarioLibrary.idx, 203_DriftCatalog.idx

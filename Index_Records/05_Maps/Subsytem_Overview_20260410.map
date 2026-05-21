@@ -1,0 +1,27 @@
+[MAP]
+name: Subsystem Overview
+version: 20260410
+
+[SUBSYSTEMS]
+100 ULDA
+101 MartialOS
+102 Executive Layer
+103 Meta-Executive
+104 PropagationOS
+105 GlobalOS
+106 VA Simulation
+107 Buddy Suite
+108 Analytics Engine
+109 Forecasting Engine
+110 Operator Console
+111 Diagnostics Engine
+112 Stability Engine
+113 Auto-Adjust Engine
+114 Recovery Engine
+115 Transmission Engine
+116 Translation Engine
+117 Continuity Engine
+118 Archive Engine
+119 Governance Engine
+
+[END]

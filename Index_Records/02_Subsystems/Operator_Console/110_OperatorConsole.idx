@@ -1,0 +1,81 @@
+notepad 110_OperatorConsole.idx
+
+[Record]
+Name = Operator Console
+Code = 110
+Path = ../../02_Subsystems/Operator_Console/
+Description = Interface subsystem providing operator dashboards, runtime views, diagnostics, state readouts, and control surfaces for real-time OS interaction.
+
+[Files]
+Console_Primitives = console_primitives.txt
+Dashboards = dashboards.txt
+Runtime_Views = runtime_views.txt
+Diagnostics = diagnostics.txt
+Control_Surfaces = control_surfaces.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx
+
+[Console]
+Purpose = Provide operator interface, navigation, commands, diagnostics access, and system views
+
+[ConsoleSurfaces]
+1 = StatusView
+2 = MeshView
+3 = BasinView
+4 = ArcView
+5 = TopologyView
+6 = NarrativeView
+7 = PressureView
+8 = DensityView
+9 = RoutingView
+10 = EthicsView
+11 = CoherenceView
+12 = GlobalView
+13 = QuickStartCard
+
+[Commands]
+status = console.status
+mesh = console.mesh
+basins = console.basins
+arcs = console.arcs
+topology = console.topology
+narrative = console.narrative
+pressure = console.pressure
+density = console.density
+routing = console.routing
+ethics = console.ethics
+coherence = console.coherence
+global = console.global
+quickcard = console.quickcard
+
+
+[ConsoleResponsibilities]
+1 = InterpretOperatorInput
+2 = RouteToDiagnostics
+3 = RouteToMaps
+4 = RouteToLogs
+5 = RouteToPlanetaryLayer
+6 = MaintainOperatorState
+7 = DisplayViews
+8 = ProvideNavigation
+
+[ConsoleState]
+ConsoleLoaded = False
+ViewsInitialized = False
+CommandsBound = False
+ConsoleActive = False
+
+[Activation]
+Trigger = RuntimeActive AND CommandsBound AND ViewsInitialized
+
+[Handoff]
+Next = Operator
+
+[ConsoleRouting]
+quickcard = QuickStartCard
+quick card = QuickStartCard
+
+[Status]
+Console = Active

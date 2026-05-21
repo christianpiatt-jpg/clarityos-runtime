@@ -1,0 +1,13 @@
+
+PROMOTION REVIEW — STRUCTURAL INTEGRITY
+
+Using the Clarity OS Dewey Glossary and READ FIRST index,
+evaluate whether this document violates any constitutional invariant.
+
+Return:
+- PASS / FAIL
+- If FAIL, quote the violating section
+- Identify the Dewey code of the violated invariant
+
+TEXT:
+[PASTE DOCUMENT]

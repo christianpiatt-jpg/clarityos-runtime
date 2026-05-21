@@ -1,0 +1,124 @@
+# PASS-6 Phase F — Repository ignore list.
+#
+# Aim: keep tracked files limited to source + tests + docs + workflows.
+# Build artifacts, cached test state, secrets, and editor scratch
+# files all stay local.
+
+# ---------------------------------------------------------------------------
+# Python bytecode + caches
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ---------------------------------------------------------------------------
+# Test caches + coverage
+# ---------------------------------------------------------------------------
+.pytest_cache/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+coverage-*.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+junit-*.xml
+.tox/
+
+# ---------------------------------------------------------------------------
+# Build + packaging artifacts
+# ---------------------------------------------------------------------------
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+.venv/
+venv/
+env/
+
+# Release-workflow placeholder tarballs.
+clarityos-runtime-v*.tar.gz
+
+# ---------------------------------------------------------------------------
+# Local dev artifacts
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# Local vault scratch (fs / sqlite backends).
+*.vault.json
+*.sqlite3
+*.sqlite3-journal
+.clarityos/
+
+# GCP service account JSON — must never be tracked.
+sa.json
+*-sa.json
+service-account*.json
+gcp-key*.json
+
+# Local Stripe webhook secrets.
+.stripe-cli-*.json
+
+# Local ELINS scratch outputs.
+elins_run_*.json
+elins_macro_*.json
+
+# ---------------------------------------------------------------------------
+# Editor + OS scratch
+# ---------------------------------------------------------------------------
+*~
+*.bak
+*.tmp
+*.swp
+*.swo
+*.orig
+*.rej
+.DS_Store
+Thumbs.db
+*.iml
+.idea/
+.vscode/
+*.code-workspace
+
+# ---------------------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------------------
+*.log
+*.log.*
+logs/
+
+# ---------------------------------------------------------------------------
+# Surface-client build outputs (web / phone / desktop)
+# These live in sibling directories the runtime spine doesn't touch
+# directly; we just keep their build outputs out of the runtime repo
+# if the surfaces are vendored in.
+# ---------------------------------------------------------------------------
+web/dist/
+web/dist-embed/
+web/node_modules/
+phone/node_modules/
+desktop/node_modules/
+desktop/dist/
+desktop/release/
+surface_v1_harness/node_modules/
+
+# ---------------------------------------------------------------------------
+# Acceptance harness scratch
+# ---------------------------------------------------------------------------
+_scratch/
+copilot_notes/
+
+# ---------------------------------------------------------------------------
+# Local Cloud Run / build state
+# ---------------------------------------------------------------------------
+.gcloudignore.local
+gcr-image-cache/
+
+# Anything an operator explicitly stashes under a local/ directory.
+local/
+scratch/

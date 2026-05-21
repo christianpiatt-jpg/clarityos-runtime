@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "galileo_meta.inputs.v1",
+  "title": "Galileo Meta — input",
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": { "type": "string", "description": "Free-form input. The orchestrator decides which base skill(s) to invoke." },
+    "context": {
+      "type": "object",
+      "description": "Optional caller-supplied hints. The orchestrator may consult these but is not bound by them.",
+      "properties": {
+        "preferred_skills": {
+          "type": "array",
+          "items": { "enum": ["emotional_physics", "clarity", "markov", "physics"] },
+          "description": "If supplied, the orchestrator should prefer these but may still override based on what the input contains."
+        },
+        "output_format": {
+          "enum": ["prose", "json"],
+          "description": "Shape of composed_output. Defaults to prose."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

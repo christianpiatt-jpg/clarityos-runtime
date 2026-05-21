@@ -1,0 +1,35 @@
+[INDEX_RECORD]
+id: 404
+name: Hydronic Maps
+class: maps
+layer: 05_Maps
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Hydronic flow maps showing emotional pressure gradients, flow lines,
+eddies, and cross-basin transitions. Derived from Unified Geometry and
+ClarityOS hydronic models.
+
+[MAPS]
+- Hydronic_Flow_20260410.map
+- Pressure_Gradient_Map_20260410.map
+- CrossBasin_Transition_Map_20260410.map
+
+[GENERATED_FROM]
+- Unified_Geometry/
+- 403_BasinMaps.idx
+
+[DEWEY]
+100.40 ; System Maps — Hydronic Flow
+
+[LINKS]
+upstream: 403_BasinMaps.idx
+adjacent: none
+downstream: 703_IntegrityScans.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+
+[END]

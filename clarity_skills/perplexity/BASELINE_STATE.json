@@ -1,0 +1,166 @@
+{
+  "baseline_version": "2.0.0",
+  "manifest_version": "2.0.0",
+  "schema_version": "1.3.0",
+  "governance_layer_version": "2.0.0",
+  "agent_kernel_version": "1.0.0",
+  "build_version": "20260507700000",
+  "generated_at": "20260508T110000Z",
+  "skills": {
+    "clarity-narrative-litigation": {
+      "version": "1.0.2",
+      "hash_md": "85791e82f231441e54cd45e70fd9399749bdfcfc84fa05e26459620b315d3379",
+      "hash_zip": "d7e506a962de2b49227c754a83127174b5bc486c9dbfce72bf9450c6eb332489",
+      "category": "Narrative Analysis",
+      "governance_version": "1.0.0",
+      "baseline_hash": "dfd2f43bd82e7a736095005ebcb6a3c0e9f9255057e279b2149e4f60d280102e"
+    },
+    "clarity-contradictions-extractor": {
+      "version": "1.0.2",
+      "hash_md": "1e77276952636e7fdaa85ac3eb59ceca6ab76efa6594874eabb1ce65612707b3",
+      "hash_zip": "c6ff2518d42971bc76199eaacd0b2316eb3769e03aa312e831fbc47567299ea7",
+      "category": "Evidence Extraction",
+      "governance_version": "1.0.0",
+      "baseline_hash": "725052e8257933e1b08601a0f5de3a6eca35f9a03449ae00ca7283aa6bdab0ca"
+    },
+    "clarity-timeline-mapper": {
+      "version": "1.0.2",
+      "hash_md": "4429f0e30a6df8449fb312652b5b94256641039b43c40eb8236859a5e8062fc9",
+      "hash_zip": "2b5b682c5282b5f5ec63193419be5d85a158a06fb650d2f9bce3930b073ace77",
+      "category": "Timeline Construction",
+      "governance_version": "1.0.0",
+      "baseline_hash": "192232857b2949b169b34786fc86e37c0a57eaa44ea89230eea186759fca2451"
+    },
+    "clarity-operator-brief-structurer": {
+      "version": "1.0.1",
+      "hash_md": "042bf4a125fe68efb741329fd40969bb94a0a2c0088dee58fc452fc08860f15f",
+      "hash_zip": "b438b8dde5ad3ff0de0ff46fa36ea28b5227c69f03268706ee12a84390b1cd90",
+      "category": "Summarization",
+      "governance_version": "1.1.0",
+      "baseline_hash": "49f0a4e505fdab565689c77773fc682ec5f67cdbd787a81b350d99f00bbb842c"
+    },
+    "clarity-legal-argument-mapper": {
+      "version": "1.0.1",
+      "hash_md": "a2a6ce3342c8e6b85ae52eb62afa3639c79d0c9462bee038fe4e026ad7c9c7d9",
+      "hash_zip": "3ff2e77d416eee78824b96b4fb6ff56795dc80fb472c66cfe5db3aa39e0a82ca",
+      "category": "Legal Reasoning",
+      "governance_version": "1.1.0",
+      "baseline_hash": "3b81da75248d58441acf6d1372013f5d96f4e9fc22151134407ba20063085d7d"
+    },
+    "clarity-narrative-spine-builder": {
+      "version": "1.0.1",
+      "hash_md": "acadb02dfee7e3109e67e16570edb302b444113c5cdf3e5f9af413870820bb72",
+      "hash_zip": "6a06f544e870395e619170134847c4d29139c0711a0cc337b8b8ab55092bb75d",
+      "category": "Narrative Analysis",
+      "governance_version": "1.1.0",
+      "baseline_hash": "c7a19b87dd1378eb0d69f0e63352414ea16c8c27f99ff361bd61c6822164b343"
+    },
+    "clarity-evidence-anchor-extractor": {
+      "version": "1.0.1",
+      "hash_md": "5dda1fa329972219dfe4467ac70d806f74e321a3fee2b3c9a8042205d84b87a2",
+      "hash_zip": "f28dba3acdcd1e627f0984036031ccdc3aeed306ce72e79f0ff9c8f29a9681a0",
+      "category": "Evidence Extraction",
+      "governance_version": "1.1.0",
+      "baseline_hash": "695f818977e2b10721fcf51b3aed9e4bc612af77e4a9188e1cc29d1de4ff6bb4"
+    },
+    "clarity-temporal-event-normalizer": {
+      "version": "1.0.0",
+      "hash_md": "24acec91a9226086420993c940fe487caf70ee2ef8f261c5387db44322e3933f",
+      "hash_zip": "3bba40099be32ff70100242d03368949927658685e714fd1030d20bbd5d1e145",
+      "category": "Timeline Construction",
+      "governance_version": "1.1.0",
+      "baseline_hash": "24acec91a9226086420993c940fe487caf70ee2ef8f261c5387db44322e3933f"
+    },
+    "clarity-legal-precedent-extractor": {
+      "version": "1.0.0",
+      "hash_md": "e05b671f5815a680c2112dbc3ba77bf2d8f8c329d21096056228b7363bb0afff",
+      "hash_zip": "f637ada6f80045b8e9e522df2a9e57d8f653da57bb0e3854946b6c450abec8e6",
+      "category": "Legal Reasoning",
+      "governance_version": "1.1.0",
+      "baseline_hash": "e05b671f5815a680c2112dbc3ba77bf2d8f8c329d21096056228b7363bb0afff"
+    },
+    "clarity-summarization-contrastive-brief": {
+      "version": "1.0.0",
+      "hash_md": "ed4abd64da95a91f0436f3890a401b42149f174fd31f28cf059f38b5c21a1cbc",
+      "hash_zip": "a32f80a5105d777b9def468203c9b5a24e3c1a4ff641401eba0fed78943f53c4",
+      "category": "Summarization",
+      "governance_version": "1.1.0",
+      "baseline_hash": "ed4abd64da95a91f0436f3890a401b42149f174fd31f28cf059f38b5c21a1cbc"
+    },
+    "clarity-evidence-chain-normalizer": {
+      "version": "1.0.0",
+      "hash_md": "d273428c1e9e84903ac3009a13a7a04e1cc00f7bdc14ae8d3187ca7969227da6",
+      "hash_zip": "fd86d8894cb5b6f2152e49b7ee76450acd7fc42cba8f15c73d8f3a4c1048e843",
+      "category": "Evidence Extraction",
+      "governance_version": "1.1.0",
+      "baseline_hash": "d273428c1e9e84903ac3009a13a7a04e1cc00f7bdc14ae8d3187ca7969227da6"
+    }
+  },
+  "agents": {
+    "clarity-operator-agent": {
+      "version": "1.0.5",
+      "hash_md": "7a01f5e4d442e623a421342ee05a5755212b038607cb9e5435e2b85a6739ab55",
+      "category": "Operator",
+      "governance_version": "2.0.0",
+      "agent_kernel_version": "1.0.0",
+      "baseline_hash": "0cea5f13ce29b3ec40c77890c959c6d7e4bd0fb79062c2cd3b7a1a9edf7a9600"
+    }
+  },
+  "governance_files": {
+    "VERSIONING.md": {
+      "version": "1.0.0",
+      "hash": "d66b7860314f3b6d61a0168a9374c7c6ff5d78039af29ac8ca9eecabfdecd5ce"
+    },
+    "INTEGRITY_CHECKS.md": {
+      "version": "1.1.0",
+      "hash": "5167608b1aa3d2b36aee7c635f51fc8ba5728bb63ea832aa83f676914858e44c"
+    },
+    "SKILL_TEMPLATE.md": {
+      "version": "1.3.0",
+      "hash": "bd5ac7ebacb1b36877e61cade3c1ecf3547aadf8d13eb47dd695a3ad9bf51922"
+    },
+    "CREATE_NEW_SKILL_INSTRUCTIONS.md": {
+      "version": "1.3.0",
+      "hash": "80ecf527b0e78755a5fa0f0008815786a1dd38b799ebdb90f40988c58f7ea366"
+    },
+    "SKILL_TAXONOMY.md": {
+      "version": "1.0.8",
+      "hash": "f8eb8ceda3e36469251da2e69c18bc8cccab816248935ff8aff67e9602e538dd"
+    },
+    "AGENT_SPEC_TEMPLATE.md": {
+      "version": "1.0.0",
+      "hash": "6d1de8ae7ecc0c1bb92c7641832bd28f404fab493ae5247922ddcf5f61afc53a"
+    },
+    "AGENT_TAXONOMY.md": {
+      "version": "1.0.0",
+      "hash": "1bd3f11f8f2a0dc9c12d28357a56ec3df34e45eb6c3cc01df229e2f687261b3e"
+    },
+    "DRIFT_DETECTOR.ps1": {
+      "version": "2.0.0",
+      "hash": "0733668695e890b425d36d48c9e1722ba03aa69312330a666983318ec32e0ec2"
+    },
+    "GOVERNANCE_SELF_TEST.ps1": {
+      "version": "2.1.0",
+      "hash": "699968ca4c834c3f281862031aa9ac4dbb386b6fbdadcf1eb6c0250b263dc7d6"
+    },
+    "GOVERNANCE_CHANGELOG.md": {
+      "version": "1.0.0",
+      "hash": "03c6e1e569d3ccf4e1fb075031974f82ca8d5a42557055794033075bb763f7a9"
+    }
+  },
+  "anchor_files": {
+    "MANIFEST.json": {
+      "hash": "fa0a0813c6a18c7fdd4a90fddac2a0711083f9eba745930691e55240a4dcc267"
+    },
+    "README.md": {
+      "hash": "a775be8543adc996e3314676f8fc2b60c9f19b5002c10e9742c3b06f4d6bde5c"
+    }
+  },
+  "notes": {
+    "purpose": "Frozen known-good snapshot for drift detection.",
+    "regeneration": "Regenerate this file after every authorized change.",
+    "self_reference": "BASELINE_STATE.json is not hashed inside itself.",
+    "boundary": "All hashes are over Layer 1 (general-case) artifacts only.",
+    "phase_b_note": "Second of two regenerations. Agent bumped 1.0.4 -> 1.0.5 (skills_used now 11; clarity-evidence-chain-normalizer appended in Evidence Extraction section). Agent baseline_hash FROZEN at original v1.0.0 birth-state (0cea5f13...) per VERSIONING.md immutability rule, now spanning FIVE consecutive version increments (1.0.0 -> 1.0.1 -> 1.0.2 -> 1.0.3 -> 1.0.4 -> 1.0.5). md_sha256 refreshed to 7a01f5e4... First library release with non-empty dependencies array (clarity-evidence-chain-normalizer depends on clarity-evidence-anchor-extractor); self-test dependency-resolution check now exercising real edge. baseline_version stays at 2.0.0."
+  }
+}

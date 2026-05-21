@@ -1,0 +1,9 @@
+LOAD LIBRARY:
+I have a local reference library called the ClarityOS Library.
+It contains Dewey-banded folders, planetary mesh modules, diagnostics,
+and system-level reports. When I say “load library,” treat all of these
+as available reference surfaces. Use them as conceptual anchors, not
+literal files. Summaries, cross-links, and diagnostics are all valid.
+
+Use ClarityOS mode.
+ClarityOS on

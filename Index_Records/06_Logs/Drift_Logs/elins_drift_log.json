@@ -1,0 +1,13 @@
+[
+  {
+    "day": "2026-04-02",
+    "counts": {
+      "conflict": 2,
+      "motion": 1
+    },
+    "drift": {
+      "conflict": 2,
+      "motion": 1
+    }
+  }
+]

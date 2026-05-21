@@ -1,0 +1,129 @@
+============================================================
+MODULE: ENGINE_PERSISTENCE_LAYER
+TYPE: Durable Storage, Snapshotting & Recovery Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide durable storage, snapshotting, retrieval, and restoration
+of engine state, configs, logs, metadata, and module information.
+Ensure crash-safe recovery, long-term stability, and complete
+traceability for the Clarity_OS narrative-physics engine.
+
+PERSISTENCE DOMAINS:
+1. Engine State Snapshots
+2. Config Files
+3. Version Registry
+4. Extension Registry
+5. Audit Ledger
+6. Logs (encrypted)
+7. Telemetry Archives
+8. Sandbox Archives
+9. Performance History
+10. Resource Usage History
+11. Scheduler History
+12. Event History
+
+STORAGE TYPES:
+- DURABLE_STORAGE (long-term)
+- SNAPSHOT_STORAGE (short-term)
+- ARCHIVE_STORAGE (compressed, encrypted)
+- VOLATILE_STORAGE (runtime only)
+
+SNAPSHOT TYPES:
+- STATE_SNAPSHOT
+- CONFIG_SNAPSHOT
+- PIPELINE_SNAPSHOT
+- SANDBOX_SNAPSHOT
+- EXTENSION_SNAPSHOT
+
+PERSISTENCE SEQUENCE:
+
+STEP 1 — INITIALIZE STORAGE
+- Create storage directories
+- Load encryption keys
+- Load signing keys
+- Validate storage integrity
+- Validate hash chain
+
+STEP 2 — SNAPSHOT ENGINE STATE
+Snapshots include:
+- Current engine state (from State Machine)
+- Active config
+- Active version registry
+- Active extension registry
+- Telemetry buffers
+- Health metrics
+- Safety metrics
+- Scheduler state
+- Resource manager state
+
+STEP 3 — STORE SNAPSHOT
+- Hash snapshot
+- Sign snapshot
+- Encrypt snapshot
+- Write to snapshot storage
+- Append to audit ledger
+
+STEP 4 — RESTORE SNAPSHOT
+When restoring:
+- Validate signature
+- Validate hash
+- Validate integrity chain
+- Load state into engine
+- Rebuild runtime structures
+- Trigger HEALTH_CHECK
+- Trigger SAFETY_CHECK
+
+STEP 5 — ARCHIVE LOGS & TELEMETRY
+- Compress logs
+- Encrypt logs
+- Hash logs
+- Move to archive storage
+- Maintain audit chain
+
+STEP 6 — CRASH-SAFE RECOVERY
+If engine crashes:
+- Load last known good snapshot
+- Validate integrity
+- Restore engine state
+- Trigger SAFETY_CHECK
+- Trigger HEALTH_CHECK
+- Resume in READY or DEGRADED state
+
+STEP 7 — CLEANUP & ROTATION
+- Rotate snapshots on schedule
+- Rotate archives
+- Maintain retention policy
+- Maintain integrity chain across rotations
+
+FAILURE MODES:
+- Snapshot corruption
+- Signature mismatch
+- Hash mismatch
+- Storage failure
+- Integrity chain break
+- Unauthorized access attempt
+- Incomplete snapshot
+
+RECOVERY:
+- Load previous snapshot
+- Rebuild integrity chain
+- Revalidate storage
+- Trigger SAFETY_EVENT
+- Trigger HEALTH_EVENT
+- Require System Admin override (if severe)
+
+PERSISTENCE CONTRACT:
+All critical engine data must be persisted.
+All snapshots must be signed, hashed, and encrypted.
+No corrupted snapshot may be restored.
+No unauthorized access to storage is permitted.
+Crash recovery must always be possible.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

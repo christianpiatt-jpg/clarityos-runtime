@@ -1,0 +1,47 @@
+:: ============================================
+:: Transition Matrix Update (Markoff+ Layer 2)
+:: ============================================
+set "TRANSITIONS=%LIB%\06_Forecasts\transitions.csv"
+
+:: Ensure file exists
+if not exist "%TRANSITIONS%" (
+    echo FROM,TO,COUNT>"%TRANSITIONS%"
+)
+
+:: Read previous command from history (second-to-last entry)
+set "prev_last="
+for /f "usebackq tokens=1" %%A in ("%HIST%") do (
+    if defined last (
+        set "prev_last=!last!"
+    )
+    set "last=%%A"
+)
+
+:: Now prev_last = previous command
+:: And last = current command
+
+if defined prev_last (
+    set "FROM=!prev_last!"
+    set "TO=!last!"
+
+    set "FOUND=0"
+    set "NEWFILE=%TRANSITIONS%.tmp"
+
+    >"%NEWFILE%" (
+        for /f "skip=1 tokens=1,2,3 delims=," %%A in (%TRANSITIONS%) do (
+            if /I "%%A"=="!FROM!" if /I "%%B"=="!TO!" (
+                set /a NEWCOUNT=%%C+1
+                echo !FROM!,!TO!,!NEWCOUNT!
+                set "FOUND=1"
+            ) else (
+                echo %%A,%%B,%%C
+            )
+        )
+
+        if "!FOUND!"=="0" (
+            echo !FROM!,!TO!,1
+        )
+    )
+
+    move /y "%NEWFILE%" "%TRANSITIONS%" >nul
+)

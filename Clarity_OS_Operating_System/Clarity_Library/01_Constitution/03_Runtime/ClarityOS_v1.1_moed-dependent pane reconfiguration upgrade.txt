@@ -1,0 +1,181 @@
+Here it is, Christian — **Console OS v1.1**, the *mode‑dependent pane reconfiguration upgrade*.  
+This is the version where the console stops being a static cockpit and becomes a **living instrument panel** that reshapes itself around the operator’s intent.
+
+This is the moment the console becomes *adaptive*.
+
+I’ll show you:
+
+1. **The v1.1 Principle** — what changes and why  
+2. **The Five Mode‑Dependent Layouts** — each pane reconfigured  
+3. **The Operator Experience** — how it feels in use  
+
+Everything is clean, structural, cockpit‑grade.
+
+---
+
+# 🟦 **CONSOLE OS v1.1 — Mode‑Dependent Pane Reconfiguration**
+
+### **The v1.1 Principle**
+In v1.0, all four panes were always visible.  
+In **v1.1**, the console **reconfigures itself** depending on the operator mode.
+
+Each mode:
+
+- **elevates one pane**  
+- **shrinks two panes**  
+- **ghosts one pane**  
+- **re-centers the command spine**  
+
+This is exactly how real operator consoles behave under load.
+
+---
+
+# 🟧 **1. OBSERVE MODE — v1.1 Layout**
+### *Primary Pane:* **Substrate Panel**  
+### *Secondary Panes:* Mechanic + Atmospheric  
+### *Ghosted Pane:* Runtime
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                 SUBSTRATE PANEL (Dominant)                    │
+├───────────────┬───────────────────────────────┬──────────────┤
+│  Mechanic     │       CENTRAL SPINE           │ Atmospheric   │
+│  (reduced)    │       (wide, passive)         │ (reduced)     │
+├───────────────┴───────────────────────────────┴──────────────┤
+│                 RUNTIME PANEL (ghosted)                       │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### **Why**
+Observation requires **physics clarity** and **no noise**.
+
+### **Feeling**
+Still. Quiet. High‑resolution.
+
+---
+
+# 🟧 **2. STABILIZE MODE — v1.1 Layout**
+### *Primary Pane:* **Mechanic Panel**  
+### *Secondary Panes:* Substrate + Atmospheric  
+### *Ghosted Pane:* Runtime
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                 SUBSTRATE PANEL (reduced)                     │
+├───────────────┬───────────────────────────────┬──────────────┤
+│ MECHANIC      │       CENTRAL SPINE           │ Atmospheric   │
+│ (Dominant)    │       (focused)               │ (reduced)     │
+├───────────────┴───────────────────────────────┴──────────────┤
+│                 RUNTIME PANEL (ghosted)                       │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### **Why**
+Stabilization is a **tool‑first** action.  
+You need your wrenches, not the weather.
+
+### **Feeling**
+Firm. Grounded. Instrumental.
+
+---
+
+# 🟧 **3. NAVIGATE MODE — v1.1 Layout**
+### *Primary Pane:* **Mechanic Panel (ELINS foregrounded)**  
+### *Secondary Panes:* Runtime + Substrate  
+### *Ghosted Pane:* Atmospheric
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                 SUBSTRATE PANEL (reduced)                     │
+├───────────────┬───────────────────────────────┬──────────────┤
+│ MECHANIC      │       CENTRAL SPINE           │ Runtime       │
+│ (Dominant)    │       (tight, precise)        │ (expanded)    │
+├───────────────┴───────────────────────────────┴──────────────┤
+│                 ATMOSPHERIC PANEL (ghosted)                   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### **Why**
+Navigation is **event‑driven** and **time‑sensitive**.  
+You need ELINS + world‑state, not cultural nuance.
+
+### **Feeling**
+Sharp. Fast. Surgical.
+
+---
+
+# 🟧 **4. REPAIR MODE — v1.1 Layout**
+### *Primary Pane:* **Atmospheric Panel (Buddy Suite foregrounded)**  
+### *Secondary Panes:* Substrate + Mechanic  
+### *Ghosted Pane:* Runtime
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                 SUBSTRATE PANEL (reduced)                     │
+├───────────────┬───────────────────────────────┬──────────────┤
+│ Mechanic      │       CENTRAL SPINE           │ ATMOSPHERIC   │
+│ (reduced)     │       (warm, open)            │ (Dominant)    │
+├───────────────┴───────────────────────────────┴──────────────┤
+│                 RUNTIME PANEL (ghosted)                       │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### **Why**
+Repair is **interpersonal** and **context‑heavy**.  
+You need the Buddy Suite and cultural safety, not global arcs.
+
+### **Feeling**
+Warm. Human. Spacious.
+
+---
+
+# 🟧 **5. GOVERN MODE — v1.1 Layout**
+### *Primary Pane:* **Runtime Panel**  
+### *Secondary Panes:* Substrate + Atmospheric  
+### *Ghosted Pane:* Mechanic
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                 SUBSTRATE PANEL (reduced)                     │
+├───────────────┬───────────────────────────────┬──────────────┤
+│ Mechanic      │       CENTRAL SPINE           │ Atmospheric   │
+│ (ghosted)     │       (high altitude)         │ (reduced)     │
+├───────────────┴───────────────────────────────┴──────────────┤
+│                 RUNTIME PANEL (Dominant)                      │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### **Why**
+Governance is **planetary‑scale**.  
+You need global arcs, density, ethics, propagation — not wrenches.
+
+### **Feeling**
+Wide. Slow. High‑ceilinged.
+
+---
+
+# 🟪 **THE OPERATOR EXPERIENCE IN v1.1**
+When you switch modes, the console:
+
+- **reshapes itself around your intent**  
+- **reduces cognitive load**  
+- **foregrounds the correct layer**  
+- **ghosts irrelevant information**  
+- **tightens the command spine**  
+
+This is the first version where the console feels like a **living cockpit**.
+
+You don’t go to the tools.  
+The tools come to you.
+
+---
+
+If you want, I can now generate:
+
+- **Console OS v1.2 (Adaptive Pane Animation)**  
+- **Console OS v1.1 Dark Mode (emotional ergonomics)**  
+- **Console OS Field Edition (mobile, low‑bandwidth)**  
+- **Console OS Operator Handbook Page (library‑ready)**  
+- **Console OS Simulation (walk through a real scenario)**  
+
+Just tell me which surface you want to bring online next.

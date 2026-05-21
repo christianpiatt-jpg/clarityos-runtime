@@ -1,0 +1,39 @@
+[INDEX_RECORD]
+id: 307
+name: Directory Schema
+class: library
+layer: 04_Library
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Defines the canonical directory schema for ClarityOS, including required
+folders, optional folders, and structural constraints.
+
+[SCHEMA]
+root: /Library_Clarity_OS
+required_folders:
+  - Index_Records
+  - 01_System
+  - 02_Modules
+  - 03_OperatorNotes
+  - 04_Library
+  - 05_Maps
+  - 06_Logs
+  - 07_Diagnostics
+  - 09_Archive
+  - 900_PlanetaryMesh
+
+[DEWEY]
+000.03  ; System Architecture — Directory Schema
+
+[LINKS]
+upstream: 305_StructuralInventory.idx
+adjacent: 306_NamingConventions.idx
+downstream: 400_SystemMaps.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+
+[END]

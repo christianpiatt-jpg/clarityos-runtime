@@ -1,0 +1,108 @@
+============================================================
+MODULE: ENGINE_SAFETY
+TYPE: Hard Safety Stop Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide hard safety stops and emergency shutdown logic for the
+Clarity_OS narrative-physics engine. Prevents execution when
+drift, pressure, basin instability, or Markov instability exceed
+global thresholds defined in ENGINE_CONFIG.
+
+SAFETY INPUTS:
+- Engine_State_Monitor telemetry
+- Engine_Health scores
+- ENGINE_CONFIG thresholds
+
+SAFETY OUTPUTS:
+- Safety Status (Safe / Warning / Critical)
+- Shutdown Trigger (Yes/No)
+- Safety Report
+- Recommended Recovery Actions
+
+CRITICAL SAFETY DOMAINS:
+1. Drift Level
+2. Basin Stability
+3. Pressure Gradient
+4. Markov Stability
+5. Vector Alignment
+6. ELINS Signal Integrity
+7. Structural Integrity
+8. Tone Stability
+
+SAFETY THRESHOLDS (READ FROM ENGINE_CONFIG):
+- DRIFT_THRESHOLD
+- BASIN_TOLERANCE
+- PRESSURE_SPIKE_THRESHOLD
+- STABILITY_TOLERANCE
+- VECTOR_SENSITIVITY
+- ELINS_ALERT_LEVELS
+- STRUCTURAL_TOLERANCE
+- TONE_STABILITY_REQUIREMENT
+
+SAFETY SEQUENCE:
+
+STEP 1 — INGEST TELEMETRY
+- Read real-time indicators from Engine_State_Monitor
+- Compare against ENGINE_CONFIG thresholds
+
+STEP 2 — INGEST HEALTH SCORES
+- Read Stability Score
+- Read Drift Risk Score
+- Read Basin Stability Score
+- Read Pressure Risk Score
+- Read Markov Stability Score
+
+STEP 3 — EVALUATE SAFETY STATE
+IF all indicators within thresholds:
+    SAFETY_STATUS = "Safe"
+ELSE IF any indicator exceeds threshold but < critical:
+    SAFETY_STATUS = "Warning"
+ELSE:
+    SAFETY_STATUS = "Critical"
+
+STEP 4 — TRIGGER HARD STOP (IF CRITICAL)
+IF SAFETY_STATUS == "Critical":
+    - Halt engine execution immediately
+    - Prevent further processing
+    - Log safety event
+    - Generate Safety Report
+    - Recommend recovery actions
+
+STEP 5 — RETURN SAFETY STATUS
+- Provide Safe / Warning / Critical state
+- Provide recommended actions
+
+CRITICAL FAILURE CONDITIONS:
+- Drift Level > DRIFT_THRESHOLD
+- Basin Stability < BASIN_TOLERANCE
+- Pressure Gradient > PRESSURE_SPIKE_THRESHOLD
+- Markov Stability < STABILITY_TOLERANCE
+- Vector Alignment < VECTOR_SENSITIVITY
+- ELINS WARNO > alert threshold
+- Structural Integrity < STRUCTURAL_TOLERANCE
+- Tone Stability < required level
+
+RECOVERY ACTIONS:
+- Re-run Engine_Reset
+- Re-align vectors
+- Re-check ELINS signals
+- Re-run Markov evaluation
+- Re-run Clarity Loop
+- Re-run Langbridg
+- Re-stabilize tone and structure
+- Re-test using Engine_Test_Harness
+
+SAFETY CONTRACT:
+No execution may continue during a Critical state.
+All safety thresholds must be enforced.
+All safety events must be logged.
+Engine must halt immediately on violation.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

@@ -1,0 +1,23 @@
+500_RuntimeLogs.idx
+
+[Record]
+Name = Runtime Logs
+Code = 500
+Path = ../../06_Logs/Runtime_Logs/
+Description = Logs capturing real-time system behavior, operator actions, runtime events, and moment-to-moment OS activity.
+
+[Files]
+Event_Log = event_log.txt
+Runtime_Trace = runtime_trace.txt
+System_Events = system_events.txt
+Operator_Actions = operator_actions.txt
+Runtime_Crosswalk = runtime_crosswalk.txt
+
+[Links]
+Parent = 002_Runtime.idx
+Siblings = 501_OperatorLogs.idx, 502_DriftLogs.idx, 503_RecoveryLogs.idx, 504_ForecastLogs.idx
+
+[Crosslinks]
+Up = 002
+Across = 501–504
+Down = None

@@ -1,0 +1,23 @@
+notepad 005_Boundary.idx
+
+[Record]
+Name = Boundary Layer
+Code = 005
+Path = ../../01_Constitution/06_Boundary/
+Description = Defines system edges, contamination detection, boundary integrity, interface limits, and the distinction between internal and external system states.
+
+[Files]
+Boundary_Primitives = boundary_primitives.txt
+Contamination_Model = contamination_model.txt
+Interface_Limits = interface_limits.txt
+Boundary_Integrity = boundary_integrity.txt
+Inside_Outside_Map = inside_outside_map.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 001_Geometry.idx, 002_Runtime.idx, 003_Identity.idx, 004_Imports.idx
+
+[Crosslinks]
+Up = None
+Across = 000,001,002,003,004
+Down = None

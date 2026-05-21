@@ -1,0 +1,9 @@
+EscalationLadder.import(field_dynamics = {identity, narrative, logistics})
+EscalationLadder.import(pressure_signatures = escalation_inputs)
+EscalationLadder.import(coherence_conditions = crisis_alignment)
+EscalationLadder.import(attractors = {resolution, rupture})
+EscalationLadder.import(transitions = {step_up, step_down})
+
+EscalationLadder.runtime(drift_detection = crisis_drift,
+                         propagation = escalation_routing,
+                         stabilization = deescalation_protocols)

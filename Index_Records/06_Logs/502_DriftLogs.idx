@@ -1,0 +1,18 @@
+502_DriftLogs.idx
+
+[Record]
+Name = Drift Logs
+Code = 502
+Path = ../../06_Logs/Drift_Logs/
+Description = Logs capturing drift events, early warning signals, pattern detection, and drift progression across emotional, cognitive, and relational domains.
+
+[Files]
+Drift_Events = drift_events.txt
+Warning_Signals = warning_signals.txt
+Drift_Progression = drift_progression.txt
+Drift_Annotations = drift_annotations.txt
+Drift_Crosswalk = drift_crosswalk.txt
+
+[Links]
+Parent = 500_RuntimeLogs.idx
+Siblings = 501_OperatorLogs.idx, 503_RecoveryLogs.idx, 504_ForecastLogs.idx

@@ -1,0 +1,24 @@
+# ELINS PRO Ingestion Page
+
+## Object Set
+- [canonical IDs / URLs / tickers]
+
+## Features
+- time_window
+- basin
+- actors
+- signals
+- outcomes
+
+## Geometry
+- signal_strength
+- curvature
+- drift_profile
+
+## Markov Fields
+- state_space
+- transition_hints
+- reward_signals (if any)
+
+## Notes
+Designed for engine ingestion, not human narrative.

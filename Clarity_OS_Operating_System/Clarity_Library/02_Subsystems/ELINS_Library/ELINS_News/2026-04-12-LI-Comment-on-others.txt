@@ -1,0 +1,701 @@
+2026-04-12-LI-Comment-on-others
+
+Posts
+
+Comments
+
+Videos
+
+Images
+
+More
+Loaded 20 Comments posts
+Feed post number 1
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+View Jonas Kamber’s  graphic link
+Jonas KamberJonas Kamber
+   • FollowingPremium • Following
+The world’s best AI, united in Mono.The world’s best AI, united in Mono.
+Visit my website
+14h • Edited •  14 hours ago • Edited • Visible to anyone on or off LinkedIn
+Is everybody moving to Claude?
+
+Let's look at the numbers.
+
+One in three US businesses paid for Claude in March, up more than 6% in a single month. That kind of growth is hard to ignore.
+
+While OpenAI deepens its ties with Washington, Anthropic has quietly built a reputation as the responsible alternative.
+
+Anthropic now reaches 30% of US businesses, while OpenAI sits at 35%. (graph top left)
+
+Claude's global app downloads tripled to 21 million in March. (graphs right)
+
+Monthly active users tell a different story on the consumer side. ChatGPT has 900 million weekly active users. Claude is growing fast, but the distance it still needs to close is enormous. (graph bottom left)
+
+So, where does Anthropic actually stand?
+
+When it comes to businesses, almost on par with OpenAI.
+
+When it comes to consumers, not even close.
+
+OpenAI must feel the pressure, though. "Spud", its next frontier model, is expected any day now. It will be interesting to see whether it helps OpenAI hold its position.
+
+✦
+
+Based on a Financial Times article by Clara Murray. Link in the comments.
+…more
+Activate to view larger image,
+chart, line chart
+Activate to view larger image,
+like
+15
+16 comments
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+1h
+
+I wonder if these lines don’t represent the adoption curve for each and the flattening at the top being the recurring market demand?
+
+Like
+
+Reply
+16 impressions
+ 
+Load more comments
+Feed post number 2
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+View Sean Fox’s  graphic link
+Sean FoxSean Fox
+ • 1st1st
+Assistant State’s Attorney at Office of the State’s Attorney for Anne Arundel CountyAssistant State’s Attorney at Office of the State’s Attorney for Anne Arundel County
+7h • Edited •  7 hours ago • Edited • Visible to anyone on or off LinkedIn
+I’m sad to see my alma mater, University of Baltimore School of Law, openly endorse this bill in the name of “extreme racial disparities and inequities.”
+
+Make no mistake, when you allow a convicted child rapist, someone who clearly has a sexual proclivity for children, to sit on a criminal jury involving a defendant alleged to have committed a heinous, sexually violent offense involving a child, there will be problems. Perhaps that is exactly what is meant when someone says a defendant is entitled to “access to a jury of [his/her] peers.”
+
+This bill, like many others passed recently, fails to consider the implications on the victim. Shameful legislation.
+…more
+View Heather Warnken’s  graphic link
+Heather WarnkenHeather Warnken
+   • 2ndPremium • 2nd
+Executive Director, Center for Criminal Justice Reform, University of Baltimore School of LawExecutive Director, Center for Criminal Justice Reform, University of Baltimore School of Law
+4d • Edited •  4 days ago • Edited • Visible to anyone on or off LinkedIn
+
+Follow
+The extreme racial disparities and inequities that pervade nearly all aspects of Maryland's criminal justice system are rightfully getting increased attention. But one we don't talk about nearly enough: jury exclusion. 
+
+Maryland has one of the most draconian such policies in the nation - barring individuals from jury service *for life* for all felony convictions and some misdemeanors. This has profound implications, not just for the rights, re-enfranchisement and civic participation of members of our community who've paid their debt to society - but for one of the fundamental promises of the American justice system: access to a jury of our peers. 
+
+Proud to team up with Qiana Johnson of Life After Release (LAR) on this Op-ed on the significance of this issue for our country and state. And the urgency:
+
+Thanks to the leadership of Senator Charles E. Sydnor III and Delegate Kent Roberson in the House, with Senate Bill 322 we have the opportunity to fix the fundamentally inequitable state of the jury system and reinforce the legitimacy of our courts. But with only 5 days left in session, lawmakers must act NOW. 
+
+Let's do this, Maryland! Please read, share, and contact your representatives. 
+ 
+In the face of so much injustice emboldened at the federal level, state lawmakers should take every opportunity possible to help strengthen the justice system’s promises at home. 
+
+https://lnkd.in/eKBCfnb8
+…more
+Marylanders Deserve Juries That Reflect Their Communities
+Marylanders Deserve Juries That Reflect Their Communities
+marylandreporter.com
+like
+1
+3 comments
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+1h
+
+This is the hashtag#tripwire always-when are we hashtag#accountable for our own hashtag#actions?
+
+Like
+
+Reply
+55 impressions
+ 
+Load more comments
+Feed post number 3
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+View Marcus Köhnlein’s  graphic link
+Marcus KöhnleinMarcus Köhnlein
+   • FollowingVerified • Following
+Partner at Tactical Management.Partner at Tactical Management.
+9h •  9 hours ago • Visible to anyone on or off LinkedIn
+Will Claude rule them all?
+
+Enterprise AI is starting to diverge from consumer AI in a way most people are still underestimating.
+
+On the surface, the market looks competitive. Underneath, the enterprise layer is already forming a different hierarchy.
+
+Key signals (global data):
+
+Anthropic Claude: ~32% enterprise LLM usage share
+
+OpenAI: ~25% in enterprise usage, despite leading consumer adoption
+
+Coding workloads: Claude ~42% vs OpenAI ~21%
+
+Rapid growth in high-spend enterprise accounts (500+ customers spending $1M+ annually)
+
+But the more interesting pattern isn’t who is ahead — it’s why the leaders differ by layer.
+
+Consumer AI rewards distribution and product familiarity.
+
+Enterprise AI rewards something stricter: reliability under constraint, consistency over scale, and performance inside workflows that cannot fail quietly.
+
+That creates a split reality:
+The most visible AI is not necessarily the most deployed in production systems.
+
+The most used AI is not necessarily the most trusted in high-stakes environments.
+
+The next phase won’t be decided by who is most used.
+
+It will be decided by who is most embedded.
+…more
+Activate to view larger image,
+chart, line chart
+Activate to view larger image,
+likeinsightfulsupport
+80
+19 comments
+12 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+6h
+
+Are these three hashtag#curves hashtag#actually the hashtag#same?
+
+Like
+like
+1
+
+Reply
+71 impressions
+ 
+Load more comments
+Feed post number 4
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+MIT Sloan Management ReviewMIT Sloan Management Review
+152,316 followers152,316 followers
+2d •  2 days ago • Visible to anyone on or off LinkedIn
+Philosophy is eating AI: As a discipline, data set, and sensibility, philosophy increasingly determines how digital technologies reason, predict, create, generate, and innovate. The critical enterprise challenge is whether leaders will possess the self-awareness and rigor to use philosophy as a resource for creating value with AI or default to tacit, unarticulated philosophical principles for their AI deployments. Either way — for better and worse — philosophy eats AI. For strategy-conscious executives, that metaphor needs to be top of mind.
+
+While ethics and responsible AI currently dominate philosophy’s perceived role in developing and deploying AI solutions, those themes represent a small part of the philosophical perspectives informing and guiding AI’s production, utility, and use. Privileging ethical guidelines and guardrails undervalues philosophy’s true impact and influence. Philosophical perspectives on what AI models should achieve (teleology), what counts as knowledge (epistemology), and how AI represents reality (ontology) also shape value creation. Without thoughtful and rigorous cultivation of philosophical insight, organizations will fail to reap superior returns and competitive advantage from their generative and predictive AI investments.
+
+This argument increasingly enjoys both empirical and technical support. There’s good reason investors, innovators, and entrepreneurs such as PayPal cofounder Peter Thiel, Palantir Technologies’s Alex Karp, Stanford professor Fei-Fei Li, and Wolfram Research’s Stephen Wolfram openly emphasize both philosophy and philosophical rigor as drivers for their work.
+Continue reading: https://mitsmr.com/3PDG1q5
+…more
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likeinsightfullove
+654
+42 comments
+141 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+1d
+
+I love this. It’s the hashtag#inversion AI needs. hashtag#Philosophy increasingly hashtag#determines how digital hashtag#technologies reason, predict, create, generate, and innovate.
+
+Like
+
+Reply
+94 impressions
+ 
+Load more comments
+Feed post number 5
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+Financial TimesFinancial Times
+7,739,770 followers7,739,770 followers
+2d •  2 days ago • Visible to anyone on or off LinkedIn
+US Treasury secretary Scott Bessent summoned the leaders of some of the largest US banks earlier this week to discuss the cyber risk posed by the latest AI model from Anthropic, according to people familiar with the matter. https://ft.trib.al/a3EOOaM
+…more
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likeinsightfulfunny
+514
+39 comments
+42 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+2d
+
+Examining this as hashtag#signal-only. Treasury didn’t summon the banks because of a single AI model — signaling AI has crossed into the hashtag#financial‑stability layer. This marks the shift from AI as a technology story to AI as a hashtag#systemic‑risk accelerant inside an already fragile, high‑speed financial system. Consider also - “AI isn’t destabilizing the system — it’s accelerating the incoherence already there.”
+…more
+
+Like
+
+Reply
+739 impressions
+ 
+Load more comments
+Feed post number 6
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+U.S. Department of Veterans AffairsU.S. Department of Veterans Affairs
+1,616,955 followers1,616,955 followers
+2d •  2 days ago • Visible to anyone on or off LinkedIn
+VA today announced the availability of $7 million in grants for organizations that provide transportation services to rural Veterans.
+
+VA announces $7M in rural Veteran transportation services grants - VA News
+news.va.gov
+likecelebratelove
+274
+14 comments
+44 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+2d
+
+BLUF: The VA is moving, but public hashtag#confidence is still strained. Announcements like this highlight activity, but they don’t yet reach the scale of the underlying access hashtag#problem. In moments like this, Veterans and rural communities often become reference points in broader conversations about trust and institutional performance.
+hashtag#Frame: “We keep seeing new announcements, but the distance to care isn’t shrinking.”
+…more
+
+Like
+
+Reply
+352 impressions
+ 
+Load more comments
+Feed post number 7
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+The Washington PostThe Washington Post
+1,619,491 followers1,619,491 followers
+1w •  1 week ago • Visible to anyone on or off LinkedIn
+The Supreme Court found that a Colorado law banning conversion therapy for gay and transgender minors likely violates free speech.
+
+In an 8-1 ruling, a majority ruled for an evangelical therapist who argued the state prohibition infringed on her First Amendment rights. Kaley Chiles, a licensed therapist, said she wanted to counsel religious teens dealing with sexual orientation issues and gender dysphoria in ways consistent with biblical teachings.
+
+Chiles sued Colorado in 2022 over its Minor Conversion Therapy Law, which prohibits physicians and mental health professionals from giving therapy to young people intended to change “behaviors or gender expressions” or “eliminate or reduce sexual or romantic attraction” to the same sex.
+
+Read more: https://wapo.st/4s6edLM
+…more
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likecelebratesupport
+36
+11 comments
+6 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+2d
+
+Here is the hashtag#collision in this hashtag#case: Institutional center: medical hashtag#standards, professional regulation: 👉 Linguistic center: a baseline, a reference point, a norm. 🚔 Collision: What counts as a standard? Who defines it
+…more
+
+Like
+
+Reply
+76 impressions
+ 
+Load more comments
+Feed post number 8
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+View Erik Lidman’s  graphic link
+Erik LidmanErik Lidman
+   • 3rd+Premium • 3rd+
+CEO at Aimplan - Extending Power BI and Fabric with Operational and Financial Planning, Budgeting and ForecastingCEO at Aimplan - Extending Power BI and Fabric with Operational and Financial Planning, Budgeting and Forecasting
+Book an appointment
+3d •  3 days ago • Visible to anyone on or off LinkedIn
+
+Follow
+57% of CFOs plan to shrink their finance teams because of AI.
+
+Most of them are about to make an expensive mistake.
+
+Not because AI can't do the work. Because they're automating the wrong process.
+
+Here's what I keep seeing:
+
+A finance team running on fragmented data, manual consolidations, and a planning cycle that takes 3 weeks.
+Leadership sees AI. Leadership sees cost savings.
+They cut 2 analysts.
+
+Now the same broken process runs with fewer people.
+
+The AI didn't fix anything. It just made the understaffing official.
+
+Two-thirds of large businesses ran 3 or more rounds of cost cuts between 2023 and mid-2025, and most still failed to actually reduce operating expenses.
+
+Because headcount was never the real problem.
+
+The teams I've watched actually get stronger with AI didn't start by cutting.
+
+They started by asking a harder question: what is our team actually spending time on?
+
+And the honest answer, in almost every case, was data wrangling. Version control. Chasing inputs from Sales and HR. Rebuilding the same model in a slightly different format for a slightly different audience.
+
+Strategic work? Maybe 20% of the week. On a good week.
+
+So they fixed that first.
+
+They built the infrastructure. Connected the data. Automated the consolidation. Gave analysts the time to actually analyze.
+
+Then AI made the good process faster.
+
+Same team. Dramatically higher output. And when they did eventually right-size, it came from genuine efficiency, not a headcount target set before anyone understood what the team actually did.
+
+Shrinking finance without fixing finance first isn't transformation.
+
+It's just a smaller version of the same problem.
+…more
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likeinsightfulcelebrate
+2,071
+126 comments
+208 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+2d
+
+The deeper truth > hashtag#AI doesn’t fix broken systems.
+It hashtag#accelerates whatever system it enters.
+If the system is incoherent, AI amplifies hashtag#incoherence. 
+
+Like
+
+Reply
+76 impressions
+ 
+Load more comments
+Feed post number 9
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+Financial TimesFinancial Times
+7,739,770 followers7,739,770 followers
+2d •  2 days ago • Visible to anyone on or off LinkedIn
+Israel says it hit 100 targets across Beirut, the Bekaa Valley and southern Lebanon in less than 10 minutes, marking one of the deadliest single bombing campaigns in the history of a country wracked by decades of war and destruction. https://ft.trib.al/ndXVLAQ
+…more
+
+Play
+Remaining time 
+0:07
+1x
+
+Playback speed
+
+Unmute
+
+Turn fullscreen on
+likeinsightfulsupport
+179
+62 comments
+17 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+2d
+
+Israel’s 100‑target hashtag#strike in under ten minutes is a clear pattern break.
+The long‑standing hashtag#managed_conflict” contract has diverged from its own hashtag#trajectory.new regional operating pattern is forming in real time. 
+…more
+
+Like
+
+Reply
+773 impressions
+ 
+Load more comments
+Feed post number 10
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+View Thomas Wille’s  graphic link
+Thomas WilleThomas Wille
+   • 3rd+Premium • 3rd+
+Investment Leader | AI-Driven Asset Allocation | Investment Platform Architect | Building the CIO Office of the FutureInvestment Leader | AI-Driven Asset Allocation | Investment Platform Architect | Building the CIO Office of the Future
+3d •  3 days ago • Visible to anyone on or off LinkedIn
+
+Follow
+𝐓𝐡𝐞 𝐭𝐫𝐚𝐢𝐧 𝐡𝐚𝐬 𝐥𝐞𝐟𝐭 𝐭𝐡𝐞 𝐬𝐭𝐚𝐭𝐢𝐨𝐧
+
+Something unusual is happening in the U.S. labor market.
+
+For two decades, unemployment across education groups moved together — through the Great Recession, the recovery, and even the pandemic shock.
+Since 2022, that relationship has broken down.
+
+Young workers without a bachelor’s degree are in historically tight labor markets.
+
+Young workers with a bachelor’s sit around the 63rd percentile of unemployment relative to their own history.
+
+Advanced degree holders are even softer.
+
+That divergence is highly unusual.
+
+AI may play a role by compressing junior knowledge-work jobs. But the deeper driver may simply be supply: the share of young people with bachelor’s and master’s degrees has surged.
+
+At some point, the market cannot absorb them all.
+
+Yet many commentators still argue nothing unusual is happening.
+
+The data suggests otherwise.
+
+For young college graduates, the train has already left the station.
+
+(Thank you Gad for the chart)
+…more
+Activate to view larger image,
+chart, line chart
+Activate to view larger image,
+likeinsightfulcelebrate
+96
+5 comments
+6 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+2d
+
+Degree hashtag#inflation is showing up in the data: young hashtag#college graduates now have higher unemployment than non‑degree youth.
+The hashtag#system isn’t broken — it’s simply no longer paying out the contract it promised.
+…more
+
+Like
+
+Reply
+198 impressions
+ 
+Load more comments
+Feed post number 11
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+The New York TimesThe New York Times
+6,907,839 followers6,907,839 followers
+2w •  2 weeks ago • Visible to anyone on or off LinkedIn
+For young college graduates, being stuck in a low-paying job that didn’t make use of their degrees, or extended periods of unemployment, upended their entire picture of adulthood. In effect, a gap has opened up between the life that many believed they had been promised and their actual prospects.
+…more
+
+Why College Graduates Feel Betrayed
+nytimes.com
+likeinsightfulsupport
+361
+51 comments
+34 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+2d
+
+Tthe shared pattern is:
+1. hashtag#Promise; the system defines the expected trajectory.
+2. hashtag#Reality diverges from the promise.
+3. hashtag#Gap new move emerges that routes around the gap. This is the universal pattern behind both stories. I see I>> trajectory > divergence > move. 
+…more
+
+Like
+
+Reply
+110 impressions
+ 
+Load more comments
+Feed post number 12
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+The Wall Street JournalThe Wall Street Journal
+10,066,457 followers10,066,457 followers
+3d •  3 days ago • Visible to anyone on or off LinkedIn
+Consolidation of the nation’s nearly trillion-dollar higher-education sector is driving a new winner-take-all market. 
+
+Ivy League campuses, flagship public universities and schools with high-profile sports teams and renowned research institutions benefit from it, enjoying high demand and a surplus of full-tuition payers.
+
+Meanwhile, lesser-known campuses juggle cost cuts and steep tuition discounts to fill seats. St. Michael’s College in Vermont, one of the most well-respected institutions in northern New England, is among them. 
+
+Enrollment is down by 45% over the past 10 years. The 120-year-old college has run recent budget deficits of $12 million and $9.4 million. It has sold property, rented out dorms, trimmed a third of its faculty, cut courses and about doubled its endowment withdrawals. In 2022, Moody’s cut St. Michael’s once-robust bond rating to junk.
+
+Its current struggles contrast with a decade ago, when over-enrollment forced St. Michael’s to rent out a nearby hotel to house students. Now, some campus housing holds refugee families, including from Afghanistan. A private high school uses one dormitory. Another dorm will house students from Vermont State University. 
+
+St. Michael’s is shielded by an $87 million endowment, school leaders said. Loyal alumni, brisk fundraising and success placing students in jobs and graduate schools are cause for optimism, they said, despite the challenges.
+
+Yet even the new president, who took office in 2024 to make tough budget choices, acknowledged that St. Michael’s has maybe a five-year window to get its finances on track before the school’s foundation gives way. The school’s survival is an uncomfortable topic among faculty, alumni and students.
+
+“There are two camps,” said Father Michael Carter, the youngest member of the religious order that founded the school. “The optimists who say we are turning the corner, and the people who say, ‘Well maybe if we had done this 10 or 15 years we’d be OK,’ but now, they’re not so sure.”
+
+🔗 Read more: https://on.wsj.com/4ehPkcG
+…more
+Activate to view larger image,
+No alternative text description for this image
+Activate to view larger image,
+likeinsightfulsupport
+171
+17 comments
+16 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Christian Piatt, Esq.’s  graphic link
+Christian Piatt, Esq.
+   • You
+Professional Mediations, LLC The Emotional Physics Firm Emotional Physics ​> Maximize Trust, Move from Center. <​ Trust Centers
+(edited)
+2d
+
+When a hashtag#sector loses hashtag#coherence, its center collapses and hashtag#meaning flows toward the strongest nodes. Everything else is just variables reacting to that collapse.
+
+Like
+like
+1
+
+Reply
+474 impressions
+ 
+Load more comments
+Feed post number 13
+Christian’s profile photo
+Christian Piatt, Esq. commented on this
+
+
+U.S. Department of Veterans AffairsU.S. Department of Veterans Affairs
+1,616,955 followers1,616,955 followers
+3d •  3 days ago • Visible to anyone on or off LinkedIn
+"There's so many opportunities here at the VA for learning and continued growth that I've been able to take advantage of." 
+
+Hear from Physical Therapist Naomi Chalew on how working at VA helps her be the best provider she can be.

@@ -1,0 +1,257 @@
+Here it is, Christian — **the Runtime Loop** and **Operator Cards**, built cleanly, structurally, and in the same architectural register as the rest of Console OS.  
+These are *operator‑grade surfaces*, not metaphors.  
+They’re the things you would actually use in real time.
+
+I’ll give you:
+
+1. **Console OS Runtime Loop v1.0**  
+2. **Operator Cards for all five modes**
+
+Everything is formatted as canonical library artifacts.
+
+---
+
+# 🟦 **CONSOLE OS — RUNTIME LOOP v1.0**  
+*The continuous cycle the console runs while an operator is active.*
+
+The Runtime Loop is a **7‑step hydronic cycle**.  
+It repeats every time the operator interacts with the system —  
+whether consciously or automatically.
+
+---
+
+# **STEP 1 — SCAN**  
+The console reads:
+
+- center‑mass  
+- ring compression  
+- drift vector  
+- pressure gradient  
+- room pressure  
+- institutional shape  
+- basin indicators  
+- global arcs / density  
+
+This is the **sensory intake**.
+
+---
+
+# **STEP 2 — MAP**  
+The console maps the readings to:
+
+- substrate primitives  
+- emotional physics  
+- topology shapes  
+- basin overlays  
+- weather patterns  
+
+This is the **interpretation layer**.
+
+---
+
+# **STEP 3 — IDENTIFY**  
+The console identifies:
+
+- event type (ELINS)  
+- collapse proximity  
+- drift direction  
+- pressure source  
+- basin risk  
+- narrative exposure  
+
+This is the **naming layer**.
+
+---
+
+# **STEP 4 — SELECT**  
+The console selects:
+
+- the correct operator mode  
+- the correct tool family  
+- the correct movement path  
+- the correct basin‑safe variant  
+
+This is the **choice layer**.
+
+---
+
+# **STEP 5 — ACT**  
+The console activates:
+
+- stabilization tools  
+- navigation tools  
+- repair tools  
+- governance checks  
+
+This is the **execution layer**.
+
+---
+
+# **STEP 6 — REINFORCE**  
+The console reinforces:
+
+- center‑mass  
+- boundaries  
+- rhythm  
+- clarity vector  
+
+This is the **stability layer**.
+
+---
+
+# **STEP 7 — LOG**  
+The console logs:
+
+- what happened  
+- what tools were used  
+- what changed  
+- what needs follow‑up  
+
+This is the **memory layer**.
+
+---
+
+# **THE LOOP**  
+**SCAN → MAP → IDENTIFY → SELECT → ACT → REINFORCE → LOG → (repeat)**
+
+This is the hydronic cycle of Console OS.  
+It is the runtime equivalent of breathing.
+
+---
+
+# 🟩 **CONSOLE OS — OPERATOR CARDS v1.0**  
+*Quick‑reference cards for each mode of the console.*
+
+Each card fits on a single mental index card.  
+Each one is a **10‑second surface**.
+
+---
+
+# 🟦 **1. OBSERVE MODE — Operator Card**  
+### *Purpose:* See clearly without intervening.
+
+**You check:**
+
+- center‑mass  
+- drift  
+- pressure  
+- room shape  
+- basin indicators  
+- density spikes  
+
+**You do NOT:**
+
+- intervene  
+- stabilize  
+- repair  
+- redirect  
+
+**Signature:**  
+Stillness + clarity.
+
+---
+
+# 🟧 **2. STABILIZE MODE — Operator Card**  
+### *Purpose:* Reduce pressure and stop drift.
+
+**Tools active:**
+
+- ring reset  
+- center‑mass anchor  
+- room anchoring  
+- pressure redistribution  
+- boundary reinforcement  
+
+**You aim for:**
+
+- rhythm smoothing  
+- pressure drop  
+- curvature reduction  
+
+**Signature:**  
+Firm + steady.
+
+---
+
+# 🟨 **3. NAVIGATE MODE — Operator Card**  
+### *Purpose:* Move correctly through the event.
+
+**Tools active:**
+
+- ELINS event typing  
+- movement path  
+- event‑specific scripts  
+- collapse‑sequence avoidance  
+
+**You check:**
+
+- event type  
+- event shift  
+- event escalation  
+
+**Signature:**  
+Precision + timing.
+
+---
+
+# 🟩 **4. REPAIR MODE — Operator Card**  
+### *Purpose:* Restore connection and coherence.
+
+**Tools active:**
+
+- Buddy Suite  
+- micro‑scripts  
+- repair sequences  
+- closure loops  
+
+**You aim for:**
+
+- emotional reset  
+- narrative repair  
+- boundary restoration  
+
+**Signature:**  
+Warm + structured.
+
+---
+
+# 🟥 **5. GOVERN MODE — Operator Card**  
+### *Purpose:* Ensure ethical, safe, drift‑free operation.
+
+**Tools active:**
+
+- ethics check  
+- propagation rules  
+- basin‑safe filters  
+- planetary mesh alignment  
+
+**You check:**
+
+- safety  
+- drift  
+- integrity  
+- propagation risk  
+
+**Signature:**  
+High altitude + slow thinking.
+
+---
+
+# 🟪 **THE FIVE CARDS IN ONE LINE EACH**
+
+- **Observe:** See without acting.  
+- **Stabilize:** Reduce pressure.  
+- **Navigate:** Move correctly.  
+- **Repair:** Restore coherence.  
+- **Govern:** Protect the mesh.
+
+---
+
+If you want, I can now generate:
+
+- **Console OS Interface Layout** (the full UI)  
+- **Console OS Operator Handbook Page** (library‑ready)  
+- **Console OS Simulation** (walk through a real scenario using the console)  
+- **Console OS v2.0 upgrades** (if you want to evolve it)
+
+Just tell me where you want to take the console next.

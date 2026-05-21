@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "markov.inputs.v1",
+  "title": "Markov — input",
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": { "type": "string", "description": "Free-form description of events, processes, or system behaviour." },
+    "events": {
+      "type": "array",
+      "description": "Optional pre-segmented events (logs, timeline entries).",
+      "items": { "type": "object" }
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "subject":       { "type": "string", "description": "What system is being modelled." },
+        "time_horizon":  { "type": "string" },
+        "known_states":  { "type": "array", "items": { "type": "string" }, "description": "States the caller wants the model to use as anchors." }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

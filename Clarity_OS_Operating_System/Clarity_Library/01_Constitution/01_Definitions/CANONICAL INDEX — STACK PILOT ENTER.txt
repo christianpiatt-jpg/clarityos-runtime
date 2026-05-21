@@ -1,0 +1,40 @@
+CANONICAL INDEX — STACK PILOT ENTERPRISE LAYER
+------------------------------------------------------------
+
+000 — SYSTEM OVERVIEW
+  000.1  Emotional Physics — Enterprise Layer
+  000.2  Four‑Stack OS — Institutional Integration
+  000.3  RuntimeStack — Unified Runtime Engine
+
+150 — PSYCHOLOGY / OPERATOR SYSTEMS
+  158.401      Emotional Physics (General)
+  158.4011     Operator Geometry (L, Π, P, κ, K)
+  158.4012     Stack Theory (Somatic, Affective, Cognitive, Behavioral)
+  158.4013     Flow Operator System
+  158.40135    Curvature Control & Flow Regulation
+  158.4014     Multi‑Party Dynamics & Group Geometry
+  158.4015     Drift, Propagation, and Stability
+  158.4016     Keystone Networks & Influence Architecture
+
+300 — SOCIOLOGY / ORGANIZATIONS
+  302.3        Group Structure & Interaction Topology
+  302.5        Conflict, Escalation, and Drift
+  303.3        Power, Influence, and Keystone Roles
+  306.2        Institutional Dynamics & Drift
+
+650 — MANAGEMENT / ENTERPRISE SYSTEMS
+  658.3        Organizational Behavior
+  658.403      Decision Systems & Control Theory
+  658.4031     RuntimeStack — Enterprise Runtime
+  658.4032     Enterprise Console — Org‑Wide Geometry
+  658.4033     Governance Model — Roles, Rules, Rhythms
+  658.4034     Mission Planner — Pre‑Event Geometry
+  658.4035     Certification Path — Operator Mastery
+  658.4036     Training Mode — Scenario Simulator
+  658.4037     Black Box Recorder — Post‑Event Diagnostics
+  658.4038     Deployment Architecture — Scaling the OS
+
+800 — CROSS‑DOMAIN CANON
+  808.1        Epistemic Foundations (Knowledge Systems)
+  808.2        Organizational Sociology (Background Shelf)
+  808.3        Control Theory & Flow Systems (Background Shelf)

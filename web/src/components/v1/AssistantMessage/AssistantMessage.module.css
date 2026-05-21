@@ -1,0 +1,26 @@
+.message {
+  border-left: var(--border-cyan);
+  padding: var(--space-inner);
+  margin-bottom: var(--space-gap);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+}
+
+.modelIndicator {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  margin-bottom: 4px;
+}
+
+.body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-chat);
+  margin-bottom: var(--space-gap);
+}
+
+.timestamp {
+  font-size: 11px;
+  color: #666666;
+  text-align: right;
+}

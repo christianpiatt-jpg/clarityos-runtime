@@ -1,0 +1,66 @@
+notepad MASTER_INDEX.txt
+
+000 - Constitution Layer - Index_Records/01_System/000_Constitution.idx
+001 - Geometry Layer - Index_Records/01_System/001_Geometry.idx
+002 - Runtime Layer - Index_Records/01_System/002_Runtime.idx
+003 - Identity Layer - Index_Records/01_System/003_Identity.idx
+004 - Imports Layer - Index_Records/01_System/004_Imports.idx
+005 - Boundary Layer - Index_Records/01_System/005_Boundary.idx
+100 - ULDA Subsystem - Index_Records/02_Modules/100_ULDA.idx
+101 - Martial OS - Index_Records/02_Modules/101_MartialOS.idx
+102 - Executive Layer - Index_Records/02_Modules/102_ExecutiveLayer.idx
+103 - Meta-Executive Layer - Index_Records/02_Modules/103_MetaExecutive.idx
+104 - Propagation OS - Index_Records/02_Modules/104_PropagationOS.idx
+105 - Global OS - Index_Records/02_Modules/105_GlobalOS.idx
+106 - VA Simulation - Index_Records/02_Modules/106_VA_Simulation.idx
+107 - Buddy Suite - Index_Records/02_Modules/107_BuddySuite.idx
+108 - Analytics Engine - Index_Records/02_Modules/108_AnalyticsEngine.idx
+109 - Forecasting Engine - Index_Records/02_Modules/109_ForecastingEngine.idx
+110 - Operator Console - Index_Records/02_Modules/110_OperatorConsole.idx
+111 - Diagnostics Engine - Index_Records/02_Modules/111_DiagnosticsEngine.idx
+112 - Stability Engine - Index_Records/02_Modules/112_StabilityEngine.idx
+113 - Auto-Adjust Engine - Index_Records/02_Modules/113_AutoAdjustEngine.idx
+114 - Recovery Engine - Index_Records/02_Modules/114_RecoveryEngine.idx
+115 - Transmission Engine - Index_Records/02_Modules/115_TransmissionEngine.idx
+116 - Translation Engine - Index_Records/02_Modules/116_TranslationEngine.idx
+117 - Continuity Engine - Index_Records/02_Modules/117_ContinuityEngine.idx
+118 - Archive Engine - Index_Records/02_Modules/118_ArchiveEngine.idx
+119 - Governance Engine - Index_Records/02_Modules/119_GovernanceEngine.idx
+200 - Operator Handbook - Index_Records/03_OperatorNotes/200_OperatorHandbook.idx
+201 - Runtime Notes - Index_Records/03_OperatorNotes/201_RuntimeNotes.idx
+202 - Scenario Library - Index_Records/03_OperatorNotes/202_ScenarioLibrary.idx
+203 - Drift Catalog - Index_Records/03_OperatorNotes/203_DriftCatalog.idx
+204 - Recovery Playbook - Index_Records/03_OperatorNotes/204_RecoveryPlaybook.idx
+300 - Primitives Library - Index_Records/04_Library/300_Primitives.idx
+301 - Proofs Library - Index_Records/04_Library/301_Proofs.idx
+302 - Theorems Library - Index_Records/04_Library/302_Theorems.idx
+303 - Case Studies Library - Index_Records/04_Library/303_CaseStudies.idx
+304 - Canonical Entries Library - Index_Records/04_Library/304_CanonicalEntries.idx
+305 - Structural Inventory - Index_Records/04_Library/305_StructuralInventory.idx
+306 - Naming Conventions - Index_Records/04_Library/306_NamingConventions.idx
+307 - Directory Schema - Index_Records/04_Library/307_DirectorySchema.idx
+308 - Structural Notes - Index_Records/04_Library/308_StructuralNotes.idx
+400 - System Maps - Index_Records/05_Maps/400_SystemMaps.idx
+401 - Subsystem Maps - Index_Records/05_Maps/401_SubsystemMaps.idx
+402 - Operator Maps - Index_Records/05_Maps/402_OperatorMaps.idx
+403 - Basin Maps - Index_Records/05_Maps/403_BasinMaps.idx
+404 - Hydronic Maps - Index_Records/05_Maps/404_HydronicMaps.idx500 - Runtime Logs - Index_Records/06_Logs/500_RuntimeLogs.idx
+501 - Operator Logs - Index_Records/06_Logs/501_OperatorLogs.idx
+502 - Drift Logs - Index_Records/06_Logs/502_DriftLogs.idx
+503 - Recovery Logs - Index_Records/06_Logs/503_RecoveryLogs.idx
+504 - Forecast Logs - Index_Records/06_Logs/504_ForecastLogs.idx
+700 - System Diagnostics - Index_Records/07_Diagnostics/700_SystemDiagnostics.idx
+701 - Subsystem Diagnostics - Index_Records/07_Diagnostics/701_SubsystemDiagnostics.idx
+702 - Operator Diagnostics - Index_Records/07_Diagnostics/702_OperatorDiagnostics.idx
+703 - Integrity Scans - Index_Records/07_Diagnostics/703_IntegrityScans.idx
+704 - Contamination Checks - Index_Records/07_Diagnostics/704_ContaminationChecks.idx
+800 - System Archive - Index_Records/09_Archive/800_SystemArchive.idx
+801 - Subsystem Archive - Index_Records/09_Archive/801_SubsystemArchive.idx
+802 - Operator Archive - Index_Records/09_Archive/802_OperatorArchive.idx
+803 - Event Archive - Index_Records/09_Archive/803_EventArchive.idx
+804 - Snapshot Archive - Index_Records/09_Archive/804_SnapshotArchive.idx
+900 - Planetary Mesh - Index_Records/900_PlanetaryMesh.idx
+901 - Global Flows - Index_Records/901_GlobalFlows.idx
+902 - Cross-Scale Dynamics - Index_Records/902_CrossScaleDynamics.idx
+903 - Planetary Diagnostics - Index_Records/903_PlanetaryDiagnostics.idx
+904 - Planetary Snapshots - Index_Records/904_PlanetarySnapshots.idx

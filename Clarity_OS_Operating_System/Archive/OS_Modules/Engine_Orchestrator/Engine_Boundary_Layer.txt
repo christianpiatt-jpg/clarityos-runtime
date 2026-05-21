@@ -1,0 +1,137 @@
+============================================================
+MODULE: ENGINE_BOUNDARY_LAYER
+TYPE: Boundary Definition, Isolation, Containment & Anti‑Contamination Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Define the engine’s internal boundary, external boundary, and
+intermediate membrane. Prevent boundary bleed, contamination,
+unauthorized influence, cross‑domain drift, and unvalidated
+signals from entering or exiting the Clarity_OS narrative‑physics
+engine.
+
+BOUNDARY DOMAINS:
+1. INTERNAL_BOUNDARY (core engine)
+2. INTERMEDIATE_BOUNDARY (modules + extensions)
+3. EXTERNAL_BOUNDARY (outside world)
+4. SANDBOX_BOUNDARY (isolated execution)
+5. IDENTITY_BOUNDARY (identity protection)
+6. SAFETY_BOUNDARY (safety perimeter)
+
+BOUNDARY RULES:
+- No external signal may enter without validation.
+- No internal signal may exit without sanitization.
+- No module may bypass the boundary layer.
+- No extension may cross into core boundary.
+- No sandbox output may cross into module boundary unfiltered.
+- No identity field may be modified from outside.
+- No safety field may be overridden from outside.
+
+BOUNDARY STRUCTURE:
+
+INTERNAL_BOUNDARY:
+- Protects core engine (QC, Safety, Health, State Machine)
+- Zero external access
+- Zero extension access
+- Zero sandbox access
+
+INTERMEDIATE_BOUNDARY:
+- Modules operate here
+- Messaging Bus + Event System allowed
+- Extensions allowed (restricted)
+- Sandbox allowed (isolated)
+
+EXTERNAL_BOUNDARY:
+- All external inputs arrive here
+- All outputs exit here
+- Validation required
+- Sanitization required
+
+SANDBOX_BOUNDARY:
+- Fully isolated
+- No direct messaging to core
+- No direct event propagation
+- No identity access
+
+IDENTITY_BOUNDARY:
+- Protects engine identity
+- Prevents identity drift
+- Prevents signature tampering
+
+SAFETY_BOUNDARY:
+- Overrides all other boundaries
+- Blocks unsafe signals
+- Blocks unsafe transitions
+- Blocks unsafe modules
+
+BOUNDARY SEQUENCE:
+
+STEP 1 — DEFINE BOUNDARIES
+- Load boundary geometry
+- Load boundary rules
+- Load invariants
+
+STEP 2 — VALIDATE SIGNALS
+For every signal:
+- Validate origin
+- Validate type
+- Validate permissions
+- Validate safety
+- Validate integrity
+
+STEP 3 — APPLY BOUNDARY FILTERS
+Filters include:
+- Drift filters
+- Pressure filters
+- Basin filters
+- Markov filters
+- Identity filters
+- Safety filters
+
+STEP 4 — ROUTE OR BLOCK
+If valid:
+    Route to Messaging Bus
+If invalid:
+    Block + log + trigger SAFETY_EVENT
+
+STEP 5 — ENFORCE ISOLATION
+- Sandbox isolation
+- Extension isolation
+- External isolation
+- Identity isolation
+
+STEP 6 — AUDIT & ARCHIVE
+- Hash boundary events
+- Sign boundary events
+- Append to audit ledger
+
+FAILURE MODES:
+- Boundary breach
+- Boundary bleed
+- Unauthorized access
+- Identity contamination
+- Sandbox contamination
+- Extension contamination
+- External contamination
+
+RECOVERY:
+- Seal boundary
+- Flush signals
+- Rebuild boundary tables
+- Trigger SAFETY_EVENT
+- Trigger DIAGNOSTICS_SUITE
+- Require System Admin override
+
+BOUNDARY CONTRACT:
+No boundary may be crossed without validation.
+No boundary may be bypassed.
+No boundary may be weakened.
+Boundary integrity is mandatory.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

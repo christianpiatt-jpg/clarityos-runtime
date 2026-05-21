@@ -1,0 +1,22 @@
+{
+  "name": "clarity",
+  "version": "1.0.0",
+  "type": "transformation_skill",
+  "domain": "structure, simplification, refactoring",
+  "summary": "Rewrite text for maximum structural clarity. Remove redundancy, expose structure, preserve intent, surface hidden assumptions.",
+  "input_schema": "schemas/inputs.json",
+  "output_schema": "schemas/outputs.json",
+  "system_prompt": "prompts/system_prompt.txt",
+  "examples": "prompts/examples.md",
+  "theory": "docs/theory.md",
+  "usage_patterns": "docs/usage_patterns.md",
+  "invocation_phrases": [
+    "run this through clarity",
+    "clarify",
+    "rewrite for clarity",
+    "what's the structure",
+    "what are the assumptions"
+  ],
+  "produces": ["summary", "outline", "clean_text", "assumptions"],
+  "consumed_by_clarityos_runtime": false
+}

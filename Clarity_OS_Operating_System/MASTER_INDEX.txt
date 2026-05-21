@@ -1,0 +1,18 @@
+# MASTER_INDEX — Clarity Library
+# Version: v3
+# Last Updated: 2026-04-11
+
+000 - Constitution Layer - 01_Constitution/000_Constitution.idx
+001 - Subsystems Layer - 02_Subsystems/001_Subsystems.idx
+002 - Operator Notes - 03_Operator Notes/002_OperatorNotes.idx
+003 - Analytics Layer - 04_Analytics/003_Analytics.idx
+
+# Library Records
+100 - Architecture - Architecture/100_Architecture.idx
+200 - Legacy Records - Legacy/200_Legacy.idx
+
+# Post History
+300 - Post History Index - Index_Records/post_hist/300_PostHistory.idx
+
+# Structural Inventory
+305 - Structural Inventory - Index_Records/04_Library/305_StructuralInventory.idx

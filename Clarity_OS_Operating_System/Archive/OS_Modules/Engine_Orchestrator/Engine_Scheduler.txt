@@ -1,0 +1,149 @@
+============================================================
+MODULE: ENGINE_SCHEDULER
+TYPE: Execution Order, Timing & Concurrency Control Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Control execution order, timing, concurrency, and sequencing
+across all modules in the Clarity_OS narrative-physics engine.
+Ensure deterministic behavior, safe parallelism, and priority-
+aware scheduling under all load conditions.
+
+SCHEDULING DOMAINS:
+1. Module Sequencing
+2. Concurrency Control
+3. Priority Scheduling
+4. Timed Execution Windows
+5. Safety-First Scheduling
+6. Extension Scheduling
+7. Sandbox Scheduling
+8. Load-Adaptive Scheduling
+
+SCHEDULING MODES:
+- DETERMINISTIC (default)
+- PRIORITY-BASED
+- LOAD-ADAPTIVE
+- SAFETY-LOCKED
+- PARALLEL-ALLOWED (restricted)
+- SANDBOX-ISOLATED
+
+MODULE PRIORITIES:
+CRITICAL:
+- Engine_Safety
+- Engine_State_Monitor
+- Engine_Health
+- QC_Pre
+- QC_Post
+
+HIGH:
+- Clarity Loop
+- Langbridg
+- Engine_Orchestrator
+
+MEDIUM:
+- Interface Layer
+- Access Control
+- Encryption
+- Audit
+
+LOW:
+- Sandbox
+- Extensions
+- Documentation
+- Versioning
+- Performance
+- Resource Manager
+
+SCHEDULER SEQUENCE:
+
+STEP 1 — INITIALIZE SCHEDULER
+- Load priorities
+- Load timing rules
+- Load concurrency rules
+- Load safety overrides
+- Load ENGINE_CONFIG thresholds
+
+STEP 2 — BUILD EXECUTION PLAN
+- Determine module order
+- Assign time slices
+- Assign concurrency groups
+- Assign safety locks
+- Assign fallback paths
+
+STEP 3 — EXECUTE WITH CONTROL
+For each module:
+- Check resource availability
+- Check safety status
+- Check priority level
+- Execute within time slice
+- Enforce concurrency rules
+- Enforce deterministic ordering
+
+STEP 4 — HANDLE PARALLELISM (SAFE ONLY)
+Allowed parallel groups:
+- Telemetry + Logging
+- Health + Performance
+- Sandbox (isolated)
+- Extensions (isolated)
+
+Forbidden parallelism:
+- QC modules
+- Safety modules
+- Markov modules
+- Drift-sensitive modules
+
+STEP 5 — ADAPT UNDER LOAD
+IF load > threshold:
+    - Reduce parallelism
+    - Increase safety checks
+    - Increase telemetry frequency
+    - Decrease sandbox priority
+    - Decrease extension priority
+
+STEP 6 — DEADLOCK & STARVATION PROTECTION
+- Detect circular waits
+- Detect starvation
+- Detect priority inversion
+- Resolve automatically
+
+STEP 7 — GENERATE SCHEDULER REPORT
+Report includes:
+- Execution order
+- Timing windows
+- Parallel groups
+- Priority adjustments
+- Load adaptations
+- Deadlock events
+- Starvation events
+
+FAILURE MODES:
+- Priority inversion
+- Deadlock
+- Starvation
+- Unsafe parallelism
+- Timing violation
+- Safety lock failure
+- Concurrency overflow
+
+RECOVERY:
+- Rebuild execution plan
+- Reduce concurrency
+- Increase safety locks
+- Re-run Engine_Reset
+- Revalidate priorities
+- Revalidate resource quotas
+
+SCHEDULER CONTRACT:
+No unsafe parallelism allowed.
+QC and Safety modules must run in strict order.
+Telemetry must run continuously.
+Sandbox and extensions must never block core modules.
+Execution must remain deterministic unless explicitly configured.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

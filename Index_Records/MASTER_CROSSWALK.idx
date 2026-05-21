@@ -1,0 +1,72 @@
+MASTER_CROSSWALK.idx (Global Cross‑Link Map)
+
+[Crosswalk]
+000 = Constitution Layer | Parent: None | Siblings: 001,002,003,004,005 | Path: 01_System/000_Constitution.idx
+001 = Geometry Layer | Parent: None | Siblings: 000,002,003,004,005 | Path: 01_System/001_Geometry.idx
+002 = Runtime Layer | Parent: None | Siblings: 000,001,003,004,005 | Path: 01_System/002_Runtime.idx
+003 = Identity Layer | Parent: None | Siblings: 000,001,002,004,005 | Path: 01_System/003_Identity.idx
+004 = Imports Layer | Parent: None | Siblings: 000,001,002,003,005 | Path: 01_System/004_Imports.idx
+005 = Boundary Layer | Parent: None | Siblings: 000,001,002,003,004 | Path: 01_System/005_Boundary.idx
+
+100 = ULDA Subsystem | Parent: 000 | Siblings: 101–119 | Path: 02_Modules/100_ULDA.idx
+101 = Martial OS | Parent: 000 | Siblings: 100,102–119 | Path: 02_Modules/101_MartialOS.idx
+102 = Executive Layer | Parent: 000 | Siblings: 100–101,103–119 | Path: 02_Modules/102_ExecutiveLayer.idx
+103 = Meta-Executive Layer | Parent: 000 | Siblings: 100–102,104–119 | Path: 02_Modules/103_MetaExecutive.idx
+104 = Propagation OS | Parent: 000 | Siblings: 100–103,105–119 | Path: 02_Modules/104_PropagationOS.idx
+105 = Global OS | Parent: 000 | Siblings: 100–104,106–119 | Path: 02_Modules/105_GlobalOS.idx
+106 = VA Simulation | Parent: 000 | Siblings: 100–105,107–119 | Path: 02_Modules/106_VA_Simulation.idx
+107 = Buddy Suite | Parent: 000 | Siblings: 100–106,108–119 | Path: 02_Modules/107_BuddySuite.idx
+108 = Analytics Engine | Parent: 000 | Siblings: 100–107,109–119 | Path: 02_Modules/108_AnalyticsEngine.idx
+109 = Forecasting Engine | Parent: 000 | Siblings: 100–108,110–119 | Path: 02_Modules/109_ForecastingEngine.idx
+110 = Operator Console | Parent: 000 | Siblings: 100–109,111–119 | Path: 02_Modules/110_OperatorConsole.idx
+111 = Diagnostics Engine | Parent: 000 | Siblings: 100–110,112–119 | Path: 02_Modules/111_DiagnosticsEngine.idx
+112 = Stability Engine | Parent: 000 | Siblings: 100–111,113–119 | Path: 02_Modules/112_StabilityEngine.idx
+113 = Auto-Adjust Engine | Parent: 000 | Siblings: 100–112,114–119 | Path: 02_Modules/113_AutoAdjustEngine.idx
+114 = Recovery Engine | Parent: 000 | Siblings: 100–113,115–119 | Path: 02_Modules/114_RecoveryEngine.idx
+115 = Transmission Engine | Parent: 000 | Siblings: 100–114,116–119 | Path: 02_Modules/115_TransmissionEngine.idx
+116 = Translation Engine | Parent: 000 | Siblings: 100–115,117–119 | Path: 02_Modules/116_TranslationEngine.idx
+117 = Continuity Engine | Parent: 000 | Siblings: 100–116,118–119 | Path: 02_Modules/117_ContinuityEngine.idx
+118 = Archive Engine | Parent: 000 | Siblings: 100–117,119 | Path: 02_Modules/118_ArchiveEngine.idx
+119 = Governance Engine | Parent: 000 | Siblings: 100–118 | Path: 02_Modules/119_GovernanceEngine.idx
+
+200 = Operator Handbook | Parent: 002 | Siblings: 201–204 | Path: 03_OperatorNotes/200_OperatorHandbook.idx
+201 = Runtime Notes | Parent: 002 | Siblings: 200,202–204 | Path: 03_OperatorNotes/201_RuntimeNotes.idx
+202 = Scenario Library | Parent: 002 | Siblings: 200–201,203–204 | Path: 03_OperatorNotes/202_ScenarioLibrary.idx
+203 = Drift Catalog | Parent: 002 | Siblings: 200–202,204 | Path: 03_OperatorNotes/203_DriftCatalog.idx
+204 = Recovery Playbook | Parent: 002 | Siblings: 200–203 | Path: 03_OperatorNotes/204_RecoveryPlaybook.idx
+
+300 = Primitives Library | Parent: 001 | Siblings: 301–304 | Path: 04_Library/300_Primitives.idx
+301 = Proofs Library | Parent: 001 | Siblings: 300,302–304 | Path: 04_Library/301_Proofs.idx
+302 = Theorems Library | Parent: 001 | Siblings: 300–301,303–304 | Path: 04_Library/302_Theorems.idx
+303 = Case Studies Library | Parent: 001 | Siblings: 300–302,304 | Path: 04_Library/303_CaseStudies.idx
+304 = Canonical Entries Library | Parent: 001 | Siblings: 300–303 | Path: 04_Library/304_CanonicalEntries.idx
+
+400 = System Maps | Parent: 000 | Siblings: 401–404 | Path: 05_Maps/400_SystemMaps.idx
+401 = Subsystem Maps | Parent: 000 | Siblings: 400,402–404 | Path: 05_Maps/401_SubsystemMaps.idx
+402 = Operator Maps | Parent: 000 | Siblings: 400–401,403–404 | Path: 05_Maps/402_OperatorMaps.idx
+403 = Basin Maps | Parent: 000 | Siblings: 400–402,404 | Path: 05_Maps/403_BasinMaps.idx
+404 = Hydronic Maps | Parent: 000 | Siblings: 400–403 | Path: 05_Maps/404_HydronicMaps.idx
+
+500 = Runtime Logs | Parent: 002 | Siblings: 501–504 | Path: 06_Logs/500_RuntimeLogs.idx
+501 = Operator Logs | Parent: 002 | Siblings: 500,502–504 | Path: 06_Logs/501_OperatorLogs.idx
+502 = Drift Logs | Parent: 002 | Siblings: 500–501,503–504 | Path: 06_Logs/502_DriftLogs.idx
+503 = Recovery Logs | Parent: 002 | Siblings: 500–502,504 | Path: 06_Logs/503_RecoveryLogs.idx
+504 = Forecast Logs | Parent: 002 | Siblings: 500–503 | Path: 06_Logs/504_ForecastLogs.idx
+
+700 = System Diagnostics | Parent: 111 | Siblings: 701–704 | Path: 07_Diagnostics/700_SystemDiagnostics.idx
+701 = Subsystem Diagnostics | Parent: 111 | Siblings: 700,702–704 | Path: 07_Diagnostics/701_SubsystemDiagnostics.idx
+702 = Operator Diagnostics | Parent: 111 | Siblings: 700–701,703–704 | Path: 07_Diagnostics/702_OperatorDiagnostics.idx
+703 = Integrity Scans | Parent: 111 | Siblings: 700–702,704 | Path: 07_Diagnostics/703_IntegrityScans.idx
+704 = Contamination Checks | Parent: 111 | Siblings: 700–703 | Path: 07_Diagnostics/704_ContaminationChecks.idx
+
+800 = System Archive | Parent: 118 | Siblings: 801–804 | Path: 09_Archive/800_SystemArchive.idx
+801 = Subsystem Archive | Parent: 118 | Siblings: 800,802–804 | Path: 09_Archive/801_SubsystemArchive.idx
+802 = Operator Archive | Parent: 118 | Siblings: 800–801,803–804 | Path: 09_Archive/802_OperatorArchive.idx
+803 = Event Archive | Parent: 118 | Siblings: 800–802,804 | Path: 09_Archive/803_EventArchive.idx
+804 = Snapshot Archive | Parent: 118 | Siblings: 800–803 | Path: 09_Archive/804_SnapshotArchive.idx
+
+900 = Planetary Mesh | Parent: None | Siblings: 901–904 | Path: 900_PlanetaryMesh.idx
+901 = Global Flows | Parent: 900 | Siblings: 902–904 | Path: 901_GlobalFlows.idx
+902 = Cross-Scale Dynamics | Parent: 900 | Siblings: 901,903–904 | Path: 902_CrossScaleDynamics.idx
+903 = Planetary Diagnostics | Parent: 900 | Siblings: 901–902,904 | Path: 903_PlanetaryDiagnostics.idx
+904 = Planetary Snapshots | Parent: 900 | Siblings: 901–903 | Path: 904_PlanetarySnapshots.idx

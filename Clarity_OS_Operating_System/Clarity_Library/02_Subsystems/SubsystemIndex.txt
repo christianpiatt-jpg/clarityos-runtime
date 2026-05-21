@@ -1,0 +1,7 @@
+[Subsystem]
+Name: Global Mesh Console
+Version: v1.0
+File: ClarityOS_Global Mesh Console v1.0 o.txt
+Purpose: Planetary-scale cockpit for arcs, basins, topology, density, and propagation.
+Dependencies: ELINS, Narrative Architecture, Unified Geodesic Engine
+Crosslinks: 2026-04-02_303.483_VA-vs-Galileo_Architecture-Divergence

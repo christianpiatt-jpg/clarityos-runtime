@@ -1,0 +1,76 @@
+============================================================
+QC LAYER — 7 PRIMARY VECTORS INTEGRATION
+VERSION: 1.0
+LOCATION: /02_Modules/QC_Layer/
+
+PURPOSE:
+Bind the 7 Primary Vectors into the QC Layer so all inputs and
+outputs are stabilized against the system’s narrative physics.
+
+THE 7 PRIMARY VECTORS:
+1. Center Vector
+2. Coherence Vector
+3. Pressure Vector
+4. Basin Vector
+5. Narrative Vector
+6. Movement Vector
+7. Structural Vector
+
+FUNCTION:
+Each vector provides a constraint the QC Layer uses to validate
+and stabilize frames before and after generation.
+
+VECTOR ROLES:
+
+CENTER VECTOR:
+Ensures the frame originates from a stable interpretive center.
+
+COHERENCE VECTOR:
+Ensures internal consistency and prevents contradiction.
+
+PRESSURE VECTOR:
+Detects pressure artifacts, distortions, and reactive drift.
+
+BASIN VECTOR:
+Checks whether the frame sits in the correct narrative basin.
+
+NARRATIVE VECTOR:
+Prevents over-narration, metaphor drift, and story inflation.
+
+MOVEMENT VECTOR:
+Ensures the direction is aligned with allowed movement rules.
+
+STRUCTURAL VECTOR:
+Ensures the frame maintains architectural integrity.
+
+QC APPLICATION:
+
+PRE-STABILIZATION:
+- Validate topic + direction against all 7 vectors.
+- Reject frames that violate vector constraints.
+- Compress frame to vector-aligned minimal form.
+
+POST-STABILIZATION:
+- Validate generated output against all 7 vectors.
+- Remove drift, noise, and misalignment.
+- Re-align output with structural and basin vectors.
+
+FAILURE MODES:
+- Vector contradiction
+- Basin mismatch
+- Pressure distortion
+- Narrative inflation
+- Structural collapse
+
+RECOVERY:
+- Re-run vector alignment
+- Re-compress frame
+- Re-check basin
+- Re-stabilize center
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

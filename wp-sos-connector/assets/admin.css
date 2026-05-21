@@ -1,0 +1,23 @@
+/*
+ * SOS Runtime Connector — admin Settings page styling.
+ *
+ * Loaded only on settings_page_sos-runtime-settings (Settings → SOS Runtime).
+ * No external fonts, no animations. Stays inside the WP admin look so it
+ * doesn't fight the surrounding theme.
+ */
+
+.wrap.sos-runtime-settings textarea[name="sos_runtime_settings[service_account_json]"] {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.wrap.sos-runtime-settings hr {
+	margin: 24px 0;
+	border: 0;
+	border-top: 1px solid #e5e5e5;
+}
+
+.wrap.sos-runtime-settings .notice {
+	margin-top: 16px;
+}

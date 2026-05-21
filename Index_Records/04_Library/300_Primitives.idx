@@ -1,0 +1,23 @@
+notepad 300_primitives.idx
+
+[Record]
+Name = Primitives Library
+Code = 300
+Path = ../../04_Library/Primitives/
+Description = Core primitives of the Clarity OS including base units, atomic constructs, foundational definitions, and irreducible system elements.
+
+[Files]
+Base_Units = base_units.txt
+Atomic_Constructs = atomic_constructs.txt
+Foundational_Definitions = foundational_definitions.txt
+Primitive_Examples = primitive_examples.txt
+Primitive_Crosswalk = primitive_crosswalk.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 301_Proofs.idx, 302_Theorems.idx, 303_CaseStudies.idx, 304_CanonicalEntries.idx
+
+[Crosslinks]
+Up = 001
+Across = 301–304
+Down = None

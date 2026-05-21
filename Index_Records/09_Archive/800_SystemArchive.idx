@@ -1,0 +1,23 @@
+notepa800_SystemArchive.idx
+
+[Record]
+Name = System Archive
+Code = 800
+Path = ../../09_Archive/System_Archive/
+Description = Long-term archival of system-wide records, preserved states, historical configurations, and OS-level snapshots.
+
+[Files]
+System_Records = system_records.txt
+Historical_States = historical_states.txt
+Configuration_Archive = configuration_archive.txt
+System_History = system_history.txt
+System_Crosswalk = system_crosswalk.txt
+
+[Links]
+Parent = 118_ArchiveEngine.idx
+Siblings = 801_SubsystemArchive.idx, 802_OperatorArchive.idx, 803_EventArchive.idx, 804_SnapshotArchive.idx
+
+[Crosslinks]
+Up = 118
+Across = 801–804
+Down = None

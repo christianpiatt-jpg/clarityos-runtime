@@ -1,0 +1,10 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  border-right: var(--border-1);
+  padding: var(--space-inner) 0;
+  background: var(--color-bg-surface);
+  box-sizing: border-box;
+  overflow-y: auto;
+}

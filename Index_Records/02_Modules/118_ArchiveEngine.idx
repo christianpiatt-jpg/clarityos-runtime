@@ -1,0 +1,18 @@
+notepad 118_ArchiveEngine.idx
+
+[Record]
+Name = Archive Engine
+Code = 118
+Path = ../../02_Subsystems/Archive_Engine/
+Description = Long-term preservation subsystem responsible for canonical archiving, Dewey-aligned storage, historical integrity, version lineage, and cross-era retrieval.
+
+[Files]
+Archive_Primitives = archive_primitives.txt
+Canonical_Storage = canonical_storage.txt
+Dewey_Maps = dewey_maps.txt
+Version_Lineage = version_lineage.txt
+Historical_Retrieval = historical_retrieval.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx, 113_AutoAdjustEngine.idx, 114_RecoveryEngine.idx, 115_TransmissionEngine.idx, 116_TranslationEngine.idx, 117_ContinuityEngine.idx

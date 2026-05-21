@@ -1,0 +1,26 @@
+# ClarityOS Runtime — production dependencies.
+#
+# Every entry is exact-pinned. Range or unpinned entries are NOT
+# allowed in this file — the dependency-freeze contract is enforced
+# by tests/test_repo_hygiene.py::TestDependencyFreeze and by
+# scripts/verify_dependencies.py.
+#
+# Dev-only tools (pytest, httpx, pytest-cov) live in
+# requirements-dev.txt so the production image stays minimal.
+
+# --- BD1 (HTTP) -------------------------------------------------------------
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+python-multipart==0.0.12
+
+# --- Auth + crypto helpers (BD1 + BD5 stdlib uses cover everything else) ---
+bcrypt==4.2.0
+
+# --- GCP backends + secret manager mounts ----------------------------------
+google-cloud-storage==2.18.2
+google-cloud-firestore==2.19.0
+google-cloud-aiplatform==1.71.1
+
+# --- Billing (BD1) ---------------------------------------------------------
+stripe==11.1.1

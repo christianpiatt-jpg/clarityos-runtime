@@ -1,0 +1,22 @@
+ENTRY_ID: 2026-04-07_LINEAGE_OVERLAY_SAGES_EP_CLARITYOS_MARKOV
+
+TITLE: Proto-Lineage of ClarityOS: Confucius, Greeks, Zoroaster, Buddha × Emotional Physics × Markov Engine
+
+DEWEY_PRIMARY: 181.1
+DEWEY_SECONDARY: 303.31
+DEWEY_TERTIARY: 128.2
+DEWEY_QUATERNARY: 303.314 / 303.315 / 303.316
+
+TAGS: clarity_lineage; ancient_founders; epistemic_roots; emotional_physics_overlay; markov_engine_lineage; clarityOS_foundations; comparative_sages; proto-operator-models; ethical-systems; pattern-transmission
+
+STRUCTURE_COUNTS:
+  2.0 = 6
+  2.1 = 5
+  2.2 = 3
+  2.3 = 7
+  2.4 = 5
+
+SUMMARY:
+A five-node lineage lattice overlaying Confucius, Ancient Greek philosophy, Zoroaster, and the Buddha with Emotional Physics, ClarityOS, and the Markov Engine. Extracts foundational conditions, ethical operators, cognitive mechanics, social-relational structures, and transmission channels. Produces a unified proto-architecture showing how ancient systems converge into modern clarity engineering, pressure mapping, and transition-model design.
+
+STATUS: Added to library.

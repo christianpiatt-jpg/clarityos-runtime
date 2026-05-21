@@ -1,0 +1,23 @@
+#3_SINGLE_CONCEPT_UNIT(concept):
+
+Beat 1 — CONFLICT (Turn 1)
+    State the tension in one clean sentence.
+
+Beat 2 — VECTOR-COLLISION (Turn 2)
+    Name the two forces hitting each other (no geometry terms).
+
+Beat 3 — IMPACT (Turn 3)
+    Describe the effect on the person/system in one sentence.
+
+Beat 4 — RETURN (Turn 3 continuation)
+    Offer the stabilizing move or reframe in one sentence.
+
+Rules:
+    - One concept only.
+    - Four sentences total.
+    - No dome terms.
+    - No stance/resistance language.
+    - No multi-layer explanations.
+    - No teaching.
+    - No abstractions.
+    - Route pressure, don’t explain it.

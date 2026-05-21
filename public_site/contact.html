@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contact — ClarityOS</title>
+<meta name="description" content="Request access to ClarityOS. Operator-only cohort.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">ClarityOS</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
+      <ul id="primary-nav" class="nav-list">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="product.html">Product</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" aria-current="page">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section page-head">
+    <div class="container">
+      <p class="eyebrow">Contact</p>
+      <h1 class="page-title">Request access.</h1>
+      <p class="page-lede">
+        ClarityOS is in a closed cohort. Send a short note and we
+        will reply with onboarding next steps.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container-narrow">
+
+      <form class="contact-form" data-static="true" novalidate>
+        <div class="field">
+          <label for="contact-name">Name</label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label for="contact-email">Email</label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="contact-role">Role or domain</label>
+          <input id="contact-role" name="role" type="text" autocomplete="organization-title">
+          <p class="field-hint">Optional. e.g. trial litigator, policy analyst, founder, researcher.</p>
+        </div>
+
+        <div class="field">
+          <label for="contact-message">Why ClarityOS</label>
+          <textarea id="contact-message" name="message" rows="6" required></textarea>
+          <p class="field-hint">A few sentences is plenty. We read every one.</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" data-action="contact-submit">Send request</button>
+          <p class="form-status" data-role="contact-status" aria-live="polite"></p>
+        </div>
+
+        <p class="form-fallback">
+          Form not wired yet?
+          <a href="mailto:hello@example.com">Email us directly.</a>
+        </p>
+      </form>
+
+    </div>
+  </section>
+
+  <section class="section section-bordered">
+    <div class="container">
+      <h2 class="section-title">Reply expectations</h2>
+      <p class="section-prose">
+        We reply within two business days. If your role fits the
+        current cohort, the next message contains a signed cohort
+        invitation. Otherwise we will tell you when the next cohort
+        opens.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p class="footer-brand">ClarityOS</p>
+    <ul class="footer-links">
+      <li><a href="product.html">Product</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <p class="footer-meta">An operator-grade reasoning runtime.</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+[INDEX_RECORD]
+id: 402
+name: Operator Maps
+class: maps
+layer: 05_Maps
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Maps that visualize operator-facing structures: Operator Handbook,
+Runtime Notes, Scenario Library, Drift Catalog, Recovery Playbook.
+
+[MAPS]
+- Operator_Flow_20260410.map
+- Operator_Reference_Map_20260410.map
+- Operator_Interaction_Map_20260410.map
+
+[GENERATED_FROM]
+- 03_OperatorNotes/
+- MASTER_INDEX.txt
+
+[DEWEY]
+100.20 ; System Maps — Operator Layer
+
+[LINKS]
+upstream: 401_SubsystemMaps.idx
+adjacent: 403_BasinMaps.idx
+downstream: 703_IntegrityScans.idx
+
+[INTEGRITY]
+checksum_required: false
+last_verified: pending
+
+[END]

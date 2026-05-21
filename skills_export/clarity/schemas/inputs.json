@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clarity.inputs.v1",
+  "title": "Clarity — input",
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Free-form input to clarify."
+    },
+    "context": {
+      "type": "object",
+      "description": "Optional context that shapes the transform.",
+      "properties": {
+        "audience":          { "type": "string", "description": "Who will read the clean text." },
+        "preserve_voice":    { "type": "boolean", "description": "Default true. If false, register may be normalised." },
+        "max_clean_length":  { "type": "integer", "description": "Soft cap on clean_text length in chars." }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

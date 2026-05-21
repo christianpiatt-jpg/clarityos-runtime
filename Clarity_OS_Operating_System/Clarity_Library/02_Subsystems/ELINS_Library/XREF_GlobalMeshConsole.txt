@@ -1,0 +1,3 @@
+Cross‑Reference:
+The Global Mesh Console uses ELINS basin weather, narrative saturation, and density signals.
+See: ../../ClarityOS_Global Mesh Console v1.0 o.txt

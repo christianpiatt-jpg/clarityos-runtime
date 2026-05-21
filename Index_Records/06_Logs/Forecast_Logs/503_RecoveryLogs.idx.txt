@@ -1,0 +1,18 @@
+504_ForecastLogs.idx
+
+[Record]
+Name = Forecast Logs
+Code = 504
+Path = ../../06_Logs/Forecast_Logs/
+Description = Logs capturing predictive signals, trend projections, early indicators, and forward-looking system forecasts.
+
+[Files]
+Forecast_Events = forecast_events.txt
+Trend_Projections = trend_projections.txt
+Signal_Analysis = signal_analysis.txt
+Predictive_Notes = predictive_notes.txt
+Forecast_Crosswalk = forecast_crosswalk.txt
+
+[Links]
+Parent = 500_RuntimeLogs.idx
+Siblings = 501_OperatorLogs.idx, 502_DriftLogs.idx, 503_RecoveryLogs.idx

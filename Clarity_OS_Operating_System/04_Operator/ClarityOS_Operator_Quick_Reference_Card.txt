@@ -1,0 +1,166 @@
+============================================================
+FILE: CLARITYOS_OPERATOR_QUICK_REFERENCE
+TYPE: Quick-Reference Card (QRC)
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — CORE PRINCIPLES
+============================================================
+
+IDENTITY FIRST
+BOUNDARIES ALWAYS
+SAFETY OVERRIDES EVERYTHING
+LAMINAR FLOW
+ONE COMMAND PER LINE
+NO AMBIGUITY
+NO SELF-MODIFICATION
+NO UNAUTHORIZED AUTONOMY
+
+============================================================
+SECTION 2 — SYSTEM MODES
+============================================================
+
+#clarity   → CYAN  (structural, geometric, cockpit-grade)
+#markov    → RED   (temporal, chain-state, drift/basin/pressure)
+#elins     → GREEN (narrative-physics, legitimacy, stress)
+
+exit       → return to NORMAL mode
+
+============================================================
+SECTION 3 — MOST-USED COMMANDS
+============================================================
+
+SYSTEM
+    ENGINE_BOOT_STATUS
+    ENGINE_BOOT_VERIFY
+
+MANIFOLD
+    ENGINE_MANIFOLD
+    ENGINE_MANIFOLD_REGION <region>
+    ENGINE_MANIFOLD_REFRESH
+
+ELINS
+    ENGINE_ELINS_STATUS
+    ENGINE_ELINS_REGION <region>
+
+METACRAWLER
+    ENGINE_METACRAWLER_STATUS
+    ENGINE_METACRAWLER_RUN
+
+SCHEDULER
+    ENGINE_SCHEDULER_STATUS
+
+SNAPSHOTS
+    ENGINE_SNAPSHOT_CREATE
+    ENGINE_SNAPSHOT_LIST
+    ENGINE_SNAPSHOT_RESTORE <id>
+    ENGINE_SNAPSHOT_COMPARE <id>
+
+DIAGNOSTICS
+    ENGINE_DIAGNOSTICS
+    ENGINE_HEALTH
+    ENGINE_PERFORMANCE
+
+============================================================
+SECTION 4 — INGESTION PIPELINE
+============================================================
+
+METACRAWLER (6h cycle)
+    → METADATA PACKETS
+    → ELINS EXTRACTION
+    → MANIFOLD UPDATE
+    → PHYSICS UPDATE
+    → MARKOV/MARKOFF UPDATE
+
+BOUNDARIES:
+    metadata-only
+    no article text
+    no sentiment extraction
+    no paywall bypass
+
+============================================================
+SECTION 5 — ELINS SIGNATURE (STRUCTURE)
+============================================================
+
+narrative_domain
+legitimacy_signal
+stress_indicator
+drift_hint
+basin_hint
+pressure_hint
+temporal_pattern
+regional_alignment
+confidence_score
+
+============================================================
+SECTION 6 — GLOBAL MANIFOLD (5 INDICATORS)
+============================================================
+
+GLOBAL_DRIFT_VECTOR
+GLOBAL_BASIN_GEOMETRY
+GLOBAL_PRESSURE_FIELD
+GLOBAL_LEGITIMACY_VECTOR
+GLOBAL_STRESS_INDEX
+
+============================================================
+SECTION 7 — OPERATOR CHECKLIST
+============================================================
+
+PRE-FLIGHT
+    ENGINE_BOOT_VERIFY
+    ENGINE_HEALTH
+    ENGINE_MANIFOLD
+    ENGINE_SCHEDULER_STATUS
+
+MID-FLIGHT
+    ENGINE_ELINS_STATUS
+    ENGINE_MANIFOLD_REGION <region>
+    ENGINE_METACRAWLER_STATUS
+
+POST-FLIGHT
+    ENGINE_SNAPSHOT_CREATE
+    ENGINE_LOGS
+    ENGINE_DIAGNOSTICS
+
+============================================================
+SECTION 8 — FAILURE TRIAGE
+============================================================
+
+IF MANIFOLD DESYNCHRONIZES:
+    ENGINE_MANIFOLD_REFRESH
+    ENGINE_ELINS_RUN
+    ENGINE_SNAPSHOT_RESTORE <id> (if needed)
+
+IF ELINS COLLAPSES:
+    ENGINE_ELINS_RUN
+    ENGINE_METACRAWLER_RUN
+
+IF SCHEDULER DRIFTS:
+    ENGINE_SCHEDULER_STATUS
+    ENGINE_SCHEDULER_RESET (if available)
+
+IF BOUNDARY LEAK:
+    HALT INGESTION
+    ENGINE_DIAGNOSTICS
+    NOTIFY OPERATOR
+
+============================================================
+SECTION 9 — OPERATOR MINDSET
+============================================================
+
+CALM
+PRECISE
+MINIMAL
+STRUCTURAL
+GEOMETRIC
+NON-REACTIVE
+MISSION-ALIGNED
+
+============================================================
+STATUS:
+Operator Quick-Reference Card Installed.
+
+============================================================
+END OF FILE
+============================================================

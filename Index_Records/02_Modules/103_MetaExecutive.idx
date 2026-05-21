@@ -1,0 +1,18 @@
+notepad 103_MetaExecutive.idx
+
+[Record]
+Name = Meta-Executive Layer
+Code = 103
+Path = ../../02_Subsystems/Meta_Executive/
+Description = Meta-governance subsystem responsible for overseeing executive logic, escalation pathways, coherence enforcement, and system-wide alignment with constitutional primitives.
+
+[Files]
+MetaExecutive_Primitives = metaexecutive_primitives.txt
+Escalation_Model = escalation_model.txt
+Coherence_Enforcement = coherence_enforcement.txt
+Oversight_Logic = oversight_logic.txt
+Meta_Decision_Loops = meta_decision_loops.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx

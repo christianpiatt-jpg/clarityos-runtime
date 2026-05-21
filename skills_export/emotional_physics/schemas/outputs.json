@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "emotional_physics.outputs.v1",
+  "title": "Emotional Physics — output",
+  "type": "object",
+  "required": ["summary", "forces", "constraints", "trajectories", "risk_zones"],
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "1-2 sentence structural read in plain language. Not sentimental.",
+      "maxLength": 600
+    },
+    "forces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "source", "direction", "magnitude"],
+        "properties": {
+          "name":      { "type": "string" },
+          "source":    { "enum": ["internal", "external", "mixed"] },
+          "direction": { "type": "string", "description": "What this force pushes the subject toward." },
+          "magnitude": { "enum": ["low", "medium", "high"] },
+          "duration":  { "type": "string", "description": "Momentary, episodic, chronic, etc." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "prevents", "rigidity"],
+        "properties": {
+          "name":            { "type": "string" },
+          "prevents":        { "type": "string" },
+          "rigidity":        { "enum": ["low", "medium", "high"] },
+          "would_relax_if":  { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "trajectories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["subject", "heading", "horizon"],
+        "properties": {
+          "subject":           { "type": "string" },
+          "heading":           { "type": "string" },
+          "velocity":          { "type": "string", "description": "Slow / steady / fast / accelerating." },
+          "horizon":           { "type": "string", "description": "Hours, days, weeks." },
+          "what_breaks_first": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "risk_zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "watch_for"],
+        "properties": {
+          "condition":   { "type": "string" },
+          "why_fragile": { "type": "string" },
+          "watch_for":   { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

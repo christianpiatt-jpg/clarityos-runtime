@@ -1,0 +1,18 @@
+notepad 202_ScenarioLibrary.idx
+
+[Record]
+Name = Scenario Library
+Code = 202
+Path = ../../03_OperatorNotes/Scenario_Library/
+Description = Collection of operator scenarios including room archetypes, pressure patterns, environmental signatures, and posture guidance for real-world application.
+
+[Files]
+Room_Archetypes = room_archetypes.txt
+Pressure_Patterns = pressure_patterns.txt
+Environmental_Signatures = environmental_signatures.txt
+Operator_Postures = operator_postures.txt
+Scenario_Templates = scenario_templates.txt
+
+[Links]
+Parent = 200_OperatorHandbook.idx
+Siblings = 201_RuntimeNotes.idx, 203_DriftCatalog.idx, 204_RecoveryPlaybook.idx

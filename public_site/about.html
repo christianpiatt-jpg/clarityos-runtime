@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About — ClarityOS</title>
+<meta name="description" content="Origin, design principles, system architecture, and invariants of ClarityOS.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">ClarityOS</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">Menu</button>
+      <ul id="primary-nav" class="nav-list">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="product.html">Product</a></li>
+        <li><a href="about.html" aria-current="page">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section page-head">
+    <div class="container">
+      <p class="eyebrow">About</p>
+      <h1 class="page-title">An OS, not an app.</h1>
+      <p class="page-lede">
+        ClarityOS was built for a single problem: model output is
+        only as useful as the context that shaped it. The OS owns
+        the context. The model owns the compute. The contract
+        between them does not drift.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Origin</h2>
+      <p class="section-prose">
+        ClarityOS started as an internal runtime to manage long-lived
+        operator workflows: a single human (or small team) running
+        repeated reasoning passes across legal, institutional,
+        operational, and personal domains. Every off-the-shelf
+        approach had the same failure: state evaporated between
+        sessions. The model never remembered what mattered, never
+        knew which constraints had already been checked, and never
+        held the operator&rsquo;s prior conclusions as ground truth.
+      </p>
+      <p class="section-prose">
+        The first version of the runtime fixed that by holding state
+        outside the model. Every subsequent version has been a
+        refinement of that invariant.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-bordered">
+    <div class="container">
+      <h2 class="section-title">Design principles</h2>
+      <dl class="def-list">
+        <dt>Determinism</dt>
+        <dd>
+          Every kernel call has a stable contract. Identical inputs
+          produce identical-shaped outputs. Random behaviour is
+          isolated to model calls and surfaced explicitly.
+        </dd>
+
+        <dt>The OS holds state. The model does not.</dt>
+        <dd>
+          Threads, vault entries, operator state, project metadata,
+          and the operator timeline live in ClarityOS. The model
+          receives context on every call and returns text. Nothing
+          else crosses the boundary.
+        </dd>
+
+        <dt>No plugins. No skills. No manifests.</dt>
+        <dd>
+          The runtime does not load third-party reasoning packages.
+          Reasoning modes are kernel functions with stable schemas.
+          Documentation bundles describing those modes exist, but
+          ClarityOS never imports them at runtime.
+        </dd>
+
+        <dt>Per-user partitioning is structural.</dt>
+        <dd>
+          The encrypted vault is partitioned per user at the
+          storage layer. Cross-user reads are not blocked at the
+          application layer &mdash; they are unreachable.
+        </dd>
+
+        <dt>Graceful degrade is mandatory.</dt>
+        <dd>
+          Every reasoning mode has a deterministic fallback. When a
+          provider call fails, the kernel returns a structured
+          result the caller can rely on. No 5xx for parse failures.
+        </dd>
+
+        <dt>One contract, three surfaces.</dt>
+        <dd>
+          The same operations are reachable from phone, web, and
+          desktop. Continuity is the runtime contract, not a feature
+          flag.
+        </dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">System architecture</h2>
+      <p class="section-prose">
+        ClarityOS is composed of four layers:
+      </p>
+      <ol class="numbered-list">
+        <li>
+          <strong>Surfaces.</strong> Phone (Expo), web (Vite +
+          React), and desktop (Electron) render views over the same
+          cloud state.
+        </li>
+        <li>
+          <strong>API.</strong> A FastAPI service on Cloud Run.
+          Session-scoped, per-user. Every domain has its own router
+          (threads, projects, vault, timeline, regression-first,
+          billing, founder console).
+        </li>
+        <li>
+          <strong>Kernel.</strong> Pure-Python modules that hold the
+          reasoning contracts: intelligence routing, the clarity
+          pipeline, the regression-first protocol, the model router,
+          the local model runtime, the operator timeline.
+        </li>
+        <li>
+          <strong>Storage.</strong> An encrypted local vault
+          partitioned per user. JSON-serializable values under
+          namespaced keys. PBKDF2-derived keys; no shared secrets.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section-bordered">
+    <div class="container">
+      <h2 class="section-title">Invariants and safety model</h2>
+      <p class="section-prose">
+        ClarityOS holds itself to a small set of invariants. They
+        are checked by tests and surfaced in readiness documents on
+        every release pass:
+      </p>
+      <ul class="bullet-list">
+        <li>
+          <strong>No skill imports.</strong> The runtime never
+          imports from documentation bundles. The boundary is
+          enforced by a test.
+        </li>
+        <li>
+          <strong>No cross-user data.</strong> Every cross-user
+          access returns 404 with no existence leak.
+        </li>
+        <li>
+          <strong>No silent state.</strong> Every mutation that
+          changes user-visible state emits a timeline event.
+          Metadata-only changes (like tag edits) intentionally do
+          not.
+        </li>
+        <li>
+          <strong>No double-charge.</strong> Billing endpoints check
+          status before invoking PaymentIntents. Idempotent webhook
+          handling, signature-verified.
+        </li>
+        <li>
+          <strong>No drift between surfaces.</strong> The shape of a
+          thread on phone is the shape of a thread on web is the
+          shape of a thread on desktop. Helpers are 1:1 across
+          surfaces.
+        </li>
+      </ul>
+      <p class="section-prose">
+        Each invariant is documented in the corresponding readiness
+        file and locked by a test. When an invariant is intentionally
+        relaxed, the readiness file says so explicitly and the
+        change is reviewed at the architectural layer.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p class="footer-brand">ClarityOS</p>
+    <ul class="footer-links">
+      <li><a href="product.html">Product</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <p class="footer-meta">An operator-grade reasoning runtime.</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>

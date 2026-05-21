@@ -1,0 +1,109 @@
+{
+  "trends": {
+    "1_geopolitical_fragmentation": {
+      "description": "Ceasefires no longer produce stability; conflicts splinter into multi-front, multi-actor engagements.",
+      "drivers": [
+        "Lebanon exclusion dispute",
+        "Iran asymmetric leverage",
+        "Israel kinetic persistence",
+        "US diplomatic bandwidth strain"
+      ],
+      "trajectory": "Upward pressure; high persistence"
+    },
+
+    "2_chokepoint_economics": {
+      "description": "Maritime chokepoints are becoming monetized, contested, and politically weaponized.",
+      "drivers": [
+        "Hormuz toll-booth precedent",
+        "Small-boat dominance",
+        "Insurance and risk-pricing spikes"
+      ],
+      "trajectory": "Accelerating; global copycat risk"
+    },
+
+    "3_energy_nonreversion": {
+      "description": "Energy markets do not revert after shocks; futures decouple from physical cargo prices.",
+      "drivers": [
+        "Spot cargo premiums",
+        "Refinery mismatch",
+        "Seasonal blend constraints",
+        "Persistent shipping disruption"
+      ],
+      "trajectory": "Sticky; inflation-amplifying"
+    },
+
+    "4_macro_stagflation_drift": {
+      "description": "Major economies face simultaneous low growth and high inflation regardless of ceasefire conditions.",
+      "drivers": [
+        "EU stagflation warning",
+        "US logistics + fertilizer inflation",
+        "Energy-driven cost propagation"
+      ],
+      "trajectory": "High persistence; structural"
+    },
+
+    "5_financial_liquidity_stress": {
+      "description": "Private credit and alternative asset classes show early-stage liquidity strain.",
+      "drivers": [
+        "20bn redemption attempts",
+        "Private-credit valuation opacity",
+        "Investor flight to safety"
+      ],
+      "trajectory": "Rising systemic risk"
+    },
+
+    "6_political_realignment": {
+      "description": "Political identities are hardening while swing segments destabilize.",
+      "drivers": [
+        "MAGA consolidation",
+        "Swing-voter volatility",
+        "Orbán defeat reshaping EU axis",
+        "US–China strategic thaw"
+      ],
+      "trajectory": "Volatile; high drift"
+    },
+
+    "7_ai_constraint_phase": {
+      "description": "AI enters a constraint era defined by compute scarcity, trust failures, and psychological risk.",
+      "drivers": [
+        "Compute/energy bottlenecks",
+        "Enterprise trust faultlines",
+        "Chatbot-induced delusion case",
+        "Executive-replica experiments"
+      ],
+      "trajectory": "Upward pressure; risk-heavy"
+    },
+
+    "8_climate_acceleration": {
+      "description": "Climate system shifts from variability to acceleration across heat, drought, and wildfire vectors.",
+      "drivers": [
+        "Warmest 12-month US period",
+        "60% US drought footprint",
+        "Snowpack collapse",
+        "Global anomaly 1.48C",
+        "Incoming El Niño"
+      ],
+      "trajectory": "Strong acceleration"
+    },
+
+    "9_demographic_contraction": {
+      "description": "Fertility decline and higher-ed collapse signal long-term demographic and institutional contraction.",
+      "drivers": [
+        "Record-low fertility (53.1)",
+        "Small-college insolvency wave",
+        "Youth behavioral shifts"
+      ],
+      "trajectory": "Long-term downward pressure"
+    },
+
+    "10_identity_micro-movements": {
+      "description": "Micro-communities exert outsized influence on political, cultural, and consumer behavior.",
+      "drivers": [
+        "MAHA influencers",
+        "Cosmeticorexia",
+        "Meme-driven identity formation"
+      ],
+      "trajectory": "Expanding influence"
+    }
+  }
+}

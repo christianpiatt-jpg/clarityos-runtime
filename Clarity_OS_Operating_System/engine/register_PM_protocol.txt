@@ -1,0 +1,41 @@
+============================================================
+Kernel Registration — Professional Mediation Protocol
+============================================================
+
+NAME:
+Professional Mediation Protocol (PM-Protocol)
+
+VERSION:
+1.0
+
+KERNEL LAYER:
+v3 Kernel (v3_layers, v3_map, v3_step, v3_trace)
+
+BINDING:
+The v3 Kernel recognizes PM-Protocol as the system-wide method for:
+- addressing pressure (PM-IP)
+- transporting clarity (PM-TCP)
+- applying mediation logic (PM-APP)
+
+KERNEL INVARIANTS:
+Center
+Compress
+Cohere
+
+These invariants govern all protocol operations.
+
+RUNTIME INTEGRATION:
+- PM-IP defines how pressure objects enter the kernel loop.
+- PM-TCP defines how clarity moves through the kernel loop.
+- PM-APP defines how modules and agents interact with the kernel loop.
+
+VALIDATION RULE:
+No module may claim clarity unless it passes:
+Center → Compress → Cohere.
+
+STATUS:
+Registered and Active.
+
+============================================================
+END OF FILE
+============================================================

@@ -1,0 +1,9 @@
+OperatorHandbook.import(field_dynamics = {identity, logistics, narrative, safety})
+OperatorHandbook.import(pressure_signatures = {density, acceleration, jerk})
+OperatorHandbook.import(coherence_conditions = operator_alignment)
+OperatorHandbook.import(attractors = {stability, clarity})
+OperatorHandbook.import(transitions = {phase_shift, reversion})
+
+OperatorHandbook.runtime(drift_detection = contamination_detection,
+                         propagation = mesh_routing,
+                         stabilization = hydronic_stabilizers)

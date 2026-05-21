@@ -1,0 +1,182 @@
+============================================================
+FILE: ENGINE_ELINS_MODULE
+TYPE: Narrative-Physics Extraction Engine (ELINS Core Module)
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Implement ELINS (Event-Legitimacy Inference & Narrative
+Stability) as a standalone module responsible for extracting
+narrative physics from metadata packets. ELINS converts raw
+headline metadata into structured signals used by the Global
+Manifold, Markov/Markoff engine, and physics layers.
+
+ELINS performs:
+    - narrative-domain classification
+    - legitimacy-signal extraction
+    - stress-index computation
+    - drift/basin/pressure inference
+    - temporal pattern detection
+    - regional narrative signature mapping
+
+============================================================
+SECTION 2 — INPUTS
+============================================================
+
+ELINS receives:
+    - METADATA_PACKET (from metacrawler)
+    - REGION_ID
+    - LANGUAGE
+    - SOURCE_ID
+    - TIMESTAMP
+    - SECTION
+    - URL (metadata only)
+
+Optional contextual inputs:
+    - previous-cycle ELINS signatures
+    - regional manifold slice
+    - Markov chain-state
+
+============================================================
+SECTION 3 — OUTPUTS
+============================================================
+
+ELINS produces:
+    ELINS_SIGNATURE {
+        narrative_domain
+        legitimacy_signal
+        stress_indicator
+        drift_hint
+        basin_hint
+        pressure_hint
+        temporal_pattern
+        regional_alignment
+        confidence_score
+    }
+
+These signatures are routed to:
+    - GLOBAL_MANIFOLD
+    - MARKOV_ENGINE
+    - PHYSICS_ENGINE
+    - OPERATOR_CONSOLE (ELINS panel)
+
+============================================================
+SECTION 4 — EXTRACTION PIPELINE
+============================================================
+
+STEP 1 — PRE-PROCESS
+    - normalize metadata fields
+    - validate region/language
+    - align timestamps
+    - detect anomalies
+
+STEP 2 — NARRATIVE DOMAIN CLASSIFICATION
+    Domains include:
+        political
+        economic
+        military
+        social
+        institutional
+        environmental
+        technological
+
+STEP 3 — LEGITIMACY SIGNAL EXTRACTION
+    Signals include:
+        institutional stability
+        institutional decay
+        public trust
+        elite conflict
+        procedural breakdown
+        legal/moral framing
+
+STEP 4 — STRESS INDICATOR COMPUTATION
+    Indicators include:
+        volatility
+        escalation
+        fragmentation
+        uncertainty
+        institutional strain
+
+STEP 5 — PHYSICS HINT GENERATION
+    - drift direction
+    - basin deformation
+    - pressure accumulation
+    - narrative force vectors
+
+STEP 6 — TEMPORAL PATTERN DETECTION
+    - repetition
+    - acceleration
+    - inversion
+    - decay
+    - resonance
+
+STEP 7 — SIGNATURE PACKAGING
+    - wrap into ELINS_SIGNATURE
+    - assign confidence score
+
+STEP 8 — ROUTING
+    ELINS_SIGNATURE → GLOBAL_MANIFOLD
+    ELINS_SIGNATURE → MARKOV_ENGINE
+    ELINS_SIGNATURE → PHYSICS_ENGINE
+
+============================================================
+SECTION 5 — REGIONAL SIGNATURES
+============================================================
+
+ELINS maintains a rolling signature map per region:
+
+    region_id
+    dominant_domains
+    legitimacy_vector
+    stress_index
+    drift_hint
+    basin_hint
+    pressure_hint
+    temporal_patterns
+
+These feed directly into:
+    ENGINE_MANIFOLD_REGION <region>
+
+============================================================
+SECTION 6 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_ELINS_STATUS
+    Display ELINS health, last run, signature count.
+
+ENGINE_ELINS_RUN
+    Manually trigger ELINS extraction on latest metadata.
+
+ENGINE_ELINS_REGION <region>
+    Display regional ELINS signature map.
+
+ENGINE_ELINS_LOGS
+    Display extraction logs.
+
+============================================================
+SECTION 7 — FAILURE MODES
+============================================================
+
+Potential failures:
+    - malformed metadata
+    - missing region/language
+    - classification ambiguity
+    - signature collapse
+    - temporal-pattern conflict
+    - routing failure
+
+Recovery:
+    - re-run extraction
+    - fallback to previous signature
+    - notify operator
+
+============================================================
+STATUS:
+ELINS Module Installed.
+
+============================================================
+END OF FILE
+============================================================

@@ -1,0 +1,93 @@
+Below is a focused extraction of primitives, a topical mesh (how items connect), and a compact clarity report with actionable cataloging/indexing recommendations for the supplied documents (Category: Social psychology; Meaning‑making; Narrative identity). I. Extracted primitives (atomic items you can index/search)
+- Documents / pages
+  - Category: Social psychology (Wikipedia category page; 27 subcategories; 143 pages)
+  - Meaning‑making (encyclopedic article; construct in psychology, education, bereavement, therapy)
+  - Narrative identity (encyclopedic article; self‑narrative theory; research methods and applications)
+
+- People / Authors / Theorists (named)
+  - Viktor Frankl — logotherapy; meaning emphasis
+  - Robert Kegan — meaning‑making developmental framework
+  - Jack Mezirow — transformative learning / disorienting dilemmas
+  - Neil Postman & Charles Weingartner — "Meaning Making" (1969)
+  - Richard DeGrandpre — operant interpretation of meaning
+  - Crystal L. Park — review of meaning‑making literature
+  - Dan P. McAdams — narrative identity, three-level personality framework
+  - Tilmann Habermas, Sarah Bluck, Kathleen McLean, Jennifer Pals, Josselson, Pennebaker — research contributors cited
+
+- Concepts / Constructs
+  - Meaning‑making: process of construing/understanding life events, relationships, self
+  - Narrative identity / self‑narrative: internalized life story integrating past/present/future
+  - Coherence types (narrative): temporal, causal, thematic, cultural
+  - Narrative content constructs: redemption, contamination, agency, communion, exploratory processing, coherent positive resolution, meaning‑making, performance
+  - Identity statuses: achievement, moratorium, foreclosure, diffusion
+  - Methods & tools: Meaning of Loss Codebook; narrative coding of themes (redemption/contamination etc.); autobiographical memory measures; narrative coding procedures
+  - Applications: bereavement/grief therapy, cancer caregiving and patient interventions (meaning‑centered psychotherapy, dignity therapy), psychotherapy (narrative change associated with clinical improvement), education (learning as meaning‑making), prisons, narrative medicine, athletic identity
+
+- Phenomena / Findings / Observations
+  - Meaning‑making often reduces distress after loss; but can be maladaptive (rumination) for some
+  - Narrative coherence & meaning‑making associated with higher well‑being; causality not fully established
+  - Childhood caregiver reminiscing → richer child narratives and later coherence
+  - Adolescent development: narrative sophistication and meaning‑making increase with age
+  - Narrative change often precedes mental health improvement in psychotherapy (agency increases)
+  - Social context, listeners, and co‑construction influence narrative formation and coherence
+
+- Organizational / Corpus items
+  - Category metadata: Social psychology category contains many subcategories and should be curated (move pages to subcategories)
+  - References/bibliography: numerous journal/book citations (Park 2010, McAdams, Kegan, Mezirow, Neimeyer, etc.)
+
+II. Mesh topics — how these items connect (interdisciplinary linkages)
+- Social psychology (category) ↔ Narrative identity
+  - Narrative identity is both an individual‑level psychological construct and a social process (stories co‑constructed with listeners, influenced by cultural master narratives) — fits squarely under social psychology.
+- Meaning‑making ↔ Narrative identity
+  - Meaning‑making is a process central to narrative identity formation (narrative themes like redemption are vehicles of meaning‑making).
+- Meaning‑making ↔ Clinical practice / bereavement / health
+  - Meaning‑making interventions (dignity therapy, meaning‑centered psychotherapy) are applied therapeutically with measurable psychosocial effects.
+- Narrative identity ↔ Development / Education
+  - Narrative development (childhood caregiver reminiscing, adolescent identity formation) links to educational practices and learning as meaning‑making.
+- Cognitive bias / Persuasion (from earlier inputs) ↔ Meaning‑making & Narrative identity
+  - Heuristics and bias influence how audiences interpret persuasive messages and stories; narrative framing can exploit availability/salience to shape meaning and decisions (relevant for political media case studies like GYBTTP).
+- Performing arts / Burlesque (from earlier inputs) ↔ Narrative identity & Meaning‑making
+  - Performance as a cultural practice contributes to collective and individual meaning; performers’ public narratives (e.g., dancer biographies) shape identity and community engagement.
+
+III. Clarity report — concise synthesis, classification, metadata, recommendation actions
+
+A. One‑line syntheses
+- Meaning‑making: a multidisciplinary process (constructivist psychology, bereavement, education) describing how people create significance from events; central to adaptation and resilience but contextually variable in benefit.
+- Narrative identity: an empirically supported construct where individuals integrate life events into an evolving story; coherence and thematic content (redemption/agency) relate to wellbeing and psychotherapy outcomes.
+- Social psychology category: broad taxonomy container requiring curation and subcategory‑level organization.
+
+B. Dewey / classification recommendations (primary + cross‑refs)
+- Primary:
+  - 150 Psychology — meaning‑making theory, cognitive/emotional processes (use 150.19 for specific psychological constructs if available)
+  - 152.4 / 154 (depending on local practice) — narrative identity / self & personality (personality psychology)
+- Cross‑reference:
+  - 155 Developmental psychology — narrative development in childhood/adolescence
+  - 616.89 / 616.99 (health/medical) — meaning‑making interventions in cancer caregiving (if cataloguing clinical resources)
+  - 170 Ethics / 370 Education — learning as meaning‑making, pedagogy (Mezirow, Kegan)
+  - 300 Social sciences / 302 / 303 — social construction, social identity aspects and cultural master narratives
+
+C. Minimal metadata schema (fields to capture for each article/resource)
+- Title, doc-type (article, category), abstract/summary (1–2 lines), main concepts (controlled terms), authors/primary theorists, key methods/measures, applications, notable findings, date(s), Dewey/classification code(s), recommended audience (clinicians, educators, researchers), canonical references (top 5), tags, related resources (cross‑links), curation notes (e.g., "requires disambiguation", "move to subcategory X").
+
+D. Controlled vocabulary / tag suggestions (short list)
+- meaning‑making, narrative‑identity, autobiographical‑memory, narrative‑coherence, redemption, contamination, agency, bereavement, narrative‑therapy, meaning‑centered‑psychotherapy, transformative‑learning, co‑construction, social‑narrative, developmental‑psychology, narrative‑coding
+
+E. Key analytic insights & practical implications
+- Interdisciplinary indexing: tag these materials simultaneously under psychology (individual processes), social psychology (social co‑construction), and education/therapy (applied interventions) to enable multi‑angle discovery.
+- For applied services (clinics, educators): flag empirically supported interventions (meaning‑centered psychotherapy, dignity therapy, family reminiscence techniques) and note effect sizes (where available) in curated summaries.
+- For research/curation: preserve coding schemas (Meaning of Loss Codebook; narrative coding constructs) as reusable annotation templates for qualitative datasets.
+
+F. Recommended next actions (prioritized)
+1. Create three canonical records (meaning‑making; narrative identity; social psychology category) using the metadata schema above and link them as related concepts.
+2. Tag the social psychology category page for maintenance: recommend moving many pages into the relevant subcategories (list of 27 subcategories exists).
+3. Export narrative coding checklist (the 8 constructs) as a small CSV/template for annotators.
+4. For application: assemble a 1‑page "evidence snapshot" summarizing therapeutic interventions for meaning‑making (indications, typical effect sizes, cautions about rumination).
+5. If integrating with prior inputs (GYBTTP, Burlesque, Cognitive bias): create a crosswalk entry showing how narrative, meaning‑making, and persuasion heuristics interact in political/performative messaging.
+
+G. Compact prioritized tags to attach now
+- narrative‑identity; meaning‑making; bereavement‑interventions; narrative‑coding; developmental‑narratives; social‑construction; narrative‑therapy
+
+If you want I can:
+- Produce machine‑readable JSON records for the three canonical items (with the metadata fields above).
+- Generate the CSV template for narrative coding (redemption, contamination, agency, communion, exploratory, coherent positive resolution, meaning‑making, performance).
+- Produce a 1‑page evidence snapshot for meaning‑centered interventions (with key citations and effect estimates). Which would you like next?

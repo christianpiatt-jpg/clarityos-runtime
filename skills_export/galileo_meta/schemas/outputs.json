@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "galileo_meta.outputs.v1",
+  "title": "Galileo Meta — output",
+  "type": "object",
+  "required": ["summary", "selected_skills", "rationale", "intermediate", "composed_output"],
+  "properties": {
+    "summary":   { "type": "string", "maxLength": 600 },
+    "selected_skills": {
+      "type": "array",
+      "items": { "enum": ["emotional_physics", "clarity", "markov", "physics"] },
+      "description": "Ordered list of base skills invoked. Empty when the orchestrator answered directly."
+    },
+    "rationale":      { "type": "string", "description": "Why these skills, in this order. Names the signals that drove selection." },
+    "intermediate": {
+      "type": "object",
+      "description": "Per-skill outputs. Keys must match selected_skills. Empty {} when no skills were invoked.",
+      "additionalProperties": { "type": "object" }
+    },
+    "composed_output": {
+      "description": "Final caller-facing result. Usually prose; JSON if the caller asked for json output_format.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

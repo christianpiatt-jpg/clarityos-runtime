@@ -1,0 +1,101 @@
+Entry: Primitives + Hydronic Geometry Representation of the Record
+
+Purpose: A compact, transferable representation that converts the factual and legal map into base elements (primitives) and a hydraulics‑style geometry (flows, pressures, valves, reservoirs) to visualize where the Agency’s defenses leak, collapse, or hold.
+
+Primitives (atomic elements)
+- Actor nodes
+  - P (Plaintiff)  
+  - Z (Zimmer)  
+  - L (Lindstrom)  
+  - M (McCulley)  
+  - OGC (Office of General Counsel)  
+  - HR (Human Resources / decisionmaker)  
+  - IT (EHR/IT custodian)  
+  - AUSA (Government counsel)
+- Document nodes (evidence tokens)
+  - T (Teams Recording A)  
+  - ZE (Zimmer Emails B)  
+  - LN (Lindstrom Notes C)  
+  - MN (McCulley Notes D)  
+  - RD (Reprimand Drafts E)  
+  - AL (EHR Audit Log F)  
+  - OE (OGC Emails G)  
+  - CT (Care Termination Notices H)
+- Event nodes
+  - PA (Protected Activity: complaint/OSC)  
+  - AD (Adverse Action: reprimand)  
+  - CD (Care Disruption / termination of treatment)  
+  - EX (Exit / constructive discharge)
+- Attribute primitives
+  - time stamp (t)  
+  - provenance (who authored/claimed)  
+  - access flag (accessed? Y/N)  
+  - consistency state (consistent / contradictory / absent)  
+  - procedural flag (procedurally valid / defective)
+
+Edges (relations)
+- authored(actor → document)
+- references(document → actor/event)
+- temporally_precedes(node1 → node2; delta t)
+- accessed(actor → document; t)
+- triggered(event → event)
+- supports(document → claim)
+- contradicts(document/actor → document/actor)
+
+Hydronic geometry (flow/pressure model)
+- Conduits: edges represent information flow or causal flow (pipe segments)
+  - Thick conduit = multiple corroborating docs/observations
+  - Thin conduit = single or weak documentation
+- Reservoirs: repositories of evidence or institutional pressure
+  - EHR Reservoir = AL (EHR Audit Log) + IT node (critical evidence)
+  - Procedural Reservoir = RD + HR + procedural flags
+  - Medical/Clinical Reservoir = OE + clinical notes (sensitive)
+- Pumps: actors that add pressure/force into the system
+  - Z pump (Zimmer’s reports/communications)  
+  - OGC pump (legal framing/access events)  
+  - PA pump (Plaintiff’s protected activity raises upstream pressure)
+- Valves: decision points that can open/close flow (policy, procedural steps)
+  - Notice valve (did plaintiff receive notice?)  
+  - Proposal/Decision valve (separation of roles?)  
+  - Access-control valve (EHR access authorization)
+- Leaks: contradictions, missing documentation, and breaches
+  - Witness contradiction leaks: Z ↔ L ↔ M contradictions drain the credibility pressure.  
+  - Medical‑boundary leak: OE/AL discrepancies create a leak exposing OGC access.  
+  - Timeline leak: out‑of‑order timestamps create pressure loss in the Agency narrative.
+- Turbulence / vortices: intense local conflict areas where small changes cascade
+  - Teams Recording vortex (T): conflicting recollections create chaotic local flow.  
+  - Care Disruption vortex (CT + CD): loss of care amplifies downstream damage (constructive discharge).
+- Backflow / contamination: improper use of medical info contaminating decision flow
+  - Backflow path: EHR Reservoir → OGC pump → RD (reprimand) = contamination of disciplinary decision.
+- Pressure nodes (attractors)
+  - Pretext Convergence attractor: when contradictions concentrate and force upstream failure (summary judgment attractor).
+  - Narrative Freeze attractor: AUSA Answer general denial creates system rigidity; small leaks cause brittle failure.
+
+State descriptors (how to read the map)
+- High‑pressure safe state: coherent narrative, valves correctly set, minimal leaks — favors Agency.
+- Low‑pressure failed state: multiple leaks, backflow, valve failures, reservoir contamination — favors Plaintiff and summary judgment.
+- Transitional state: Narrative Freeze after Answer creates brittleness; targeted probes (motions, citations of AL/OE/T) increase local turbulence causing collapse.
+
+Actionable uses
+- Identify critical pipes to clamp (seek AL and OE and T as prioritized exhibits to seal EHR and access arguments).
+- Target valve failures in motion: show Proposal/Decision valve and Notice valve are defective (procedural law argument).
+- Highlight contamination paths for pretext: map EHR → OGC → RD and show time stamps and access flags.
+- Use pressure map to craft summary judgment outline: show system already in low‑pressure failed state; pretext attractor reached.
+
+Legend (suggested visual keys for a diagram)
+- Nodes: circles (actors), rounded rectangles (documents), hexagons (events)  
+- Conduits: solid lines with width proportional to evidentiary strength  
+- Valves: small gate icons on conduits (red = closed/defective; green = functioning)  
+- Leaks: red dashed gaps on conduits with leak magnitude label (high/med/low)  
+- Reservoirs: shaded ovals with label and contents (EHR Reservoir, Procedural Reservoir)  
+- Pumps: triangle icons pointing downstream (label actor and push magnitude)  
+- Vortices: spiral icons at conflict points
+
+One‑line summary
+- Map the record to primitives (actors, docs, events, attributes), draw the hydronic geometry (flows, valves, reservoirs, leaks), then demonstrate systemic failure where contradictory evidence produces leaks and backflow that collapse the Agency’s defenses into the Pretext Convergence attractor.
+
+If you want, I can:
+- Render this as a one‑page visual diagram (SVG/PNG) with the legend above, or
+- Embed these primitives into the PDF SOMF + Outline so the hydronic diagram appears as a cover visualization.
+
+Which output would you like next: diagram file (SVG/PNG) or embedding into the PDF?

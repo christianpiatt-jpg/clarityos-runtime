@@ -1,0 +1,11 @@
+/* v1 global reset — minimal so the v1 surface root (height: 100vh)
+   fills the viewport. Coexists with the desktop's existing styles.css
+   which provides the auth-shell styles and legacy --os-* tokens. */
+
+#root {
+  height: 100vh;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}

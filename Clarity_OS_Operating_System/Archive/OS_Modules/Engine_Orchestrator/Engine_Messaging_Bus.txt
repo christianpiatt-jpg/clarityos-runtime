@@ -1,0 +1,131 @@
+============================================================
+MODULE: ENGINE_MESSAGING_BUS
+TYPE: Asynchronous Messaging & Event Routing System
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide safe, structured, asynchronous communication between
+modules in the Clarity_OS narrative-physics engine. Enables
+message queues, event routing, broadcast channels, and decoupled
+inter-module communication without risking drift, instability, or
+race conditions.
+
+MESSAGE TYPES:
+1. STATE_UPDATE
+2. TELEMETRY_EVENT
+3. SAFETY_ALERT
+4. HEALTH_UPDATE
+5. CONFIG_CHANGE
+6. EXTENSION_EVENT
+7. SANDBOX_EVENT
+8. PERFORMANCE_EVENT
+9. RESOURCE_EVENT
+10. SCHEDULER_EVENT
+11. CUSTOM_EXTENSION_MESSAGE
+
+MESSAGE CHANNELS:
+- CORE_CHANNEL (QC + Safety + Health)
+- TELEMETRY_CHANNEL
+- LOGGING_CHANNEL
+- SANDBOX_CHANNEL
+- EXTENSION_CHANNEL
+- PERFORMANCE_CHANNEL
+- RESOURCE_CHANNEL
+- SCHEDULER_CHANNEL
+- BROADCAST_CHANNEL (read-only for low-trust modules)
+
+QUEUE TYPES:
+- PRIORITY_QUEUE (Safety, Health, Telemetry)
+- STANDARD_QUEUE (Clarity Loop, Langbridg)
+- LOW_PRIORITY_QUEUE (Extensions, Sandbox)
+- ISOLATED_QUEUE (Untrusted extensions)
+
+MESSAGING BUS SEQUENCE:
+
+STEP 1 — INITIALIZE BUS
+- Create message queues
+- Create routing tables
+- Create channel permissions
+- Load ENGINE_CONFIG messaging rules
+
+STEP 2 — REGISTER MODULES
+Each module declares:
+- Allowed channels
+- Allowed message types
+- Priority level
+- Isolation level
+- Safety level
+
+STEP 3 — SEND MESSAGE
+When a module sends a message:
+- Validate message type
+- Validate channel
+- Validate sender permissions
+- Timestamp message
+- Hash message payload
+- Sign message payload
+- Enqueue message
+
+STEP 4 — ROUTE MESSAGE
+- Determine destination modules
+- Apply routing rules
+- Apply priority rules
+- Apply isolation rules
+- Deliver message asynchronously
+
+STEP 5 — RECEIVE MESSAGE
+Modules receive:
+- Message payload
+- Metadata
+- Sender identity
+- Integrity signature
+- Safety classification
+
+STEP 6 — ENFORCE SAFETY
+If message violates safety rules:
+- Reject message
+- Log violation
+- Trigger Engine_Safety review
+
+STEP 7 — HANDLE FAILURE
+If queue overflow or routing failure:
+- Activate fallback queue
+- Trigger performance alert
+- Trigger resource alert
+- Trigger scheduler adjustment
+
+STEP 8 — AUDIT & ENCRYPT
+- Hash all messages
+- Encrypt message logs
+- Append to audit ledger
+
+FAILURE MODES:
+- Queue overflow
+- Routing loop
+- Unauthorized message
+- Tampered message
+- Unsafe message
+- Priority inversion
+- Broadcast contamination
+- Extension message injection
+
+RECOVERY:
+- Flush affected queues
+- Rebuild routing tables
+- Revalidate module permissions
+- Trigger Engine_Reset (if needed)
+- Trigger Engine_Safety (if critical)
+
+MESSAGING CONTRACT:
+No module may bypass the Messaging Bus.
+All messages must be validated, signed, and routed safely.
+No unsafe or unauthorized message may be delivered.
+Broadcast channels are read-only for low-trust modules.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

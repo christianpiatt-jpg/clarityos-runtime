@@ -1,0 +1,5 @@
+02_Subsystems\Operator_Console
+
+console.quickcard:
+    load_surface("QuickStartCard")
+    return

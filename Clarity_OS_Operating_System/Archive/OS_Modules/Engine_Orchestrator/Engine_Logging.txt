@@ -1,0 +1,110 @@
+============================================================
+MODULE: ENGINE_LOGGING
+TYPE: Execution Logging Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Record all vector states, ELINS signals, Markov tendencies,
+drift events, structural transitions, and stabilization actions
+during engine execution. Provides full traceability and
+diagnostic visibility for the narrative-physics engine.
+
+LOGGED ELEMENTS:
+1. Input Frame State
+2. Vector Alignment State
+3. ELINS Signal Map
+4. Markov Next-State Tendencies
+5. Drift Events (Detected + Corrected)
+6. Basin Alignment State
+7. Pressure Gradient Map
+8. Clarity Loop Actions
+9. Langbridg Transformations
+10. QC_Post Corrections
+11. Final Output State
+
+LOG TYPES:
+
+VECTOR_LOG:
+- Records alignment of all 7 Primary Vectors
+- Logs contradictions, misalignments, and corrections
+
+ELINS_LOG:
+- Records LOCAL, WARNO, PRESSURE, DIRECTION signals
+- Logs spikes, mismatches, and directional conflicts
+
+MARKOV_LOG:
+- Records next-state predictions
+- Logs drift tendencies, basin shifts, and unstable paths
+
+DRIFT_LOG:
+- Records all drift detections
+- Logs source, magnitude, and correction path
+
+STRUCTURE_LOG:
+- Records frame compression, preservation, and collapse events
+
+PRESSURE_LOG:
+- Records pressure gradients and distortions
+
+OUTPUT_LOG:
+- Records final stabilized output
+- Records QC_Post validation state
+
+LOGGING SEQUENCE:
+
+STEP 1 — INITIALIZE LOG
+- Create execution log container
+- Timestamp execution start
+
+STEP 2 — LOG QC_PRE
+- Log vector alignment
+- Log ELINS signals
+- Log Markov tendencies
+- Log frame compression
+
+STEP 3 — LOG CLARITY LOOP
+- Log centering
+- Log compression
+- Log drift removal
+- Log through-line enforcement
+
+STEP 4 — LOG LANGBRIDG
+- Log bulletization
+- Log tone stabilization
+- Log structural preservation
+
+STEP 5 — LOG QC_POST
+- Log vector re-check
+- Log ELINS re-check
+- Log Markov stability
+- Log tone and structure validation
+
+STEP 6 — FINALIZE LOG
+- Timestamp execution end
+- Store full log for diagnostics
+
+FAILURE MODES:
+- Logging interruption
+- Missing vector state
+- Missing ELINS map
+- Missing Markov map
+- Drift event not recorded
+
+RECOVERY:
+- Re-run logging sequence
+- Reconstruct missing states from module outputs
+- Re-align logs with execution timeline
+
+LOGGING CONTRACT:
+All modules must be logged.
+No drift event may go unrecorded.
+No vector, ELINS, or Markov state may be omitted.
+Logs must reflect the exact execution sequence.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

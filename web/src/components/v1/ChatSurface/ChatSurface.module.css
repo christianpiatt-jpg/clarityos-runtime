@@ -1,0 +1,9 @@
+.surface {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-inner);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-gap);
+  min-height: 0;
+}

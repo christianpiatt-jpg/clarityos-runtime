@@ -1,0 +1,30 @@
+# v3 Integration Update (2026-03-26)
+
+## Summary
+This page documents the v3 integration upgrade that occurred on March 26, 2026.
+It includes updates to integration logic, drift handling, and operator posture.
+This version existed in runtime but was never indexed or archived, which is why
+it did not appear in the library scan.
+
+## Geometry
+- integration_logic_update
+- drift_handling_update
+- operator_posture_update
+
+## Dewey Tags
+Primary: 004.1 (Systems Architecture)
+Secondary: 128.4 (Identity & Agency)
+
+## Cross-References
+- v2 (pre-integration baseline)
+- v4 (Markov ingestion)
+- v5 (Galileo pattern overlay)
+
+## Drift Signatures
+- compression_drift
+- clarity_drift
+- integration_drift
+
+## Notes
+This page anchors v3 into the library so that future index updates can reference
+the correct version lineage.

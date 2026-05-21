@@ -1,0 +1,12 @@
+.block {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-data);
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  padding: var(--space-inner);
+  border-radius: var(--radius-none);
+  white-space: pre;
+  overflow-x: auto;
+  margin: 0;
+}

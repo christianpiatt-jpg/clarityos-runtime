@@ -1,0 +1,196 @@
+{
+  "module": {
+    "id": "ClarityOS.Trends.Global_2026Q2",
+    "label": "Global Multi-Vector Fragility — ELINS-PLUS",
+    "version": "1.0.0",
+    "created_at": "2026-04-15T09:44:00",
+    "author": "Clarity_OS_Operator",
+    "description": "Trend module capturing global multi-vector fragility across geopolitics, energy, markets, climate, tech, and demographics.",
+    "source": "ELINS-PLUS + MarkOff extraction over FT, WSJ, Economist, WaPo basins."
+  },
+
+  "runtime": {
+    "intended_use": [
+      "MarkOff drift simulation",
+      "Pressure-map overlays",
+      "Scenario routing",
+      "Operator cockpit briefings"
+    ],
+    "surfaces": [
+      "VA_Mesh",
+      "Galileo/MarkOff",
+      "Clarity_Dashboard",
+      "Narrative_Console"
+    ]
+  },
+
+  "trends": [
+    {
+      "key": "geopolitical_fragmentation",
+      "name": "Geopolitical Fragmentation of Ceasefires",
+      "summary": "Ceasefires no longer stabilize; conflicts splinter into multi-front, multi-actor engagements.",
+      "drivers": [
+        "Lebanon excluded from truce (US/Israel) vs included (Iran)",
+        "Iran’s retained asymmetric leverage",
+        "Israel’s continued kinetic operations",
+        "US diplomatic bandwidth and messaging gaps"
+      ],
+      "trajectory": "rising",
+      "persistence": "high",
+      "tags": ["geopolitics", "boundary", "fragility"]
+    },
+    {
+      "key": "chokepoint_economics",
+      "name": "Chokepoint Economics & Toll Seas",
+      "summary": "Maritime chokepoints are being monetized and weaponized, eroding the norm of free navigation.",
+      "drivers": [
+        "Hormuz ‘Tehran toll booth’ precedent",
+        "Small-boat dominance in constrained waters",
+        "Insurance and risk-pricing spikes for transit"
+      ],
+      "trajectory": "accelerating",
+      "persistence": "high",
+      "tags": ["maritime", "energy", "systemic_fracture"]
+    },
+    {
+      "key": "energy_nonreversion",
+      "name": "Non-Reverting Energy Shocks",
+      "summary": "Energy prices do not fully revert after shocks; futures decouple from physical cargo prices.",
+      "drivers": [
+        "Spot cargo premiums vs futures",
+        "Refinery configuration and seasonal blend constraints",
+        "Persistent shipping and chokepoint disruption"
+      ],
+      "trajectory": "sticky_upward",
+      "persistence": "medium_high",
+      "tags": ["energy", "inflation", "markets"]
+    },
+    {
+      "key": "macro_stagflation_drift",
+      "name": "Macro Stagflation Drift",
+      "summary": "Major economies face low growth and high inflation even when kinetic conflict pauses.",
+      "drivers": [
+        "EU stagflation warnings",
+        "Energy-driven cost pass-through in US logistics and agriculture",
+        "War-related supply chain re-routing"
+      ],
+      "trajectory": "rising",
+      "persistence": "structural",
+      "tags": ["macro", "stagflation", "systemic"]
+    },
+    {
+      "key": "financial_liquidity_stress",
+      "name": "Financial Liquidity Stress in Private Credit",
+      "summary": "Private credit shows early-stage liquidity strain as redemptions surge and opacity bites.",
+      "drivers": [
+        "≈$20bn redemption attempts in Q1",
+        "Valuation opacity in private credit vehicles",
+        "Flight to safer, more transparent assets"
+      ],
+      "trajectory": "rising",
+      "persistence": "medium",
+      "tags": ["finance", "liquidity", "risk"]
+    },
+    {
+      "key": "political_realignment",
+      "name": "Political Realignment & Identity Hardening",
+      "summary": "Bases harden while swing segments destabilize; Europe and US both reconfigure.",
+      "drivers": [
+        "MAGA base support for Iran war",
+        "Swing-voter unease over costs and risk",
+        "Orbán defeat and EU internal rebalancing",
+        "US–China stance shift under Trump 2.0"
+      ],
+      "trajectory": "volatile",
+      "persistence": "medium_high",
+      "tags": ["politics", "identity", "realignment"]
+    },
+    {
+      "key": "ai_constraint_phase",
+      "name": "AI Constraint Phase",
+      "summary": "AI enters a constraint era defined by compute scarcity, trust failures, and psychological risk.",
+      "drivers": [
+        "Compute and energy bottlenecks for large models",
+        "Trust and accountability demands in regulated sectors",
+        "Chatbot-induced delusional attachment case",
+        "Executive-replica AI experiments inside firms"
+      ],
+      "trajectory": "rising",
+      "persistence": "medium_high",
+      "tags": ["ai", "infrastructure", "safety"]
+    },
+    {
+      "key": "climate_acceleration",
+      "name": "Climate Acceleration Regime",
+      "summary": "Climate system shifts from variability to acceleration across heat, drought, and wildfire vectors.",
+      "drivers": [
+        "Warmest 12-month US period on record",
+        "60% of US in drought; snowpack collapse",
+        "Global anomaly ≈1.48°C and incoming El Niño"
+      ],
+      "trajectory": "strong_upward",
+      "persistence": "very_high",
+      "tags": ["climate", "risk", "acceleration"]
+    },
+    {
+      "key": "demographic_contraction",
+      "name": "Demographic & Institutional Contraction",
+      "summary": "Fertility decline and small-college stress signal long-term demographic and institutional contraction.",
+      "drivers": [
+        "Record-low US fertility (53.1 per 1,000 women 15–44)",
+        "Hundreds of small private colleges at closure/merger risk",
+        "Youth behavioral and economic shifts"
+      ],
+      "trajectory": "downward",
+      "persistence": "long_term",
+      "tags": ["demographics", "education", "structure"]
+    },
+    {
+      "key": "identity_micro_movements",
+      "name": "Identity Micro-Movements with Macro Effects",
+      "summary": "Micro-communities and niche obsessions exert outsized influence on politics, culture, and consumption.",
+      "drivers": [
+        "MAHA influencers shaping RFK Jr. agenda",
+        "Cosmeticorexia and youth skincare obsession",
+        "Meme-driven identity formation and virality"
+      ],
+      "trajectory": "expanding",
+      "persistence": "medium",
+      "tags": ["culture", "identity", "behavior"]
+    }
+  ],
+
+  "markoff_hooks": {
+    "drift_inputs": [
+      "geopolitical_fragmentation",
+      "chokepoint_economics",
+      "energy_nonreversion",
+      "macro_stagflation_drift",
+      "ai_constraint_phase",
+      "climate_acceleration"
+    ],
+    "pressure_axes": {
+      "upward": [
+        "energy_nonreversion",
+        "macro_stagflation_drift",
+        "financial_liquidity_stress",
+        "climate_acceleration"
+      ],
+      "downward": [
+        "demographic_contraction",
+        "maritime_throughput (implicit via chokepoint_economics)",
+        "institutional_trust (implicit via ai_constraint_phase and political_realignment)"
+      ],
+      "lateral": [
+        "political_realignment",
+        "identity_micro_movements",
+        "us_china_repositioning (embedded in political_realignment)"
+      ]
+    }
+  },
+
+  "operator_overlay": {
+    "meta_signal": "Global system in multi-vector fragility: fragmented conflicts, contested chokepoints, non-reverting energy shocks, stagflation drift, liquidity stress, political realignment, AI constraints, climate acceleration, demographic contraction, and identity micro-movements reshaping behavior.",
+    "usage_note": "Treat trends as interacting fields, not isolated lines; no single lever restores stability."
+  }
+}

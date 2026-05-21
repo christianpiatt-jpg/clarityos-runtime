@@ -1,0 +1,57 @@
+703_IntegrityScans.idx
+
+[Record]
+Name = Integrity Scans
+Code = 703
+Path = ../../07_Diagnostics/Integrity_Scans/
+Description = Structural integrity scans including folder geometry, index alignment, cross-link validation, and canonical structure verification.
+
+[Files]
+Geometry_Scans = geometry_scans.txt
+Index_Alignment = index_alignment.txt
+Crosslink_Validation = crosslink_validation.txt
+Integrity_Reports = integrity_reports.txt
+Integrity_Crosswalk = integrity_crosswalk.txt
+
+[Links]
+Parent = 700_SystemDiagnostics.idx
+Siblings = 701_SubsystemDiagnostics.idx, 702_OperatorDiagnostics.idx, 704_ContaminationChecks.idx
+
+[DASHBOARD]
+id: structural_integrity
+name: Structural Integrity Dashboard
+monitors:
+  - MASTER_INDEX
+  - 305_StructuralInventory
+  - system_map
+  - folder_tree
+metrics:
+  - path_integrity
+  - naming_integrity
+  - semantic_alignment
+  - crosslink_stability
+  - drift_risk
+display:
+  mode: summary_and_detail
+  color_coding: enabled
+status: active
+
+[MONITOR]
+target: 400_SystemMaps
+metric: map_integrity
+
+[MONITOR]
+target: 401_SubsystemMaps
+metric: map_integrity
+
+[MONITOR]
+target: 402_OperatorMaps
+metric: map_integrity
+
+[MONITOR]
+target: 403_BasinMaps
+metric: map_integrity
+
+[MONITOR]
+target: 404_HydronicMaps
+metric: map_integritynote

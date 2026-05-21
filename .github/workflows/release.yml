@@ -1,0 +1,171 @@
+# PASS-6 Phase D — Release workflow.
+#
+# Triggered by a ``v*`` tag push. The workflow:
+#
+#   1. Re-runs the full CI gate (runtime_spine + privacy_surface +
+#      determinism_surface) against the tagged commit — a release
+#      MUST NOT publish unless the gate is green.
+#   2. Verifies the VERSION file matches the pushed tag.
+#   3. Builds the runtime container as a placeholder (no push yet —
+#      PASS-7 activates the real build + push to a registry).
+#   4. Uploads the build artifact for the operator to inspect.
+#   5. Reads the release notes from docs/release_notes/${TAG}.md and
+#      publishes a GitHub Release with that body.
+#
+# Real deployment to Cloud Run still happens out of band via
+# .github/workflows/deploy.yml — the release workflow only mints the
+# artifact + GitHub Release entry.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# Only one release per tag in flight; never cancel a release midway.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# ``contents: write`` is required to publish a GitHub Release.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: cut release ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      # Same test-env shape as ci.yml — keeps the gate identical to
+      # what merge-time validated.
+      CLARITYOS_VAULT_SECRET: ci-throwaway-vault-secret-DO-NOT-USE-IN-PROD
+      CLARITYOS_BACKEND: memory
+      CLARITYOS_BILLING_MODE: mock
+      CLARITYOS_MOCK_AUTO_CONFIRM: "1"
+      CLARITYOS_DISABLE_MACRO_SCHEDULER: "1"
+      CLARITYOS_LOG_LEVEL: WARNING
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # release-notes generation may want the
+                            # full commit log; safe to pull.
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install runtime + test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest==8.3.3 httpx==0.27.2
+
+      # ---------------------------------------------------------------------
+      # Step 1 — Re-run the CI gate against the tagged commit. A
+      # release tag MUST NOT publish unless the gate is green at this
+      # exact SHA.
+      # ---------------------------------------------------------------------
+      - name: Verify CI gate (runtime_spine + privacy_surface + determinism_surface)
+        run: |
+          python -m pytest \
+            -m "runtime_spine or privacy_surface or determinism_surface" \
+            --maxfail=1 \
+            --junitxml=junit-release.xml \
+            -q
+
+      # ---------------------------------------------------------------------
+      # Step 2 — Tag ↔ VERSION consistency check.
+      # The pushed tag (``github.ref_name``) must match the VERSION
+      # file's contents exactly. Catches the "forgot to bump VERSION"
+      # mistake before the GitHub Release is published.
+      # ---------------------------------------------------------------------
+      - name: Verify VERSION matches the pushed tag
+        id: version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          file_version="$(cat VERSION | tr -d '[:space:]')"
+          if [ "$tag" != "$file_version" ]; then
+            echo "::error::Tag ${tag} does not match VERSION file ${file_version}"
+            exit 1
+          fi
+          echo "tag=${tag}"           >> "$GITHUB_OUTPUT"
+          echo "version=${tag}"        >> "$GITHUB_OUTPUT"
+          echo "notes_path=docs/release_notes/${tag}.md" >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------------------
+      # Step 3 — Verify release notes exist for this version.
+      # docs/release_notes/${TAG}.md is the body of the GitHub Release.
+      # ---------------------------------------------------------------------
+      - name: Verify release-notes source
+        run: |
+          set -euo pipefail
+          path="${{ steps.version.outputs.notes_path }}"
+          if [ ! -f "$path" ]; then
+            echo "::error::Release notes missing: $path"
+            exit 1
+          fi
+          echo "Using release notes from $path"
+
+      # ---------------------------------------------------------------------
+      # Step 4 — Build container artifact (PLACEHOLDER).
+      # PASS-7 replaces this with a real ``docker/build-push-action``
+      # step that builds + tags + pushes to the configured registry.
+      # For v0.1.0 we emit a tarball of the runtime spine as a
+      # placeholder artifact so the release page has SOMETHING to
+      # download.
+      # ---------------------------------------------------------------------
+      - name: Build placeholder artifact
+        run: |
+          set -euo pipefail
+          tag="${{ steps.version.outputs.tag }}"
+          mkdir -p dist
+          tar -czf "dist/clarityos-runtime-${tag}.tar.gz" \
+            VERSION CHANGELOG.md README.md \
+            app.py intelligence_kernel.py model_router.py \
+            operator_state.py memory_vault.py runtime_privacy.py \
+            requirements.txt pytest.ini \
+            tests docs .github
+          ls -lh dist/
+
+      # ---------------------------------------------------------------------
+      # Step 5 — Upload artifacts to the workflow run for inspection.
+      # The real container image push happens in deploy.yml (PASS-7).
+      # ---------------------------------------------------------------------
+      - name: Upload runtime tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: clarityos-runtime-${{ steps.version.outputs.tag }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+      - name: Upload junit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-release-${{ steps.version.outputs.tag }}
+          path: junit-release.xml
+          if-no-files-found: ignore
+
+      # ---------------------------------------------------------------------
+      # Step 6 — Publish the GitHub Release with the release-notes
+      # markdown as the body. ``softprops/action-gh-release`` reads
+      # ``body_path`` and attaches every file in ``files`` to the
+      # release.
+      # ---------------------------------------------------------------------
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name:     ClarityOS Runtime ${{ steps.version.outputs.tag }}
+          body_path: ${{ steps.version.outputs.notes_path }}
+          draft:    false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+          files: |
+            dist/*.tar.gz

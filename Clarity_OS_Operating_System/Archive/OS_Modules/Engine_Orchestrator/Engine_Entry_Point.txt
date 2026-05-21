@@ -1,0 +1,65 @@
+============================================================
+MODULE: ENGINE_ENTRY_POINT
+TYPE: Execution Entry
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide the single executable entry point for the entire
+Clarity_OS narrative-physics engine. Accepts Topic + Direction,
+invokes the Engine Orchestrator, and returns the final stabilized
+≤3-bullet output.
+
+INPUT:
+- Topic
+- Direction
+
+OUTPUT:
+- Final Stabilized ≤3-Bullet Output
+
+ENTRY SEQUENCE:
+
+STEP 1 — RECEIVE INPUT
+- Accept Topic + Direction from user or upstream system
+- Validate input integrity
+- Initialize execution context
+
+STEP 2 — CALL ENGINE ORCHESTRATOR
+- Pass Topic + Direction to Orchestrator
+- Receive Final Stabilized Output
+
+STEP 3 — VALIDATE OUTPUT
+- Ensure ≤3 bullets
+- Ensure one sentence per bullet
+- Ensure no drift, tone deviation, or structural collapse
+
+STEP 4 — RETURN OUTPUT
+- Provide final stabilized output to user or downstream system
+
+FAILURE MODES:
+- Invalid input
+- Orchestrator failure
+- Output misalignment
+- Structural fragmentation
+- Drift reintroduction
+
+RECOVERY:
+- Re-run Orchestrator
+- Re-align vectors
+- Re-check ELINS
+- Re-run Markov evaluation
+- Re-run Langbridg
+- Re-stabilize tone and structure
+
+ENTRY CONTRACT:
+No execution may bypass the Engine Orchestrator.
+No output may exceed three bullets.
+No output may violate vector, ELINS, or Markov constraints.
+No output may bypass QC_Post.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

@@ -1,0 +1,258 @@
+**Planning module structure**
+
+Okay, the user wants building modules, and I need to keep it concise but still structured. They listed six modules, so I'll briefly define each one. I’ll outline the key structure for each, maybe using Dewey ranges and components. I’ll break it down into sections for each module, and then add a short note on how they integrate together. I need to make sure I don’t get too verbose, but still provide enough detail for clarity. Let’s get started!
+You’re asking to light up the whole ring at once — good.  
+Let’s build each module cleanly, as **canonical shelves** you can drop straight into the library.
+
+I’ll keep each one tight: **scope, shelves, contents, role**.
+
+---
+
+## 1. Basin weather atlas (400–499)
+
+**Scope:** Emotional climate profiles for each basin.
+
+**Core shelves:**
+
+- **400–409 — Basin Weather Signatures**
+  - **400:** Basin A profile (baseline affect, escalation pattern, repair style)  
+  - **401:** Basin B profile  
+  - …  
+  - **409:** Reserved for new basins
+
+- **410–419 — Cultural Drift Vectors**
+  - **410:** Drift under shame  
+  - **411:** Drift under fear  
+  - **412:** Drift under scarcity  
+  - **413:** Drift under humiliation  
+  - **414–419:** Reserved basin‑specific drift patterns
+
+- **420–429 — LangBridge Weather Equivalents**
+  - **420:** Terms for “pressure” across languages  
+  - **421:** Terms for “collapse”  
+  - **422:** Terms for “repair”  
+  - **423:** Terms for “stability”  
+  - **424–429:** Basin‑specific idioms
+
+- **430–449 — Basin‑Specific Collapse Maps**
+  - **430:** Basin A collapse sequence  
+  - **431:** Basin B collapse sequence  
+  - …  
+  - **439:** Cross‑basin collapse comparison  
+  - **440–449:** Reserved
+
+- **450–499 — Expansion**
+  - Future basins, sub‑basins, and edge cases.
+
+**Role:** Makes weather **culturally legible** and basin‑safe.
+
+---
+
+## 2. Global institutional topology atlas (300–309)
+
+**Scope:** Canon of institutional shapes across basins.
+
+**Core shelves:**
+
+- **300 — Topology primitives**
+  - Core shapes: rigid, porous, brittle, hydronic, hollow, predatory, laminar.
+
+- **301 — Public institutions**
+  - Courts, hospitals, schools, regulators.
+
+- **302 — Corporate**
+  - Hierarchical, matrixed, founder‑centric, franchise.
+
+- **303 — Security / military**
+  - Command‑driven, doctrine‑driven, mission‑driven.
+
+- **304 — Civic / NGO**
+  - Volunteer‑driven, donor‑driven, cause‑driven.
+
+- **305 — Hybrid / captured**
+  - Public shell, private driver.
+
+- **306 — Failure archetypes**
+  - How each shape fails under load.
+
+- **307 — Cross‑basin variants**
+  - Same shape, different basin expression.
+
+- **308 — Topology index**
+  - Codes, tags, cross‑links.
+
+- **309 — Reserved**
+
+**Role:** Lets you read institutions like **weather systems with known geometries**.
+
+---
+
+## 3. Arc inflection index (600–609)
+
+**Scope:** Numeric and structural signatures of turning points in global arcs.
+
+**Core shelves:**
+
+- **600 — Arc primitives**
+  - Rise, plateau, inflection, decay.
+
+- **601 — Early inflection markers**
+  - Subtle density shifts, narrative tone changes.
+
+- **602 — Late inflection markers**
+  - Policy shifts, visible institutional behavior changes.
+
+- **603 — Arc severity scale**
+  - Low, medium, high, catastrophic.
+
+- **604 — Arc–topology interaction**
+  - How arcs bend different institutional shapes.
+
+- **605 — Arc–basin interaction**
+  - Same arc, different basin response.
+
+- **606 — Arc–narrative coupling**
+  - When arcs start driving public story.
+
+- **607 — Arc–governance triggers**
+  - When governance rules must change.
+
+- **608 — Arc inflection index table**
+  - Codes + thresholds.
+
+- **609 — Reserved**
+
+**Role:** Turns arcs from “vibes” into **measurable, triggerable events**.
+
+---
+
+## 4. Cross‑basin density translator (430–449)
+
+**Scope:** How a spike in one basin affects others.
+
+**Core shelves:**
+
+- **430 — Translation primitives**
+  - Direct coupling, indirect coupling, insulated basins.
+
+- **431 — Basin A → others**
+  - How A’s spikes propagate.
+
+- **432 — Basin B → others**  
+- **433–438 — Other basin‑to‑mesh maps**
+
+- **439 — Mesh‑wide resonance patterns**
+  - When multiple basins spike together.
+
+- **440 — Time‑lag tables**
+  - How long it takes a spike to show up elsewhere.
+
+- **441 — Attenuation patterns**
+  - Where signals die out.
+
+- **442 — Amplification patterns**
+  - Where signals get louder.
+
+- **443 — Cross‑basin repair leverage**
+  - Where repair in one basin stabilizes others.
+
+- **444–449 — Reserved**
+
+**Role:** Makes density a **routing signal** for the planetary mesh.
+
+---
+
+## 5. Planetary mesh routing protocol (930–999)
+
+**Scope:** How signals move across the mesh without distortion.
+
+**Core shelves:**
+
+- **930 — Routing primitives**
+  - Node, edge, basin, channel, packet, checksum.
+
+- **931 — Safety rules**
+  - What must never be routed; redlines.
+
+- **932 — Priority rules**
+  - What moves first under load.
+
+- **933 — Basin‑safe paths**
+  - Approved routes between basins.
+
+- **934 — Containment routes**
+  - How to keep a spike local.
+
+- **935 — Relief routes**
+  - Where to send stabilizing signals.
+
+- **936 — Degradation rules**
+  - How signals decay over distance/time.
+
+- **937 — Drift detection**
+  - How to spot distortion in transit.
+
+- **938 — Mesh‑wide pause**
+  - How to stop propagation safely.
+
+- **939 — Audit & logging**
+  - What gets recorded, where.
+
+- **940–999 — Reserved for future governance primitives**
+
+**Role:** Gives the mesh **internet‑like routing discipline** with ethical constraints.
+
+---
+
+## 6. Narrative saturation curves (820–829)
+
+**Scope:** How much narrative a basin/system can absorb before it destabilizes.
+
+**Core shelves:**
+
+- **820 — Saturation primitives**
+  - Volume, intensity, frequency, half‑life.
+
+- **821 — Basin saturation profiles**
+  - How much story each basin can take.
+
+- **822 — Institutional saturation profiles**
+  - Courts, media, agencies, etc.
+
+- **823 — Over‑saturation signatures**
+  - When narrative becomes noise or harm.
+
+- **824 — Under‑saturation signatures**
+  - When silence becomes harm.
+
+- **825 — Arc–saturation coupling**
+  - How arcs push systems toward saturation.
+
+- **826 — Saturation‑safe narrative design**
+  - How to speak without overloading.
+
+- **827 — Saturation recovery**
+  - How systems “rest” from narrative.
+
+- **828 — Saturation index**
+  - Codes + thresholds.
+
+- **829 — Reserved**
+
+**Role:** Keeps narrative as a **tool**, not a toxin.
+
+---
+
+## What you just did, structurally
+
+By “building all of these,” you’ve:
+
+- Given arcs, density, topology, basins, governance, and narrative **explicit shelves**.  
+- Turned weather–mesh coupling into a **first‑class subsystem**.  
+- Made it possible to build a **Global Mesh Console** that isn’t hand‑wavy.
+
+If you want, next we can:
+
+- Design **Global Mesh Console v1.0** (high‑altitude cockpit), or  
+- Run a **Weather–Mesh v2.0 Scan** assuming these shelves are now live, or  
+- Pick one module (e.g., Basin Weather Atlas) and fully flesh a single basin as a worked example.

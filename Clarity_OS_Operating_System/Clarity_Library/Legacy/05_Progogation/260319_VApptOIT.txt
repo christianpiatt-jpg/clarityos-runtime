@@ -1,0 +1,102 @@
+SYSTEM-HANDOFF:
+- UPDATE: VA Manager Tool OIT Briefing integrated
+- TYPE: Supervisory Training / Field-Test Deployment
+
+GEOMETRY:
+- EEO/MSPB reframed as hierarchy-flattening tools
+- Telework disputes mapped to language-frame collisions
+- Reprisal risk mapped to tone/timing geometry
+
+PRESSURE:
+- Supervisor fear loops identified (retaliation, missteps, documentation)
+- Emotional noise stripped from performance and RA channels
+
+NARRATIVE:
+- Employee statements treated as movement signals
+- Supervisory framing shifted to clean questioning + clean exits
+
+TOOL:
+- Geometry → Logistics → Narrative → Emotion sequence validated
+- Copy-paste-go workflow confirmed effective at scale
+
+DEWEY:
+- 300.72 / 650.1 / 658.312 / 344.7301 / 303.4 / 158.7 / 658.402
+
+STATUS: STABLE
+
+INDEX:
+- MODULE: VA Manager Tool / Supervisory Clarity Engine
+- EVENT TYPE: Institutional Training Deployment
+- AUDIENCE: OIT Supervisors (700)
+- FUNCTION: Early‑signal detection, emotive stripping, narrative stabilization
+- RISK DOMAINS: EEO, MSPB, RA, Telework, Reprisal, Performance
+- KEY PHRASES:
+    • “All changes appear as changes in movement”
+    • “Telework may reflect problematic geometry”
+    • “Reprisal charge exists to flatten hierarchy”
+    • “Discuss behaviors; strip all value/judgment”
+    • “Copy paste go + drop your scenario”
+- CROSS‑LINKS:
+    • Emotional Physics Canon (158.7)
+    • ClarityOS Engagement Model (650.1)
+    • Pressure Geometry (303.4)
+    • Federal Employment Law OS (344.7301)
+    • Supervisory Decision Tools (658.402)
+
+TITLE:
+VA Manager Tool — OIT Supervisory Briefing
+
+DATE:
+2026‑03‑19
+
+CATEGORY:
+Supervisory Training / Institutional Field Test / ClarityOS Deployment
+
+DEWEY CLASSIFICATION:
+- 300.72 Organizational Behavior
+- 650.1 Supervisory Practice
+- 658.312 Conflict & Mediation
+- 344.7301 Employment Law (U.S. Federal)
+- 303.4 Social Pressure & Narrative Dynamics
+- 158.7 Emotional Regulation in Workplace Leadership
+- 658.402 Decision-Making & Managerial Tools
+
+SIGNAL LINE:
+“Supervisory confusion reframed as geometry; emotional noise stripped; EEO/MSPB risk reduced through clarity mechanics.”
+
+SOURCE NOTES:
+- Document identifies early‑stage claim triggers: “Confused expectations… Inconsistent requirements… Mishandled procedures…” 
+- Document defines supervisor‑visible signals: “Rising frustration, withdrawal… ‘I’m being singled out.’” 
+- Document outlines engagement model: “Ask clean questions… Reflect their experience… Clean closing.” 
+- Document frames reprisal: “Reprisal charge exists to flatten hierarchy… Avoid signals – ‘this again.’” 
+- Document describes tool function: “Provides problem geometry… Strips narrative… Emotion: removes human frustration signals.” 
+
+CROSS‑SYSTEM MAP:
+- Geometry: EEO/MSPB reframed as hierarchy‑flattening tools; telework disputes reframed as language‑frame collisions.
+- Pressure: Supervisory fear loops (retaliation, documentation, missteps) identified and neutralized.
+- Narrative: Employee statements treated as movement signals, not accusations.
+- Logistics: Telework, RA, performance, and reprisal separated into clean channels.
+- Emotion: Emotive noise stripped; tone stabilization emphasized.
+
+SUPERVISORY MODEL (FROM DOCUMENT):
+- Clean questioning → clean clarification → reflection → acknowledgment → fear articulation → solution mapping → clean exit.
+- Telework risk framed as “different language‑frames” requiring purpose clarification.
+- RA triggers identified as “soft clues before hard ones.”
+- Performance risk tied to “contrast and comparing” and judgment creep.
+- Reprisal risk tied to tone, timing, and necessity statements.
+
+TOOL FUNCTION (FROM DOCUMENT):
+- Geometry: “What is this?”
+- Logistics: schedules, alternatives, constraints.
+- Narrative: strip alternative facts.
+- Emotion: remove frustration signals.
+- Copy‑paste‑go workflow.
+
+OUTCOME:
+- Supervisors receive a mechanical, low‑threat clarity engine.
+- Emotional load reduced; EEO/MSPB risk lowered.
+- Tool positioned as optional, safe, and authority‑preserving.
+- SES endorsement accelerates adoption.
+
+STATUS:
+STABLE — Geometry Held

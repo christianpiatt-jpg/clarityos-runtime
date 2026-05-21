@@ -1,0 +1,60 @@
+notepad 111_DiagnosticsEngine.idx
+
+[Record]
+Name = Diagnostics Engine
+Code = 111
+Path = ../../02_Subsystems/Diagnostics_Engine/
+Description = System-health subsystem responsible for drift alerts, contamination detection, runtime integrity checks, operator-state diagnostics, and subsystem-level fault isolation.
+
+[Files]
+Diagnostics_Primitives = diagnostics_primitives.txt
+Health_Checks = health_checks.txt
+Drift_Alerts = drift_alerts.txt
+Contamination_Detection = contamination_detection.txt
+Integrity_Engine = integrity_engine.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx
+
+[Diagnostics]
+Purpose = Monitor system health, detect drift, identify contamination, run integrity scans, and report subsystem status
+
+[DiagnosticFunctions]
+1 = DriftDetection
+2 = ContaminationCheck
+3 = IntegrityScan
+4 = SubsystemHealthCheck
+5 = OperatorStateCheck
+6 = BoundaryPressureCheck
+7 = RuntimeCoherenceCheck
+
+[DiagnosticSurfaces]
+1 = DriftReport
+2 = ContaminationReport
+3 = IntegrityReport
+4 = SubsystemHealthReport
+5 = OperatorHealthReport
+6 = BoundaryPressureReport
+7 = CoherenceReport
+
+[DiagnosticState]
+DiagnosticsLoaded = False
+FunctionsBound = False
+SurfacesInitialized = False
+DiagnosticsActive = False
+
+[Activation]
+Trigger = RuntimeActive AND DiagnosticsLoaded AND FunctionsBound AND SurfacesInitialized
+
+[Handoff]
+Next = 112_StabilityEngine
+
+[Status]
+Diagnostics = Active
+
+[SCAN_TARGET]
+id: 400–404
+class: maps
+scan_depth: shallow
+checksum: required

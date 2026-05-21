@@ -1,0 +1,59 @@
+900_PlanetaryMesh.idx
+
+[Record]
+Name = Planetary Mesh
+Code = 900
+Path = ../../Index_Records/
+Description = The global coherence layer of the OS. Integrates all basins, flows, and cross‑scale structures into a unified planetary mesh.
+
+[Files]
+Mesh_State = mesh_state.txt
+Mesh_Topology = mesh_topology.txt
+Mesh_Health = mesh_health.txt
+Mesh_Interactions = mesh_interactions.txt
+Mesh_Crosswalk = mesh_crosswalk.txt
+
+[Links]
+Parent = None
+Siblings = 901_GlobalFlows.idx, 902_CrossScaleDynamics.idx, 903_PlanetaryDiagnostics.idx, 904_PlanetarySnapshots.idx
+
+[Crosslinks]
+Up = None
+Across = 901–904
+Down = 901–904
+
+[Mesh]
+Purpose = Integrate global flows, synchronize basins, monitor planetary coherence, track cross-scale dynamics, and maintain hydronic clarity across the entire system
+
+[MeshFunctions]
+1 = GlobalFlowMapping
+2 = BasinSynchronization
+3 = CrossScaleDynamics
+4 = PlanetaryDiagnostics
+5 = HydronicWeather
+6 = GlobalCoherenceTracking
+7 = MeshStabilization
+
+[MeshSurfaces]
+1 = GlobalFlowMap
+2 = BasinSyncMap
+3 = CrossScaleMap
+4 = PlanetaryDiagnosticsView
+5 = HydronicWeatherMap
+6 = GlobalCoherenceReport
+7 = MeshStabilityReport
+
+[MeshState]
+MeshLoaded = False
+FunctionsBound = False
+SurfacesInitialized = False
+MeshActive = False
+
+[Activation]
+Trigger = PropagationActive AND MeshLoaded AND FunctionsBound AND SurfacesInitialized
+
+[Handoff]
+Next = Operator
+
+[Status]
+Mesh = Active

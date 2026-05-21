@@ -1,0 +1,174 @@
+https://brauer.maths.qmul.ac.uk/Atlas/v3/
+
+ATLAS of Finite Group Representations - Version 3
+About this ATLAS
+This ATLAS of Group Representations has been prepared by Robert Wilson, Peter Walsh, Jonathan Tripp, Ibrahim Suleiman, Richard Parker, Simon Norton, Simon Nickerson, Steve Linton, John Bray, and Rachel Abbott(in reverse alphabetical order, because I'm fed up with always being last!)
+
+It currently contains information (including 5215 representations) on about 716 groups.
+
+Finding information on a group
+To get information on a finite group, either choose the family to which the group belongs:
+
+Sporadic groups
+Alternating groups
+Linear groups
+Classical groups
+Exceptional groups of Lie type
+Miscellaneous groups = A5
+
+ATLAS: Alternating group A5, Linear group L2(5), Linear group L2(4)
+Order = 60 = 22.3.5.
+Mult = 2.
+Out = 2.
+
+Porting notes
+Porting incomplete.
+Standard generators
+Standard generators of A5 = L2(5) = L2(4) are a, b where a has order 2, b has order 3 and ab has order 5.
+
+Standard generators of 2.A5 = SL2(5) are preimages A, B where B has order 3 and AB has order 5.
+
+Standard generators of S5 = A5:2 are c, d where c is in class 2B, d has order 4 and cd has order 5.
+
+Standard generators of 2.S5 are preimages C, D where CD has order 5.
+
+Standard generators of 2.S5i are preimages C, D where CD has order 5.
+
+Black box algorithms
+Checking generators (semi-presentations)
+Group	Semi-presentation	File
+A5	〈〈 a, b | some conditions 〉〉	Download
+Presentations
+Group	Presentation	Link
+A5	〈 a, b | a2 = b3 = (ab)5 = 1 〉	Details
+2.A5	〈 A, B | A4 = [A2, B] = B3 = (AB)5 = 1 〉	Details
+S5	〈 c, d | c2 = d4 = (cd)5 = [c, d]3 = 1 〉	Details
+2.S5	〈 C, D | C2 = D8 = [C, D4] = (CD)5 = [C, D]3 = 1 〉	Details
+2.S5i	〈 C, D | C4 = C−2D4 = (CD)5 = [C, D]3 = 1 〉	Details
+Representations
+Representations of A5
+View detailed report.
+Permutation representations:
+Number of points	ID	Generators	Description	Link
+5		Std	Natural representation	Details
+6		Std		Details
+10		Std		Details
+Matrix representations
+Char	Ring	Dimension	ID	Generators	Description	Link
+0	Z[b5]	3	a	Std		Details
+0	Z[b5]	3	b	Std		Details
+0	Z	4		Std		Details
+0	Z	5		Std		Details
+0	Z	6		Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+2	GF(4)	2	a	Std	Natural representation as L2(4)	Details
+2	GF(4)	2	b	Std	Field automorph of the above	Details
+2	GF(2)	4	a	Std	Natural representation as O4−(2)	Details
+2	GF(2)	4	b	Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+3	GF(9)	3	a	Std		Details
+3	GF(9)	3	b	Std		Details
+3	GF(3)	4		Std		Details
+3	GF(3)	6		Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+5	GF(5)	3		Std		Details
+5	GF(5)	5		Std		Details
+Representations of 2.A5
+View detailed report.
+Permutation representations:
+Number of points	ID	Generators	Description	Link
+24		Std		Details
+40		Std		Details
+Matrix representations
+Char	Ring	Dimension	ID	Generators	Description	Link
+0	H	1	a	Std	Over quaternions over Q(b5)	Details
+0	Z[z5]	2	a	Std		Details
+0	Z[i]	4	a	Std		Details
+0	Z[i6]	4	a	Std		Details
+0	Z[i]	6		Std		Details
+0	Z[ω]	6		Std		Details
+0	Z	8	b	Std		Details
+0	Z	12		Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+2	GF(4)	5	a	Std		Details
+2	GF(4)	5	b	Std		Details
+2	GF(2)	8		Std		Details
+2	GF(2)	9		Std		Details
+2	GF(2)	10		Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+3	GF(9)	2	a	Std		Details
+3	GF(9)	2	b	Std		Details
+3	GF(3)	4		Std		Details
+3	GF(3)	6		Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+5	GF(5)	2		Std		Details
+5	GF(5)	4		Std		Details
+Char	Ring	Dimension	ID	Generators	Description	Link
+7	GF(49)	2	a	Std		Details
+7	GF(49)	2	b	Std		Details
+7	GF(7)	4	a	Std		Details
+7	GF(7)	4	b	Std		Details
+7	GF(7)	6		Std		Details
+Representations of S5
+View detailed report.
+Permutation representations:
+Number of points	ID	Generators	Description	Link
+5		Std		Details
+6		Std		Details
+10		Std		Details
+Matrix representations
+Char	Ring	Dimension	ID	Generators	Description	Link
+2	GF(2)	4	a	Std		Details
+2	GF(2)	4	b	Std		Details
+3	GF(3)	4		Std		Details
+3	GF(3)	6		Std		Details
+5	GF(5)	3		Std		Details
+5	GF(5)	5		Std		Details
+Representations of 2.S5
+View detailed report.
+Permutation representations:
+Number of points	ID	Generators	Description	Link
+40	a	Std		Details
+40	b	Std		Details
+48		Std		Details
+Matrix representations
+Char	Ring	Dimension	ID	Generators	Description	Link
+0	Z[ω]	4	b	Std		Details
+0	Z	8	a	Std		Details
+3	GF(3)	4		Std		Details
+3	GF(3)	6		Std		Details
+5	GF(25)	2		Std		Details
+5	GF(25)	4	a	Std		Details
+5	GF(5)	4	b	Std		Details
+5	GF(5)	8		Std		Details
+Representations of 2.S5i
+View detailed report.
+Permutation representations:
+Number of points	ID	Generators	Description	Link
+48		Std		Details
+80		Std		Details
+Matrix representations
+Char	Ring	Dimension	ID	Generators	Description	Link
+0	Z[ω]	4	a	Std		Details
+0	Z[i2]	4	a	Std	Basis 1.	Details
+0	Z[i5]	4	a	Std	Basis 2.	Details
+3	GF(3)	4		Std		Details
+3	GF(9)	6		Std		Details
+3	GF(3)	12		Std		Details
+5	GF(25)	2		Std		Details
+5	GF(25)	4	a	Std		Details
+5	GF(5)	4	b	Std		Details
+5	GF(5)	8		Std		Details
+Maximal subgroups
+Maximal subgroups of A5
+Subgroup	Order	Index	Programs/reps
+A4	12	5	Program: Generators
+D10	10	6	Program: Generators
+S3	6	10	Program: Generators
+Maximal subgroups of S5
+Subgroup	Order	Index	Programs/reps
+A5	60	2	Program: Standard generators
+S4	24	5	Program: Generators
+5:4	20	6	Program: Generators
+S3 × 2 = D12	12	10	Program: Generators
+Version 3.004 / HTML 4.01 / CSS

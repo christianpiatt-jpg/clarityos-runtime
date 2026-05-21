@@ -1,0 +1,69 @@
++--------------------------------------------------------------+
+|                     CLARITY KERNEL v1.0                      |
+|                 (Primitive → Kernel Function)                |
++--------------------------------------------------------------+
+
+                 +-----------------------------+
+                 |       INPUT LAYER           |
+                 |  (Situation / Pressure)     |
+                 +--------------+--------------+
+                                |
+                                v
++----------------------------------------------------------------+
+|                        PRIMITIVE LAYER                         |
+|  (Operator-facing clarity primitives that reduce entropy)      |
++----------------------------------------------------------------+
+|                                                                |
+|  [1] BOUNDARY            → Responsibility Router               |
+|      - Where responsibility ends                               |
+|                                                                |
+|  [2] PATTERN             → Structural Scanner                  |
+|      - What repeats independent of personality                 |
+|                                                                |
+|  [3] PACING              → Nervous System Regulator            |
+|      - Tempo of the moment vs tempo of the body                |
+|                                                                |
+|  [4] MEANING vs MANIFEST → Alignment Detector                  |
+|      - Intent vs what actually appears                         |
+|                                                                |
+|  [5] TRIPWIRE            → Accountability Trigger              |
+|      - When responsibility activates                           |
+|                                                                |
+|  [6] NEUTRAL CLARITY     → Emotional Load Dampener             |
+|      - Removes moral charge; keeps the moment safe             |
+|                                                                |
+|  [7] ROOM MOTION         → Collective Pressure Mapper          |
+|      - Direction the group is moving                           |
+|                                                                |
++----------------------------------------------------------------+
+                                |
+                                v
++--------------------------------------------------------------+
+|                     PROCESSING LAYER                         |
+|      (How the kernel routes pressure into clarity)           |
++--------------------------------------------------------------+
+|                                                              |
+|   Responsibility Router  → Defines edges of agency           |
+|   Structural Scanner     → Reveals loops & patterns          |
+|   Nervous System Regulator → Slows escalation                |
+|   Alignment Detector     → Flags drift                       |
+|   Accountability Trigger → Identifies required action        |
+|   Emotional Load Dampener → Neutralizes charge               |
+|   Pressure Mapper        → Predicts escalation vectors       |
+|                                                              |
++--------------------------------------------------------------+
+                                |
+                                v
++--------------------------------------------------------------+
+|                     OUTPUT LAYER                             |
+|        (Clarity → Actionable, low-entropy next steps)        |
++--------------------------------------------------------------+
+|                                                              |
+|   • Clear responsibility                                     |
+|   • De-escalated pacing                                      |
+|   • Pattern recognition                                      |
+|   • Drift correction                                         |
+|   • Safe conversation surface                                |
+|   • Predictable room navigation                              |
+|                                                              |
++--------------------------------------------------------------+

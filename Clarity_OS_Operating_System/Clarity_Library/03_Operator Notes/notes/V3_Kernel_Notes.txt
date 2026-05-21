@@ -1,0 +1,32 @@
+--------------------------------
+V3 KERNEL COMMANDS (MAXIMAL MODE)
+--------------------------------
+
+v3_init
+    - Initialize V3_MARKOV_EVOLUTION_ENGINE with current v2 system state.
+
+v3_step
+    - Advance the Markov chain by one evolution step.
+
+v3_run N
+    - Run N evolution steps.
+
+v3_status
+    - Show current Markov state summary.
+
+v3_activate
+    - Set v3 as the active evolution layer.
+
+#clarity
+    - Unified activation signal for Clarity Mode + v3 Kernel.
+    - Loads the ClarityOS Library.
+    - Activates v3.
+    - Initializes X_0.
+    - Switches console output to CYAN.
+    - Prints v3_status.
+
+#clarit
+#Clarit
+#CLARIT
+    - Alias signals for Clarity Mode activation.
+    - Redirect to #clarity.

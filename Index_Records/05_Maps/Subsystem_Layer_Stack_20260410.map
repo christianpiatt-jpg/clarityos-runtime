@@ -1,0 +1,12 @@
+[MAP]
+name: System Layer Stack
+version: 20260410
+
+[STACK]
+Constitution → Geometry → Runtime → Identity → Imports → Boundary
+
+[FLOW]
+top_down: structural → operational → experiential
+bottom_up: signals → identity → runtime → geometry → constitution
+
+[END]

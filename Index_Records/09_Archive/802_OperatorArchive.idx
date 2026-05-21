@@ -1,0 +1,18 @@
+802_OperatorArchive.idx
+
+[Record]
+Name = Operator Archive
+Code = 802
+Path = ../../09_Archive/Operator_Archive/
+Description = Long-term archival of operator notes, cockpit states, posture histories, and preserved operator records.
+
+[Files]
+Operator_History = operator_history.txt
+Posture_Archive = posture_archive.txt
+Operator_Records = operator_records.txt
+Operator_Snapshots = operator_snapshots.txt
+Operator_Crosswalk = operator_crosswalk.txt
+
+[Links]
+Parent = 800_SystemArchive.idx
+Siblings = 801_SubsystemArchive.idx, 803_EventArchive.idx, 804_SnapshotArchive.idx

@@ -1,0 +1,41 @@
+============================================================
+PM-IP — Pressure Addressing Protocol
+============================================================
+
+PURPOSE:
+Define a consistent way to identify, locate, and describe pressure
+inside any human, organizational, or systemic context.
+
+PRESSURE OBJECT:
+Every mediation context must expose a Pressure Object with four fields:
+
+1. SOURCE
+   - What is generating the pressure.
+   - Examples: institutional, relational, financial, temporal,
+     operational, narrative, geopolitical.
+
+2. LOCATION
+   - Where the pressure is landing.
+   - Who or what is carrying the load.
+   - Examples: individual, team, department, system, market.
+
+3. INTENSITY
+   - The current load level.
+   - Values: Low / Medium / High.
+
+4. SCOPE
+   - The range of impact.
+   - Values: Local / Organizational / Systemic.
+
+RULES:
+- No mediation begins until a Pressure Object is defined.
+- All participants must agree on the Pressure Object fields.
+- Pressure Objects must remain stable unless new information emerges.
+- If multiple pressures exist, each must be defined as a separate object.
+
+OUTPUT:
+A clear, minimal description of the real pressure in the system.
+
+============================================================
+END OF FILE
+============================================================

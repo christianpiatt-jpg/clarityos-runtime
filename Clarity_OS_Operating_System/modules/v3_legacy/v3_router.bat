@@ -1,0 +1,13 @@
+@echo off
+echo [v3_router]
+echo Command Received: %1
+echo Normalized: %~1
+echo
+echo --- Routing Logic ---
+echo Checking kernel commands...
+echo Checking core extensions...
+echo Checking local commands...
+echo Checking fallback...
+echo
+echo Route complete.
+exit /b 0

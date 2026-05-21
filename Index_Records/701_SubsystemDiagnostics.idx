@@ -1,0 +1,18 @@
+701_SubsystemDiagnostics.idx
+
+[Record]
+Name = Subsystem Diagnostics
+Code = 701
+Path = ../../07_Diagnostics/Subsystem_Diagnostics/
+Description = Diagnostics for subsystem performance, module health, engine behavior, and subsystem-level anomaly detection.
+
+[Files]
+Subsystem_Health = subsystem_health.txt
+Module_Diagnostics = module_diagnostics.txt
+Engine_Reports = engine_reports.txt
+Subsystem_Alerts = subsystem_alerts.txt
+Subsystem_Crosswalk = subsystem_crosswalk.txt
+
+[Links]
+Parent = 700_SystemDiagnostics.idx
+Siblings = 702_OperatorDiagnostics.idx, 703_IntegrityScans.idx, 704_ContaminationChecks.idx

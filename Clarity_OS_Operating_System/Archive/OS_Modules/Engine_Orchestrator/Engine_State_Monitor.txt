@@ -1,0 +1,125 @@
+============================================================
+MODULE: ENGINE_STATE_MONITOR
+TYPE: Real-Time Telemetry Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Provide real-time monitoring of all critical engine states during
+execution. Tracks vector alignment, ELINS signals, Markov
+stability, drift emergence, basin shifts, and pressure gradients
+as they occur.
+
+MONITORED ELEMENTS:
+1. Vector Alignment State (live)
+2. ELINS Signal Levels (LOCAL, WARNO, PRESSURE, DIRECTION)
+3. Markov Stability Index
+4. Drift Emergence Index
+5. Basin Alignment Index
+6. Pressure Gradient Index
+7. Tone Stability Index
+8. Structural Integrity Index
+
+REAL-TIME INDICATORS:
+
+VECTOR_STATUS:
+- Alignment Score (0–100)
+- Contradiction Flags
+- Structural Vector Stability
+
+ELINS_STATUS:
+- LOCAL Field Strength
+- WARNO Alert Level
+- PRESSURE Spike Detection
+- DIRECTION Alignment
+
+MARKOV_STATUS:
+- Next-State Stability
+- Drift Tendency Level
+- Basin Shift Probability
+- Pressure Distortion Risk
+
+DRIFT_STATUS:
+- Drift Emergence Level
+- Drift Source (Vector / ELINS / Markov)
+- Drift Correction Required (Yes/No)
+
+BASIN_STATUS:
+- Current Basin
+- Basin Stability Score
+- Basin Shift Warning
+
+PRESSURE_STATUS:
+- Gradient Strength
+- Distortion Risk
+- Pressure Direction
+
+STRUCTURE_STATUS:
+- Frame Integrity
+- Bullet Integrity
+- Through-Line Stability
+
+TONE_STATUS:
+- Tone Neutrality
+- Tone Drift
+- Emotional Artifact Detection
+
+MONITORING SEQUENCE:
+
+STEP 1 — INITIALIZE MONITOR
+- Activate telemetry channels
+- Load baseline thresholds from ENGINE_CONFIG
+
+STEP 2 — BEGIN REAL-TIME TRACKING
+- Track all indicators during QC_Pre
+- Track all indicators during Clarity Loop
+- Track all indicators during Langbridg
+- Track all indicators during QC_Post
+
+STEP 3 — ISSUE WARNINGS
+- Drift Warning
+- Basin Shift Warning
+- Pressure Spike Warning
+- Markov Instability Warning
+- Vector Misalignment Warning
+- Tone Drift Warning
+
+STEP 4 — ISSUE CRITICAL ALERTS
+- Drift Event
+- Basin Shift Event
+- Pressure Distortion Event
+- Structural Collapse Event
+
+STEP 5 — PROVIDE LIVE STATE SNAPSHOT
+- Consolidated telemetry map
+- Stability Index (0–100)
+- Drift Index (0–100)
+- Basin Index (0–100)
+- Pressure Index (0–100)
+
+FAILURE MODES:
+- Telemetry dropout
+- Missing vector data
+- Missing ELINS signals
+- Missing Markov predictions
+- Drift event not detected
+- Basin shift not detected
+
+RECOVERY:
+- Reinitialize telemetry channels
+- Reload thresholds from ENGINE_CONFIG
+- Re-sync with module outputs
+- Reconstruct missing states from logs
+
+MONITOR CONTRACT:
+Telemetry must run during every execution.
+No drift event may go undetected.
+No basin shift may go unreported.
+No pressure spike may be ignored.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

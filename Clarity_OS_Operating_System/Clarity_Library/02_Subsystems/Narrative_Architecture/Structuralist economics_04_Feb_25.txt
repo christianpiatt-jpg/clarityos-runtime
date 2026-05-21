@@ -1,0 +1,94 @@
+Structuralist economics
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+Structuralist economics is an approach to economics that emphasizes the importance of taking into account structural features (typically) when undertaking economic analysis. The approach originated with the work of the Economic Commission for Latin America (ECLA or CEPAL) and is primarily associated with its director Raúl Prebisch and Brazilian economist Celso Furtado. Prebisch began with arguments that economic inequality and distorted development was an inherent structural feature of the global system exchange. As such, early structuralist models emphasised both internal and external disequilibria arising from the productive structure and its interactions with the dependent relationship developing countries had with the developed world. Prebisch himself helped provide the rationale for the idea of import substitution industrialization, in the wake of the Great Depression and World War II.[1] The alleged declining terms of trade of the developing countries, the Singer–Prebisch hypothesis, played a key role in this.[2]
+
+Details
+Dutt and Ros[3] argue that structuralist economists try to identify specific rigidities, lags as well as other characteristics of the structure of developing countries in order to assess the way economies adjust and their responsiveness to development policies. A normal assumption within this approach is that the price mechanism fails
+
+as an equilibrating mechanism,
+to deliver steady growth,
+to produce a "desired" income distribution.[4]
+Nixson[5] reports Bitar's[6] argument that there had become a broad consensus on what amounted to the neostructuralist approach. This included the recognition of:
+
+the importance of political and institutional factors in the analysis of economic problems.
+of the need to raise the level of domestic saving in order to raise the rate of investment given that external sources of finance are likely to be hard to come by
+inflation as a "social phenomenon" requiring for its elimination social, psychological and political-institutional changes, as well as orthodox monetary and fiscal policies.
+the false nature of dilemmas between for example ISI and EOI — planning and the market — agriculture and industry.
+the need to strengthen the productive and technological base.
+the importance of trying to improve the terms on which countries are integrated into the global economy and to improve international competitiveness.
+structural adjustment as only one component of structural change.
+More recent contributions to structuralist economics have highlighted the importance of institutions and distribution across both productive sectors and social groups. These institutions and sectors may be incorporated macroeconomic or multisectoral models. At the macroeconomic level modern structuralists would trace the origins of their approach to Kalecki's Problems of Financing Economic Development in a Mixed Economy.[7] Fitz Gerald’s version of this model of an industrializing economy has three commodity markets (food, manufactures and capital goods), foreign trade and income distribution which underpin the specification of a financial-sector with savings, investment, fiscal and monetary balances.[8] For multisectoral models Social Accounting Matrices (SAMs) (an extension to input-output tables) are often used.[9] Lance Taylor has provided both a technical introduction to a form of structuralist economics and critique of more mainstream approaches.[10]
+
+New structural economics
+New structural economics is an economic development strategy developed by World Bank Chief Economist Justin Yifu Lin.[11] The strategy combines ideas from both neoclassical economics and structural economics.[11]
+
+See also
+Dependency theory
+Singer–Prebisch thesis
+Gustavo Garza Villarreal
+Developmentalism
+World-systems theory
+Hierarchy theory
+Big History
+Notes
+ Hunt, Michael (2016). The World Transformed, 1945 to the Present. New York City: Oxford. pp. 227–230. ISBN 978-0-19-937102-0.
+ Palma, J.G. (1987). "structuralism," The New Palgrave: A Dictionary of Economics, v. 4, pp. 527-531.
+ Dutt, Amitava Krishna and Ros, Jaime (2003) Development Economics and Structuralist Macroeconomics: Essays in honor of Lance Taylor, Edward Elgar, p. 55.
+ Dutt, Amitava Krishna and Ros, Jaime (2003) Development Economics and Structuralist Macroeconomics: Essays in honor of Lance Taylor, Edward Elgar
+ Colman, D. and Nixson, F. (1994) Economics of Change in Less Developed Countries, Harvester Wheatsheaf, p. 454
+ Bitar, S. (1988) Neoconservatism versus Neostructuralism in Latin America, CEPAL Review, No. 34.
+ Kalecki, M (1970) Problems of Financing Economic Development in a Mixed Economy.
+ FitzGerald, E. V.K. (1990) Kalecki on Financing Development: An Approach to the Macroeconomics of the Semi-industrialised Economy Cambridge Journal of Economics, vol. 14, issue 2, pages 183-203.
+ Taylor, L (1983) Structuralist macroeconomics: Applicable models for the third world, Basic Books, New York
+ Taylor, L (2004) Reconstructing Macroeconomics: Structuralist Proposals and Critiques of the Mainstream, Harvard University Press.
+ Lin, Justin. "New Structural Economics A Framework for Rethinking Development and Policy" (PDF). The World Bank. Retrieved March 7, 2015.
+vte
+Schools of economic thought
+Pre-modern	
+Ancient schoolsMedieval IslamicScholasticism
+Modern era	
+Early modern	
+CameralismMercantilismPhysiocratsSchool of Salamanca
+Late modern	
+American (National)AustrianBirminghamClassical RicardianDistributistEnglish historicalFreiwirtschaftFrench liberalGeorgismGerman historicalMalthusianManchesterMarginalismMarxist economicsMarxian critique of political economyMutualismNeoclassical LausanneSocialist
+Contemporary
+(20th and
+21st centuries)	
+BehavioralBuddhistCapability approachCarnegieChartalism Modern Monetary TheoryChicagoConstitutionalCracovianDisequilibriumEcologicalEvolutionaryFeministFreiburgGenevaInstitutionalKeynesian Neo- Neoclassical–Keynesian synthesisNewPost- CircuitismKeynes–Marx synthesisMonetarism MarketNeo-MalthusianNeo-MarxianNeo-RicardianNeo-SchumpeterianNeoliberalismNew classical Rational expectations theoryReal business-cycle theoryNew institutionalNew neoclassical synthesisOrganizationalPublic choiceRegulationSaltwater/freshwaterSocial creditStockholmStructuralistSupply-sideTechnocracy movementThermoeconomicsVirginia
+Related	
+Critique of political economyHistory of economic thoughtHistory of macroeconomic thoughtEconomicsPolitical economyMainstream economicsHeterodox economicsPost-autistic economicsDegrowthWorld-systems theoryEconomic systems
+Categories: Development economicsSchools of economic thought

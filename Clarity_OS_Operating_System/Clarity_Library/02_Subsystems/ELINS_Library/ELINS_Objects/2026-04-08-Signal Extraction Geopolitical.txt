@@ -1,0 +1,51 @@
+⭐ Signal Extraction (Geopolitical + Pressure Geometry)
+1. Single‑Point Fragility
+A fire at one aluminum facility → national‑level bottleneck.
+This is classic single‑node dependency: when one upstream node fails, the entire downstream system absorbs the shock.
+
+2. Pressure Stacking
+Two loads collide:
+
+Policy load (tariffs)
+
+Physical load (factory outage)
+
+When loads stack faster than systems can adapt, fragility surfaces.
+
+3. Efficiency vs. Resilience
+Automotive supply chains were optimized for:
+
+cost
+
+speed
+
+just‑in‑time flow
+
+But optimization reduces slack.
+Slack is what absorbs shocks.
+Remove slack → shocks propagate.
+
+4. Institutional Lag
+Industry requests relief → policy response lags.
+This creates:
+
+temporal mismatch
+
+uncertainty
+
+operational drag
+
+Lag is a form of pressure accumulation.
+
+5. System‑Wide Exposure
+A localized disruption becomes:
+
+margin compression
+
+production delays
+
+pricing pressure
+
+strategic vulnerability
+
+This is the geometry of over‑concentration.

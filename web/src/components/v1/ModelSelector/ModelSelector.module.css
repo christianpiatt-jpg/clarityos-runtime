@@ -1,0 +1,29 @@
+.selector {
+  display: flex;
+  gap: 0;
+  border-radius: var(--radius-none);
+}
+
+.button {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: var(--border-1);
+  border-radius: var(--radius-none);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.button + .button {
+  border-left: none;
+}
+
+.button:hover {
+  color: var(--color-text-primary);
+}
+
+.buttonActive {
+  color: var(--color-accent-cyan);
+  border-color: var(--color-accent-cyan);
+}

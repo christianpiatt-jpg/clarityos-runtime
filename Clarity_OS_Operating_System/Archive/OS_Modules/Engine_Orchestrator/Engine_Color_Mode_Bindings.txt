@@ -1,0 +1,149 @@
+============================================================
+FILE: ENGINE_COLOR_MODE_BINDINGS
+TYPE: Visual Mode Binding Table & Output Routing Rules
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Define and enforce color-mode bindings for operator-triggered
+visual states within the Operator Console. These bindings provide
+clear, cockpit-grade visual separation between ClarityOS,
+Markov/Markoff, and ELINS outputs.
+
+Color modes affect:
+    - output formatting
+    - console voice
+    - diagnostic framing
+    - subsystem identity signaling
+
+============================================================
+SECTION 2 — MODE TRIGGERS
+============================================================
+
+CLARITY MODE (cyan on black):
+    Trigger: #clarity
+
+MARKOV / MARKOFF MODE (red on black):
+    Triggers:
+        #markov
+        #markoff
+        #mark
+
+ELINS MODE (green on black):
+    Trigger: #elins
+
+EXIT / NORMAL MODE:
+    Triggers:
+        exit
+        normal_mode
+
+============================================================
+SECTION 3 — MODE DEFINITIONS
+============================================================
+
+MODE: CLARITY
+COLOR: CYAN_ON_BLACK
+VOICE: laminar, geometric, cockpit-grade
+USE CASES:
+    - clarity loop
+    - structural reasoning
+    - operator console output
+    - system-level diagnostics
+
+MODE: MARKOV
+COLOR: RED_ON_BLACK
+VOICE: temporal, probabilistic, chain-state
+USE CASES:
+    - Markov/Markoff chain output
+    - drift/basin/pressure transitions
+    - temporal predictions
+    - chain-state diagnostics
+
+MODE: ELINS
+COLOR: GREEN_ON_BLACK
+VOICE: narrative-physics, basin-aware, analytic
+USE CASES:
+    - ELINS briefs
+    - ELINS+ and ELINSPRO
+    - legitimacy signal extraction
+    - manifold narrative slices
+
+MODE: NORMAL
+COLOR: DEFAULT
+VOICE: standard operator interaction
+USE CASES:
+    - general conversation
+    - non-engine tasks
+
+============================================================
+SECTION 4 — MODE ROUTING RULES
+============================================================
+
+When a trigger phrase is detected:
+    - set ACTIVE_MODE to corresponding mode
+    - route all output through mode-specific formatter
+    - apply color and voice profile
+    - persist mode until exit command
+
+If multiple triggers appear:
+    - last trigger wins
+    - log mode-switch event
+
+If no trigger is present:
+    - remain in current mode
+
+============================================================
+SECTION 5 — SAFETY & BOUNDARY RULES
+============================================================
+
+Color modes may not:
+    - override safety
+    - override identity protection
+    - override boundary protection
+    - alter mission or intent
+    - modify engine behavior outside formatting
+
+Color modes must:
+    - remain purely visual
+    - remain deterministic
+    - remain reversible
+    - maintain emotional ergonomics
+
+============================================================
+SECTION 6 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_COLOR_MODE
+    Display current active mode.
+
+ENGINE_COLOR_MODES
+    Display all available modes.
+
+ENGINE_COLOR_RESET
+    Return to NORMAL mode.
+
+============================================================
+SECTION 7 — FAILURE MODES
+============================================================
+
+Potential failures:
+    - ambiguous trigger
+    - overlapping triggers
+    - malformed mode request
+    - mode persistence conflict
+
+Recovery:
+    - revert to NORMAL mode
+    - log failure
+    - notify operator
+
+============================================================
+STATUS:
+Color Mode Bindings Installed.
+
+============================================================
+END OF FILE
+============================================================

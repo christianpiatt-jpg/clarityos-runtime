@@ -1,0 +1,25 @@
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  padding: 10px var(--space-inner);
+  cursor: pointer;
+  border-radius: var(--radius-none);
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-accent-cyan);
+}
+
+.itemActive {
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--color-accent-cyan);
+  border-left: 2px solid var(--color-accent-cyan);
+  padding-left: calc(var(--space-inner) - 2px);
+}

@@ -1,0 +1,50 @@
+============================================================
+Website Integration — Professional Mediation Protocol
+============================================================
+
+PURPOSE:
+Expose the Professional Mediation Protocol to the public through
+clean, human, neutral website language.
+
+STACK:
+PM-IP     (Pressure Addressing)
+PM-TCP    (Clarity Transport)
+PM-APP    (Application Layer)
+Langbridg (Language Layer)
+Website   (Public Surface)
+
+WEBSITE CONTRACT:
+All website text must:
+1. Reflect the structure of the protocol.
+2. Use Langbridg for tone and clarity.
+3. Avoid jargon, drift, and technical framing.
+4. Present mediation as a clear, stable, human service.
+5. Maintain emotional safety and neutrality.
+
+CORE WEBSITE STATEMENTS:
+
+IDENTITY LINE:
+"We help you regain clarity when pressure makes communication difficult."
+
+WHAT WE DO:
+"We identify the real pressure, slow the situation, and rebuild a shared understanding so people can move forward."
+
+PROCESS (Langbridg version of the Transport Loop):
+Center:
+"We slow things down so everyone can think clearly."
+
+Compress:
+"We identify the real issue without noise or confusion."
+
+Cohere:
+"We help everyone reach the same understanding."
+
+OUTPUT:
+A website surface that expresses the protocol in clean, human language.
+
+STATUS:
+Integrated.
+
+============================================================
+END OF FILE
+============================================================

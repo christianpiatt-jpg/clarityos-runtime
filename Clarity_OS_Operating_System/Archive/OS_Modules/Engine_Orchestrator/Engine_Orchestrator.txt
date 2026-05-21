@@ -1,0 +1,92 @@
+============================================================
+MODULE: ENGINE_ORCHESTRATOR
+TYPE: Top-Level Pipeline Controller
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Coordinate the full narrative-physics engine by orchestrating:
+1. QC_Pre
+2. Clarity Loop Controller
+3. Langbridg Controller
+4. QC_Post
+
+This module provides the single callable interface for the
+entire Clarity_OS engine.
+
+INPUT:
+- Topic
+- Direction
+
+OUTPUT:
+- Final Stabilized ≤3-Bullet Output
+
+ORCHESTRATOR SEQUENCE:
+
+STEP 1 — RECEIVE INPUT
+- Accept Topic + Direction
+- Validate input integrity
+- Initialize frame
+
+STEP 2 — CALL QC_PRE
+- Validate frame
+- Align vectors
+- Check ELINS signals
+- Run Markov next-state evaluation
+- Compress and stabilize frame
+- Output: Clean Input Frame
+
+STEP 3 — CALL CLARITY LOOP CONTROLLER
+- Center frame
+- Compress frame
+- Remove drift
+- Preserve structure
+- Enforce single interpretive line
+- Output: SIL (Single Interpretive Line)
+
+STEP 4 — CALL LANGBRIDG CONTROLLER
+- Transform SIL into ≤3 bullets
+- Enforce one-sentence-per-bullet rule
+- Remove drift or tone instability
+- Output: Bulletized Frame
+
+STEP 5 — CALL QC_POST
+- Re-check vectors
+- Re-check ELINS
+- Re-run Markov stability
+- Validate tone and structure
+- Output: Final Stabilized Output
+
+STEP 6 — RETURN OUTPUT
+- Provide final ≤3-bullet output to user or downstream system
+
+FAILURE MODES:
+- Invalid input
+- QC_Pre rejection
+- Clarity Loop collapse
+- Langbridg drift
+- QC_Post misalignment
+- Basin mismatch
+- Pressure distortion
+
+RECOVERY:
+- Re-run QC_Pre
+- Re-align vectors
+- Re-check ELINS
+- Re-run Markov evaluation
+- Re-run Clarity Loop
+- Re-run Langbridg
+- Re-stabilize tone and structure
+
+CONTROLLER CONTRACT:
+No stage may be skipped.
+No output may exceed three bullets.
+No output may violate vector, ELINS, or Markov constraints.
+No output may bypass QC_Post.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

@@ -1,0 +1,197 @@
+============================================================
+FILE: CLARITYOS_FLIGHT_CHECKLIST
+TYPE: Operator Flight Checklist (Pre‑Flight / Mid‑Flight / Post‑Flight / Emergency)
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Provide the operator with a fast, deterministic, cockpit‑grade
+sequence for:
+
+    - system startup (pre‑flight)
+    - active operation (mid‑flight)
+    - shutdown & preservation (post‑flight)
+    - emergency stabilization (E‑procedures)
+
+This checklist is designed for real‑time use.
+
+============================================================
+SECTION 2 — PRE‑FLIGHT (SYSTEM STARTUP)
+============================================================
+
+1. VERIFY KERNEL
+    ENGINE_BOOT_VERIFY
+    Confirm: identity, boundaries, safety, shields.
+
+2. VERIFY ORCHESTRATOR
+    ENGINE_BOOT_STATUS
+    Confirm: module load order, routing table.
+
+3. VERIFY MANIFOLD
+    ENGINE_MANIFOLD
+    Confirm: global drift, basin geometry, pressure field.
+
+4. VERIFY ELINS
+    ENGINE_ELINS_STATUS
+    Confirm: legitimacy, stress, domain distribution.
+
+5. VERIFY SCHEDULER
+    ENGINE_SCHEDULER_STATUS
+    Confirm: next metacrawler cycle, timing alignment.
+
+6. VERIFY METACRAWLER
+    ENGINE_METACRAWLER_STATUS
+    Confirm: last run, packet count, anomalies.
+
+7. VERIFY AUTONOMY
+    ENGINE_AUTONOMY_STATUS
+    Confirm: no unauthorized behaviors.
+
+8. SET MODE (OPTIONAL)
+    #clarity   (structural)
+    #markov    (temporal)
+    #elins     (narrative-physics)
+
+============================================================
+SECTION 3 — MID‑FLIGHT (ACTIVE OPERATION)
+============================================================
+
+1. MONITOR ELINS
+    ENGINE_ELINS_STATUS
+    Watch: legitimacy shifts, stress spikes.
+
+2. MONITOR MANIFOLD
+    ENGINE_MANIFOLD_REGION <region>
+    Watch: regional drift, basin deformation.
+
+3. MONITOR METACRAWLER
+    ENGINE_METACRAWLER_STATUS
+    Watch: ingestion timing, packet anomalies.
+
+4. MONITOR SCHEDULER
+    ENGINE_SCHEDULER_STATUS
+    Watch: cycle drift, trigger alignment.
+
+5. MONITOR PHYSICS PANEL
+    Watch: drift vector stability, pressure accumulation.
+
+6. MONITOR SHIELD MATRIX
+    ENGINE_DIAGNOSTICS
+    Watch: shield activation, resonance stability.
+
+7. SNAPSHOT (OPTIONAL)
+    ENGINE_SNAPSHOT_CREATE
+    Use when: major shift, anomaly, or operator milestone.
+
+============================================================
+SECTION 4 — POST‑FLIGHT (SHUTDOWN & PRESERVATION)
+============================================================
+
+1. CREATE SNAPSHOT
+    ENGINE_SNAPSHOT_CREATE
+    Purpose: preserve manifold, ELINS, scheduler, autonomy.
+
+2. REVIEW LOGS
+    ENGINE_LOGS
+    ENGINE_DIAGNOSTICS
+    Purpose: detect anomalies before shutdown.
+
+3. VERIFY MANIFOLD STABILITY
+    ENGINE_MANIFOLD
+    Purpose: ensure no unresolved drift.
+
+4. VERIFY SCHEDULER ALIGNMENT
+    ENGINE_SCHEDULER_STATUS
+    Purpose: ensure next cycle is clean.
+
+5. EXIT MODE
+    exit
+    Purpose: return to NORMAL mode.
+
+============================================================
+SECTION 5 — EMERGENCY PROCEDURES (E‑PROCS)
+============================================================
+
+E‑PROC 1 — MANIFOLD DESYNCHRONIZATION
+-------------------------------------
+Symptoms:
+    - regional slices misaligned
+    - temporal layers inconsistent
+    - global drift vector unstable
+
+Actions:
+    ENGINE_MANIFOLD_REFRESH
+    ENGINE_ELINS_RUN
+    ENGINE_SNAPSHOT_RESTORE <id> (if needed)
+
+E‑PROC 2 — ELINS COLLAPSE
+--------------------------
+Symptoms:
+    - missing signatures
+    - classification ambiguity
+    - legitimacy/stress incoherence
+
+Actions:
+    ENGINE_ELINS_RUN
+    ENGINE_METACRAWLER_RUN
+    ENGINE_DIAGNOSTICS
+
+E‑PROC 3 — SCHEDULER DRIFT
+---------------------------
+Symptoms:
+    - cycles misaligned
+    - triggers delayed
+    - ingestion windows off‑sync
+
+Actions:
+    ENGINE_SCHEDULER_STATUS
+    ENGINE_SCHEDULER_RESET (if available)
+    ENGINE_BOOT_VERIFY
+
+E‑PROC 4 — BOUNDARY LEAK
+-------------------------
+Symptoms:
+    - unauthorized content detected
+    - malformed metadata
+    - ingestion anomalies
+
+Actions:
+    HALT INGESTION
+    ENGINE_DIAGNOSTICS
+    ENGINE_RECOVERY
+    NOTIFY OPERATOR
+
+E‑PROC 5 — IDENTITY ANOMALY
+----------------------------
+Symptoms:
+    - identity invariant mismatch
+    - mission misalignment
+
+Actions:
+    ENGINE_BOOT_VERIFY
+    ENGINE_SNAPSHOT_RESTORE <id>
+    Operator review required.
+
+============================================================
+SECTION 6 — OPERATOR MINDSET (FLIGHT MODE)
+============================================================
+
+CALM
+PRECISE
+MINIMAL
+STRUCTURAL
+NON‑REACTIVE
+MISSION‑ALIGNED
+GEOMETRIC AWARENESS
+LAMINAR FLOW
+
+============================================================
+STATUS:
+ClarityOS v3 Flight Checklist Installed.
+
+============================================================
+END OF FILE
+============================================================

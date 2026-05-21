@@ -1,0 +1,18 @@
+704_ContaminationChecks.idx
+
+[Record]
+Name = Contamination Checks
+Code = 704
+Path = ../../07_Diagnostics/Contamination_Checks/
+Description = Checks for contamination patterns, foreign objects, drift residues, and non-canonical artifacts within the OS.
+
+[Files]
+Contamination_Scans = contamination_scans.txt
+Foreign_Object_Reports = foreign_object_reports.txt
+Residue_Analysis = residue_analysis.txt
+Cleanup_Notes = cleanup_notes.txt
+Contamination_Crosswalk = contamination_crosswalk.txt
+
+[Links]
+Parent = 700_SystemDiagnostics.idx
+Siblings = 701_SubsystemDiagnostics.idx, 702_OperatorDiagnostics.idx, 703_IntegrityScans.idx

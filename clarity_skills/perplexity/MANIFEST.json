@@ -1,0 +1,410 @@
+{
+  "manifest_version": "2.0.0",
+  "schema_version": "1.3.0",
+  "generated_at": "2026-05-08",
+  "layer": "general-case",
+  "folder": "clarity_skills/perplexity",
+  "governance": {
+    "versioning_file": "VERSIONING.md",
+    "integrity_checks_file": "INTEGRITY_CHECKS.md",
+    "pipeline_file": "CREATE_NEW_SKILL_INSTRUCTIONS.md",
+    "template_file": "SKILL_TEMPLATE.md",
+    "taxonomy_file": "SKILL_TAXONOMY.md",
+    "agent_template_file": "AGENT_SPEC_TEMPLATE.md",
+    "agent_taxonomy_file": "AGENT_TAXONOMY.md"
+  },
+  "hash_algorithm": "sha256",
+  "skills": [
+    {
+      "name": "clarity-narrative-litigation",
+      "version": "1.0.2",
+      "filename": "clarity-narrative-litigation.md",
+      "zip_filename": "clarity-narrative-litigation.zip",
+      "description": "Analyze legal motions, briefs, agency decisions, or institutional documents using a narrative-architecture approach. Use when asked to analyze, oppose, or respond to a motion, brief, or government filing. Applies contradictions, timelines, identity threads, and institutional behavior patterns to surface structural weaknesses and disputed facts.",
+      "md_sha256": "85791e82f231441e54cd45e70fd9399749bdfcfc84fa05e26459620b315d3379",
+      "zip_sha256": "d7e506a962de2b49227c754a83127174b5bc486c9dbfce72bf9450c6eb332489",
+      "md_bytes": 3322,
+      "zip_bytes": 1467,
+      "category": "Narrative Analysis",
+      "capabilities": [
+        "Analyze legal motions, briefs, and agency decisions for structural readings",
+        "Apply narrative-architecture analysis (contradictions, timelines, identity threads, institutional behavior patterns)",
+        "Surface disputed material facts, framing tricks, and gaps in the record",
+        "Produce structural summaries and proposed opposition outlines with suggested headings",
+        "Prioritize attack points by impact on requested relief and applicable standard of review"
+      ],
+      "limitations": [
+        "Does not draft full briefs or replace legal counsel",
+        "Does not verify or cite-check legal authorities",
+        "Does not perform jurisdiction-specific procedural analysis",
+        "Does not apply outside-the-document evidence; analysis is bound to the input text"
+      ],
+      "governance_version": "1.0.0",
+      "baseline_hash": "dfd2f43bd82e7a736095005ebcb6a3c0e9f9255057e279b2149e4f60d280102e",
+      "input_shape": "Legal motion, brief, agency decision, or institutional document containing assertions, framing, and supporting material.",
+      "output_shape": "Structural reading of the document — section summary, list of contradictions and disputes, proposed opposition outline with suggested headings, and prioritized attack-point notes.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-contradictions-extractor",
+      "version": "1.0.2",
+      "filename": "clarity-contradictions-extractor.md",
+      "zip_filename": "clarity-contradictions-extractor.zip",
+      "description": "Extract contradictions from any document, including legal filings, agency decisions, narratives, or institutional communications. Use when asked to identify inconsistencies, conflicts, or mismatches between claims, facts, timelines, or behaviors.",
+      "md_sha256": "1e77276952636e7fdaa85ac3eb59ceca6ab76efa6594874eabb1ce65612707b3",
+      "zip_sha256": "c6ff2518d42971bc76199eaacd0b2316eb3769e03aa312e831fbc47567299ea7",
+      "md_bytes": 2597,
+      "zip_bytes": 1148,
+      "category": "Evidence Extraction",
+      "capabilities": [
+        "Identify and classify contradictions in any document",
+        "Distinguish six contradiction types (internal, external, temporal, causal, identity, institutional)",
+        "Quote or summarize conflicting statements with type labels and impact notes",
+        "Produce numbered lists of contradictions with summaries of the most leverageable items"
+      ],
+      "limitations": [
+        "Does not verify external facts; works only on internal text consistency",
+        "Does not produce legal conclusions or doctrinal analysis",
+        "Does not classify contradictions beyond the six predefined types",
+        "Does not extract claims that are not in textual conflict with another claim in the document"
+      ],
+      "governance_version": "1.0.0",
+      "baseline_hash": "725052e8257933e1b08601a0f5de3a6eca35f9a03449ae00ca7283aa6bdab0ca",
+      "input_shape": "Any document with claims, facts, assertions, or institutional statements (legal filings, agency decisions, narratives, communications).",
+      "output_shape": "Numbered list of contradictions, each labeled by type (internal, external, temporal, causal, identity, institutional) with a one-to-two-sentence explanation and an impact note.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-timeline-mapper",
+      "version": "1.0.2",
+      "filename": "clarity-timeline-mapper.md",
+      "zip_filename": "clarity-timeline-mapper.zip",
+      "description": "Extract, normalize, and map timelines from documents. Use when asked to build a timeline, identify temporal inconsistencies, or reconstruct sequences of events from filings, narratives, or institutional records.",
+      "md_sha256": "4429f0e30a6df8449fb312652b5b94256641039b43c40eb8236859a5e8062fc9",
+      "zip_sha256": "2b5b682c5282b5f5ec63193419be5d85a158a06fb650d2f9bce3930b073ace77",
+      "md_bytes": 2291,
+      "zip_bytes": 1079,
+      "category": "Timeline Construction",
+      "capabilities": [
+        "Extract dates, times, and temporal references from a document",
+        "Normalize dates to YYYY-MM-DD format and order chronologically",
+        "Identify gaps, impossible sequences, overlapping events, and temporal contradictions",
+        "Produce clean chronological timelines with inconsistency notes"
+      ],
+      "limitations": [
+        "Does not infer dates that are not stated or strongly implied in the text",
+        "Does not assign causality between events; only flags missing causal links the text implies",
+        "Does not resolve ambiguous dates without explicit context",
+        "Does not produce legal or factual conclusions; output is descriptive only"
+      ],
+      "governance_version": "1.0.0",
+      "baseline_hash": "192232857b2949b169b34786fc86e37c0a57eaa44ea89230eea186759fca2451",
+      "input_shape": "Document or set of documents containing dated events (filings, emails, transcripts, narratives, institutional records).",
+      "output_shape": "Chronological timeline of normalized events plus a list of temporal inconsistencies (gaps, impossible sequences, conflicting dates, missing causal links) with notes on narrative or legal impact.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-operator-brief-structurer",
+      "version": "1.0.1",
+      "filename": "clarity-operator-brief-structurer.md",
+      "zip_filename": "clarity-operator-brief-structurer.zip",
+      "description": "Convert complex documents, transcripts, filings, or multi-source inputs into operator-grade briefs with a fixed four-part structure (Situation, Assessment, Key Points, Recommended Actions). Use when asked to summarize, brief, structure, or compress a document into a decision-ready format.",
+      "md_sha256": "042bf4a125fe68efb741329fd40969bb94a0a2c0088dee58fc452fc08860f15f",
+      "zip_sha256": "b438b8dde5ad3ff0de0ff46fa36ea28b5227c69f03268706ee12a84390b1cd90",
+      "md_bytes": 5829,
+      "zip_bytes": 2442,
+      "category": "Summarization",
+      "capabilities": [
+        "Extract the core situation from complex input",
+        "Identify key facts ranked by decision impact",
+        "Identify operator-relevant signals and uncertainties",
+        "Produce a structured brief in the fixed Situation / Assessment / Key Points / Recommended Actions format",
+        "Maintain clarity and compression — output is always shorter than the source"
+      ],
+      "limitations": [
+        "Does not perform legal analysis or apply legal standards to facts",
+        "Does not extract or classify contradictions",
+        "Does not build timelines or normalize dates",
+        "Does not rewrite source documents verbatim or beyond fair-use length"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "49f0a4e505fdab565689c77773fc682ec5f67cdbd787a81b350d99f00bbb842c",
+      "input_shape": "Complex document, transcript, filing, or multi-source input that the operator needs in compressed decision-ready form.",
+      "output_shape": "Operator-grade brief in fixed four-part structure: Situation, Assessment, Key Points, Recommended Actions.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-legal-argument-mapper",
+      "version": "1.0.1",
+      "filename": "clarity-legal-argument-mapper.md",
+      "zip_filename": "clarity-legal-argument-mapper.zip",
+      "description": "Analyze legal documents (motions, briefs, agency decisions, opinions) and extract their legal argument structure: issues, standards of review, elements, sub-elements, burdens, evidence citations, and logical dependencies. Use when asked to map, dissect, decompose, or structurally analyze the legal logic of a document.",
+      "md_sha256": "a2a6ce3342c8e6b85ae52eb62afa3639c79d0c9462bee038fe4e026ad7c9c7d9",
+      "zip_sha256": "3ff2e77d416eee78824b96b4fb6ff56795dc80fb472c66cfe5db3aa39e0a82ca",
+      "md_bytes": 8352,
+      "zip_bytes": 3320,
+      "category": "Legal Reasoning",
+      "capabilities": [
+        "Identify legal issues and classify them as questions of law, fact, or mixed",
+        "Extract standards of review and flag standard-mismatch errors",
+        "Map arguments to legal-test elements and sub-elements",
+        "Identify missing elements, unsupported assertions, and unmapped evidence",
+        "Identify burden-shifting errors and improperly invoked frameworks",
+        "Produce a structured legal argument map keyed by issue and element"
+      ],
+      "limitations": [
+        "Does not perform narrative analysis (framing, identity threads, institutional behavior)",
+        "Does not extract or classify contradictions",
+        "Does not build timelines or normalize dates",
+        "Does not generate full briefs or rewrite legal documents"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "3b81da75248d58441acf6d1372013f5d96f4e9fc22151134407ba20063085d7d",
+      "input_shape": "Legal document (motion, brief, opinion, agency decision) presenting one or more legal issues, standards of review, and supporting evidence or authority.",
+      "output_shape": "Structured argument map keyed by issue → element → sub-element → evidence/authority → burden → status, with an explicit Identified Gaps section listing missing elements, unsupported assertions, unmapped evidence, standard-mismatch errors, and burden-shifting errors.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-narrative-spine-builder",
+      "version": "1.0.1",
+      "filename": "clarity-narrative-spine-builder.md",
+      "zip_filename": "clarity-narrative-spine-builder.zip",
+      "description": "Extract the narrative spine from any document by identifying the core actors (protagonist, antagonist, institutional roles), the central conflict and stakes, the causal chain, the institutional posture, and the narrative frame. Use when asked to map, build, extract, or expose the underlying narrative structure of a document, set of documents, or transcript.",
+      "md_sha256": "acadb02dfee7e3109e67e16570edb302b444113c5cdf3e5f9af413870820bb72",
+      "zip_sha256": "6a06f544e870395e619170134847c4d29139c0711a0cc337b8b8ab55092bb75d",
+      "md_bytes": 8519,
+      "zip_bytes": 3407,
+      "category": "Narrative Analysis",
+      "capabilities": [
+        "Identify protagonist, antagonist, and institutional actors with their roles",
+        "Extract the core conflict and the stakes for each actor",
+        "Identify the narrative frame and any nested subframes",
+        "Identify omissions, distortions, and selective framing in the text",
+        "Produce a compressed narrative spine the operator can hold in working memory",
+        "Provide a structural map that downstream analysis can hang from"
+      ],
+      "limitations": [
+        "Does not perform legal reasoning, doctrinal analysis, or burden mapping",
+        "Does not extract or classify contradictions",
+        "Does not build timelines or normalize dates",
+        "Does not generate full briefs or rewrite source documents"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "c7a19b87dd1378eb0d69f0e63352414ea16c8c27f99ff361bd61c6822164b343",
+      "input_shape": "Document, set of documents, or transcript — any source from which actors, conflicts, and institutional posture can be read.",
+      "output_shape": "Compressed structural map with sections: Actors, Conflict & Stakes, Causal Chain, Institutional Posture, Frame, and Omissions / Distortions / Selective Framing.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-evidence-anchor-extractor",
+      "version": "1.0.1",
+      "filename": "clarity-evidence-anchor-extractor.md",
+      "zip_filename": "clarity-evidence-anchor-extractor.zip",
+      "description": "Identify, extract, and classify evidence anchors from any document. Evidence anchors include factual assertions, citations, exhibits, record references, data points, and witness statements — any text that functions as evidentiary support. Use when asked to extract, list, classify, anchor, table, or map the evidence in a document.",
+      "md_sha256": "5dda1fa329972219dfe4467ac70d806f74e321a3fee2b3c9a8042205d84b87a2",
+      "zip_sha256": "f28dba3acdcd1e627f0984036031ccdc3aeed306ce72e79f0ff9c8f29a9681a0",
+      "md_bytes": 8806,
+      "zip_bytes": 3630,
+      "category": "Evidence Extraction",
+      "capabilities": [
+        "Identify factual assertions and evidentiary statements",
+        "Extract citations, exhibits, and record references",
+        "Classify evidence anchors by type (fact, citation, exhibit, data, witness)",
+        "Map evidence anchors to issues or claims when present",
+        "Produce a structured evidence-anchor table for downstream analysis"
+      ],
+      "limitations": [
+        "Does not perform legal reasoning, doctrinal analysis, or burden mapping",
+        "Does not extract or classify contradictions",
+        "Does not build timelines or normalize dates",
+        "Does not generate briefs or arguments"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "695f818977e2b10721fcf51b3aed9e4bc612af77e4a9188e1cc29d1de4ff6bb4",
+      "input_shape": "Document containing factual assertions, citations, exhibits, data points, or witness statements (filings, reports, transcripts, agency decisions, multi-source sets).",
+      "output_shape": "Structured evidence-anchor table with columns: # | Type | Content | Location | Source | Mapped to | Quality. Plus appended sections listing orphan anchors and unsupported claims.",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-temporal-event-normalizer",
+      "version": "1.0.0",
+      "filename": "clarity-temporal-event-normalizer.md",
+      "zip_filename": "clarity-temporal-event-normalizer.zip",
+      "description": "Normalize, canonicalize, and align temporal expressions into structured, machine-usable event timestamps for downstream timeline reasoning. Use when asked to extract, normalize, canonicalize, or structure temporal data from freeform text into ISO 8601 form.",
+      "md_sha256": "24acec91a9226086420993c940fe487caf70ee2ef8f261c5387db44322e3933f",
+      "zip_sha256": "3bba40099be32ff70100242d03368949927658685e714fd1030d20bbd5d1e145",
+      "md_bytes": 9536,
+      "zip_bytes": 3750,
+      "category": "Timeline Construction",
+      "capabilities": [
+        "Extract temporal expressions from freeform text",
+        "Normalize dates and times to canonical ISO 8601 form",
+        "Handle ranges, vague expressions, and missing components per documented rules",
+        "Score per-event confidence reflecting normalization certainty",
+        "Produce deterministically ordered structured output (JSON array)",
+        "Emit machine-usable timestamps suitable for downstream timeline reasoning"
+      ],
+      "limitations": [
+        "Does not infer dates from semantic context beyond what the text states or strongly implies",
+        "Does not resolve unanchored relative expressions (e.g., 'recently', 'next week') without an anchor date",
+        "Does not extract contradictions, causality, or evidence anchors (those are sibling skills)",
+        "Does not build chronological timelines from events — output is normalized atomic events only"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "24acec91a9226086420993c940fe487caf70ee2ef8f261c5387db44322e3933f",
+      "input_shape": "Freeform text containing events, dates, times, ranges, or ambiguous temporal expressions.",
+      "output_shape": "JSON array of normalized event objects: event_id (string 'evt-NNN'), canonical_timestamp (ISO 8601 or null), temporal_expression (verbatim source text), confidence (float 0.0-1.0).",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-legal-precedent-extractor",
+      "version": "1.0.0",
+      "filename": "clarity-legal-precedent-extractor.md",
+      "zip_filename": "clarity-legal-precedent-extractor.zip",
+      "description": "Extracts, normalizes, and structures legal precedents referenced in text — case names, citations, holdings, and relevance statements. Use when asked to extract, list, normalize, structure, or catalogue case-law citations and precedents in legal documents.",
+      "md_sha256": "e05b671f5815a680c2112dbc3ba77bf2d8f8c329d21096056228b7363bb0afff",
+      "zip_sha256": "f637ada6f80045b8e9e522df2a9e57d8f653da57bb0e3854946b6c450abec8e6",
+      "md_bytes": 11239,
+      "zip_bytes": 4279,
+      "category": "Legal Reasoning",
+      "capabilities": [
+        "Identify case-law references in legal text",
+        "Extract canonical citations and citation components (reporter, volume, page, year, court)",
+        "Summarize each precedent's holding in compressed form",
+        "Map each precedent's relevance to the surrounding argument or issue",
+        "Output structured precedent objects in deterministic order"
+      ],
+      "limitations": [
+        "Does not perform legal interpretation or apply doctrines to facts",
+        "Does not validate jurisdictional hierarchy or court level",
+        "Does not assess binding vs. persuasive authority weight",
+        "Does not infer precedents not explicitly cited or strongly implied in the text"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "e05b671f5815a680c2112dbc3ba77bf2d8f8c329d21096056228b7363bb0afff",
+      "input_shape": "Freeform legal text containing case citations, references, or precedent discussions.",
+      "output_shape": "JSON array of precedent objects: case_name (string), citation (string or null), holding (string), relevance (string), confidence (float 0.0-1.0).",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-summarization-contrastive-brief",
+      "version": "1.0.0",
+      "filename": "clarity-summarization-contrastive-brief.md",
+      "zip_filename": "clarity-summarization-contrastive-brief.zip",
+      "description": "Produces contrastive legal briefs that summarize the record while explicitly surfacing points of agreement, disagreement, and evidentiary gaps between parties. Use when asked to brief, summarize, contrast, compare, or surface disagreements across a multi-document or multi-party legal record.",
+      "md_sha256": "ed4abd64da95a91f0436f3890a401b42149f174fd31f28cf059f38b5c21a1cbc",
+      "zip_sha256": "a32f80a5105d777b9def468203c9b5a24e3c1a4ff641401eba0fed78943f53c4",
+      "md_bytes": 13708,
+      "zip_bytes": 4839,
+      "category": "Summarization",
+      "capabilities": [
+        "Generate structured summaries of multi-document legal records",
+        "Highlight agreements, disagreements, and unresolved issues between positions",
+        "Align summary sections to evidence anchors and timeline references when present",
+        "Produce operator-ready briefs with clear sectioning and labels",
+        "Distinguish what the parties share, what they dispute, and what neither has supported"
+      ],
+      "limitations": [
+        "Does not invent facts; constrained to the provided record",
+        "Does not perform novel legal reasoning beyond structuring and contrast",
+        "Does not resolve factual disputes; only surfaces and organizes them",
+        "Quality depends on upstream node / edge extraction and orientation quality (e.g., evidence anchors, contradictions, precedents from sibling skills)"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "ed4abd64da95a91f0436f3890a401b42149f174fd31f28cf059f38b5c21a1cbc",
+      "input_shape": "Multi-document legal record (pleadings, evidence summaries, testimony excerpts) plus, optionally, explicit party positions or issues lists.",
+      "output_shape": "JSON object with: sections (array of {title, body}), agreements (array of {issue, supporting_nodes}), disagreements (array of {issue, conflicting_nodes}), gaps (array of {issue, missing_information_description}).",
+      "dependencies": []
+    },
+    {
+      "name": "clarity-evidence-chain-normalizer",
+      "version": "1.0.0",
+      "filename": "clarity-evidence-chain-normalizer.md",
+      "zip_filename": "clarity-evidence-chain-normalizer.zip",
+      "description": "Normalize evidence anchors into a stable evidence chain. Accepts a list of evidence anchors produced by clarity-evidence-anchor-extractor, canonicalizes anchor references, resolves cross-links between anchors, and emits a structured evidence chain. Use when asked to chain, link, normalize, resolve, sequence, or canonicalize the evidence after extraction.",
+      "md_sha256": "d273428c1e9e84903ac3009a13a7a04e1cc00f7bdc14ae8d3187ca7969227da6",
+      "zip_sha256": "fd86d8894cb5b6f2152e49b7ee76450acd7fc42cba8f15c73d8f3a4c1048e843",
+      "md_bytes": 13565,
+      "zip_bytes": 4364,
+      "category": "Evidence Extraction",
+      "capabilities": [
+        "Accept evidence-anchor objects produced by clarity-evidence-anchor-extractor",
+        "Normalize anchor references to canonical form (case names, citation components, exhibit labels, deponent names, dataset names)",
+        "Identify cross-links between anchors (one anchor referencing another)",
+        "Resolve the cross-link graph into a connected chain structure with stable chain identifiers",
+        "Produce structured evidence-chain output with orphan-anchor flags and normalization notes"
+      ],
+      "limitations": [
+        "Does not extract anchors from raw text (that is the upstream skill clarity-evidence-anchor-extractor)",
+        "Does not extract or classify contradictions (sibling skill clarity-contradictions-extractor)",
+        "Does not weigh authority or assess legal significance of any anchor",
+        "Does not infer cross-links not stated or strongly implied in the source anchors"
+      ],
+      "governance_version": "1.1.0",
+      "baseline_hash": "d273428c1e9e84903ac3009a13a7a04e1cc00f7bdc14ae8d3187ca7969227da6",
+      "input_shape": "list of evidence anchors extracted from upstream skill",
+      "output_shape": "normalized evidence chain with resolved anchors and cross-links",
+      "dependencies": [
+        "clarity-evidence-anchor-extractor"
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "name": "clarity-operator-agent",
+      "version": "1.0.5",
+      "filename": "clarity-operator-agent.md",
+      "description": "The default Operator agent. Receives operator requests in natural language, decomposes them into the appropriate skill or sequence of skills, invokes those skills from clarity_skills/perplexity/, and produces operator-grade outputs. Use as the entry point for any general analytical, evidentiary, structural, or summarization request from the operator.",
+      "md_sha256": "7a01f5e4d442e623a421342ee05a5755212b038607cb9e5435e2b85a6739ab55",
+      "md_bytes": 13000,
+      "category": "Operator",
+      "capabilities": [
+        "Receive operator requests in natural language",
+        "Decompose requests into appropriate skill invocations",
+        "Compose multiple skills when a request requires multi-step work",
+        "Produce operator-grade outputs in the requested shape",
+        "Maintain Layer 1 / Layer 2 boundary discipline across skill outputs",
+        "Surface library gaps when a needed method does not exist"
+      ],
+      "limitations": [
+        "Does not invent skills; only composes existing skills in the library",
+        "Does not produce output without an explicit operator request (reactive only)",
+        "Does not contaminate Layer 2 from Layer 1 or vice versa",
+        "Does not bypass governance procedures (drift detection, integrity, contamination scans)",
+        "Does not make operational decisions on the operator's behalf"
+      ],
+      "skills_used": [
+        "clarity-narrative-litigation",
+        "clarity-narrative-spine-builder",
+        "clarity-contradictions-extractor",
+        "clarity-evidence-anchor-extractor",
+        "clarity-evidence-chain-normalizer",
+        "clarity-timeline-mapper",
+        "clarity-temporal-event-normalizer",
+        "clarity-operator-brief-structurer",
+        "clarity-summarization-contrastive-brief",
+        "clarity-legal-argument-mapper",
+        "clarity-legal-precedent-extractor"
+      ],
+      "behavioral_profile": "reactive",
+      "activation_triggers": [
+        "Operator presents an analytical request (analyze, examine, dissect)",
+        "Operator asks for a brief, summary, or structural reading",
+        "Operator asks for evidence extraction (contradictions, anchors)",
+        "Operator asks for timeline construction or temporal analysis",
+        "Operator asks for legal argument mapping or doctrinal analysis",
+        "Operator asks for narrative analysis or framing extraction"
+      ],
+      "output_shape": "operator-grade structured output, format selected per the invoked skill(s)",
+      "governance_version": "2.0.0",
+      "agent_kernel_version": "1.0.0",
+      "baseline_hash": "0cea5f13ce29b3ec40c77890c959c6d7e4bd0fb79062c2cd3b7a1a9edf7a9600"
+    }
+  ],
+  "notes": {
+    "boundary": "All skills in this manifest are Layer 1 (general-case). None of them contain particular-case content. Adding a skill that references the personal envelope is a contract violation.",
+    "update_procedure": "When a new skill is added, append a new entry to the skills array, recompute md_sha256 and zip_sha256 with Get-FileHash -Algorithm SHA256, set baseline_hash equal to md_sha256 at first commit (and never change it after), populate category from SKILL_TAXONOMY.md, populate capabilities and limitations, set governance_version to the current governance layer version, and bump generated_at. New skills start at version 1.0.0; bump per-skill version on material content revisions per VERSIONING.md.",
+    "verification": "To verify any zip matches its source .md byte-for-byte, extract SKILL.md from the zip and compare its SHA256 to md_sha256 in this file. They must be equal. baseline_hash is the .md hash at first commit and is immutable thereafter; it equals md_sha256 only at first commit and diverges with every later edit.",
+    "schema_v1_2_0": "Schema 1.2.0 added five required per-skill fields (category, capabilities, limitations, governance_version, baseline_hash) and the governance.taxonomy_file reference. Existing skills were migrated in the v1.2.0 release; their baseline_hash preserves their pre-migration md_sha256."
+  }
+}

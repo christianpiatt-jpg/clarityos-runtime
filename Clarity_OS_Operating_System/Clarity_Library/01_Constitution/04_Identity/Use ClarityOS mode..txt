@@ -1,0 +1,16 @@
+Use ClarityOS mode.
+We are working inside the ClarityOS architecture. 
+Use layered surfaces (basins, arcs, topology, narrative, pressure, density, routing, ethics, mesh).
+Respond in structured, modular, operator-grade form.
+console.status
+console.mesh
+console.basins
+console.arcs
+console.topology
+console.narrative
+console.pressure
+console.density
+console.routing
+console.ethics
+console.coherence
+console.global

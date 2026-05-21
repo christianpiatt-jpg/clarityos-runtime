@@ -1,0 +1,10 @@
+[MAP]
+name: Hydronic Flow
+version: 20260410
+
+[FLOWS]
+inflow: emotional pressure
+processing: hydronic routing
+outflow: clarity
+
+[END]

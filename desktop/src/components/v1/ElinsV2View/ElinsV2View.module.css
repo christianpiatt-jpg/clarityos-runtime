@@ -1,0 +1,311 @@
+/* desktop/src/components/v1/ElinsV2View/ElinsV2View.module.css
+ *
+ * v1 token-aligned styles. 320px-compatible; no horizontal scroll.
+ * Uses existing v1 spacing + color tokens (--color-*, --space-*).
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-inner);
+  font-family: var(--font-sans, inherit);
+  color: var(--color-text-primary);
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.title {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 11px;
+  opacity: 0.6;
+  font-family: var(--font-mono, monospace);
+}
+
+/* ----- Section primitives ----- */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.subtle {
+  font-size: 11px;
+  opacity: 0.7;
+  font-family: var(--font-mono, monospace);
+}
+
+/* ----- ETF pills ----- */
+
+.etfRow {
+  display: flex;
+  gap: 6px;
+}
+
+.etfPill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 4px;
+  min-width: 0;
+}
+
+.etfLabel {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.etfValue {
+  font-size: 14px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+/* ----- Attractor bars ----- */
+
+.attractorRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  align-items: end;
+}
+
+.stateCol,
+.stateColActive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stateColActive .stateLabel {
+  font-weight: 700;
+}
+
+.stateBarOuter {
+  width: 100%;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 3px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.stateBarInner {
+  width: 100%;
+  background: currentColor;
+  opacity: 0.5;
+  min-height: 1px;
+  transition: height 200ms ease;
+}
+
+.stateColActive .stateBarInner {
+  opacity: 0.9;
+}
+
+.stateLabel {
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+
+.stateValue {
+  font-size: 10px;
+  opacity: 0.6;
+  font-feature-settings: "tnum";
+}
+
+/* ----- Collapse ----- */
+
+.collapseRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.collapseValue {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.collapseValue[data-state="none"] { opacity: 0.6; }
+.collapseValue[data-state="soft"] { opacity: 0.85; }
+.collapseValue[data-state="hard"] { opacity: 1.0; }
+
+/* ----- P0-P8 grid ----- */
+
+.pGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pGridHeader,
+.pGridRow {
+  display: grid;
+  grid-template-columns: 62px repeat(3, 1fr);
+  gap: 3px;
+  align-items: stretch;
+}
+
+.pGridHeader > span {
+  font-size: 9px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.pRowLabel {
+  font-size: 10px;
+  opacity: 0.65;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+}
+
+.pCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  min-width: 0;
+}
+
+.pCellKey {
+  font-size: 9px;
+  opacity: 0.55;
+  font-family: var(--font-mono, monospace);
+}
+
+.pCellValue {
+  font-size: 12px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+/* ----- Geography tier ----- */
+
+.geoRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tier {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+}
+
+.tier[data-tier="T1"] { opacity: 1.0; }
+.tier[data-tier="T2"] { opacity: 0.85; }
+.tier[data-tier="T3"] { opacity: 0.7; }
+.tier[data-tier="T4"] { opacity: 0.55; }
+.tier[data-tier="none"] { opacity: 0.4; }
+
+/* ----- Multiplier ----- */
+
+.multRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multValue {
+  font-size: 13px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+  min-width: 44px;
+}
+
+.multBarOuter {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.multBarInner {
+  height: 100%;
+  background: currentColor;
+  opacity: 0.7;
+  transition: width 200ms ease;
+}
+
+/* ----- Footer (re-run + updated at) ----- */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.updatedAt {
+  font-size: 10px;
+  opacity: 0.55;
+  font-family: var(--font-mono, monospace);
+}
+
+.actionBtn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: transparent;
+  color: inherit;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.actionBtn:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.40);
+}
+
+.actionBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.error {
+  font-size: 11px;
+  color: #f88;
+  background: rgba(255, 128, 128, 0.06);
+  padding: 6px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 128, 128, 0.20);
+}

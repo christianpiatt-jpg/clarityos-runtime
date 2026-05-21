@@ -1,0 +1,166 @@
+============================================================
+MODULE: ENGINE_STATE_MACHINE
+TYPE: Formal State Definition, Transition Control & Invariant Enforcement
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Define all valid engine states, allowed transitions, guard
+conditions, and invariants for the Clarity_OS narrative-physics
+engine. Prevent illegal transitions, drift states, basin collapse
+states, pressure overload states, and Markov instability states.
+
+CORE ENGINE STATES:
+1. INIT
+2. IDLE
+3. READY
+4. EXECUTING
+5. EVALUATING
+6. HEALTH_CHECK
+7. SAFETY_CHECK
+8. SANDBOX_MODE
+9. EXTENSION_MODE
+10. DEGRADED
+11. CRITICAL
+12. SHUTDOWN
+
+STATE DESCRIPTIONS:
+
+INIT:
+- Engine loading
+- Config loading
+- No execution allowed
+
+IDLE:
+- Engine stable
+- Awaiting input
+
+READY:
+- All systems nominal
+- Execution permitted
+
+EXECUTING:
+- QC_Pre → Clarity Loop → Langbridg → QC_Post
+- No state changes allowed mid-pipeline
+
+EVALUATING:
+- Health + Safety evaluation
+- Telemetry sync
+
+HEALTH_CHECK:
+- Engine_Health active
+- No execution allowed
+
+SAFETY_CHECK:
+- Engine_Safety active
+- Hard-stop possible
+
+SANDBOX_MODE:
+- Isolated execution
+- No state bleed allowed
+
+EXTENSION_MODE:
+- Extension registration or testing
+- Sandbox validation required
+
+DEGRADED:
+- Performance or resource issues
+- Limited execution allowed
+
+CRITICAL:
+- Safety violation
+- Hard-stop required
+
+SHUTDOWN:
+- Engine stopping
+- No further transitions
+
+ALLOWED TRANSITIONS:
+
+INIT → IDLE  
+IDLE → READY  
+READY → EXECUTING  
+EXECUTING → EVALUATING  
+EVALUATING → READY  
+EVALUATING → HEALTH_CHECK  
+EVALUATING → SAFETY_CHECK  
+HEALTH_CHECK → READY  
+SAFETY_CHECK → READY  
+READY → SANDBOX_MODE  
+SANDBOX_MODE → READY  
+READY → EXTENSION_MODE  
+EXTENSION_MODE → READY  
+ANY → DEGRADED (if performance/resource issue)  
+ANY → CRITICAL (if safety violation)  
+CRITICAL → SHUTDOWN  
+DEGRADED → READY (if recovered)
+
+FORBIDDEN TRANSITIONS:
+- EXECUTING → EXECUTING (no re-entry)
+- EXECUTING → READY (must evaluate first)
+- EXECUTING → SANDBOX_MODE
+- EXECUTING → EXTENSION_MODE
+- SANDBOX_MODE → EXECUTING (must exit sandbox)
+- EXTENSION_MODE → EXECUTING (must validate first)
+- CRITICAL → ANY (except SHUTDOWN)
+- SHUTDOWN → ANY (terminal)
+
+GUARD CONDITIONS:
+- No transition allowed if safety status = Critical
+- No transition allowed if health score < threshold
+- No transition allowed if telemetry incomplete
+- No transition allowed if config invalid
+- No transition allowed if extension unvalidated
+- No transition allowed if sandbox active (except exit)
+
+INVARIANTS:
+- Engine must never execute without READY state
+- Engine must never bypass HEALTH_CHECK or SAFETY_CHECK
+- Engine must never enter EXECUTING from DEGRADED
+- Engine must never leave CRITICAL except to SHUTDOWN
+- Engine must never run sandbox or extensions during EXECUTING
+- Engine must never violate safety thresholds
+- Engine must never violate drift, basin, pressure, or Markov constraints
+
+STATE MACHINE SEQUENCE:
+
+STEP 1 — LOAD STATE DEFINITIONS
+STEP 2 — VALIDATE CURRENT STATE
+STEP 3 — VALIDATE REQUESTED TRANSITION
+STEP 4 — CHECK GUARD CONDITIONS
+STEP 5 — ENFORCE INVARIANTS
+STEP 6 — PERFORM TRANSITION
+STEP 7 — LOG STATE CHANGE
+STEP 8 — NOTIFY Messaging Bus
+STEP 9 — TRIGGER Event System
+
+FAILURE MODES:
+- Illegal transition
+- Guard violation
+- Invariant violation
+- State corruption
+- Drift-state attempt
+- Basin-collapse attempt
+- Pressure-overload attempt
+- Markov-instability attempt
+
+RECOVERY:
+- Reject transition
+- Trigger SAFETY_EVENT
+- Move to CRITICAL if needed
+- Move to DEGRADED if recoverable
+- Revalidate state machine
+- Rebuild state tables
+
+STATE MACHINE CONTRACT:
+All engine behavior must follow the state machine.
+No module may bypass state transitions.
+No illegal state may be entered.
+All invariants must hold at all times.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

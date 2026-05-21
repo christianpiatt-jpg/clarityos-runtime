@@ -1,0 +1,35 @@
+[INDEX_RECORD]
+id: 403
+name: Basin Maps
+class: maps
+layer: 05_Maps
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Maps of basins, attractors, drift zones, and hydronic flow patterns.
+Derived from ELINS, GALILEO, and Unified Geometry.
+
+[MAPS]
+- Basin_Attractor_Map_20260410.map
+- Drift_Basin_Map_20260410.map
+- Hydronic_Gradient_Map_20260410.map
+
+[GENERATED_FROM]
+- ELINS/
+- GALILEO/
+- Unified_Geometry/
+
+[DEWEY]
+100.30 ; System Maps — Basins & Attractors
+
+[LINKS]
+upstream: 402_OperatorMaps.idx
+adjacent: 404_HydronicMaps.idx
+downstream: 703_IntegrityScans.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+
+[END]

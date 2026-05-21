@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "ClarityOS",
+    "slug": "clarityos",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "clarityos",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#050810"
+    },
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.clarityos.phone" },
+    "android": {
+      "package": "com.clarityos.phone",
+      "adaptiveIcon": { "backgroundColor": "#050810" }
+    },
+    "web": { "bundler": "metro" },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true },
+    "extra": {
+      "apiBase": "https://clarity-engine-PLACEHOLDER.run.app"
+    }
+  }
+}

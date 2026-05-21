@@ -1,0 +1,320 @@
+============================================================
+FILE: CLARITYOS_OPERATOR_HANDBOOK_SECTION_4_ELINS_MANIFOLD
+TYPE: Operator Handbook — Section 4 of 6
+TITLE: ELINS & The Global Manifold (Clarity Retina)
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/04_Operator/
+
+============================================================
+SECTION 1 — PURPOSE OF THIS SECTION
+============================================================
+
+This section explains the analytical core of ClarityOS v3:
+
+    - ELINS (Event–Legitimacy Inference & Narrative Stability)
+    - The Global Manifold (the clarity retina)
+
+Together, these systems transform raw metadata into:
+
+    - legitimacy signals
+    - stress indicators
+    - narrative-domain signatures
+    - drift/basin/pressure hints
+    - regional narrative slices
+    - global narrative geometry
+
+This is the heart of the system’s clarity engine.
+
+============================================================
+SECTION 2 — WHAT ELINS IS
+============================================================
+
+ELINS is the narrative-physics extraction engine.  
+It converts metadata packets into structured signals that describe:
+
+    - institutional legitimacy
+    - narrative stress
+    - domain classification
+    - temporal patterns
+    - drift/basin/pressure hints
+    - regional alignment
+
+ELINS does not:
+    - ingest article text
+    - perform sentiment analysis
+    - generate predictions
+    - interpret meaning beyond metadata
+
+ELINS extracts **structure**, not content.
+
+============================================================
+SECTION 3 — ELINS INPUTS
+============================================================
+
+ELINS receives:
+
+    - METADATA_PACKET
+    - region
+    - language
+    - source_id
+    - timestamp
+    - section
+
+Optional contextual inputs:
+
+    - previous ELINS signatures
+    - regional manifold slice
+    - Markov/Markoff chain-state
+
+All inputs must pass boundary checks.
+
+============================================================
+SECTION 4 — ELINS OUTPUTS
+============================================================
+
+ELINS produces an ELINS_SIGNATURE:
+
+    narrative_domain
+    legitimacy_signal
+    stress_indicator
+    drift_hint
+    basin_hint
+    pressure_hint
+    temporal_pattern
+    regional_alignment
+    confidence_score
+
+These signatures feed:
+
+    - the Global Manifold
+    - the Physics Engine
+    - the Markov/Markoff Engine
+    - the Operator Console (ELINS panel)
+
+============================================================
+SECTION 5 — NARRATIVE DOMAINS
+============================================================
+
+ELINS classifies metadata into seven narrative domains:
+
+    1. political
+    2. economic
+    3. military
+    4. social
+    5. institutional
+    6. environmental
+    7. technological
+
+Domains help the manifold understand where narrative pressure is accumulating.
+
+============================================================
+SECTION 6 — LEGITIMACY SIGNALS
+============================================================
+
+Legitimacy signals describe the stability of institutions.
+
+Signals include:
+
+    - institutional stability
+    - institutional decay
+    - public trust
+    - elite conflict
+    - procedural breakdown
+    - legal/moral framing
+
+Legitimacy signals feed directly into:
+
+    - regional legitimacy vectors
+    - the global legitimacy vector
+    - manifold stress calculations
+
+============================================================
+SECTION 7 — STRESS INDICATORS
+============================================================
+
+Stress indicators describe narrative volatility.
+
+Indicators include:
+
+    - escalation
+    - fragmentation
+    - uncertainty
+    - institutional strain
+    - volatility
+    - acceleration
+
+Stress indicators help the manifold detect:
+
+    - basin deformation
+    - pressure accumulation
+    - drift acceleration
+
+============================================================
+SECTION 8 — PHYSICS HINTS
+============================================================
+
+ELINS generates physics hints:
+
+    - drift direction
+    - basin deformation
+    - pressure accumulation
+    - force vectors
+    - attractor shifts
+
+These hints are not physics themselves —  
+they are **inputs** to the Physics Engine.
+
+============================================================
+SECTION 9 — TEMPORAL PATTERNS
+============================================================
+
+ELINS detects temporal patterns:
+
+    - repetition
+    - acceleration
+    - inversion
+    - decay
+    - resonance
+
+Temporal patterns feed:
+
+    - Markov transitions
+    - manifold temporal layers
+    - drift/basin/pressure updates
+
+============================================================
+SECTION 10 — THE GLOBAL MANIFOLD
+============================================================
+
+The Global Manifold is the system’s **clarity retina**.
+
+It integrates:
+
+    - ELINS signatures
+    - Markov/Markoff transitions
+    - physics vectors
+    - regional slices
+    - temporal layers
+
+The manifold provides:
+
+    - global drift vector
+    - global basin geometry
+    - global pressure field
+    - global legitimacy vector
+    - global stress index
+
+============================================================
+SECTION 11 — MANIFOLD STRUCTURE
+============================================================
+
+The manifold has four major layers:
+
+1. GLOBAL_LAYER
+    - global drift vector
+    - global basin geometry
+    - global pressure field
+    - global legitimacy vector
+    - global stress index
+
+2. REGIONAL_LAYERS
+    - 8 regions
+    - regional legitimacy vectors
+    - regional stress indices
+    - regional drift/basin/pressure
+
+3. NARRATIVE_DOMAINS
+    - 7 domains
+    - domain-specific pressure maps
+
+4. TEMPORAL_LAYERS
+    - T0 (current)
+    - T-1 (previous cycle)
+    - T-2 (previous day)
+    - T-7 (previous week)
+    - T-30 (previous month)
+
+============================================================
+SECTION 12 — REGIONAL SLICES
+============================================================
+
+Each region maintains:
+
+    region_id
+    dominant_domains
+    legitimacy_vector
+    stress_index
+    drift_vector
+    basin_geometry
+    pressure_map
+    temporal_patterns
+
+Regional slices allow the operator to see:
+
+    - where pressure is building
+    - where legitimacy is shifting
+    - where drift is accelerating
+    - where basins are deforming
+
+============================================================
+SECTION 13 — GLOBAL INDICATORS
+============================================================
+
+The manifold computes five global indicators:
+
+1. GLOBAL_DRIFT_VECTOR
+2. GLOBAL_BASIN_GEOMETRY
+3. GLOBAL_PRESSURE_FIELD
+4. GLOBAL_LEGITIMACY_VECTOR
+5. GLOBAL_STRESS_INDEX
+
+These indicators summarize the global narrative environment.
+
+============================================================
+SECTION 14 — MANIFOLD COHERENCE
+============================================================
+
+Manifold coherence is the degree to which:
+
+    - regional slices align
+    - temporal layers agree
+    - ELINS signatures converge
+    - physics vectors stabilize
+    - Markov transitions remain consistent
+
+Low coherence indicates:
+
+    - narrative turbulence
+    - basin fragmentation
+    - pressure spikes
+    - legitimacy decay
+
+High coherence indicates:
+
+    - stability
+    - clarity
+    - predictable drift
+    - strong legitimacy
+
+============================================================
+SECTION 15 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_ELINS_STATUS
+ENGINE_ELINS_RUN
+ENGINE_ELINS_REGION <region>
+ENGINE_ELINS_LOGS
+
+ENGINE_MANIFOLD
+ENGINE_MANIFOLD_REGION <region>
+ENGINE_MANIFOLD_REFRESH
+ENGINE_MANIFOLD_SNAPSHOT
+ENGINE_MANIFOLD_COMPARE <snapshot_id>
+
+============================================================
+STATUS:
+Operator Handbook Section 4 Installed.
+
+============================================================
+END OF FILE
+============================================================

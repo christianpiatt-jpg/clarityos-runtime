@@ -1,0 +1,15 @@
+[MAP]
+name: Drift Basin Map
+version: 20260410
+
+[ZONES]
+low_drift
+medium_drift
+high_drift
+catastrophic_drift
+
+[INPUTS]
+driftcatalog
+continuityengine
+
+[END]

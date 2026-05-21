@@ -1,0 +1,272 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://clarityos.local/schemas/acceptance/output_schema.json",
+  "title": "ClarityOS Acceptance Harness — Run Report",
+  "description": "Schema for tests/acceptance/reports/<run_id>/report.json produced by tests/acceptance/runner.ts.",
+  "type": "object",
+  "required": [
+    "run_id",
+    "mode",
+    "started_at",
+    "config",
+    "scenarios",
+    "pass"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Stable identifier for this run. Format: run-<UTC YYYYmmddTHHMMSSZ>-<4-hex>.",
+      "pattern": "^run-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{4}$"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["fast", "full"],
+      "description": "Selection mode used by selectScenarios()."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when the runner began."
+    },
+    "finished_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when the runner finished. null while in progress."
+    },
+    "config": {
+      "$ref": "#/definitions/AcceptanceConfig",
+      "description": "Echoed AcceptanceConfig from tests/acceptance/config.ts. Vault secrets are regenerated per run and the placeholder values from config.local.json are overwritten in memory."
+    },
+    "scenarios": {
+      "type": "object",
+      "description": "Scenario id → result mapping. Keys match the scenario file names without extension.",
+      "patternProperties": {
+        "^[0-9]{2}_[a-z0-9_]+$": {
+          "$ref": "#/definitions/ScenarioResult"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pass": {
+      "type": "boolean",
+      "description": "True iff every entry in `scenarios` has pass == true."
+    }
+  },
+  "additionalProperties": false,
+
+  "definitions": {
+
+    "ScenarioResult": {
+      "type": "object",
+      "required": ["id", "name", "pass"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable scenario id (e.g., 01_onboarding_per_surface)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name (e.g., 'Onboarding per surface')."
+        },
+        "pass": {
+          "type": "boolean",
+          "description": "Binary pass/fail for the scenario."
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wall time the runner spent on this scenario (ms)."
+        },
+        "details": {
+          "type": ["string", "null"],
+          "description": "Free-form details. For scenarios 03/04/05 this is JSON-encoded and follows the per-scenario detail schemas below; for scenarios 01/02 this is unstructured."
+        },
+        "messages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Per-step narrative emitted by the scenario."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "OperatorConfig": {
+      "type": "object",
+      "required": ["id", "email", "handle", "vault_secret"],
+      "properties": {
+        "id":           { "type": "string" },
+        "email":        { "type": "string", "format": "email" },
+        "handle":       { "type": "string", "pattern": "^[a-z0-9_-]{3,32}$" },
+        "vault_secret": { "type": "string", "description": "Regenerated per run by the runner; placeholder otherwise." }
+      },
+      "additionalProperties": false
+    },
+
+    "SurfaceConfig": {
+      "type": "object",
+      "required": ["web", "phone", "desktop"],
+      "properties": {
+        "web": {
+          "type": "object",
+          "required": ["os", "baseUrl"],
+          "properties": {
+            "os":      { "type": "string", "enum": ["macos", "windows", "linux"] },
+            "baseUrl": { "type": "string", "format": "uri" }
+          }
+        },
+        "phone": {
+          "type": "object",
+          "required": ["platform"],
+          "properties": {
+            "platform": { "type": "string", "enum": ["ios", "android"] }
+          }
+        },
+        "desktop": {
+          "type": "object",
+          "required": ["os", "binaryPath"],
+          "properties": {
+            "os":         { "type": "string", "enum": ["macos", "windows"] },
+            "binaryPath": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "ThresholdConfig": {
+      "type": "object",
+      "required": [
+        "surface_jump_minutes",
+        "onboarding_max_minutes",
+        "stability_window_hours"
+      ],
+      "properties": {
+        "surface_jump_minutes":   { "type": "integer", "minimum": 1 },
+        "onboarding_max_minutes": { "type": "integer", "minimum": 1 },
+        "stability_window_hours": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "AcceptanceConfig": {
+      "type": "object",
+      "required": ["backend_base_url", "operators", "surfaces", "thresholds"],
+      "properties": {
+        "backend_base_url": { "type": "string", "format": "uri" },
+        "operators": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/OperatorConfig" }
+        },
+        "surfaces":   { "$ref": "#/definitions/SurfaceConfig" },
+        "thresholds": { "$ref": "#/definitions/ThresholdConfig" }
+      }
+    },
+
+    "Scenario03Details": {
+      "description": "Schema for the JSON-encoded details produced by scenario 03 (two_operators_concurrent).",
+      "type": "object",
+      "required": ["op_a", "op_b"],
+      "properties": {
+        "op_a": { "$ref": "#/definitions/Scenario03Leg" },
+        "op_b": { "$ref": "#/definitions/Scenario03Leg" }
+      }
+    },
+
+    "Scenario03Leg": {
+      "type": "object",
+      "required": ["handle", "ms"],
+      "properties": {
+        "handle": { "type": "string" },
+        "ms":     { "type": "integer", "minimum": 0 },
+        "error":  { "type": ["string", "null"] },
+        "counts": {
+          "type": ["object", "null"],
+          "required": ["threads", "elins", "projects"],
+          "properties": {
+            "threads":  { "type": "integer", "minimum": 0 },
+            "elins":    { "type": "integer", "minimum": 0 },
+            "projects": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "Scenario04Details": {
+      "description": "Schema for the JSON-encoded details produced by scenario 04 (artifact_presence).",
+      "type": "object",
+      "required": ["operator", "surfaces"],
+      "properties": {
+        "operator": { "type": "string" },
+        "surfaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["surface"],
+            "properties": {
+              "surface": { "type": "string", "enum": ["web", "phone", "desktop"] },
+              "counts": {
+                "type": ["object", "null"],
+                "properties": {
+                  "threads":  { "type": "integer", "minimum": 0 },
+                  "elins":    { "type": "integer", "minimum": 0 },
+                  "projects": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "Scenario05Details": {
+      "description": "Schema for the JSON-encoded details produced by scenario 05 (stability_window).",
+      "type": "object",
+      "required": ["iterations", "monotonicity_pass"],
+      "properties": {
+        "iterations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["index", "pass", "duration_ms"],
+            "properties": {
+              "index":            { "type": "integer", "minimum": 1 },
+              "pass":             { "type": "boolean" },
+              "duration_ms":      { "type": "integer", "minimum": 0 },
+              "web_elins_count":  { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "stats": {
+          "type": ["object", "null"],
+          "required": ["iterations", "pass_count", "mean_ms", "max_ms", "min_ms", "stddev_ms"],
+          "properties": {
+            "iterations": { "type": "integer", "minimum": 0 },
+            "pass_count": { "type": "integer", "minimum": 0 },
+            "mean_ms":    { "type": "number", "minimum": 0 },
+            "max_ms":     { "type": "integer", "minimum": 0 },
+            "min_ms":     { "type": "integer", "minimum": 0 },
+            "stddev_ms":  { "type": "number", "minimum": 0 }
+          }
+        },
+        "monotonicity_pass": { "type": "boolean" }
+      }
+    },
+
+    "OnboardingTimingMarker": {
+      "description": "Per-panel timing marker emitted by the on-surface FSMs (web/phone/desktop onboarding_fsm.ts::getTimings()). Not part of report.json directly; consumed by the dashboard via /founder/acceptance/onboarding_timings/{user_id}.",
+      "type": "object",
+      "properties": {
+        "started_ts_ms":   { "type": ["integer", "null"], "minimum": 0 },
+        "completed_ts_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "duration_ms":     { "type": ["integer", "null"], "minimum": 0 },
+        "panels": {
+          "type": "object",
+          "patternProperties": {
+            "^panel_[1-6]_ts_ms$": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+
+  }
+}

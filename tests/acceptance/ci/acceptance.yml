@@ -1,0 +1,148 @@
+# tests/acceptance/ci/acceptance.yml
+#
+# DRAFT GitHub Actions workflow for the acceptance harness.
+#
+# This file lives at tests/acceptance/ci/ rather than .github/workflows/
+# because Constraint 3 prohibits creating new top-level directories
+# during materialization. To enable CI, the operator copies (or symlinks)
+# this file to .github/workflows/acceptance.yml — see ci_readme.md for
+# the migration step.
+#
+# Every functional line in the workflow below is COMMENTED OUT. The
+# file parses as effectively-empty YAML; nothing will execute even if
+# this exact path is mistakenly placed under .github/workflows/.
+#
+# ============================================================
+# DRAFT WORKFLOW — fully commented; uncomment after operator review
+# ============================================================
+#
+# name: acceptance-harness
+#
+# # Triggers — review and adjust before enabling.
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       mode:
+#         description: "fast | full"
+#         required: true
+#         default: "fast"
+#   # Disabled by default; uncomment one of these once a baseline run is green.
+#   # schedule:
+#   #   - cron: "0 5 * * *"   # 05:00 UTC daily
+#   # pull_request:
+#   #   branches: [main]
+#
+# permissions:
+#   contents: read
+#   # No additional GitHub permissions required for the harness itself.
+#
+# env:
+#   # CI environment knobs. Production values are managed by repo secrets;
+#   # placeholders shown here.
+#   CLARITYOS_BACKEND: memory
+#   CLARITYOS_INCIDENT_STORE: ./data/incidents.jsonl
+#   CLARITYOS_ACCEPTANCE_REPORTS: ./tests/acceptance/reports
+#   # Backend base URL for the runner. CI must spin up its own backend
+#   # in a sidecar service, or point this at a staging URL with read-only
+#   # acceptance operators provisioned.
+#   BACKEND_BASE_URL: http://localhost:8000
+#
+# jobs:
+#   acceptance:
+#     # macOS for Playwright Electron parity with the desktop binary
+#     # acceptance criteria. Linux is sufficient for web-only fast mode.
+#     runs-on: macos-latest
+#     timeout-minutes: 60
+#     steps:
+#       # ----- 1. checkout -----
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 1
+#
+#       # ----- 2. tooling -----
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+#           cache: "npm"
+#
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
+#
+#       - name: Install Node dev deps
+#         run: |
+#           npm install --no-audit --no-fund \
+#             --save-dev @playwright/test ts-node typescript
+#           npx playwright install --with-deps chromium
+#
+#       - name: Install Maestro
+#         # Maestro CLI for phone E2E. Skip in fast mode (no phone scenarios).
+#         if: ${{ github.event.inputs.mode == 'full' }}
+#         run: |
+#           curl -Ls "https://get.maestro.mobile.dev" | bash
+#           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+#
+#       - name: Install Python deps
+#         # The harness uses backend Python only via post_run_ingest.py;
+#         # acceptance_dashboard.py is exercised through the running backend.
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install pydantic
+#
+#       # ----- 3. backend bootstrap -----
+#       - name: Start backend (background)
+#         # Replace with whatever the project's canonical run command is.
+#         run: |
+#           python -m uvicorn app:app --host 0.0.0.0 --port 8000 &
+#           sleep 5
+#
+#       # ----- 4. seed acceptance operators -----
+#       - name: Seed test operators
+#         run: |
+#           python scripts/seed_acceptance_operators.py
+#         # CI must materialize tests/acceptance/config.local.json with the
+#         # printed operator IDs before invoking the runner. Either:
+#         #   (a) commit a CI-specific config.local.json variant; or
+#         #   (b) generate it on the fly here from $OP_A_ID / $OP_B_ID.
+#
+#       # ----- 5. invoke harness -----
+#       - name: Run acceptance harness
+#         id: harness
+#         run: |
+#           bash scripts/run_acceptance.sh "${{ github.event.inputs.mode }}"
+#         continue-on-error: true
+#         # Exit code 0 = pass; non-zero failures are surfaced via the
+#         # post-step gating below rather than failing the job here, so
+#         # artifacts always upload.
+#
+#       # ----- 6. ingest -----
+#       - name: Ingest results
+#         if: always()
+#         run: |
+#           ls tests/acceptance/reports
+#           # post_run_ingest.py expects a single run dir.
+#           latest=$(ls -td tests/acceptance/reports/run-* | head -1)
+#           python tests/acceptance/post_run_ingest.py "$latest"
+#
+#       # ----- 7. artifact upload -----
+#       - name: Upload run artifacts
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: acceptance-reports
+#           path: tests/acceptance/reports/
+#           retention-days: 30
+#
+#       # ----- 8. PR gate -----
+#       - name: Gate on harness exit code
+#         if: ${{ steps.harness.outcome == 'failure' }}
+#         run: |
+#           echo "Acceptance harness failed; see uploaded artifacts." >&2
+#           exit 1
+#
+# # ============================================================
+# # END DRAFT WORKFLOW
+# # ============================================================

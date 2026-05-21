@@ -1,0 +1,8 @@
+{
+  "primitive_counts": {
+    "conflict": 6,
+    "resource": 2,
+    "motion": 1
+  },
+  "transition_counts": {}
+}

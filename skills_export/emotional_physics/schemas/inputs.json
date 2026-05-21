@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "emotional_physics.inputs.v1",
+  "title": "Emotional Physics — input",
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Free-form description of the situation. The subject under analysis is whoever the text is about (often the speaker, sometimes someone else)."
+    },
+    "context": {
+      "type": "object",
+      "description": "Optional structured context the caller already knows.",
+      "properties": {
+        "subject":         { "type": "string" },
+        "relationships":   { "type": "array", "items": { "type": "string" } },
+        "time_horizon":    { "type": "string", "description": "How far back the situation has been running." },
+        "prior_state":     { "type": "string", "description": "Earlier read, if this is a follow-up." }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,27 @@
+# ELINS–Diagnostic Bridge Module  
+## Micro–Macro Signal Bridge
+
+### Purpose
+Bridge:
+- Diagnostic Subsystem (operator-level)
+- ELINS (global-level)
+
+### Inputs
+- Reprisal_Risk
+- Hostile_Environment_Risk
+- Limiting_Condition_Mismatch_Risk
+- ELINS_Basin_Risk
+- ELINS_Global_Signal_Alerts
+
+### Core Logic
+- Map micro risks to relevant basins
+- Map basin turbulence back to affected operators
+- Detect cross-scale feedback loops
+
+### Outputs
+- Cross_Scale_Risk_Profile
+- Operator_Impact_From_Global
+- Global_Impact_From_Operator
+
+### Notes
+This bridge makes the OS truly fractal: same physics, all altitudes.

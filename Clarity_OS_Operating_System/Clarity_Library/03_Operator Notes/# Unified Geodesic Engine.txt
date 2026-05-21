@@ -1,0 +1,34 @@
+# Unified Geodesic Engine  
+## Micro–Macro Geodesic Unification
+
+### Purpose
+Unify geodesic logic across:
+- micro (operator + hierarchical dependent node)
+- macro (basin + global signal)
+
+### Core Concept
+All systems share:
+- Vectors (signals, activities, actions)
+- Geodesics (trajectories of nodes or basins)
+- Intersections (awareness/activation)
+- Curvature (behavioral/narrative shift)
+- Turbulence (clustered destabilization)
+- Boundaries (constraints, limits, red lines)
+
+### Core Equation
+IntersectionEvent = Intersection(Vector_A, Geodesic_B)
+
+Where:
+- Micro: Vector_A = PA_Vector, Geodesic_B = Node_Geodesic  
+- Macro: Vector_A = Global_Signal_Vector, Geodesic_B = Basin_Geodesic  
+
+### Outputs
+- t_intersect  
+- Δcurvature  
+- TurbulenceDensity  
+- BoundaryHitFlags  
+
+### Notes
+This engine is the shared backbone for:
+- Diagnostic Subsystem (micro)
+- ELINS (macro)

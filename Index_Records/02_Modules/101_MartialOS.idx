@@ -1,0 +1,18 @@
+notepad 101_MartialOS.idx
+
+[Record]
+Name = Martial OS
+Code = 101
+Path = ../../02_Subsystems/Martial_OS/
+Description = Stabilization subsystem governing posture, stance, boundary enforcement, and operator-grade presence. Provides the system’s physical and energetic stability layer.
+
+[Files]
+Martial_Primitives = martial_primitives.txt
+Stance_Model = stance_model.txt
+Boundary_Enforcement = boundary_enforcement.txt
+Operator_Posture = operator_posture.txt
+Stability_Protocols = stability_protocols.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Sibling = 100_ULDA.idx

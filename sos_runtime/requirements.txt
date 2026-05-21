@@ -1,0 +1,22 @@
+# SOS Runtime — pinned dependencies.
+# Versions match the existing ClarityOS app where possible so the two
+# services can share a base image if Comet wants to consolidate later.
+
+fastapi==0.115.2
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+
+# Firestore. Lazy-imported in firestore_store.py so tests don't need
+# the SDK installed; production deploys ship with it.
+google-cloud-firestore==2.18.0
+
+# Anthropic SDK. Lazy-imported in llm.py for the same reason.
+anthropic==0.39.0
+
+# Standard-library urllib is used for ID-token verification (no
+# additional dep). PyJWT is intentionally NOT included — adding local
+# JWK verification is a follow-up unit.
+
+# Test-only — these stay out of the prod image via the .dockerignore.
+pytest==7.4.3
+httpx==0.27.2

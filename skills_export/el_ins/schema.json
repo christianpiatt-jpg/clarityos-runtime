@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EL/INS Reasoning-Stability Analysis",
+  "description": "Canonical output shape for the EL/INS ratio framework. Emitted by an LLM operating under skills_export/el_ins/system_prompt.md and accepted/produced by the ClarityOS el_ins kernel module (el_ins/el_ins_analyzer.py).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["analysis", "reasoning_mode", "regression_chain", "stability_notes"],
+  "properties": {
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "el_components",
+        "ins_components",
+        "el_score",
+        "ins_score",
+        "ratio_classification"
+      ],
+      "properties": {
+        "el_components": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Narrative / emotive elements detected in the input."
+        },
+        "ins_components": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Factual / structural elements detected in the input."
+        },
+        "el_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Qualitative EL density estimate."
+        },
+        "ins_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Qualitative INS density estimate."
+        },
+        "ratio_classification": {
+          "type": "string",
+          "enum": ["high_el", "high_ins", "balanced"],
+          "description": "Bucket derived from el_score / ins_score."
+        }
+      }
+    },
+    "reasoning_mode": {
+      "type": "string",
+      "enum": ["stabilize", "expand", "normal"],
+      "description": "Deterministic mode mapped from ratio_classification: high_el → stabilize, high_ins → expand, balanced → normal."
+    },
+    "regression_chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projection",
+        "drivers",
+        "precedents",
+        "principle_stack",
+        "invariant"
+      ],
+      "properties": {
+        "projection": {
+          "type": ["string", "null"],
+          "description": "The claim or forecast under examination. Null when input carries no claim."
+        },
+        "drivers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "precedents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["driver", "precedent", "principle"],
+            "properties": {
+              "driver":    { "type": "string" },
+              "precedent": { "type": "string" },
+              "principle": { "type": "string" }
+            }
+          }
+        },
+        "principle_stack": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "invariant": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "stability_notes": {
+      "type": ["string", "null"],
+      "description": "Optional short human-readable summary."
+    }
+  }
+}

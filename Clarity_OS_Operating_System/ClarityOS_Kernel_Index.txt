@@ -1,0 +1,215 @@
+============================================================
+FILE: CLARITYOS_KERNEL_INDEX
+TYPE: Master Module Index, Dependency Map & System Registry
+VERSION: 1.0
+LOCATION: /Clarity_OS_Operating_System/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Provide a complete, authoritative index of all modules in
+Clarity_OS v3. Define subsystem groupings, dependency order,
+module purpose, and cross-layer relationships. Serve as the
+operator’s master reference for the entire OS.
+
+This file is the canonical registry of the system.
+
+============================================================
+SECTION 2 — TOP-LEVEL DIRECTORIES
+============================================================
+
+/00_Kernel
+/01_Library
+/02_Modules
+/03_Interfaces
+/04_Operator
+/05_Manifold
+/06_ELINS
+/07_Themes
+/08_Diagnostics
+/09_Logs
+/10_Snapshots
+
+============================================================
+SECTION 3 — KERNEL MODULES
+============================================================
+
+SYSTEM_KERNEL
+    Core system logic, invariants, and bootstrapping.
+
+CLARITYOS_BOOT_SEQUENCE
+    Full system initialization order.
+
+KERNEL_ROUTING_TABLE
+    Internal routing between subsystems.
+
+KERNEL_DEPENDENCY_GRAPH
+    Defines module load order and prerequisites.
+
+KERNEL_SAFETY_INVARIANTS
+    Non-negotiable safety rules.
+
+============================================================
+SECTION 4 — ENGINE ORCHESTRATOR MODULES
+============================================================
+
+Engine_Orchestrator.txt
+Engine_Entry_Point.txt
+Engine_Config.txt
+Engine_Mission_File.txt
+Engine_Intent_Layer.txt
+Engine_Identity_Layer.txt
+Engine_Boundary_Layer.txt
+Engine_Safety.txt
+Engine_Shield_Matrix.txt
+Engine_State_Machine.txt
+Engine_State_Monitor.txt
+Engine_Harmonics_Layer.txt
+Engine_Resonance_Shield.txt
+Engine_Synchronization_Layer.txt
+Engine_Coherence_Layer.txt
+Engine_Continuity_Layer.txt
+Engine_Intelligence_Layer.txt
+Engine_Meta_Cognition.txt
+Engine_Autonomy_Layer.txt
+Engine_Scheduler.txt
+Engine_Autonomous_Metacrawler.txt
+Engine_ELINS_Module.txt
+Engine_Global_Manifold.txt
+Engine_Operator_Console.txt
+Engine_Operator_Protocol.txt
+Engine_Color_Mode_Bindings.txt
+Engine_Operator_Themes.txt
+Engine_Output_Layer.txt
+Engine_Translation_Layer.txt
+Engine_Extension_Layer.txt
+Engine_Versioning.txt
+Engine_Logging.txt
+Engine_Audit.txt
+Engine_Test_Harness.txt
+Engine_Diagnostic_Suite.txt
+Engine_Performance.txt
+Engine_Health.txt
+Engine_Recovery.txt
+Engine_Optimization.txt
+Engine_Resource_Manager.txt
+Engine_Messaging_Bus.txt
+
+============================================================
+SECTION 5 — MANIFOLD MODULES
+============================================================
+
+Global_Manifold_Index
+    Master index of manifold layers.
+
+Manifold_Global_Layer
+Manifold_Regional_Layers
+Manifold_Temporal_Layers
+Manifold_Domain_Layers
+Manifold_Legitimacy_Vectors
+Manifold_Stress_Indicators
+Manifold_Drift_Basin_Pressure
+
+============================================================
+SECTION 6 — ELINS MODULES
+============================================================
+
+ELINS_Core
+ELINS_Signature_Map
+ELINS_Extraction_Pipeline
+ELINS_Routing_Table
+ELINS_Regional_Profiles
+ELINS_Temporal_Patterns
+ELINS_Manifold_Integration
+
+============================================================
+SECTION 7 — OPERATOR INTERFACE MODULES
+============================================================
+
+Operator_Console
+Operator_Protocol
+Operator_Themes
+Operator_Color_Modes
+Operator_Help
+Operator_Manual
+Operator_Overrides
+
+============================================================
+SECTION 8 — INTERFACE LAYERS
+============================================================
+
+Interface_Layer
+Interface_Layer_V2
+Interface_Routing
+Interface_Adapters
+Interface_Operator_Bridge
+
+============================================================
+SECTION 9 — SNAPSHOT SYSTEM
+============================================================
+
+Snapshot_Core
+Snapshot_History
+Snapshot_Compare
+Snapshot_Restore
+Snapshot_Integrity_Chain
+
+============================================================
+SECTION 10 — LOGGING SYSTEM
+============================================================
+
+Log_Core
+Log_Engine
+Log_Manifold
+Log_ELINS
+Log_Autonomy
+Log_Scheduler
+Log_Boundaries
+Log_Safety
+Log_Operator
+Log_System
+
+============================================================
+SECTION 11 — DEPENDENCY ORDER (SUMMARY)
+============================================================
+
+1. Kernel
+2. Orchestrator
+3. Identity
+4. Boundaries
+5. Safety
+6. Shield Matrix
+7. Intent
+8. Mission
+9. Config
+10. State Machine
+11. State Monitor
+12. Physics Layers
+13. Intelligence Layers
+14. Autonomy
+15. Scheduler
+16. Metacrawler
+17. ELINS
+18. Global Manifold
+19. Operator Console
+20. Output Layer
+
+============================================================
+SECTION 12 — OPERATOR NOTES
+============================================================
+
+- All modules are text-based for transparency.
+- No module may self-modify.
+- Only the operator may modify mission, intent, or boundaries.
+- Kernel invariants override all other layers.
+- Color modes (#clarity, #markov, #elins) are purely visual.
+- The Kernel Index must remain stable and authoritative.
+
+============================================================
+STATUS:
+ClarityOS v3 Kernel Index Installed.
+
+============================================================
+END OF FILE
+============================================================

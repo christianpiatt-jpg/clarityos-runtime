@@ -1,0 +1,12 @@
+[MAP]
+name: Operator Reference Map
+version: 20260410
+
+[REFERENCES]
+200_OperatorHandbook
+201_RuntimeNotes
+202_ScenarioLibrary
+203_DriftCatalog
+204_RecoveryPlaybook
+
+[END]

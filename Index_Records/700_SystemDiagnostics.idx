@@ -1,0 +1,23 @@
+700_SystemDiagnostics.idx
+
+[Record]
+Name = System Diagnostics
+Code = 700
+Path = ../../07_Diagnostics/System_Diagnostics/
+Description = System-wide diagnostics including health checks, performance scans, structural integrity assessments, and OS-level anomaly detection.
+
+[Files]
+Health_Checks = health_checks.txt
+Performance_Scans = performance_scans.txt
+Anomaly_Detection = anomaly_detection.txt
+System_Reports = system_reports.txt
+System_Crosswalk = system_crosswalk.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 701_SubsystemDiagnostics.idx, 702_OperatorDiagnostics.idx, 703_IntegrityScans.idx, 704_ContaminationChecks.idx
+
+[Crosslinks]
+Up = 111
+Across = 701–704
+Down = None

@@ -1,0 +1,34 @@
+[INDEX_RECORD]
+id: 401
+name: Subsystem Maps
+class: maps
+layer: 05_Maps
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Maps of all subsystem modules (100–119). Visualizes relationships,
+dependencies, data flows, and operational boundaries.
+
+[MAPS]
+- Subsystem_Overview_20260410.map
+- Engine_Cluster_Map_20260410.map
+- Module_Dependency_Map_20260410.map
+
+[GENERATED_FROM]
+- 02_Modules/
+- MASTER_INDEX.txt
+
+[DEWEY]
+100.10 ; System Maps — Subsystems
+
+[LINKS]
+upstream: 400_SystemMaps.idx
+adjacent: 402_OperatorMaps.idx
+downstream: 703_IntegrityScans.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+
+[END]

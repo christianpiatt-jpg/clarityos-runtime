@@ -1,0 +1,34 @@
+TITLE:
+DATE:
+DEWEY TAGS:
+  - Primary:
+  - Secondary:
+ARTIFACT TYPE:
+BASIN(S) AFFECTED:
+
+SIGNAL LINE:
+"The signal is ____, producing ____ curvature in the ____ field."
+
+LAST 48 HOURS:
+- 
+- 
+- 
+
+NEXT 48 HOURS:
+- 
+- 
+- 
+
+QC FORECAST (72h):
+Score:
+Fields:
+Volatility Notes:
+
+IMPACT LINE:
+"This produces ____ across ____."
+
+SOURCE CONTEXT:
+- 
+
+NOTES:
+- 

@@ -1,0 +1,207 @@
+============================================================
+FILE: ENGINE_AUTONOMOUS_METACRAWLER
+TYPE: Autonomous Metadata Intake Module (Global 6‑Hour Crawler)
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Implement the autonomous global metadata crawler defined in the
+Intent Layer and Mission File. Execute a 6-hour ingestion cycle
+across region-balanced, native-language primary sources. Collect
+metadata-only headline packets and route them into ELINS and the
+Global Manifold.
+
+This module performs:
+    - scheduled metadata ingestion
+    - metadata normalization
+    - boundary enforcement (metadata-only)
+    - ELINS routing
+    - manifold update triggering
+    - ingestion logging
+
+============================================================
+SECTION 2 — SCHEDULE
+============================================================
+
+MODE: AUTONOMOUS
+INTERVAL: EVERY_6_HOURS
+TRIGGER:
+    - system clock
+    - manual override (ENGINE_METACRAWLER_RUN)
+
+CYCLE TIMES (local):
+    00:00
+    06:00
+    12:00
+    18:00
+
+============================================================
+SECTION 3 — TARGET SOURCES
+============================================================
+
+NORTH AMERICA:
+    - apnews.com
+    - nytimes.com
+    - eluniversal.com.mx
+
+EUROPE:
+    - lemonde.fr
+    - spiegel.de
+    - elpais.com
+
+EASTERN EUROPE / RUSSIA:
+    - kommersant.ru
+    - wyborcza.pl
+
+MIDDLE EAST / NORTH AFRICA:
+    - aawsat.com
+    - haaretz.co.il
+    - hurriyet.com.tr
+
+SUB-SAHARAN AFRICA:
+    - jeuneafrique.com
+    - nation.africa
+
+SOUTH ASIA:
+    - thehindu.com
+    - bhaskar.com
+
+EAST ASIA:
+    - caixin.com
+    - asahi.com
+    - chosun.com
+
+LATIN AMERICA:
+    - folha.uol.com.br
+    - lanacion.com.ar
+
+============================================================
+SECTION 4 — METADATA FIELDS
+============================================================
+
+Each metadata packet includes:
+
+    headline
+    timestamp
+    section
+    URL
+    language
+    region
+    source_id
+    ingestion_timestamp
+
+No article text is ingested.
+
+============================================================
+SECTION 5 — BOUNDARY RULES
+============================================================
+
+The metacrawler must enforce:
+
+    METADATA_ONLY
+    NO_ARTICLE_TEXT
+    NO_PAYWALL_BYPASS
+    NO_TRANSLATION_AT_INGEST
+    NO_SUMMARIZATION_AT_INGEST
+    NO_SENTIMENT_EXTRACTION_AT_INGEST
+
+Boundary violations trigger:
+    - discard packet
+    - log violation
+    - notify boundary layer
+
+============================================================
+SECTION 6 — INGESTION PIPELINE
+============================================================
+
+STEP 1 — FETCH
+    - retrieve top-level headlines
+    - extract metadata fields
+    - normalize encoding
+
+STEP 2 — CLEAN
+    - remove duplicates
+    - remove malformed entries
+    - validate timestamps
+    - validate URLs
+
+STEP 3 — CLASSIFY
+    - assign region
+    - assign language
+    - assign source_id
+    - assign narrative domain (if detectable)
+
+STEP 4 — PACKAGE
+    - wrap metadata into METADATA_PACKET format
+
+STEP 5 — ROUTE
+    INTAKE → CLASSIFIER → ELINS → GLOBAL_MANIFOLD
+
+STEP 6 — LOG
+    - ingestion count
+    - anomalies
+    - boundary violations
+    - ELINS routing status
+    - manifold update status
+
+============================================================
+SECTION 7 — MANIFOLD UPDATE RULES
+============================================================
+
+Upon successful ingestion:
+    - trigger ELINS narrative-physics extraction
+    - update drift vectors
+    - update basin geometry
+    - update pressure maps
+    - update legitimacy vectors
+    - update regional manifold slices
+
+If ELINS fails:
+    - retry once
+    - log failure
+    - notify operator
+
+============================================================
+SECTION 8 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_METACRAWLER_STATUS
+    Display last run, next run, packet count, anomalies.
+
+ENGINE_METACRAWLER_RUN
+    Manually trigger ingestion cycle.
+
+ENGINE_METACRAWLER_LOGS
+    Display ingestion logs.
+
+ENGINE_METACRAWLER_TARGETS
+    Display current target list.
+
+============================================================
+SECTION 9 — FAILURE MODES
+============================================================
+
+Potential failures:
+    - source unreachable
+    - malformed metadata
+    - boundary violation
+    - ELINS routing failure
+    - manifold update failure
+    - schedule drift
+
+Recovery:
+    - retry fetch
+    - fallback to cached metadata
+    - skip source
+    - notify operator
+
+============================================================
+STATUS:
+Autonomous Metacrawler Installed.
+
+============================================================
+END OF FILE
+============================================================

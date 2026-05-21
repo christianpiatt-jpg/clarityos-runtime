@@ -1,0 +1,23 @@
+[CONSOLE_VIEW]
+id: structural_overview
+name: Structural Overview
+sources:
+  - 305_StructuralInventory.idx
+  - MASTER_INDEX.txt
+includes:
+  - system_map
+  - folder_tree
+refresh: on_demand
+status: active
+
+[CONSOLE_VIEW]
+id: maps_overview
+name: Maps Overview
+sources:
+  - 400_SystemMaps.idx
+  - 401_SubsystemMaps.idx
+  - 402_OperatorMaps.idx
+  - 403_BasinMaps.idx
+  - 404_HydronicMaps.idx
+refresh: on_demand
+status: active

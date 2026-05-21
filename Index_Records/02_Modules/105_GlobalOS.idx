@@ -1,0 +1,18 @@
+notepad 105_GlobalOS.idx
+
+[Record]
+Name = Global OS
+Code = 105
+Path = ../../02_Subsystems/Global_OS/
+Description = Planetary-scale subsystem responsible for basin integration, global hydronic flows, cross-system alignment, and planetary coherence.
+
+[Files]
+Global_Primitives = global_primitives.txt
+Basin_Maps = basin_maps.txt
+Hydronic_Flows = hydronic_flows.txt
+Planetary_Coherence = planetary_coherence.txt
+Global_Alignment = global_alignment.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx

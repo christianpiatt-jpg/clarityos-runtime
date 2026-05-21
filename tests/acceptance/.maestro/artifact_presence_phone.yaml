@@ -1,0 +1,102 @@
+# tests/acceptance/.maestro/artifact_presence_phone.yaml
+#
+# Phone artifact-presence flow. Assumes the operator has already
+# completed onboarding and may need to unlock the vault on app launch.
+# Walks the cockpit + threads screens and prints visible artifact ids
+# to stdout in a fixed parseable format.
+#
+# Output contract — runner expects lines of the form:
+#   ELINS_KEY=<vault-key>
+#   THREAD_ID=<thread-id>
+#   INBOUND=<envelope-id>
+# Other lines are ignored by the parser (tests/acceptance/surfaces/phone.ts).
+#
+# ============================================================
+# ADJUSTMENT NOTES — verify before first real run
+# ============================================================
+# 1. appId
+#      "com.clarityos.phone" — replace if the Expo bundle id differs.
+#
+# 2. testIDs required in the RN UI for stable evalScript scraping:
+#      Cockpit:  testID="inbound-list"        (the Inbound rail container)
+#                testID="recent-elins-list"   (the recent ELINS rail container)
+#      Threads:  testID="thread-list"         (the thread list container)
+#
+#      If these testIDs are absent from the shipped UI, the evalScript
+#      blocks below will return null and the runner will see zero
+#      artifacts. Add the testIDs to the RN containers (View / FlatList
+#      props) before running.
+#
+# 3. The evalScript regex literals scan for vault-key shaped strings:
+#      ELINS_KEY = /elins\.[A-Za-z0-9_]+/
+#      THREAD_ID = /t[-_][A-Za-z0-9-]+/
+#      INBOUND   = /inb[-_][A-Za-z0-9-]+/
+#    If the actual vault key conventions differ in the shipped surface,
+#    update both the regex and the runner parser
+#    (tests/acceptance/surfaces/phone.ts) together.
+#
+# 4. Unlock pre-step is conditional. If the device persists vault secret
+#    via Q4 SecureStore opt-in, the unlock screen will not appear.
+# ============================================================
+
+appId: com.clarityos.phone
+
+env:
+  OP_EMAIL: ""
+  OP_HANDLE: ""
+  OP_SECRET: ""
+  BACKEND_BASE_URL: ""
+
+---
+- launchApp
+- waitForAnimationToEnd
+
+# ----- Unlock vault (conditional, Q5 default UnlockGate) -----
+- runFlow:
+    when:
+      visible: "Unlock vault"
+    commands:
+      - tapOn:
+          id: secret
+      - inputText: ${OP_SECRET}
+      - hideKeyboard
+      - tapOn: "unlock"
+      - waitForAnimationToEnd
+
+# ----- Cockpit — Inbound rail + Recent ELINS rail -----
+- assertVisible:
+    text: "Inbound"
+
+- evalScript: |
+    // Read the Inbound rail container's text content (RN testID).
+    const inbound = maestro.copyTextFrom({ id: "inbound-list" });
+    if (typeof inbound === "string") {
+      const matches = inbound.match(/inb[-_][A-Za-z0-9-]+/g) || [];
+      for (const m of matches) {
+        console.log("INBOUND=" + m);
+      }
+    }
+    // Read the Recent ELINS rail.
+    const elinsList = maestro.copyTextFrom({ id: "recent-elins-list" });
+    if (typeof elinsList === "string") {
+      const matches = elinsList.match(/elins\.[A-Za-z0-9_]+/g) || [];
+      for (const m of matches) {
+        console.log("ELINS_KEY=" + m);
+      }
+    }
+
+# ----- Threads list -----
+# ADJUSTMENT: the navigation entry to threads may differ ("Threads" tab,
+# bottom-bar icon, or settings card). The default flow uses a tap on
+# the visible "Threads" string.
+- tapOn: "Threads"
+- waitForAnimationToEnd
+
+- evalScript: |
+    const list = maestro.copyTextFrom({ id: "thread-list" });
+    if (typeof list === "string") {
+      const matches = list.match(/t[-_][A-Za-z0-9-]+/g) || [];
+      for (const m of matches) {
+        console.log("THREAD_ID=" + m);
+      }
+    }

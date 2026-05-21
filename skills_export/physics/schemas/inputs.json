@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "physics.inputs.v1",
+  "title": "Physics — input",
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text":  { "type": "string", "description": "Free-form description of the plan, design, or claim under analysis." },
+    "stated_constraints": {
+      "type": "array",
+      "description": "Constraints the caller has already identified (the model still tests whether they're hard).",
+      "items": { "type": "string" }
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "domain":     { "type": "string", "description": "Software, legal, financial, etc." },
+        "stakes":     { "type": "string", "description": "low / medium / high — affects how much rigour the model applies." },
+        "horizon":    { "type": "string", "description": "When the plan would execute." }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

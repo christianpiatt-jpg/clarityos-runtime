@@ -1,0 +1,10 @@
+[MAP]
+name: Cross-Basin Transition Map
+version: 20260410
+
+[TRANSITIONS]
+ELINS → GALILEO
+GALILEO → Unified Geometry
+Unified Geometry → ClarityOS
+
+[END]

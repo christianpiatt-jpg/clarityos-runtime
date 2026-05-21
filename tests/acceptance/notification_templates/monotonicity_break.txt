@@ -1,0 +1,24 @@
+[ClarityOS acceptance] monotonicity break — scenario 05
+
+Detected at: {{detected_at}}
+Run id:      {{run_id}}
+
+Per-iteration artifact count dropped between iterations:
+  iteration {{iteration_n}}:           {{count_at_n}} artifacts
+  iteration {{iteration_n}} - 1:       {{count_at_n_minus_1}} artifacts
+
+Pass rate over the last 10 runs: {{pass_rate_last_10}}
+
+This is a P1 condition under tests/acceptance/failure_modes.md
+(P1.4 — Stability monotonicity violation). State leakage is the most
+common cause; investigate vault eviction policies and FSM resume
+behaviour before re-running.
+
+Do not lower the MAX_TO_MEAN_RATIO constant in
+tests/acceptance/scenarios/05_stability_window.ts to mask the issue.
+
+Open the curve view for the longitudinal context:
+  {{dashboard_url}}
+
+If pass rate is below 0.80, escalate to P0 — stability is a
+precondition for launch acceptance.

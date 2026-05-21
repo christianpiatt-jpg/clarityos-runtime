@@ -1,0 +1,42 @@
+OS.EmploymentLaw.References = {
+  ADA: [
+    "ADA Summary Guidance",
+    "Preemployment Disability-Related Questions & Medical Exams",
+    "ADA & Psychiatric Disabilities",
+    "Conduct Rules (ADA + Title VII)",
+    "Direct Threat Standard",
+    "Reasonable Accommodation Framework",
+    "Confidentiality Requirements"
+  ],
+  TitleVII: [
+    "Religious Discrimination (Section 12)",
+    "National Origin Discrimination",
+    "Employment Agency Definition",
+    "Contingent Workers / Joint Employer Doctrine"
+  ],
+  Enforcement: [
+    "Retaliation & Related Issues",
+    "Non-Waivable Rights Under EEOC-Enforced Statutes",
+    "After-Acquired Evidence & McKennon",
+    "EEOC ADR Policy"
+  ],
+  HiringAndRisk: [
+    "Preemployment Medical Exams",
+    "Arrest & Conviction Records (Green Factors)",
+    "Conditional Offer Logic",
+    "Job-Relatedness & Business Necessity"
+  ],
+  Remedies: [
+    "Compensatory & Punitive Damages (CRA 1991 §102)",
+    "After-Acquired Evidence Limitations",
+    "Back Pay Standards",
+    "Emotional Harm Criteria"
+  ],
+  Process: [
+    "ADR Policy",
+    "Charge Filing Procedures",
+    "Jurisdiction & Timeliness",
+    "Confidentiality Rules",
+    "Investigation → Conciliation → Litigation Flow"
+  ]
+}

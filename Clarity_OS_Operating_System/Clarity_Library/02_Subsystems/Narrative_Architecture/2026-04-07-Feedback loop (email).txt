@@ -1,0 +1,193 @@
+Feedback loop (email)
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+
+A sender and a recipient connected by a mailbox provider (MP). The feedback provider and the feedback consumer are the two formal endpoints of the feedback loop (blue arrow). Senders need to subscribe, possibly using a web form similar to the one depicted on the upper left corner, in order to become feedback consumers. Recipients typically click a spam button on a web mail page to start the process.
+A feedback loop (FBL), sometimes called a complaint feedback loop, is an inter-organizational form of feedback by which a mailbox provider (MP) forwards the complaints originating from their users to the sender's organizations. MPs can receive users' complaints by placing report spam buttons on their webmail pages, or in their email client, or via help desks. The message sender's organization, often an email service provider, has to come to an agreement with each MP from which they want to collect users' complaints.[1]
+
+Feedback loops are one of the ways for reporting spam. Whether and how to provide an FBL is a choice of the MP. End users should report abuse at their mailbox provider's reporting hub, so as to also help filtering.[2] As an alternative, competent users may send abuse complaints directly, acting as mailbox providers themselves.
+
+Rationale
+Marketers striving for their mail to be delivered have a twofold advantage: they can remove subscribers that don't want to receive that kind of advertising (listwashing), and they can analyze the complaint rate and hence how their advertising meets market expectations. By unsubscribing users who complain, marketers reduce their overall complaint rate per IP or domain, ensuring that targeted mail is much more likely to reach subscribers who actually want to receive it.[3]
+
+ESPs, when playing the sender's role, are very sensitive to how sending mail on behalf of their customers may affect their reputation. Monitoring the complaint rate is one of the ways they can control what their users are sending.[4]
+
+Reporting process
+Spencer sends a message to Alice.
+Alice complains to Isaac (her ISP or MP) about the message, e.g. by hitting the report spam button.
+Isaac encapsulates the message as either an Abuse Reporting Format MIME part, or (less commonly) a standalone message/rfc822 MIME part, and sends it to Spencer if Spencer has signed up to receive that feedback.[5]
+As sketched above, the process implies that Spencer, besides being the author (or sender) of the message, is connected to the postmaster responsible for his mail domain. Subscribing to an FBL usually involves the postmaster's authorization. An FBL subscriber may or may not forward abuse reports to the relevant authors. If no subscribers exist for a given mail domain, Isaac can omit sending an abuse report at all. In fact, subscriptions have to be done one by one, a laborious task that mail domains not engaged in mass mailing may want to skip. RFC 6650 addresses the latter shortcoming by proposing auto-subscribe just-in-time FBLs, which can be started by sending an unsolicited abuse report with further directives (at a minimum, a way to unsubscribe).[6]
+
+Ipsos noted that a majority of respondents to a survey on spam reporting marked messages as spam based solely on the subject and sender data.
+
+For years, end users have been told not to trust email unsubscribe links, so many users hit the spam button as an alternative to unsubscribing.[7] Consequently, report spam may act as unsubscribe in some cases.[8] One of the reasons not to hit unsubscribe links is to avoid confirming that the message had been received and opened.[9]
+
+Reporting formats
+The Abuse Reporting Format (ARF) is the standard format for FBL reports. Much like bounce messages, whose design is inherited by ARF, an abuse report consists of a human readable part, followed by a machine readable part, and the original message. The report is characterized by a Feedback-Type field whose values may indicate one of abuse, fraud, virus, or other (more types are registered at IANA).
+
+Microsoft, who use the name Junk Mail Reporting (JMR), also use their own format.[10]
+
+Google's Gmail is beta testing a non-traditional FBL with select ESPs.[11] Gmail uses their own format—an aggregate report that reveals spam rate per notable sender. SendGrid reports that the Gmail FBL, developed and launched by Julian Tempelsman and Sri Somanchi, is effective at identifying spam that other anti-spam systems miss.[12]
+
+See also
+Abuse Reporting Format
+Spam reporting
+References
+ J.D. Falk, ed. (November 2011). Complaint Feedback Loop Operational Recommendations. IETF. doi:10.17487/RFC6449. RFC 6449. Retrieved 30 November 2011.
+ John R. Levine (9 December 2009). "Adding a spam button to MUAs". mail. ASRG. Retrieved 22 April 2011.
+ "What are feedback loops (fbl's) and how can they help my deliverability?". Email Manual. 2009-07-15. Archived from the original on 6 March 2012. Retrieved 15 July 2009.
+ "Your Reputation Holds the Key to Deliverability" (PDF). ReturnPath. 2008-08-18. Archived from the original (PDF) on 11 May 2013. Retrieved 16 November 2008.
+ J.D. Falk (2008-11-11). "FeedBack loops". ASRG mailing list (Mailing list). IRTF. Archived from the original on 2009-01-31. Retrieved 18 November 2008.
+ Murray Kucherawy, ed. (June 2012). Creation and Use of Email Feedback Reports: An Applicability Statement for the Abuse Reporting Format (ARF). IETF. doi:10.17487/RFC6650. RFC 6650. Retrieved 28 June 2012. Feedback Providers MUST provide a way for report recipients to request that no further reports be sent.
+ Derek Harding (2006-09-07). "Getting in the Feedback Loop". ClikZ. Retrieved 16 November 2008.
+ John Levine (2008-11-13). "FeedBack loops". ASRG mailing list (Mailing list). IRTF. Archived from the original on 2009-03-14. Retrieved 18 November 2008.
+ "Spam Unsubscribe Services". The Spamhaus Project. 2007-01-19. Archived from the original on 2009-03-09. Retrieved 16 November 2008.
+ "Services for Senders and ISPs". Microsoft. Retrieved 11 November 2011.
+ "Best Practices for Senders: A Gmail Perspective (slides 47, 48)". MAAWG. 2014-02-20.
+ "Gmail's Spam Feedback Loop: SendGrid's First-hand Experience". SendGrid. 2014-03-28.
+External links
+Universal Feedback Loop Service
+Messaging Anti-Abuse Working Group - list of FBL´s
+Feedback loop links for some email providers
+Abuse Feedback Reporting Format (ARF)
+Importance of Customer Feedback
+vte
+Spamming
+Protocols	
+Email spam	
+Address mungingBulk email softwareDirectory harvest attackDNSBLDNSWLEmail spoofingImage spamJoe jobPink contractSpambot
+Other	
+Auto dialerCold callingJunk faxMessagingMobile phoneNewsgroupRobocallSpambotTelemarketingVoIP
+Anti-spam	
+Client-sideChallenge–response spam filteringContext filteringDisposable email addressDistributed Checksum ClearinghouseEmail authenticationGreylistingList poisoningMyWOTNaive Bayes spam filteringSORBSSpamCopSpamhaus
+Anti-spam software	
+AkismetAmavisBogofilterCRM114MIMEDefangRspamdSpamAssassin
+Spamdexing	
+Blog spamCloakingDoorway pageForum spamGoogle bombingKeyword stuffingLink farmReferrer spamScraper siteSocial spamSpam blogsSpingURL redirection
+Internet fraud	
+Advance-fee scam Lottery scamMake Money FastPhishing Voice
+Categories: SpammingEmailAnti-spamComplaints organizations
+--
+pam reporting
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+If you want to report spam on Wikipedia you can do so at Wikipedia:WikiProject Spam
+Spam reporting, more properly called abuse reporting, is the process of identifying electronic messages as abusive and reporting them to an authority (e.g., an email administrator) for resolution. Reported messages can be email messages, blog comments, or any kind of spam.
+
+Flagging user generated content in web sites
+Abuse reports are a type of feedback where users can flag others' posts as abusive content. Most websites that allow user-generated content either apply a moderation based on abuse reports, such as hiding or deleting offending content at a defined threshold, or implement various user roles that allow users to cooperatively govern the site's content.[1]
+
+Email spam reporting
+Spammers' behavior ranges from forcing users to opt in to cooperatively offering opt-out options, and even hiding the sender's identity (including phishing). The most intractable cases can be addressed by reporting the abusive message to hash-sharing systems[2] such as Vipul's Razor, which benefits other potential victims. In some cases, senders may cooperate by using spam reports to fix or mitigate the problem at its origin. For example, they may use reports to detect botnets,[3] educate the sender, or simply unsubscribe the reporting user. Email spam legislation varies, forbidding abusive behavior to some extent. In some cases, prosecuting spammers and claiming damages may be possible.
+
+RFC 6650 recommends that recipients report abusive messages to their mailbox providers. The provider's abuse-team should determine the best course of action, possibly considering hash-sharing and legal steps. If the sender has subscribed to a Feedback loop (email), the mailbox provider will forward the complaint as a feedback report according to the existing FBL agreement.[4] Otherwise, mailbox providers should determine who is responsible for the abuse and forward the complaint to them. Recipients of unsolicited abuse reports are effectively potential FBL subscribers, as the mailbox provider needs to offer them a way to manage the report stream. On the other hand, mailbox providers can prevent further messages from non-cooperative senders of abusive content.[5]
+
+Abuse reports are sent by email using the Abuse Reporting Format (ARF), except for initial notification by the recipient in cases where a mailbox implementation provides more direct means. The target address for an abuse report depends on the authority to which the abusive message is reported. Choices include the following:[6]
+
+A public reporting hub, or global reputation tracker, such as SpamCop or Abusix's blackhole.mx. Different degrees of skill are required to properly interact with different hubs.
+The domain-specific reporting hub is the recommended choice for end users.[7] If provided, it should be accessible by a visible button or menu item in the mail client.
+A feedback loop subscriber can be selected as a target by a mailbox provider after receiving an end-user report. Users should be aware of their provider's policy.
+The abuse POC for an authenticated domain that handled the reported message. DomainKeys Identified Mail (DKIM) is the usual authentication protocol,[8] but Sender Policy Framework (SPF) can be used in the same way. A mailbox provider choice.
+The abuse POC for the IP address of the last relay. Some skill is required to properly locate such data. This is the default choice for a mailbox provider whose server received the abusive message (before the recipient reported it) and annotated the relevant IP address. Various sites maintain POC databases, such as Network Abuse Clearinghouse (by name), Abusix (by IP address), and others. There is also a hierarchy of delegations at the relevant Regional Internet registry (RIR), and each corresponding Whois record may include a POC, either as a remark or as a more specific database object, e.g. an Incident response team.
+The first three methods provide for full email addresses to send reports to. Otherwise, target abuse mailboxes can be assumed to be in the form defined by RFC 2142 (abuse@example.com), or determined by querying either the RIR's whois databases (which may have query result limits[9]) or other databases created specifically for this purpose. There is a tendency to mandate the publication of exact abuse POCs.[10][11]
+
+Abused recipients can automate spam reporting to different degrees: they can push a button when they see the message, or run a tool that automatically quarantines and reports messages it recognizes as spam. When no specific tools are available, recipients must report abuse by hand; that is, they forward the message as an attachment (so as to include the full header) to the chosen authority. Mailbox providers can also use tools to automatically process incident notifications.[12]
+
+See also
+Abuse Reporting Format
+Feedback loop (email)
+References
+ Felix Schwagereit; Ansgar Scherp; Steffen Staab (June 14–17, 2011). Survey on Governance of User-generated Content in Web Communities (PDF). WebSci'11. ACM. Retrieved 2012-01-04.
+ "Hash-Sharing Systems". wiki. Apache Foundation. Retrieved 15 August 2012.
+ Jason Livingood; Nirmal Mody; Mike O'Reirdan (March 2012). Recommendations for the Remediation of Bots in ISP Networks. IETF. doi:10.17487/RFC6561. RFC 6561. Retrieved 15 August 2012.
+ "Email Feedback Loop: What It Is and Why It Matters [2023]". mailtrap.io. 2023-03-01. Retrieved 2023-04-18.
+ Murray Kucherawy, ed. (June 2012). Creation and Use of Email Feedback Reports: An Applicability Statement for the Abuse Reporting Format (ARF). IETF. doi:10.17487/RFC6650. RFC 6650. Retrieved 28 June 2012. Rather than generating feedback reports themselves, MUAs SHOULD create abuse reports and send these reports back to their Mailbox Providers so that they can generate and send ARF messages on behalf of end users (see Section 3.2 of [RFC6449]). This allows centralized processing and tracking of reports, and provides training input to filtering systems.
+ Theo Clarke (10 October 2005). "Finding network abuse contacts". Wikimedia Foundation. Retrieved 22 April 2011.
+ John R. Levine (9 December 2009). "Adding a spam button to MUAs". ASRG mailing list (Mailing list). Retrieved 22 April 2011. See also the wiki summary of that mail thread.
+ J.D. Falk, ed. (November 2011). Complaint Feedback Loop Operational Recommendations. IETF. doi:10.17487/RFC6449. RFC 6449. Retrieved 18 November 2011. Appendix B. Using DKIM to Route Feedback
+ "Community Consultation Underway - Removal of WHOIS Query Result Limit". ARIN. 2007-03-12. Retrieved 2009-09-28. [T]he ARIN WHOIS query limit of 256 results [...] has been in place since ARIN's inception as a means of curtailing data mining.
+ Leslie Nobile (18 July 2011). "Abuse Contact To Be Mandatory per Policy 2010-14". announcements. American Registry for Internet Numbers. Retrieved 24 August 2011.
+ Tobias Knecht (8 November 2010). "Abuse contact information". Asia-Pacific Network Information Centre. Retrieved 22 April 2011.
+ One is Abusehelper
+vte
+Spamming
+Protocols	
+Email spam	
+Address mungingBulk email softwareDirectory harvest attackDNSBLDNSWLEmail spoofingImage spamJoe jobPink contractSpambot
+Other	
+Auto dialerCold callingJunk faxMessagingMobile phoneNewsgroupRobocallSpambotTelemarketingVoIP
+Anti-spam	
+Client-sideChallenge–response spam filteringContext filteringDisposable email addressDistributed Checksum ClearinghouseEmail authenticationGreylistingList poisoningMyWOTNaive Bayes spam filteringSORBSSpamCopSpamhaus
+Anti-spam software	
+AkismetAmavisBogofilterCRM114MIMEDefangRspamdSpamAssassin
+Spamdexing	
+Blog spamCloakingDoorway pageForum spamGoogle bombingKeyword stuffingLink farmReferrer spamScraper siteSocial spamSpam blogsSpingURL redirection
+Internet fraud	
+Advance-fee scam Lottery scamMake Money FastPhishing Voice
+Categories: SpammingEmailAnti-spam

@@ -1,0 +1,36 @@
+[INDEX_RECORD]
+id: 400
+name: System Maps
+class: maps
+layer: 05_Maps
+version: 20260410
+status: active
+
+[DESCRIPTION]
+Top-level system maps for ClarityOS. These maps visualize the entire
+architecture: system layers, modules, operator notes, libraries, maps,
+logs, diagnostics, archives, and planetary mesh.
+
+[MAPS]
+- System_Topology_20260410.map
+- System_Layer_Stack_20260410.map
+- System_Continuity_Flow_20260410.map
+
+[GENERATED_FROM]
+- MASTER_INDEX.txt
+- 305_StructuralInventory.idx
+- 307_DirectorySchema.idx
+
+[DEWEY]
+100.00 ; System Maps — Global Architecture
+
+[LINKS]
+upstream: 305_StructuralInventory.idx
+adjacent: 401_SubsystemMaps.idx
+downstream: 703_IntegrityScans.idx
+
+[INTEGRITY]
+checksum_required: true
+last_verified: pending
+
+[END]

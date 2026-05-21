@@ -1,0 +1,18 @@
+303_CaseStudies.idx
+
+[Record]
+Name = Case Studies Library
+Code = 303
+Path = ../../04_Library/Case_Studies/
+Description = Real-world case studies demonstrating OS application across domains including conflict, leadership, mediation, systems analysis, and propagation.
+
+[Files]
+Case_Index = case_index.txt
+Case_Studies = case_studies.txt
+Analysis_Notes = analysis_notes.txt
+Outcome_Summaries = outcome_summaries.txt
+Case_Crosswalk = case_crosswalk.txt
+
+[Links]
+Parent = 300_Primitives.idx
+Siblings = 301_Proofs.idx, 302_Theorems.idx, 304_CanonicalEntries.idx

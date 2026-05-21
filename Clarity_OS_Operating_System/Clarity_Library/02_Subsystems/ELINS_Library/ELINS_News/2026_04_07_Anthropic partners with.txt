@@ -1,0 +1,346 @@
+2026_04_07_Anthropic partners with tech giants for unreleased AI model
+Share
+Edited by Olivia Niland, Editor at LinkedIn News 
+Anthropic launched an initiative Tuesday called Project Glasswing, allowing major tech companies, including Apple, Google and Amazon, to preview its unreleased AI model aimed at enhancing cybersecurity defenses. The startup says the new model, Claude Mythos Preview, can find software vulnerabilities in operating systems and browsers "better than all but the most skilled humans." Anthropic's partners will offer feedback on Claude Mythos Preview, the company says, with the aim of sharing those findings with the industry and ultimately deploying the model for public use.
+
+…
+see more
+Top perspectives
+Storyline feed updates
+View Daniela Amodei’s  graphic link
+Daniela AmodeiDaniela Amodei
+ • 3rd+3rd+
+President at AnthropicPresident at Anthropic
+3h • Edited •  3 hours ago • Edited • Visible to anyone on or off LinkedIn
+
+Follow
+
+Today we're launching Project Glasswing — a coalition with AWS, Anthropic, Apple, Broadcom, Cisco, CrowdStrike, Google, JPMorganChase, the Linux Foundation, Microsoft, NVIDIA, and Palo Alto Networks to help secure the world's most critical software.
+
+Glasswing is built around Claude Mythos Preview, our new limited-release frontier model, which has so far found thousands of zero-day vulnerabilities — including some that survived decades of human review — spanning every major operating system and browser. AI cyber capabilities at this level will proliferate over the coming months, and not every actor who gets access to them will be focused on defense. That's the gap Glasswing is built to close.
+
+Our partners and 40+ other organizations maintaining critical infrastructure are using Mythos Preview to find and fix vulnerabilities in their own systems and across the open-source ecosystem. Anthropic is committing up to $100M in usage credits and $4M to open-source security organizations supporting this work, and we'll share what we learn so the broader industry can benefit. We're also in close communication with US government officials about Mythos Preview's offensive and defensive cyber capabilities and their implications for national security.
+
+Cyber defense at this scale is a team effort. Frontier labs, software companies, security researchers, open-source maintainers, and governments all working together is how defenders will stay ahead.
+
+https://lnkd.in/gKNM9Rqj
+Anthropic logo
+Project Glasswing: Securing critical software for the AI era
+anthropic.com
+likecelebratelove
+1,929
+73 comments
+176 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Bruce Monaco’s  graphic link
+Bruce MonacoBruce Monaco
+   • 3rd+Premium • 3rd+
+Co-Founder & COO @ Institute for AI Transformation | Leaders in AI Summit | AI Strategist | Think Tank HostCo-Founder & COO @ Institute for AI Transformation | Leaders in AI Summit | AI Strategist | Think Tank Host
+Visit my website
+3h •  3 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+BREAKING NEWS: Anthropic's new model, Claude Mythos, is so powerful that it is not being released to the public. 
+
+Instead, Anthropic is kicking off a 40-company coalition, Project Glasswing, to allow cybersecurity defenders a head start in locking down critical software.
+
+Once agentic systems can operate across environments, find vulnerabilities, and execute multi-step tasks, the implications aren’t incremental... they’re exponential.
+
+https://lnkd.in/eY9PBGTF
+
+Anthropic Claims Its New A.I. Model, Mythos, Is a Cybersecurity ‘Reckoning’
+nytimes.com
+likeinsightfulcelebrate
+59
+2 comments
+4 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+
+The Wall Street JournalThe Wall Street Journal
+10,064,841 followers10,064,841 followers
+4h •  4 hours ago • Visible to anyone on or off LinkedIn
+
+Anthropic is taking steps to arm some of the world’s biggest technology companies with tools to find and patch bugs in their hardware and software.
+
+The company is making a preview model of its new AI model, called Mythos, available to about 50 companies and organizations that maintain critical infrastructure, including Amazon, Microsoft, Apple, Google and the Linux Foundation.
+
+Cybersecurity researchers and software-makers worry that artificial intelligence is becoming so good at exploiting vulnerabilities that it could cause widespread online disruption. 
+
+Security experts have predicted that AI models will discover an avalanche of software bugs, and the effort is set to help companies stay one step ahead of cyber criminals and other threats.
+
+🔗 Read more: https://on.wsj.com/4cvhHmt
+
+Anthropic Set to Preview Powerful ‘Mythos’ Model to Ward Off AI Cyberthreats
+wsj.com
+likeinsightfulfunny
+67
+3 comments
+8 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Jaspreet Singh’s  graphic link
+Jaspreet SinghJaspreet Singh
+   • 3rd+Premium • 3rd+
+Reuters tech reporter | Signal: jaspreet.55Reuters tech reporter | Signal: jaspreet.55
+4h •  4 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Anthropic on Tuesday announced an initiative with major technology companies, including Amazon, Microsoft and Apple, that lets partners preview an advanced ​model with cybersecurity capabilities developed by the AI startup.
+
+Under its "Project ‌Glasswing", select organizations will be allowed to use the startup's unreleased and general-purpose AI model, "Claude Mythos Preview", for defensive cybersecurity work, Anthropic said. Other partners include ​CrowdStrike, Palo Alto Networks, Google and NVIDIA.
+
+The announcement follows a Fortune report ​last month that Anthropic was testing Claude Mythos, which it said ⁠posed security risks and also offered advanced capabilities, dragging shares of cybersecurity ​firms such as Palo Alto Networks and CrowdStrike sharply lower.
+
+https://lnkd.in/gjycWz-Q
+Anthropic logo is seen in this illustration taken May 20, 2024. REUTERS/Dado Ruvic/File Photo
+Anthropic touts AI cybersecurity project with Big Tech partners
+reuters.com
+like
+16
+1 comment
+3 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View James Montantes’  graphic link
+James MontantesJames Montantes
+   • 3rd+Premium • 3rd+
+Founder, Castle Rock Digital LLC | Principal PMM & Analyst | AI Infrastructure & HPC Intelligence | Built Spyglass: Live AI Supply Chain Map | 2x U.S. Patent InventorFounder, Castle Rock Digital LLC | Principal PMM & Analyst | AI Infrastructure & HPC Intelligence | Built Spyglass: Live AI Supply Chain Map | 2x U.S. Patent Inventor
+4h •  4 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Anthropic just dropped a 244-page document about a model called Claude Mythos Preview and in a move that is genuinely unprecedented in the AI industry, they are not releasing it to the public.
+
+Anthropic Just Released a System Card for Claude Mythos Preview, but Won't Let You Use it. Here's Why That Should Fascinate You. 🤯
+James Montantes
+like
+24
+2 comments
+5 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Rahul Patil’s  graphic link
+Rahul PatilRahul Patil
+   • 3rd+Verified • 3rd+
+CTO at AnthropicCTO at Anthropic
+5h •  5 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+The most capable model we've built, deployed for safety ahead of commercialization. Today we're launching Project Glasswing, a partnership between Anthropic, AWS, Apple, Broadcom, Cisco, CrowdStrike, Google, JPMorganChase, the Linux Foundation, Microsoft, NVIDIA, and Palo Alto Networks to find and fix vulnerabilities in the software the world runs on, before attackers can.
+
+Security teams have always been outnumbered. I hear some version of this from almost every security leader I talk to: more code shipping than anyone can audit, and the bugs that matter most hiding for years.
+
+Project Glasswing is powered by Claude Mythos Preview, our new general-purpose frontier model. Its cyber strength comes from how good it's gotten at reading and reasoning about code. Pointed at some of the most-reviewed code in the world, it found a 27-year-old remote crash in OpenBSD, a 16-year-old bug in FFmpeg that automated tools had passed over five million times, and a full privilege-escalation chain in the Linux kernel, plus thousands more, including some in every major OS and web browser.
+
+Our launch partners and 40+ other organizations that maintain critical infrastructure are using Mythos Preview now for defensive security. We'll report publicly on what we learn within 90 days.
+Capabilities like this won't stay rare for long, so defenders need them first. We're not making Mythos Preview generally available, and we're committing $100M in usage credits and $4M in open-source security grants. 
+
+anthropic.com/glasswing
+
+AnthropicAnthropic
+2,735,630 followers2,735,630 followers
+5h •  5 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+Introducing Project Glasswing: an urgent initiative to help secure the world’s most critical software. 
+
+It’s powered by our newest frontier model, Claude Mythos Preview, which can find software vulnerabilities better than all but the most skilled humans: https://lnkd.in/eS-fu9BF
+
+We’ve partnered with Amazon Web Services, Apple, Broadcom, Cisco, CrowdStrike, Google, JPMorganChase, the Linux Foundation, Microsoft, NVIDIA, and Palo Alto Networks. Together we’ll use Mythos Preview to help find and fix flaws in the systems on which the world depends.
+
+Mythos Preview has already found thousands of high-severity vulnerabilities—including some in every major operating system and web browser.
+
+Given the pace of AI progress, it won't be long before models this capable are widespread. But there are strong reasons for optimism: AI will also be invaluable for defensive work.
+
+We do not plan to make Mythos Preview generally available. Our goal is to deploy Mythos-class models safely at scale, but first we need safeguards that reliably block their most dangerous outputs. We’ll begin testing those safeguards with an upcoming Claude Opus model.
+
+We’re committing up to $100M in Mythos Preview usage credits for our partners and over 40 other organizations that maintain critical software, including open-source projects. Anthropic will report back what we learn.
+
+Project Glasswing is just a starting point. No organization can solve these cybersecurity problems alone: industry, open source, researchers, and governments all have essential roles to play.
+
+You can read a detailed technical report on the software vulnerabilities and exploits discovered by Claude Mythos Preview here: https://lnkd.in/eE7Kp9ZX 
+
+The Claude Mythos Preview system card is available here: https://lnkd.in/esH2-mfd
+…more
+
+Play
+Remaining time 
+5:47
+1x
+
+Playback speed
+
+Unmute
+
+Turn fullscreen on
+likecelebrateinsightful
+391
+13 comments
+20 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+
+Yahoo FinanceYahoo Finance
+147,040 followers147,040 followers
+5h •  5 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Anthropic on Tuesday announced a cybersecurity partnership with companies including Amazon, Apple, and Microsoft that it said will help defend against the rise of AI-powered cyberattacks.
+
+Called Project Glasswing, the initiative relies on Anthropic’s new Claude Mythos Preview, a frontier model that the company said will only be made available to a handful of organizations. A group of roughly 40 other companies that work on critical software infrastructure will be able to use the model to secure their own software and open-source offerings.
+
+Anthropic said Claude Mythos Preview is already proving effective at detecting software vulnerabilities, stating that the AI has “identified thousands of zero-day vulnerabilities, many of them critical.”
+
+Zero-day vulnerabilities are previously unknown errors in software that developers need to address before they can be exploited, or errors that have already been exploited by attackers and need to be fixed before they can cause any more harm.
+
+Read more, from Daniel Howley: https://lnkd.in/ewpvpMGK
+Your document has finished loading
+likecelebratesupport
+9
+4 comments
+
+Like
+
+Comment
+
+Repost
+
+Send
+
+FortuneFortune
+2,049,321 followers2,049,321 followers
+5h •  5 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+Anthropic is giving a group of Big Tech and cybersecurity firms access to a preview version of Claude Mythos—its unreleased and most advanced AI model—in an attempt to bolster cybersecurity defences across some of the world’s most critical systems.
+
+The company has been concerned that the new model may pose unprecedented cybersecurity risks and increase the likelihood of large-scale AI-driven cyberattacks this year.
+
+The initiative, called “Project Glasswing,” allows firms, including Amazon Web Services, Anthropic, Apple, Broadcom, Cisco, CrowdStrike, Google, JPMorganChase, Microsoft, and NVIDIA, to use the company’s Mythos Preview for defensive security work and share their learnings with the wider industry. 
+
+Anthropic is also providing access to roughly 40 more organizations responsible for building or maintaining critical software infrastructure, allowing them to use the model to scan and secure both their own systems and open-source code.
+
+Read more: https://lnkd.in/encsE5x3
+Anthropic logo
+Anthropic is giving some firms access to Claude Mythos to bolster cybersecurity defenses | Fortune
+fortune.com
+like
+9
+2 comments
+1 repost
+
+Like
+
+Comment
+
+Repost
+
+Send
+View George Kurtz’s  graphic link
+George KurtzGeorge Kurtz
+   • 2ndPremium • 2nd
+CrowdStrike, Inc.CrowdStrike, Inc.
+5h •  5 hours ago • Visible to anyone on or off LinkedIn
+
+Follow
+
+The more capable AI becomes, the more security it needs.
+That’s why Anthropic chose CrowdStrike as a founding member of their security coalition for Claude Mythos Preview. A technical partnership. Falcon secures AI where it executes.
+
+AI is creating the largest security demand driver since the enterprises moved to the cloud. Claude Code is changing how people use computers. OpenClaw is set to reshape how enterprises automate. Mythos may be the most capable frontier model yet. It won’t be the last. All of these AI innovations meet enterprises at the endpoint. That’s where they access data, make decisions, and also create risk. 
+
+To Dario Amodei and the Anthropic Team: congratulations on Project Glasswing. CrowdStrike is here to secure AI innovation.
+
+https://lnkd.in/gvFP-h5U
+Anthropic Claude Mythos Preview: The More Capable AI Becomes, the More Security It Needs
+Anthropic Claude Mythos Preview: The More Capable AI Becomes, the More Security It Needs
+crowdstrike.com
+likecelebrateinsightful
+1,352
+20 comments
+173 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send
+View Nikesh Arora’s  graphic link
+Nikesh AroraNikesh Arora
+   • 3rd+Premium • 3rd+
+Chairman CEO @ Palo Alto NetworksChairman CEO @ Palo Alto Networks
+5h • Edited •  5 hours ago • Edited • Visible to anyone on or off LinkedIn
+
+Follow
+
+Today, Anthropic takes another leap forward with the release of their latest model. Our team’s observations on the Claude Mythos Preview bring our new reality into sharp focus: the barrier to entry for sophisticated cyberattacks drops to near zero, while the speed of those attacks accelerates.
+
+The Good News? The same models creating this new paradigm are part of the defense with the scaffolding we’ve spent years building: sensors across network, cloud, and endpoints; AI-enabled data lakes that convert noise into actionable intelligence, and a consolidated security stack where critical signals don’t get buried across fragmented tools. 
+
+By prioritizing defensive access to these powerful capabilities, Anthropic is helping us ensure that while intelligence is being weaponized, the defenders are the ones with the superior stack. AI becomes the defender. Our work is well underway.
+
+My perspective on AI in Cybersecurity. 
+
+https://lnkd.in/eYi8ihcW
+
+https://lnkd.in/enQGXZmB
+Anthropic logo
+Project Glasswing: Securing critical software for the AI era
+anthropic.com
+likeinsightfulcelebrate
+969
+21 comments
+105 reposts
+
+Like
+
+Comment
+
+Repost
+
+Send

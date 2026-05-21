@@ -1,0 +1,55 @@
+#tags: #clarityOS, #v2, #console, #operator-layer, #system-file
+
+# ClarityOS v2 — Console Command Set
+Version: v2
+Layer: Operator Interface → Command Surface
+
+------------------------------------------------------------
+## PURPOSE
+This file defines the callable commands for the v2 interpretive spine.
+Each command opens the corresponding operator-notes file.
+
+------------------------------------------------------------
+## COMMANDS
+
+v2
+    → Opens the ClarityOS_v2_Handbook.txt
+
+v2 nav
+    → Opens ClarityOS_v2_Navigation.txt
+
+v2 index
+    → Opens ClarityOS_v2_Operator_Notes_Index.txt
+
+v2 geometry
+    → Opens GEOMETRIC_INTERPRETER_Notes.txt
+
+v2 patterns
+    → Opens PATTERNED_SHAPES.txt
+
+v2 energy
+    → Opens ER_TRANSLATOR_NOTES.txt
+
+v2 qc
+    → Opens QC_ENGINE.txt
+
+v2 identity
+    → Opens IDENTITY_LAYER_V2_notes.txt
+
+v2 agency
+    → Opens AGENCY_ENGINE_V2_notes.txt
+
+v2 system
+    → Opens PENTAGON_SPHERE_GEOMETRY_Notes.txt
+
+v2 time
+    → Opens MARKOV_QC_Notes.txt
+
+------------------------------------------------------------
+## NOTES
+- All commands are lowercase.
+- All commands map 1:1 to the v2 spine.
+- This file is referenced by interpreter.bat.
+
+------------------------------------------------------------
+# END OF FILE

@@ -1,0 +1,9 @@
+VA_Manager.import(field_dynamics = {Identity, Logistics, Narrative, Safety})
+VA_Manager.import(pressure_signatures = {upward, downward, lateral, stalled})
+VA_Manager.import(coherence_conditions = policy_alignment)
+VA_Manager.import(attractors = {resolution, referral})
+VA_Manager.import(transitions = {conversation, documentation, referral})
+
+VA_Manager.runtime(drift_detection = inconsistent_accounts,
+                   propagation = channel_naming,
+                   stabilization = neutrality_and_documentation)

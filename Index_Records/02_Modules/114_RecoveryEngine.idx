@@ -1,0 +1,18 @@
+notepad 114_RecoveryEngine.idx
+
+[Record]
+Name = Recovery Engine
+Code = 114
+Path = ../../02_Subsystems/Recovery_Engine/
+Description = Post-distortion subsystem responsible for system restoration, collapse-sequence reversal, environmental repair, operator-state recovery, and re-establishing laminar flow after overload.
+
+[Files]
+Recovery_Primitives = recovery_primitives.txt
+State_Restore = state_restore.txt
+Collapse_Reversal = collapse_reversal.txt
+Environmental_Repair = environmental_repair.txt
+Operator_Recovery = operator_recovery.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx, 113_AutoAdjustEngine.idx

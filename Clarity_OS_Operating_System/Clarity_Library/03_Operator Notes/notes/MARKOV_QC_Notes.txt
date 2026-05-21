@@ -1,0 +1,97 @@
+#tags: #clarityOS, #v2, #module, #operator-layer, #spine, #geometry-first, #temporal-modeling, #library-object, #crosslinked
+
+# MARKOV QC — OPERATOR NOTES
+Version: v2
+Layer: Temporal Weighting → Drift & Arc Stability
+
+------------------------------------------------------------
+## PURPOSE
+MARKOV_QC applies temporal weighting to the QC outputs and evaluates how
+the system is likely to evolve over time.
+
+Its core function:
+→ Update probabilities, detect drift, and stabilize the operator’s sense of arc.
+
+This module ensures:
+- no overreaction to single moments
+- no collapse into short-term turbulence
+- no runaway narratives
+- no false certainty about the future
+
+It is the “time geometry” engine of ClarityOS v2.
+
+------------------------------------------------------------
+## INPUTS
+- QC_ENGINE.output (probabilities, thresholds, force-weights)
+- PENTAGON_SPHERE_GEOMETRY.output (system shape)
+- GLOBAL_ARC_REPORT (macro-scale signals)
+- TOPOLOGY_STATUS (system stability indicators)
+
+------------------------------------------------------------
+## OUTPUTS
+- updated_weights  
+- arc_probabilities  
+- drift_alerts  
+- stability_signals  
+- temporal smoothing  
+
+These outputs feed into:
+- Executive layers (v1)
+- Meta-Executive (oversight)
+- Identity & Agency (indirectly)
+
+------------------------------------------------------------
+## OPERATOR POSTURE
+When using this module, the operator maintains:
+
+- long-horizon awareness  
+- patience with uncertainty  
+- comfort with partial information  
+- nonreactivity to short-term spikes  
+- structural calm  
+
+The operator asks:
+“What is the *trajectory* of this situation?”
+
+Not:
+“What does this moment mean?”
+
+------------------------------------------------------------
+## FAILURE MODES
+Temporal reasoning becomes distorted when:
+
+- the operator overweights the present moment  
+- emotional charge collapses the timeline  
+- the operator assumes certainty  
+- drift signals are ignored  
+- the system is overloaded  
+
+Symptoms include:
+- false urgency  
+- timeline collapse  
+- overprediction  
+- misreading arcs  
+- identity wobble  
+
+------------------------------------------------------------
+## RECOVERY PROTOCOL
+If temporal clarity degrades:
+
+1. Pause all predictions.  
+2. Return to QC probabilities.  
+3. Re-anchor in PENTAGON_SPHERE_GEOMETRY (macro shape).  
+4. Re-run temporal weighting slowly.  
+5. Confirm drift signals before updating arc probabilities.  
+
+This restores temporal stability.
+
+------------------------------------------------------------
+## CROSS-LINKS
+- QC_ENGINE  
+- PENTAGON_SPHERE_GEOMETRY  
+- GLOBAL_OS  
+- 05_Meta_Executive  
+- 07_Global_OS  
+
+------------------------------------------------------------
+# END OF FILE

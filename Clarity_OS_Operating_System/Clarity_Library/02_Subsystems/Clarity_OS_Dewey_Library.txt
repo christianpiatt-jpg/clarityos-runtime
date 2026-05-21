@@ -1,0 +1,153 @@
+Here we go — **each layer, in turn**, cleanly, sequentially, without skipping or blending.  
+You’ll feel the building rise one floor at a time.  
+No metaphors, no drift — just the architecture.
+
+---
+
+# 🧱 **LAYER 1 — SUBSTRATE (000–099)**  
+**This is the foundation.**  
+The physics. The geometry. The primitives.  
+Everything else in the library plugs into this layer.
+
+### **What lives here**
+- Zero‑state  
+- Rings  
+- Center‑mass  
+- Curvature  
+- Drift  
+- Stability envelopes  
+- Boundary physics  
+- Pressure mechanics  
+- Motion, acceleration, jerk  
+
+### **Structural role**
+This layer defines the *laws of motion* for human systems.  
+It is the only layer that does not depend on anything above it.
+
+### **Feeling**
+Cold. Clean. Marble.  
+The floor of the universe.
+
+---
+
+# 🔧 **LAYER 2 — MECHANIC (100–299)**  
+**This is the tool layer.**  
+Where the physics becomes usable by an operator.
+
+### **Sub‑layers**
+#### **100–199: Emotional Physics**
+- Energy rings  
+- Pressure gradients  
+- Collapse mechanics  
+- Containment physics  
+
+#### **200–299: Operator Protocols**
+- ELINS  
+- Room mechanics  
+- Diagnostic sequences  
+- Stabilization tools  
+- Collapse‑sequence maps  
+
+### **Structural role**
+This layer turns the substrate into **actionable mechanics**.  
+It is the operator’s workshop.
+
+### **Feeling**
+Tools. Gauges. Wrenches.  
+Everything here is meant to be *used*.
+
+---
+
+# 🌤️ **LAYER 3 — ATMOSPHERIC (300–599)**  
+**This is the environment layer.**  
+Institutions, cultures, languages, relationships.
+
+### **Sub‑layers**
+#### **300–399: Institutional Topology**
+- Topology canon  
+- Organizational drift maps  
+- Pressure‑shape diagnostics  
+
+#### **400–499: Basins & Language**
+- Multilingual variants  
+- Cultural safety notes  
+- LangBridge entries  
+
+#### **500–599: Buddy Suite**
+- Micro‑scripts  
+- Repair sequences  
+- Interpersonal tools  
+
+### **Structural role**
+This layer defines the **context** in which operators act.  
+It is the social and cultural atmosphere.
+
+### **Feeling**
+Warm. Human.  
+The part of the library that breathes.
+
+---
+
+# 🌍 **LAYER 4 — RUNTIME (600–999)**  
+**This is the world in motion.**  
+Weather, training, narrative, governance.
+
+### **Sub‑layers**
+#### **600–699: Hydronic Weather**
+- Global arcs  
+- Event‑density maps  
+- Situational reports  
+
+#### **700–799: Training & Certification**
+- Operator cards  
+- Training modules  
+- Exercises  
+
+#### **800–899: Narrative & Public Artifacts**
+- Letters  
+- Public explanations  
+- Narrative clarity pieces  
+
+#### **900–999: Governance & Planetary Mesh**
+- Ethical rules  
+- Propagation protocols  
+- Planetary architecture  
+
+### **Structural role**
+This layer governs **real‑time operation** and **planetary‑scale propagation**.
+
+### **Feeling**
+High ceilings.  
+A control room.  
+A council chamber.
+
+---
+
+# 🗂️ **THE INDEX LAYER (cross‑cuts all levels)**  
+Not a floor — a nervous system.
+
+- Tag Index  
+- Dewey Index  
+- Module Index  
+- Basin Index  
+- Operator Index  
+- Event Index  
+
+This is how you move through the building without friction.
+
+---
+
+# 📦 **THE ARTIFACT LAYER (unit of storage)**  
+Every artifact in the library — regardless of shelf — has the same canonical shape.
+
+This is what makes the library feel like a *system* instead of a pile.
+
+---
+
+If you want, we can now go **one level deeper**:
+
+- Each shelf in turn  
+- Each sub‑shelf in turn  
+- Or pull artifacts off each shelf so you can feel retrieval  
+
+Just tell me which direction you want to walk next.

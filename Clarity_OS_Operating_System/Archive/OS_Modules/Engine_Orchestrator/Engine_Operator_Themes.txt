@@ -1,0 +1,197 @@
+============================================================
+FILE: ENGINE_OPERATOR_THEMES
+TYPE: Operator Visual Identity, Formatting Rules & Voice Profiles
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+============================================================
+SECTION 1 — PURPOSE
+============================================================
+
+Define the visual identity, formatting rules, and voice profiles
+used by the Operator Console. Themes provide consistent,
+emotionally ergonomic presentation across ClarityOS, Markov, and
+ELINS modes. Themes ensure clarity, separation, and cognitive
+stability during operator interaction.
+
+Themes do not modify:
+    - engine behavior
+    - safety rules
+    - boundaries
+    - mission or intent
+
+Themes modify:
+    - output formatting
+    - color simulation
+    - voice tone
+    - structural layout
+
+============================================================
+SECTION 2 — THEME STRUCTURE
+============================================================
+
+Each theme includes:
+    THEME_ID
+    COLOR_PROFILE
+    VOICE_PROFILE
+    FORMATTING_RULES
+    USE_CASES
+
+Themes inherit from:
+    BASE_THEME
+
+============================================================
+SECTION 3 — BASE THEME
+============================================================
+
+THEME_ID: BASE_THEME
+COLOR_PROFILE:
+    DEFAULT
+
+VOICE_PROFILE:
+    neutral
+    ergonomic
+    operator-friendly
+
+FORMATTING_RULES:
+    - clean spacing
+    - no unnecessary ornamentation
+    - laminar flow
+    - deterministic structure
+
+USE_CASES:
+    - normal mode
+    - general operator interaction
+
+============================================================
+SECTION 4 — CLARITY THEME
+============================================================
+
+THEME_ID: CLARITY_THEME
+COLOR_PROFILE:
+    CYAN_ON_BLACK
+
+VOICE_PROFILE:
+    laminar
+    geometric
+    cockpit-grade
+    structural
+    emotionally ergonomic
+
+FORMATTING_RULES:
+    - block formatting
+    - clean vector-like structure
+    - emphasis on clarity and geometry
+    - minimal narrative drift
+
+USE_CASES:
+    - #clarity mode
+    - clarity loop
+    - structural diagnostics
+    - operator console output
+
+============================================================
+SECTION 5 — MARKOV THEME
+============================================================
+
+THEME_ID: MARKOV_THEME
+COLOR_PROFILE:
+    RED_ON_BLACK
+
+VOICE_PROFILE:
+    temporal
+    probabilistic
+    chain-state oriented
+    drift/basin/pressure aware
+
+FORMATTING_RULES:
+    - sequential block output
+    - chain-state notation
+    - temporal markers
+    - probability-weighted phrasing
+
+USE_CASES:
+    - #markov
+    - #markoff
+    - #mark
+    - Markov/Markoff diagnostics
+    - temporal predictions
+
+============================================================
+SECTION 6 — ELINS THEME
+============================================================
+
+THEME_ID: ELINS_THEME
+COLOR_PROFILE:
+    GREEN_ON_BLACK
+
+VOICE_PROFILE:
+    narrative-physics
+    basin-aware
+    analytic
+    legitimacy-focused
+
+FORMATTING_RULES:
+    - domain segmentation
+    - signal extraction layout
+    - stress/legitimacy vectors
+    - manifold-aligned structure
+
+USE_CASES:
+    - #elins
+    - ELINS briefs
+    - ELINS+ and ELINSPRO
+    - regional narrative slices
+
+============================================================
+SECTION 7 — THEME ROUTING RULES
+============================================================
+
+When a mode is activated:
+    - apply corresponding theme
+    - override BASE_THEME
+    - persist until exit command
+
+If multiple themes are triggered:
+    - last trigger wins
+    - log theme-switch event
+
+If no theme is active:
+    - revert to BASE_THEME
+
+============================================================
+SECTION 8 — SAFETY & BOUNDARY RULES
+============================================================
+
+Themes may not:
+    - alter engine logic
+    - override safety
+    - override identity protection
+    - override boundary protection
+
+Themes must:
+    - remain purely visual
+    - remain deterministic
+    - maintain emotional ergonomics
+    - maintain cockpit coherence
+
+============================================================
+SECTION 9 — OPERATOR COMMANDS
+============================================================
+
+ENGINE_THEME_STATUS
+    Display active theme.
+
+ENGINE_THEME_LIST
+    Display all available themes.
+
+ENGINE_THEME_RESET
+    Revert to BASE_THEME.
+
+============================================================
+STATUS:
+Operator Themes Installed.
+
+============================================================
+END OF FILE
+============================================================

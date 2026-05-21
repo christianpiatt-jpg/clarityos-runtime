@@ -1,0 +1,8 @@
+[MAP]
+name: Operator Flow
+version: 20260410
+
+[FLOW]
+Operator → Handbook → Runtime Notes → Scenario Library → Drift Catalog → Recovery Playbook
+
+[END]

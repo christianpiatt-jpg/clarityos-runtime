@@ -1,0 +1,47 @@
+# ELINS PLUS-PRO Hybrid Page
+
+## Source Objects
+- [ELINS object IDs]
+- [URLs, tickers, actors, events]
+
+## Basins
+- A-Basin: [yes/no + notes]
+- C-Basin: [yes/no + notes]
+- E-Basin: [yes/no + notes]
+- Other: [LATAM, EU, Africa, Indo-Pacific]
+
+## PLUS Geometry (Cross-Basin)
+- cross_basin_link
+- pressure_bridge
+- narrative_overlay
+- resonance_profile
+
+## PRO Geometry (Markov-Ready)
+- feature_set:
+    - time_window
+    - actors
+    - signals
+    - outcomes
+- geometry_fields:
+    - signal_strength
+    - curvature
+    - drift_profile
+- markov_fields:
+    - state_space
+    - transition_hints
+    - reward_signals (if any)
+
+## Drift Signatures
+- compression_drift
+- authority_contradiction_drift
+- clarity_drift
+- reorientation_drift
+
+## Cross-References
+- Analytics pages
+- Narrative Architecture
+- Operator Notes
+- Subsystem Index
+
+## Notes
+Operator-level interpretation + engine-ready compression.

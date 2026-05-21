@@ -1,0 +1,37 @@
+[MAP]
+name: System Topology
+version: 20260410
+
+[LAYERS]
+000 Constitution
+001 Geometry
+002 Runtime
+003 Identity
+004 Imports
+005 Boundary
+
+[MODULES]
+100–119 Subsystems
+
+[OPERATOR]
+200–204 Operator Notes
+
+[LIBRARY]
+300–308 Library + Structural Suite
+
+[MAPS]
+400–404 Maps
+
+[LOGS]
+500–504 Logs
+
+[DIAGNOSTICS]
+700–704 Diagnostics
+
+[ARCHIVE]
+800–804 Archive
+
+[PLANETARY]
+900–904 Planetary Mesh
+
+[END]

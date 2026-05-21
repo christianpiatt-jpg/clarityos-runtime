@@ -1,0 +1,250 @@
+Cognitive distortion
+
+Article
+Talk
+Read
+Edit
+View history
+
+Tools
+Appearance hide
+Birthday mode (Baby Globe)
+
+Disabled
+
+Enabled
+Learn more about Birthday mode
+Text
+
+Small
+
+Standard
+
+Large
+Width
+
+Standard
+
+Wide
+Color (beta)
+
+Automatic
+
+Light
+
+Dark
+From Wikipedia, the free encyclopedia
+"Thinking errors" redirects here. For faulty reasoning, see Fallacy.
+
+This article needs more reliable medical references for verification or relies too heavily on primary sources, specifically: There are multiple sources which fail to meet the WP:MEDRS bar such as psychcentral.com, simplypsychology.org, and perhaps others. Please review the contents of the article and add the appropriate references if you can. Unsourced or poorly sourced material may be challenged and removed. Find sources: "Cognitive distortion" – news · newspapers · books · scholar · JSTOR (March 2026)
+Cognitive distortion
+Specialty	Psychiatry, clinical psychology
+Symptoms	Negative thoughts, anxiety, depression
+Treatment	Cognitive behavioral therapy, cognitive restructuring
+A cognitive distortion is a thought that causes a person to perceive reality inaccurately due to being exaggerated or irrational. Cognitive distortions are involved in the onset or perpetuation of psychopathological states, such as depression and anxiety.[1] Cognitive distortions are negative or biased thought patterns that distort one’s perception of reality, often leading to unnecessary stress, anxiety, or self-doubt. These distortions, such as mind reading, fortune telling, and emotional reasoning, warp the way individuals interpret situations and themselves, reinforcing negative emotions and behaviors. Understanding and challenging these distortions is crucial in cognitive-behavioral therapy (CBT) to help individuals overcome them and improve their mental well-being.[2]
+
+According to Aaron Beck's cognitive model, a negative outlook on reality, sometimes called negative schemas (or schemata), is a factor in symptoms of emotional dysfunction and poorer subjective well-being. Specifically, negative thinking patterns reinforce negative emotions and thoughts.[3] During difficult circumstances, these distorted thoughts can contribute to an overall negative outlook on the world and a depressive or anxious mental state. According to hopelessness theory and Beck's theory, the meaning or interpretation that people give to their experience importantly influences whether they will become depressed and whether they will experience severe, repeated, or long-duration episodes of depression.[4]
+
+Etymology
+Cognitive comes from the Medieval Latin cognitīvus, equivalent to Latin cognit(us), 'known'.[5] Distortion means the act of twisting or altering something out of its true, natural, or original state,[6] and comes from Latin dis- ("reverse, apart") and torquēre ("to twist").[7]
+
+History
+In 1957, American psychologist Albert Ellis, though he did not know it yet, would aid cognitive therapy in correcting cognitive distortions and indirectly helping David D. Burns in writing The Feeling Good Handbook. Ellis created what he called the ABC Technique of rational beliefs. The ABC stands for the activating event, beliefs that are irrational, and the consequences that come from the beliefs. Ellis wanted to prove that the activating event is not what caused the emotional behavior or the consequences, but the beliefs and how the person irrationally perceives the events which aid the consequences.[8] With this model, Ellis attempted to use rational emotive behavior therapy (REBT) with his patients, in order to help them "reframe" or reinterpret the experience in a more rational manner. In this model, Ellis explains it all to his clients, while Beck helps his clients figure this out on their own.[9] Beck first started to notice these automatic distorted thought processes when practicing psychoanalysis, while his patients followed the rule of saying anything that comes to mind. He realized that his patients had irrational fears, thoughts, and perceptions that were automatic. Beck began noticing his automatic thought processes that he knew his patients had but did not report. Most of the time the thoughts were biased against themselves and very erroneous.[10]
+
+Beck believed that the negative schemas developed and manifested themselves in the perspective and behavior. The distorted thought processes led to focusing on degrading the self, amplifying minor external setbacks, experiencing other's harmless comments as ill-intended, while simultaneously seeing self as inferior. Inevitably cognitions are reflected in their behavior with a reduced desire to care for oneself, reduced desire to seek pleasure, and finally give up. These exaggerated perceptions, due to cognition, feel real and accurate because the schemas, after being reinforced through the behavior, tend to become 'knee-jerk' automatic and do not allow time for reflection.[11] This cycle is also known as Beck's cognitive triad, focused on the theory that the person's negative schema applied to the self, the future, and the environment.[12]
+
+In 1972, psychiatrist, psychoanalyst, and cognitive therapy scholar Aaron T. Beck published Depression: Causes and Treatment.[13] He was dissatisfied with the conventional Freudian treatment of depression because there was no empirical evidence for the success of Freudian psychoanalysis. Beck's book provided a comprehensive and empirically supported theoretical model for depression—its potential causes, symptoms, and treatments. In Chapter 2, titled "Symptomatology of Depression", he described "cognitive manifestations" of depression, including low self-evaluation, negative expectations, self-blame and self-criticism, indecisiveness, and distortion of the body image.[13]
+
+Beck's student David D. Burns continued research on the topic. In his book Feeling Good: The New Mood Therapy, Burns described personal and professional anecdotes related to cognitive distortions and their elimination.[14] When Burns published Feeling Good: The New Mood Therapy, it made Beck's approach to distorted thinking widely known and popularized.[15][16] Burns sold over four million copies of the book in the United States alone. It was a book commonly "prescribed" for patients with cognitive distortions that have led to depression. Beck approved of the book, saying that it would help others alter their depressed moods by simplifying the extensive study and research that had taken place since shortly after Beck had started as a student and practitioner of psychoanalytic psychiatry. Nine years later, The Feeling Good Handbook was published, which was also built on Beck's work and includes a list of ten specific cognitive distortions that will be discussed throughout this article.[17]
+
+Main types
+Not to be confused with logical fallacy.
+
+Examples of some common cognitive distortions seen in depressed and anxious individuals. People may be taught how to identify and alter these distortions as part of cognitive behavioural therapy.
+John C. Gibbs and Granville Bud Potter propose four categories for cognitive distortions: self-centered, blaming others, minimizing-mislabeling, and assuming the worst.[18] The cognitive distortions listed below are categories of negative self-talk.[17][19][20][21]
+
+All-or-nothing thinking
+Main article: Splitting (psychology)
+The "all-or-nothing thinking distortion" is also referred to as "splitting",[22] "black-and-white thinking",[3] and "polarized thinking."[23] Someone with the all-or-nothing thinking distortion looks at life in black and white categories.[17] Either they are a success or a failure; either they are good or bad; there is no in-between. According to one article, "Because there is always someone who is willing to criticize, this tends to collapse into a tendency for polarized people to view themselves as a total failure. Polarized thinkers have difficulty with the notion of being 'good enough' or a partial success."[22]
+
+Example (from The Feeling Good Handbook): A woman eats a spoonful of ice cream. She thinks she is a complete failure for breaking her diet. She becomes so depressed that she ends up eating the whole quart of ice cream.[17]
+This example captures the polarized nature of this distortion—the person believes they are totally inadequate if they fall short of perfection. In order to combat this distortion, Burns suggests thinking of the world in terms of shades of gray.[17] Rather than viewing herself as a complete failure for eating a spoonful of ice cream, the woman in the example could still recognize her overall effort to diet as at least a partial success.
+
+This distortion is commonly found in perfectionists.[15]
+
+Jumping to conclusions
+Main article: Jumping to conclusions
+Reaching preliminary conclusions (usually negative) with little (if any) evidence. Three specific subtypes are identified:[citation needed]
+
+Mind reading
+Inferring a person's possible or probable (usually negative) thoughts from their behaviour and nonverbal communication; taking precautions against the worst suspected case without asking the person.
+
+Example 1: A student assumes that the readers of their paper have already made up their minds concerning its topic, and, therefore, writing the paper is a pointless exercise.[21]
+Example 2: Kevin assumes that because he sits alone at lunch, everyone else must think he is a loser. (This can encourage self-fulfilling prophecy; Kevin may not initiate social contact because of his fear that those around him already perceive him negatively).[24]
+Suggested ways to combat this distortion include examining the evidence for and against a particular conclusion, testing its validity by challenging it in a real-world context, and reflecting on whether its importance to the person is actual or exaggerated, were it correct.[25]
+
+Fortune-telling
+Predicting outcomes (usually negative) of events.
+
+Example: A depressed person tells themselves they will never improve; they will continue to be depressed for their whole life.[17]
+Labelling
+icon
+This section does not cite any sources. Please help improve this section by adding citations to reliable sources. Unsourced material may be challenged and removed. (July 2023) (Learn how and when to remove this message)
+Labelling occurs when someone applies negative, absolutist statements to situations, to themselves, or to others[26]. For example, "I am a failure" or "My meeting will go badly." They might use an unfavorable term to describe a complex person or event, such as assuming that a friend is upset with them due to a late reply to a text message, even though there could be various other reasons for the delay. It is a more extreme form of jumping-to-conclusions cognitive distortion where one speaks in extremes and makes unfounded conclusions.[27]
+
+Emotional reasoning
+Main article: Emotional reasoning
+In the emotional reasoning distortion, it is assumed that feelings expose the true nature of things and experience reality as a reflection of emotionally linked thoughts; something is believed true solely based on a feeling.
+
+Examples: "I feel stupid, therefore I must be stupid".[3] Feeling fear of flying in planes, and then concluding that planes must be a dangerous way to travel.[17] Feeling overwhelmed by the prospect of cleaning one's house, therefore concluding that it's hopeless to even start cleaning.[28]
+Should/shouldn't and must/mustn't statements
+Making "must" or "should" statements was included by Albert Ellis in his rational emotive behavior therapy (REBT), an early form of CBT; he termed it "musturbation". Michael C. Graham called it "expecting the world to be different than it is".[29] It can be seen as demanding particular achievements or behaviors regardless of the realistic circumstances of the situation.
+
+Example: After a performance, a concert pianist believes they should not have made so many mistakes.[28]
+In Feeling Good: The New Mood Therapy, David Burns clearly distinguished between pathological "should statements", moral imperatives, and social norms.
+A related cognitive distortion, also present in Ellis' REBT, is a tendency to "awfulize"; to say a future scenario will be awful, rather than to realistically appraise the various negative and positive characteristics of that scenario. According to Burns, "must" and "should" statements are negative because they cause the person to feel guilty and upset at themselves. Some people also direct this distortion at other people, which can cause feelings of anger and frustration when that other person does not do what they should have done. He also mentions how this type of thinking can lead to rebellious thoughts. In other words, trying to whip oneself into doing something with "shoulds" may cause one to desire just the opposite.[17]
+
+Gratitude traps
+Main article: Gratitude trap
+A gratitude trap is a type of cognitive distortion that typically arises from misunderstandings regarding the nature or practice of gratitude.[citation needed] The term can refer to one of two related but distinct thought patterns:
+
+A self-oriented thought process involving feelings of guilt, shame, or frustration related to one's expectations of how things "should" be.
+An "elusive ugliness in many relationships, a deceptive 'kindness,' the main purpose of which is to make others feel indebted", as defined by psychologist Ellen Kenner.[30]
+Personalization and blaming
+Main article: Blame
+Personalization is assigning personal blame disproportionate to the level of control a person realistically has in a given situation.
+
+Example 1: A foster child assumes that they have not been adopted because they are not "loveable enough".
+Example 2: A child has bad grades. Their mother believes it is because they are not a good enough parent.[17]
+Blaming is the opposite of personalization. In the blaming distortion, the disproportionate level of blame is placed upon other people, rather than oneself.[17] In this way, the person avoids taking personal responsibility, making way for a "victim mentality".
+
+Example: Placing blame for marital problems entirely on one's spouse.[17]
+Always being right
+In this cognitive distortion, being wrong is unthinkable. This distortion is characterized by actively trying to prove one's actions or thoughts to be correct, and sometimes prioritizing self-interest over the feelings of another person.[3][unreliable source?] In this cognitive distortion, the facts that oneself has about their surroundings are always right while other people's opinions and perspectives are wrongly seen.[31][unreliable source?]
+
+Fallacy of change
+Relying on social control to obtain cooperative actions from another person.[3] The underlying assumption of this thinking style is that one's happiness depends on the actions of others. The fallacy of change also assumes that other people should change to suit one's own interests automatically, and/or that it is fair to pressure them to change. It may be present in most abusive relationships in which partners' "visions" of each other are tied into the belief that happiness, love, trust, and perfection would just occur once they or the other person change aspects of their beings.[32]
+
+Minimizing-mislabeling
+Magnification and minimization
+Main articles: Exaggeration and Minimisation (psychology)
+Giving proportionally greater weight to a perceived failure, weakness or threat, or lesser weight to a perceived success, strength or opportunity, so that the weight differs from that assigned by others, such as "making a mountain out of a molehill". In depressed clients, often the positive characteristics of other people are exaggerated, and their negative characteristics are understated.
+
+Catastrophizing is a form of magnification where one gives greater weight to the worst possible outcome, however unlikely, or experiences a situation as unbearable or impossible when it is just uncomfortable.
+
+Labeling and mislabeling
+Main article: Labeling theory
+A form of overgeneralization; attributing a person's actions to their character instead of to an attribute. Rather than assuming the behaviour to be accidental or otherwise extrinsic, one assigns a label to someone or something that is based on the inferred character of that person or thing.
+
+Assuming the worst
+Overgeneralizing
+Someone who overgeneralizes makes faulty generalizations from insufficient evidence. Such as seeing a "single negative event" as a "never-ending pattern of defeat",[17] and as such drawing a very broad conclusion from a single incident or a single piece of evidence. Even if something bad happens only once, it is expected to happen over and over again.[3]
+
+Example 1: A person is asked out on a first date, but not a second one. They are distraught and tell a friend, "This always happens to me! I'll never find love!"
+Example 2: A person is lonely and often spends most of their time at home. Friends sometimes ask them to dinner and to meet new people. They feel it is useless to even try. No one could really like them. And anyway, all people are the same: petty and selfish.[28]
+One suggestion to combat this distortion is to "examine the evidence" by performing an accurate analysis of one's situation. This aids in avoiding exaggerating one's circumstances.[17]
+
+Disqualifying the positive
+Disqualifying the positive, also known as "discounting the positive," refers to rejecting positive experiences by insisting they "don't count" for some reason or other. Negative belief is maintained despite contradiction by everyday experiences. Disqualifying the positive may be the most common fallacy in the cognitive distortion range; it is often analyzed with "always being right", a type of distortion where a person is in an all-or-nothing self-judgment. People in this situation show signs of depression. Examples include:
+
+"I will never be as good as Jane"
+"Anyone could have done as well"[17]
+"They are just congratulating me to be nice"[33]
+Mental filtering
+Main article: Selective abstraction
+Filtering distortions occur when an individual dwells only on the negative details of a situation and filters out the positive aspects.[17]
+
+Example: Andy gets mostly compliments and positive feedback about a presentation he has done at work, but he also has received a small piece of criticism. For several days following his presentation, Andy dwells on this one negative reaction, forgetting all of the positive reactions that he had also been given.[17]
+The Feeling Good Handbook notes that filtering is like a "drop of ink that discolors a beaker of water".[17] One suggestion to combat filtering is a cost–benefit analysis. A person with this distortion may find it helpful to sit down and assess whether filtering out the positive and focusing on the negative is helping or hurting them in the long run.[17]
+
+Conceptualization
+In a series of publications,[34][35][36] philosopher Paul Franceschi has proposed a unified conceptual framework for cognitive distortions designed to clarify their relationships and define new ones. This conceptual framework is based on three notions: (i) the reference class (a set of phenomena or objects, e.g. events in the patient's life); (ii) dualities (positive/negative, qualitative/quantitative, ...); (iii) the taxon system (degrees allowing to attribute properties according to a given duality to the elements of a reference class). In this model, "dichotomous reasoning", "minimization", "maximization" and "arbitrary focus" constitute general cognitive distortions (applying to any duality), whereas "disqualification of the positive" and "catastrophism" are specific cognitive distortions, applying to the positive/negative duality. This conceptual framework posits two additional cognitive distortion classifications: the "omission of the neutral" and the "requalification in the other pole".
+
+Cognitive restructuring
+Cognitive restructuring (CR) is a popular form of therapy used to identify and reject maladaptive cognitive distortions,[37] and is typically used with individuals diagnosed with depression.[38] In CR, the therapist and client first examine a stressful event or situation reported by the client. For example, a depressed male college student who experiences difficulty in dating might believe that his "worthlessness" causes women to reject him. Together, therapist and client might then create a more realistic cognition, e.g., "It is within my control to ask girls on dates. However, even though there are some things I can do to influence their decisions, whether or not they say yes is largely out of my control. Thus, I am not responsible if they decline my invitation." CR therapies are designed to eliminate "automatic thoughts" that include clients' dysfunctional or negative views. According to Beck, doing so reduces feelings of worthlessness, anxiety, and anhedonia that are symptomatic of several forms of mental illness.[39] CR is the main component of Beck's and Burns's CBT.[40]
+
+Narcissistic defense
+Main article: Narcissistic defences
+Those diagnosed with narcissistic personality disorder tend, unrealistically, to view themselves as superior, overemphasizing their strengths and understating their weaknesses.[39] Narcissists use exaggeration and minimization this way to shield themselves against psychological pain.[41][42]
+
+Decatastrophizing
+Main article: Decatastrophizing
+In cognitive therapy, decatastrophizing or decatastrophization is a cognitive restructuring technique that may be used to treat cognitive distortions, such as magnification and catastrophizing,[43] commonly seen in psychological disorders like anxiety[38] and psychosis.[44] Major features of these disorders are the subjective report of being overwhelmed by life circumstances and the incapability of affecting them.
+
+Criticism
+Main article: Cognitive behavioral therapy § Criticisms
+Common criticisms of the diagnosis of cognitive distortion relate to epistemology and the theoretical basis. If the perceptions of the patient differ from those of the therapist, it may not be because of intellectual malfunctions, but because the patient has different experiences. In some cases, depressed subjects appear to be "sadder but wiser".[45]
+
+See also
+Cognitive bias – Systematic pattern of deviation from norm or rationality in judgment
+Cognitive dissonance – Mental phenomenon of holding contradictory beliefs
+Defence mechanism – Unconscious psychological mechanism
+Delusion – Fixation of holding false beliefs
+Destabilisation – Attempts to undermine political, military or economic power
+Emotion and memory – Critical factors contributing to the emotional enhancement effect on human memory
+Illusion – Distortion of the perception of reality
+Language and thought – Study of how language influences thought
+List of cognitive biases
+List of fallacies
+Negativity bias – Tendency to give more importance to negative experiences than positive ones
+Parataxic distortion – Inclination to skew perceptions of others based on fantasy
+Rationalization (psychology) – Psychological defense mechanism
+References
+ Helmond, Petra; Overbeek, Geertjan; Brugman, Daniel; Gibbs, John C. (2015). "A Meta-Analysis on Cognitive Distortions and Externalizing Problem Behavior" (PDF). Criminal Justice and Behavior. 42 (3): 245–262. doi:10.1177/0093854814552842. S2CID 146611029.
+ Grohol, John (2009). "15 Common Cognitive Distortions". PsychCentral. Archived from the original on 2009-07-07.
+ Grohol, John (2009). "15 Common Cognitive Distortions". PsychCentral. Archived from the original on 2009-07-07.
+ "Cognitive vulnerability-stress models of depression in a self-regulatory and psychobiological context". Handbook of depression.
+ "Cognitive". Dictionary.com Unabridged (Online). n.d. Retrieved 2020-03-14.
+ "Distortion". Merriam-Webster.com Dictionary. Merriam-Webster. OCLC 1032680871. Retrieved 2020-03-14.
+ "Definition of DISTORT". www.merriam-webster.com. 2026-01-27. Retrieved 2026-02-01.
+ McLeod, Saul A. (2015). "Cognitive Behavioral Therapy". SimplyPsychology.
+ Ellis, Albert (1957). "Rational Psychotherapy and Individual Psychology". Journal of Individual Psychology. 13: 42.
+ Beck, Aaron T. (1997). "The Past and Future of Cognitive Therapy". Journal of Psychotherapy and Research. 6 (4): 277. PMC 3330473. PMID 9292441.
+ Kovacs, Maria; Beck, Aaron T. (1986). "Maladaptive Cognitive Structure in Depression". The American Journal of Psychiatry: 526.
+ Beck, Aaron T. (1967). Depression Causes and Treatment. Philadelphia, Pennsylvania: University of Pennsylvania Press. p. 166.
+ Beck, Aaron T. (1972). Depression; Causes and Treatment. Philadelphia: University of Pennsylvania Press. ISBN 978-0-8122-7652-7.
+ Burns, David D. (1980). Feeling Good: The New Mood Therapy.
+ Burns, David D. (1980). Feeling Good: The New Mood Therapy. New York: Morrow. ISBN 978-0-688-03633-1.
+ Roberts, Joe. "History of Cognitive Behavioral Therapy". National Association of Cognitive Behavioral Therapists Online Headquarters. National Association of Cognitive Behavioral Therapists. Archived from the original on 2016-05-06. Retrieved 9 April 2020.
+ Burns, David D. (1980). The Feeling Good Handbook: Using the New Mood Therapy in Everyday Life. New York: W. Morrow. ISBN 978-0-688-01745-3.
+ Barriga, Alvaro Q.; Morrison, Elizabeth M.; Liau, Albert K.; Gibbs, John C. (2001). "Moral Cognition: Explaining the Gender Difference in Antisocial Behavior". Merrill-Palmer Quarterly. 47 (4): 532–562. doi:10.1353/mpq.2001.0020. JSTOR 23093698. S2CID 145630809. Gibbs and Potter's...four-category typology: 1. Self-Centered...2. Blaming Others...3. Minimizing-Mislabeling...[and] 4. Assuming the Worst[.]
+ Maas, David F. (1997). "General Semantics Formulations in David Burns' Feeling Good". ETC: A Review of General Semantics. 54 (2): 225–234. JSTOR 42579774. 1. All-or-Nothing Thinking ... 2. Overgeneralization ... 3. Mental Filter, or Selective Abstraction ... 4. Reverse Alchemy or Disqualifying the Positive ... 5. Mind-Reading ... 6. Mind-Reading as Fortune Telling ... 7. Magnification or Minimization ... 8. Emotional Reasoning ... 9. Should/Shouldn't Statements...Dr. Albert Ellis (1994) has labeled this...as Must-urbation ... 10. Labeling ... 11. Personalization and Blame[.]
+ Erford, Bradley (2020) [2010]. "Self-Talk". 45 Techniques Every Counselor Should Know. Pearson. p. 130. ISBN 978-0-13-469489-4. Schafer (1999) identified at least 16 different types of negative self-talk: negativizing (i.e., focusing on the negative aspects), awfulizing (i.e., perceiving situations as awful), catastrophizing (i.e., perceiving situations as catastrophes), overgeneralizing, minimizing, blaming, perfectionism, musterbation (i.e., perceiving that one 'must' do something), personalizing, judging human worth, control fallacy (i.e., perception that everything is under one's control), polaraized thinking (i.e., an all-or-none mentality), being right, fallacy of fairness (i.e., the belief that life should be fair), shoulding (i.e., perceiving that one 'should' do something), and magnifying.
+ Tagg, John (1996). "Cognitive Distortions". Archived from the original on November 1, 2011. Retrieved October 24, 2011.
+ "Cognitive Distortions Affecting Stress". MentalHelp.net. 12 March 2019. Retrieved 8 April 2020.
+ Grohol, John M. (17 May 2016). "15 Common Cognitive Distortions". PsychCentral. Retrieved 8 April 2020.
+ "Cognitive Distortions: Jumping to Conclusions & All or Nothing Thinking". Moodfit. Retrieved 9 April 2020.[permanent dead link]
+ "Common Cognitive Distortions: Mind Reading". Cognitive Behavioral Therapy - Los Angeles. 8 July 2015. Retrieved 8 April 2020.
+ HOLLON, STEVEN D.; BECK, AARON T. (1979), "Cognitive Therapy of Depression", Cognitive-Behavioral Interventions, Elsevier, pp. 153–203, doi:10.1016/b978-0-12-404480-7.50012-5, ISBN 978-0-12-404480-7, retrieved 2026-01-09
+ Bollen, Johan; ten Thij, Marijn; Breithaupt, Fritz; Barron, Alexander T. J.; Rutter, Lauren A.; Lorenzo-Luaces, Lorenzo; Scheffer, Marten (2021-07-27). "Historical language records reveal a surge of cognitive distortions in recent decades". Proceedings of the National Academy of Sciences. 118 (30) e2102061118. Bibcode:2021PNAS..11802061B. doi:10.1073/pnas.2102061118. PMC 8325314. PMID 34301899.
+ Schimelpfening, Nancy. "You Are What You Think". About.com Health. Archived from the original on 2016-03-04. Retrieved 2010-01-31.
+ Graham, Michael C. (2014). Facts of Life: ten issues of contentment. Outskirts Press. p. 37. ISBN 978-1-4787-2259-5.
+ Kenner, Ellen (2020-05-20). "How to Savor Gratitude and Disarm "Gratitude Traps"". The Objective Standard. Retrieved 2021-02-11.
+ "15 Common Cognitive Distortions". PsychCentral. 2016-05-17. Retrieved 2020-02-28.
+ Ledden, Peter (2018-08-30). "Fallacy of Change: 15 types of distorted thinking that lead to massive anxiety 10/15". Abate Counseling.
+ "Disqualifying the Positive". Palomar. Retrieved 2020-01-03.
+ Franceschi, Paul (2007). "Compléments pour une théorie des distorsions cognitives". Journal de Thérapie Comportementale et Cognitive. 17 (2): 84–88. doi:10.1016/s1155-1704(07)89710-2.
+ Franceschi, Paul (2009). "Théorie des distorsions cognitives: la sur-généralisation et l'étiquetage". Journal de Thérapie Comportementale et Cognitive. 19 (4): 136–140. doi:10.1016/j.jtcc.2009.10.003.
+ Franceschi, Paul (2010). "Théorie des distorsions cognitives: la personnalisation". Journal de Thérapie Comportementale et Cognitive. 20 (2): 51–55. doi:10.1016/j.jtcc.2010.06.006.
+ Gil, Pedro J. Moreno; Carrillo, Francisco Xavier Méndez; Meca, Julio Sánchez (2001). "Effectiveness of cognitive-behavioural treatment in social phobia: A meta-analytic review". Psychology in Spain. 5: 17–25. S2CID 8860010.
+ Martin, Ryan C.; Dahlen, Eric R. (2005). "Cognitive emotion regulation in the prediction of depression, anxiety, stress, and anger". Personality and Individual Differences. 39 (7): 1249–1260. doi:10.1016/j.paid.2005.06.004.
+ Diagnostic and statistical manual of mental disorders: DSM-5. American Psychiatric Association., American Psychiatric Association. DSM-5 Task Force. (5th ed.). Arlington, VA: American Psychiatric Association. 2013. ISBN 978-0-89042-554-1. OCLC 830807378.
+ Rush, A.; Khatami, M.; Beck, A. (1975). "Cognitive and Behavior Therapy in Chronic Depression". Behavior Therapy. 6 (3): 398–404. doi:10.1016/S0005-7894(75)80116-X.
+ Millon, Theodore; Carrie M. Millon; Seth Grossman; Sarah Meagher; Rowena Ramnath (2004). Personality Disorders in Modern Life. John Wiley and Sons. ISBN 978-0-471-23734-1.
+ Thomas, David (2010). Narcissism: Behind the Mask. Book Guild. ISBN 978-1-84624-506-0.
+ Theunissen, Maurice; Peters, Madelon L.; Bruce, Julie; Gramke, Hans-Fritz; Marcus, Marco A. (2012). "Preoperative Anxiety and Catastrophizing" (PDF). The Clinical Journal of Pain. 28 (9): 819–841. doi:10.1097/ajp.0b013e31824549d6. PMID 22760489. S2CID 12414206.
+ Moritz, Steffen; Schilling, Lisa; Wingenfeld, Katja; Köther, Ulf; Wittekind, Charlotte; Terfehr, Kirsten; Spitzer, Carsten (2011). "Persecutory delusions and catastrophic worry in psychosis: Developing the understanding of delusion distress and persistence". Journal of Behavior Therapy and Experimental Psychiatry. 42 (September 2011): 349–354. doi:10.1016/j.jbtep.2011.02.003. PMID 21411041.
+ Beidel, Deborah C. (1986). "A Critique of the Theoretical Bases of Cognitive Behavioral Theories and Therapy". Clinical Psychology Review. 6 (2): 177–97. doi:10.1016/0272-7358(86)90011-5.
+vte
+Defence mechanisms
+Level 1: Pathological	
+Delusional projectionDenial or abnegation (German: Verneinung)Psychotic denial or disavowal (German: Verleugnung)DistortionForeclosure or repudiation (German: Verwerfung)Extreme projectionIdentification with the AggressorSplitting (Black-and-white thinking)
+Level 2: Immature	
+Acting outFantasyIdealizationIntrojection (Internalization)Passive-aggressionProjectionProjective identificationSomatization
+Level 3: Neurotic	
+DisplacementDissociationHypochondriasisIntellectualizationIsolationRationalizationReaction formationRegressionRepression (German: Verdrängung)Undoing
+Level 4: Mature	
+AltruismAnticipationHumourIdentificationSublimationSuppression
+Other	
+CompartmentalizationDefensive pessimismMinimisationPostponement of affect
+Categories: Cognitive therapyDefence mechanismsCognitive biasesAnxietyBarriers to critical thinkingDepression (mood)ErrorNarcissismDeception

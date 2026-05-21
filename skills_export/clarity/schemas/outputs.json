@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clarity.outputs.v1",
+  "title": "Clarity — output",
+  "type": "object",
+  "required": ["summary", "outline", "clean_text", "assumptions"],
+  "properties": {
+    "summary":    { "type": "string", "maxLength": 600 },
+    "outline":    {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Structured list of points / sections / steps."
+    },
+    "clean_text": {
+      "type": "string",
+      "description": "The same content, rewritten with redundancy removed and structure surfaced."
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "status"],
+        "properties": {
+          "claim":  { "type": "string" },
+          "status": { "enum": ["confirmed", "likely", "untested"] },
+          "would_change_outcome_if_false": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

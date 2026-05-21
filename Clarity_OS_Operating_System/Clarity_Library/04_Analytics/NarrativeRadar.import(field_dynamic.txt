@@ -1,0 +1,9 @@
+NarrativeRadar.import(field_dynamics = narrative_fields)
+NarrativeRadar.import(pressure_signatures = {spikes, dips})
+NarrativeRadar.import(coherence_conditions = narrative_alignment)
+NarrativeRadar.import(attractors = {dominant_story, counter_story})
+NarrativeRadar.import(transitions = {break, merge})
+
+NarrativeRadar.runtime(drift_detection = narrative_drift,
+                       propagation = story_routing,
+                       stabilization = coherence_filters)

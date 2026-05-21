@@ -1,0 +1,97 @@
+#tags: #clarityOS, #v2, #module, #operator-layer, #spine, #geometry-first, #agency, #library-object, #crosslinked
+
+# AGENCY ENGINE v2 — OPERATOR NOTES
+Version: v2
+Layer: Action Selection → Bounded Agency
+
+------------------------------------------------------------
+## PURPOSE
+AGENCY_ENGINE_V2 determines what actions are available to the operator
+based on a stabilized identity and a neutral interpretive frame.
+
+Its core function:
+→ Generate clean, bounded, ethical options without emotional distortion.
+
+This module ensures that agency is:
+- downstream of identity
+- constrained by ethics and boundaries
+- nonreactive
+- structurally aligned with the situation
+
+It is the “decision geometry” of ClarityOS v2.
+
+------------------------------------------------------------
+## INPUTS
+- IDENTITY_LAYER_V2.output (clear-self, stable reference frame)
+- QC_ENGINE.output (probabilities, thresholds, force-weights)
+- Environmental constraints (optional)
+- Ethical constraints (required)
+
+------------------------------------------------------------
+## OUTPUTS
+- options  
+- clean_yes  
+- clean_no  
+- wait_states  
+- bounded action geometry  
+
+These outputs feed into:
+- 04_Executive_Layer (v1)
+- 05_Meta_Executive (oversight)
+- MARKOV_QC (temporal weighting)
+
+------------------------------------------------------------
+## OPERATOR POSTURE
+When using this module, the operator maintains:
+
+- calm agency  
+- nonreactive decision posture  
+- clarity about boundaries  
+- patience with timing  
+- willingness to choose “wait”  
+
+The operator asks:
+“What are the *structurally clean* options available to me?”
+
+Not:
+“What do I feel like doing?”
+
+------------------------------------------------------------
+## FAILURE MODES
+Agency becomes distorted when:
+
+- identity is unstable  
+- QC is bypassed  
+- emotional charge is high  
+- the operator collapses into urgency  
+- boundaries are unclear  
+
+Symptoms include:
+- impulsive action  
+- overcommitment  
+- avoidance  
+- false urgency  
+- collapsing options into binaries  
+
+------------------------------------------------------------
+## RECOVERY PROTOCOL
+If agency degrades:
+
+1. Return to IDENTITY_LAYER_V2.  
+2. Confirm the reference frame is stable.  
+3. Re-run QC to check probabilities and thresholds.  
+4. Remove emotional urgency.  
+5. Re-generate options from a neutral posture.  
+
+This restores clean agency.
+
+------------------------------------------------------------
+## CROSS-LINKS
+- IDENTITY_LAYER_V2  
+- QC_ENGINE  
+- MARKOV_QC  
+- 04_Executive_Layer  
+- 05_Meta_Executive  
+
+------------------------------------------------------------
+# END OF FILE

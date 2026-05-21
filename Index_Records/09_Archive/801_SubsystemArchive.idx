@@ -1,0 +1,18 @@
+801_SubsystemArchive.idx
+
+[Record]
+Name = Subsystem Archive
+Code = 801
+Path = ../../09_Archive/Subsystem_Archive/
+Description = Archival of subsystem-level data, module histories, engine evolution, and long-term subsystem snapshots.
+
+[Files]
+Module_History = module_history.txt
+Subsystem_Records = subsystem_records.txt
+Engine_Evolution = engine_evolution.txt
+Subsystem_Snapshots = subsystem_snapshots.txt
+Subsystem_Crosswalk = subsystem_crosswalk.txt
+
+[Links]
+Parent = 800_SystemArchive.idx
+Siblings = 802_OperatorArchive.idx, 803_EventArchive.idx, 804_SnapshotArchive.idx

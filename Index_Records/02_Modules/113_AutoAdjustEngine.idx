@@ -1,0 +1,18 @@
+notepad 113_AutoAdjustEngine.idx
+
+[Record]
+Name = Auto-Adjust Engine
+Code = 113
+Path = ../../02_Subsystems/AutoAdjust_Engine/
+Description = Self-correcting subsystem responsible for automatic laminar restoration, load compensation, envelope adjustment, hydronic rebalancing, and drift-prevention without operator intervention.
+
+[Files]
+AutoAdjust_Primitives = autoadjust_primitives.txt
+Laminar_Restore = laminar_restore.txt
+Load_Compensation = load_compensation.txt
+Envelope_Adjust = envelope_adjust.txt
+Hydronic_Rebalance = hydronic_rebalance.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx

@@ -1,0 +1,117 @@
+============================================================
+MODULE: ENGINE_HEALTH
+TYPE: Health & Readiness Assessment Module
+VERSION: 1.0
+LOCATION: /02_Modules/Engine_Orchestrator/
+
+PURPOSE:
+Compute overall engine health, stability, and readiness using
+real-time telemetry, execution logs, and global configuration
+thresholds. Provides a unified health score and readiness state
+for the Clarity_OS narrative-physics engine.
+
+HEALTH COMPONENTS:
+1. Stability Score
+2. Drift Risk Score
+3. Basin Stability Score
+4. Pressure Risk Score
+5. Vector Alignment Score
+6. ELINS Signal Health
+7. Markov Stability Score
+8. Tone Stability Score
+9. Structural Integrity Score
+10. Readiness State
+
+PRIMARY INPUTS:
+- Engine_State_Monitor telemetry
+- Engine_Logging historical data
+- ENGINE_CONFIG thresholds
+
+PRIMARY OUTPUTS:
+- Health Report
+- Health Score (0–100)
+- Readiness State (Ready / Warning / Critical)
+- Risk Map (Drift / Basin / Pressure / Markov)
+- Recommended Actions
+
+HEALTH CALCULATION:
+
+STABILITY_SCORE:
+- Derived from vector alignment, structural integrity, and
+  through-line stability.
+
+DRIFT_RISK_SCORE:
+- Derived from drift emergence index, drift events, and drift
+  correction frequency.
+
+BASIN_STABILITY_SCORE:
+- Derived from basin alignment index and basin shift probability.
+
+PRESSURE_RISK_SCORE:
+- Derived from pressure gradient index and distortion risk.
+
+VECTOR_ALIGNMENT_SCORE:
+- Derived from alignment of all 7 Primary Vectors.
+
+ELINS_HEALTH:
+- Derived from LOCAL, WARNO, PRESSURE, and DIRECTION signals.
+
+MARKOV_STABILITY_SCORE:
+- Derived from next-state stability, drift tendencies, and basin
+  shift predictions.
+
+TONE_STABILITY_SCORE:
+- Derived from tone neutrality and emotional artifact detection.
+
+STRUCTURAL_INTEGRITY_SCORE:
+- Derived from frame integrity, bullet integrity, and collapse
+  detection.
+
+READINESS STATE LOGIC:
+
+IF all scores ≥ CONFIG thresholds:
+    READINESS = "Ready"
+ELSE IF any score < threshold but ≥ warning threshold:
+    READINESS = "Warning"
+ELSE:
+    READINESS = "Critical"
+
+HEALTH REPORT CONTENTS:
+- Summary
+- Health Score
+- Readiness State
+- Drift Risk Map
+- Basin Stability Map
+- Pressure Risk Map
+- Markov Stability Map
+- Vector Alignment Summary
+- ELINS Signal Summary
+- Tone Stability Summary
+- Structural Integrity Summary
+- Recommended Actions
+
+FAILURE MODES:
+- Missing telemetry
+- Missing logs
+- Threshold mismatch
+- Score computation failure
+- Readiness misclassification
+
+RECOVERY:
+- Re-sync telemetry
+- Reload logs
+- Reload ENGINE_CONFIG
+- Recompute health scores
+- Revalidate readiness state
+
+HEALTH CONTRACT:
+All health assessments must use telemetry + logs + config.
+No health score may be computed without complete data.
+Readiness must reflect actual engine state.
+
+STATUS:
+Active.
+
+============================================================
+END OF FILE
+============================================================

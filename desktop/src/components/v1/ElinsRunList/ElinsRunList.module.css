@@ -1,0 +1,18 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-data);
+  color: var(--color-text-primary);
+}
+
+.entry {
+  padding: 4px 0;
+}
+
+.entry::before {
+  content: "> ";
+  color: var(--color-accent-cyan);
+}

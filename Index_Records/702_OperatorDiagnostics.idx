@@ -1,0 +1,18 @@
+702_OperatorDiagnostics.idx
+
+[Record]
+Name = Operator Diagnostics
+Code = 702
+Path = ../../07_Diagnostics/Operator_Diagnostics/
+Description = Diagnostics for operator posture, cognitive load, emotional state, and cockpit-level performance indicators.
+
+[Files]
+Posture_Assessment = posture_assessment.txt
+Cognitive_Load = cognitive_load.txt
+Emotional_State = emotional_state.txt
+Operator_Alerts = operator_alerts.txt
+Operator_Crosswalk = operator_crosswalk.txt
+
+[Links]
+Parent = 700_SystemDiagnostics.idx
+Siblings = 701_SubsystemDiagnostics.idx, 703_IntegrityScans.idx, 704_ContaminationChecks.idx

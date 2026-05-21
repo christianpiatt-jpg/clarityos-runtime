@@ -1,0 +1,18 @@
+notepad 115_TransmissionEngine.idx
+
+[Record]
+Name = Transmission Engine
+Code = 115
+Path = ../../02_Subsystems/Transmission_Engine/
+Description = Long-range propagation subsystem responsible for cross-system transmission, multi-basin clarity transport, generational handoff, inter-operator synchronization, and OS-to-OS communication.
+
+[Files]
+Transmission_Primitives = transmission_primitives.txt
+CrossBasin_Transport = crossbasin_transport.txt
+Signal_Integrity = signal_integrity.txt
+Generational_Handoff = generational_handoff.txt
+InterOperator_Sync = interoperator_sync.txt
+
+[Links]
+Parent = 000_Constitution.idx
+Siblings = 100_ULDA.idx, 101_MartialOS.idx, 102_ExecutiveLayer.idx, 103_MetaExecutive.idx, 104_PropagationOS.idx, 105_GlobalOS.idx, 106_VA_Simulation.idx, 107_BuddySuite.idx, 108_AnalyticsEngine.idx, 109_ForecastingEngine.idx, 110_OperatorConsole.idx, 111_DiagnosticsEngine.idx, 112_StabilityEngine.idx, 113_AutoAdjustEngine.idx, 114_RecoveryEngine.idx

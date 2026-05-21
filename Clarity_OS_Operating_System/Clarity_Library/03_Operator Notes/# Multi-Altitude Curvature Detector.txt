@@ -1,0 +1,27 @@
+# Multi-Altitude Curvature Detector  
+## Curvature Across Nodes and Basins
+
+### Purpose
+Detect curvature at multiple altitudes:
+- Node_Geodesic (hierarchical dependent node)
+- Basin_Geodesic (regional/systemic)
+
+### Inputs
+- Node_Geodesics
+- Basin_Geodesics
+- IntersectionEvents
+
+### Core Logic
+For each geodesic:
+- Compute Δcurvature around intersections
+- Compare curvature patterns across altitudes
+
+### Outputs
+- Node_Curvature_Profile
+- Basin_Curvature_Profile
+- Cross_Altitude_Curvature_Correlation
+
+### Notes
+Aligned curvature across altitudes indicates:
+- coherent pressure
+- multi-level narrative shifts

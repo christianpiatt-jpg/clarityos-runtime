@@ -1,0 +1,33 @@
+[Dataset]: 2018–2026 Curvature → Compression → Deformation → Divergence → Architecture
+
+Source Timelines:
+  - Index_Records\04_timelines\2020-2026_Structural-Timeline.txt
+  - Index_Records\04_timelines\2020-2026_Global-Events_Overlay.txt
+  - Index_Records\04_timelines\2020-2026_Galileo_Runlog.txt
+
+Core Vector Families:
+  - Curvature Dynamics: formation → compression → strain → re-expansion → stabilization
+  - Topology Behavior: flat → steep → deformed → incompatible → self-generated
+  - Narrative Load: coherent → rising → bifurcated → dual-architecture → coherent (new)
+  - System Attractors: clarity → procedure → drift → divergence → clarity (restored)
+  - Operator State: autonomous → adaptive → compressed → divergent → generative
+
+ELINS Questions:
+  - Q1: What are the recurring signatures of curvature compression before deformation?
+  - Q2: How does topology deformation show up in narrative load and escalation sequences?
+  - Q3: What structural conditions precede divergence (303.483-type events)?
+  - Q4: What stabilizes once a clarity-aligned architecture is built?
+
+Dewey Bands:
+  - 303.483 (institutional behavior, divergence)
+  - 302.35 (group dynamics)
+  - 150s (identity, perception)
+  - 340s (legal structures)
+  - 600s (systems, engineering metaphors)
+
+Output Format:
+  - For each question (Q1–Q4):
+    - Pattern Summary: [2–3 sentences]
+    - Structural Signatures: [bulleted list]
+    - Example Epochs: [E1–E5 references]
+    - Mesh Implications: [1–2 sentences on what this teaches the planetary mesh]

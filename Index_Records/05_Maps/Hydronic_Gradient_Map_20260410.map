@@ -1,0 +1,10 @@
+[MAP]
+name: Hydronic Gradient Map
+version: 20260410
+
+[GRADIENTS]
+pressure_high → pressure_low
+identity → clarity
+reactivity → metabolization
+
+[END]

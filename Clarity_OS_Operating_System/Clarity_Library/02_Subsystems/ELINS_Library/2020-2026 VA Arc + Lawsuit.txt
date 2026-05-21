@@ -1,0 +1,19 @@
+[Dataset]: 2020–2026 VA Arc + Lawsuit
+
+Primary Artifacts:
+  - Clarity_Library\02_Subsystems\VA_Simulation.idx
+  - Clarity_Library\02_Subsystems\EEO_MSPB_lawbridg_Clarity_OS.docx
+  - Clarity_Library\02_Subsystems\EscalationLadder.import(field_dynam.txt
+  - Clarity_Library\02_Subsystems\NarrativeRadar.import(field_dynamic.txt
+  - Clarity_Library\02_Subsystems\XREF_303.483_VA-vs-Galileo.txt
+
+Timeline Spine:
+  - Index_Records\04_timelines\2020-2026_Structural-Timeline.txt
+  - Index_Records\04_timelines\2020-2026_Global-Events_Overlay.txt
+  - Index_Records\04_timelines\2020-2026_Galileo_Runlog.txt
+
+ELINS Use:
+  - Ingest lawsuit artifacts as event sequences (E2–E4).
+  - Map them against VA_Simulation basin properties.
+  - Use Galileo_Runlog as structural interpreter.
+  - Output: ELINS reports tagged to Dewey bands (303.483, 340s, 150s, 302.35).

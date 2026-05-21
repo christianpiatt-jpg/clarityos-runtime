@@ -1,0 +1,18 @@
+notepad 203_DriftCatalog.idx
+
+[Record]
+Name = Drift Catalog
+Code = 203
+Path = ../../03_OperatorNotes/Drift_Catalog/
+Description = Catalog of drift signatures including emotional, cognitive, relational, and environmental drift patterns with detection and correction notes.
+
+[Files]
+Emotional_Drift = emotional_drift.txt
+Cognitive_Drift = cognitive_drift.txt
+Relational_Drift = relational_drift.txt
+Environmental_Drift = environmental_drift.txt
+Drift_Corrections = drift_corrections.txt
+
+[Links]
+Parent = 200_OperatorHandbook.idx
+Siblings = 201_RuntimeNotes.idx, 202_ScenarioLibrary.idx, 204_RecoveryPlaybook.idx
