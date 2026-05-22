@@ -19,10 +19,11 @@
  */
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { WebSurfaceV0_2_View as V } from "./viewContract";
-import { classifyWebSurfaceRequest } from "./classifier";
+import { classifyWebSurfaceRequest, ERROR_500_VIEW } from "./classifier";
 import { renderWebSurface } from "./renderer";
 import { routeAsset } from "./assetRouter";
 import { renderRedirect } from "./redirectRenderer";
+import { handleForm } from "./formHandler";
 
 
 /** URL prefix the asset router claims. Anything below this path
@@ -30,9 +31,10 @@ import { renderRedirect } from "./redirectRenderer";
 const _ASSETS_PREFIX = "/web-surface/v0.2/assets/";
 
 
-/** Registry key for the 500 view, kept as a constant so tests
- *  can assert against it without re-typing the literal. */
-export const ERROR_500_VIEW = "error_500";
+/** Re-export of the 500 view constant so existing callers that
+ *  imported it from this module keep working. Single source of
+ *  truth lives in ``classifier.ts``. */
+export { ERROR_500_VIEW };
 
 
 /**
@@ -190,6 +192,19 @@ export async function routeWebSurface(
       // with status 200 (no HTTP 302; navigation is a payload,
       // not a transport-level instruction).
       response = await renderRedirect(action.to, action.mode);
+      break;
+    case "form":
+      // Card A13-R: form-submission dispatch. The handler parses
+      // ``rawBody`` and dispatches through the render pipeline
+      // with the parsed fields as ``params``. Mode is preserved
+      // — JSON form submissions still emit the canonical
+      // ``{view, params}`` envelope via defaultRenderer.
+      response = await handleForm({
+        kind:    "form",
+        view:    action.view,
+        rawBody: action.rawBody,
+        mode:    action.mode,
+      });
       break;
     default: {
       // Exhaustive-switch guard. If a new ClassifiedSurfaceAction

@@ -184,6 +184,8 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
       }
       case ClassifiedSurfaceActionKind.redirect:
         return `redirect:${action.to}:${action.mode}`;
+      case ClassifiedSurfaceActionKind.form:
+        return `form:${action.view}:${action.mode}:${action.rawBody.length}`;
       default: {
         const _exhaustive: never = action;
         return _exhaustive;
@@ -224,19 +226,30 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
     expect(describeAction(action)).toBe("redirect:/foo:html");
   });
 
+  test("form variant routes (html mode)", () => {
+    const action: ClassifiedSurfaceAction = {
+      kind:    "form",
+      view:    "form_demo",
+      rawBody: "name=Alice&email=a%40b.com",
+      mode:    V.Mode.html,
+    };
+    expect(describeAction(action)).toBe("form:form_demo:html:26");
+  });
+
   test("ClassifiedSurfaceActionKind mirrors the union exactly", () => {
     expect(ClassifiedSurfaceActionKind.noop).toBe("noop");
     expect(ClassifiedSurfaceActionKind.render).toBe("render");
     expect(ClassifiedSurfaceActionKind.redirect).toBe("redirect");
+    expect(ClassifiedSurfaceActionKind.form).toBe("form");
     expect(Object.keys(ClassifiedSurfaceActionKind).sort()).toEqual(
-      ["noop", "redirect", "render"],
+      ["form", "noop", "redirect", "render"],
     );
   });
 
   test("classifier output is a valid ClassifiedSurfaceAction shape", () => {
     const action = classifyWebSurfaceRequest(reqOf());
     expect(action).toHaveProperty("kind");
-    expect(["noop", "render", "redirect"]).toContain(action.kind);
+    expect(["noop", "render", "redirect", "form"]).toContain(action.kind);
   });
 });
 

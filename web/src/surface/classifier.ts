@@ -33,6 +33,31 @@
  * Redirects are NEVER served as HTTP 302 — both responses are
  * 200 with the redirect target carried in the body.
  *
+ * Card A13-R update: a new ``form`` action variant. ``POST``
+ * requests with ``content-type: application/x-www-form-urlencoded``
+ * are emitted as ``{kind: "form", view, rawBody, mode}``. Detection
+ * precedence (top wins):
+ *   1. Redirect (URL-routed primitive — wins regardless of method)
+ *   2. Form (POST + form content-type)
+ *   3. 404 rewrite (unknown view)
+ *   4. Normal render
+ *
+ * Why form precedes the 404 rewrite: a POST to an unknown view
+ * with form data should preserve the input by routing through
+ * ``handleForm`` (which dispatches the unknown view through the
+ * pipeline's defaultRenderer fallback), rather than discarding
+ * the body and rewriting to an error page.
+ *
+ * Non-string body policy (A13-R):
+ *   * The wire contract types ``req.body`` as ``unknown`` —
+ *     callers may pass strings, Buffers, parsed objects, etc.
+ *   * For a POST with form content-type, the body MUST be a
+ *     string. The classifier rejects any other shape by emitting
+ *     a ``render(error_500)`` action with a diagnostic message,
+ *     rather than silently coercing to an empty form (which
+ *     would mask malformed requests as legitimate "user
+ *     submitted blank form" cases).
+ *
  * Constraints:
  *   * MUST be deterministic: same (Request, registry state) in →
  *     same ClassifiedSurfaceAction out. The dependency on the
@@ -53,6 +78,19 @@ import { getView } from "./viewRegistry";
 /** Registry key for the 404 view, kept as a constant so tests
  *  can assert against it without re-typing the literal. */
 export const ERROR_404_VIEW = "error_404";
+
+
+/** Registry key for the 500 view. Mirrors ``ERROR_404_VIEW``;
+ *  also re-exported by ``router.ts`` so the envelope→HTML
+ *  transform doesn't need to type the literal either. */
+export const ERROR_500_VIEW = "error_500";
+
+
+/** Content-type marker the form classifier branch tests against.
+ *  Matches both ``application/x-www-form-urlencoded`` and the
+ *  ``application/x-www-form-urlencoded; charset=utf-8`` form
+ *  some clients send. */
+export const FORM_URLENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
 
 /** The magic view name that triggers the redirect-action branch.
@@ -89,6 +127,11 @@ export const DEFAULT_REDIRECT_TARGET = "/web-surface/v0.2/home";
  *                    returns either a JSON ``RedirectEnvelope`` or
  *                    an HTML redirect page (client-side navigation,
  *                    no HTTP 302).
+ *   * ``form``     — POST submission carrying a form-encoded body
+ *                    (Card A13-R). The classifier copies the raw
+ *                    body verbatim into the action; parsing happens
+ *                    in ``handleForm`` (which dispatches the parsed
+ *                    fields back through the render pipeline).
  */
 export type ClassifiedSurfaceAction =
   | { kind: "noop" }
@@ -102,6 +145,12 @@ export type ClassifiedSurfaceAction =
       kind: "redirect";
       to: string;
       mode: V.Mode;
+    }
+  | {
+      kind: "form";
+      view: string;
+      rawBody: string;
+      mode: V.Mode;
     };
 
 
@@ -110,6 +159,7 @@ export const ClassifiedSurfaceActionKind = {
   noop:     "noop",
   render:   "render",
   redirect: "redirect",
+  form:     "form",
 } as const;
 
 
@@ -140,6 +190,32 @@ export function classifyWebSurfaceRequest(
       to:   typeof target === "string" ? target : DEFAULT_REDIRECT_TARGET,
       mode: resolved.mode,
     };
+  }
+
+  // Card A13-R: form-submission interception. POST + form
+  // content-type → ``form`` action. A non-string body is rejected
+  // with a render(error_500) action — see the module docstring
+  // for the rationale (silent coercion masks malformed requests).
+  if (req.method === "POST") {
+    const contentType = req.headers["content-type"] ?? "";
+    if (contentType.includes(FORM_URLENCODED_CONTENT_TYPE)) {
+      if (typeof req.body !== "string") {
+        return {
+          kind:   "render",
+          view:   ERROR_500_VIEW,
+          params: {
+            message: "Form submission body must be a string.",
+          },
+          mode:   resolved.mode,
+        };
+      }
+      return {
+        kind:    "form",
+        view:    resolved.view,
+        rawBody: req.body,
+        mode:    resolved.mode,
+      };
+    }
   }
 
   // Card A11: unknown view → structured 404 rewrite. Mode is
