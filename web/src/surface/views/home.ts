@@ -37,6 +37,11 @@ function escapeHtml(s: string): string {
 /** Exported for tests + future programmatic re-registration. */
 export const homeView: ViewDefinition = {
   template: "home",
+  // Card A7: render through the ``standard`` layout. The layout
+  // owns the document chrome (DOCTYPE / html / head / body /
+  // header partial / footer partial); home.html is just the body
+  // fragment that lands inside the layout's ``{{ yield }}`` slot.
+  layout: "standard",
   async render(ctx: V.RenderContext) {
     // Card A6: ``subtitle`` is consumed by the ``header`` partial
     // that home.html now includes via ``{{> header}}``. Title +

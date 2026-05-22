@@ -43,6 +43,14 @@ export type ViewRenderFn = (
  * of an HTML file under ``web/templates/v0.2/``; ``render``
  * produces the variable bag that gets substituted into it.
  *
+ * Card A7 — Optional ``layout`` field. When set to the basename
+ * of a layout file under ``web/templates/v0.2/layouts/``, the
+ * pipeline renders the view's template first, then wraps the
+ * resulting HTML in the layout by substituting it into the
+ * layout's ``{{ yield }}`` placeholder. The same view vars are
+ * passed to both the template and the layout (with ``yield``
+ * added to the layout's substitution context).
+ *
  * Security note: ``render`` is responsible for HTML-escaping any
  * values that originate from untrusted sources (request params,
  * external data). The template engine does not escape — see
@@ -50,6 +58,7 @@ export type ViewRenderFn = (
  */
 export interface ViewDefinition {
   template: string;
+  layout?: string;
   render: ViewRenderFn;
 }
 

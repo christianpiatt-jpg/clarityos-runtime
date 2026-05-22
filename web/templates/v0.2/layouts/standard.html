@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    {{> header}}
+    <div id="layout">
+      {{ yield }}
+    </div>
+    {{> footer}}
+  </body>
+</html>

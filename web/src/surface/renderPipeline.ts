@@ -1,52 +1,59 @@
 /**
  * Web Surface v0.2.0 — render pipeline.
  *
- * Card A5 — Track A. The single source of truth for rendering.
- * ``renderer.ts`` is now a thin re-export of
- * ``executeRenderPipeline``; every render path flows through here.
+ * Card A5 (initial): single source of truth for rendering.
+ * Card A6        : engine gained partial inclusion.
+ * Card A7 (this) : pipeline gains optional layout wrapping.
  *
- * Pipeline steps (deterministic, side-effect-free except for the
- * template cache populating on first miss):
+ * Mode-aware dispatch (preserved from A4/A5):
  *
- *   0. Mode dispatch
- *      If ``ctx.mode === "json"`` → return ``defaultRenderer(ctx)``.
- *      JSON is the canonical machine-readable representation; the
- *      ``{view, params}`` shape is the JSON contract for every
- *      view. Per-view JSON shaping is a follow-up card.
+ *   0. If ``ctx.mode === "json"`` → return ``defaultRenderer(ctx)``.
+ *      JSON is the canonical machine-readable representation; per-
+ *      view JSON shaping is a follow-up card.
  *
- *   1. Resolve view definition
- *      ``getView(ctx.view)``. Unknown view → fall through to
- *      ``defaultRenderer(ctx)`` (HTML mode default — base.html
- *      via the template engine + XSS escape).
+ *   1. Resolve view definition via ``getView(ctx.view)``. Unknown
+ *      view → fall through to ``defaultRenderer(ctx)`` (HTML mode
+ *      uses base.html via the template engine + XSS escape).
  *
- *   2. Compute template variables
- *      ``await def.render(ctx)``. The view owns DATA; the pipeline
- *      owns ENVELOPE. View is responsible for HTML-escaping any
- *      user-controlled values (see ``views/home.ts``).
+ *   2. ``vars = await def.render(ctx)``. The view owns DATA; the
+ *      pipeline owns ENVELOPE.
  *
- *   3. Load template (cached)
- *      ``loadCachedTemplate(def.template)``. First miss reads from
- *      disk; subsequent hits return the cached reference.
+ *   3. View-template substitution. Load + cache ``def.template``,
+ *      run it through the template engine with ``vars``. This is
+ *      ``viewHtml``.
  *
- *   4. Apply template engine
- *      ``renderTemplate(template, vars)``. Substitutes
- *      ``{{ name }}`` placeholders; strips unfilled placeholders.
+ *   4. Layout wrapping (NEW in A7). If ``def.layout`` is set,
+ *      load + cache the named layout and run it through the
+ *      template engine with ``{ ...vars, yield: viewHtml }``.
+ *      ``{{ yield }}`` in the layout substitutes the rendered
+ *      view body; all other ``vars`` propagate through unchanged.
+ *      If ``def.layout`` is undefined, the unwrapped ``viewHtml``
+ *      is the final output.
  *
- *   5. Return deterministic output
- *      ``{ status: 200, headers, body: html }`` — shape locked.
- *      Status, content-type, body shape are renderer-owned; views
- *      cannot customise them.
+ *   5. Return deterministic 200 + ``text/html`` Response.
+ *
+ * Composition contract:
+ *   base.html  ─ used ONLY by the default renderer for unknown
+ *                views. Standalone full document.
+ *   layouts/*  ─ full documents with ``{{ yield }}``. View
+ *                templates wrapped in a layout supply just the
+ *                inner body content; the layout owns the document
+ *                chrome (DOCTYPE / html / head / body / partials).
+ *   views/*    ─ when bound to a layout, they're body fragments.
+ *                When standalone (no layout), they're full
+ *                documents (like base.html).
  *
  * Determinism guarantees (locked by tests):
  *   * Same ``ctx`` in → same ``RenderOutput`` out, byte-for-byte.
- *   * Pipeline does not mutate ``ctx``.
- *   * Pipeline does not mutate the view registry.
- *   * Pipeline does not mutate the cache except by adding entries
- *     on first miss (additive; never overwrites).
+ *   * Pipeline does not mutate ``ctx``, the registry, or the
+ *     view's vars (the layout-substitution context is a fresh
+ *     spread, not an in-place mutation).
+ *   * Caches grow additively on first miss; never overwrite.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
 import { getView } from "./viewRegistry";
 import { loadCachedTemplate } from "./templateCache";
+import { loadCachedLayout } from "./layoutCache";
 import { renderTemplate } from "./templateEngine";
 import { defaultRenderer } from "./viewDefaultRenderer";
 
@@ -62,25 +69,33 @@ export async function executeRenderPipeline(
   // 1. Resolve view definition.
   const def = getView(ctx.view);
   if (!def) {
-    // Unknown view + HTML mode → defaultRenderer (base.html).
-    // The default renderer respects mode AND escapes — same
-    // contract as a missing-route fallback in an HTTP framework.
     return defaultRenderer(ctx);
   }
 
-  // 2. Compute template variables.
+  // 2. Compute view variables.
   const vars = await def.render(ctx);
 
-  // 3. Load template (cached).
-  const template = loadCachedTemplate(def.template);
+  // 3. View-template substitution.
+  const viewTemplate = loadCachedTemplate(def.template);
+  const viewHtml = renderTemplate(viewTemplate, vars);
 
-  // 4. Apply template engine.
-  const html = renderTemplate(template, vars);
+  // 4. Layout wrapping (optional). The layout receives the view's
+  // vars + an auto-added ``yield`` that contains the rendered
+  // view body. Note: the spread builds a FRESH object — vars is
+  // not mutated.
+  let finalHtml = viewHtml;
+  if (def.layout) {
+    const layoutTemplate = loadCachedLayout(def.layout);
+    finalHtml = renderTemplate(layoutTemplate, {
+      ...vars,
+      yield: viewHtml,
+    });
+  }
 
   // 5. Return deterministic output.
   return {
     status: 200,
     headers: { "content-type": "text/html; charset=utf-8" },
-    body: html,
+    body: finalHtml,
   };
 }
