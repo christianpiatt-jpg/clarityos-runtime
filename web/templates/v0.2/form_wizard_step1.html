@@ -1,0 +1,11 @@
+<h1>{{ title }}</h1>
+<p>Step 1 of 3 — Name</p>
+<form method="POST" action="/web-surface/v0.2/form_wizard">
+  <input type="hidden" name="step" value="1">
+  <label>
+    Name:
+    <input type="text" name="name" value="{{ name }}">
+    <span class="error">{{ errors.name }}</span>
+  </label>
+  <button type="submit">Next</button>
+</form>

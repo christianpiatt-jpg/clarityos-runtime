@@ -1,5 +1,5 @@
 /**
- * Web Surface v0.2.0 — form-submission handler (Cards A13-R + A14-R).
+ * Web Surface v0.2.0 — form-submission handler (Cards A13-R + A14-R + A15).
  *
  * Bridges the classifier's ``form`` action to the existing render
  * pipeline. The handler is the SINGLE place where form-encoded
@@ -35,6 +35,16 @@
  *                     ``ctx.params.errors`` without an
  *                     existence check.
  *
+ * Schema resolution (A15):
+ *   * ``def.schema`` may be EITHER a static ``ValidationSchema``
+ *     OR a function ``(fields) => ValidationSchema | undefined``.
+ *     ``resolveViewSchema`` calls the function (passing the
+ *     parsed form fields) if it's callable, otherwise returns
+ *     the literal. Multi-step wizards use this to pick a
+ *     different schema per step based on ``fields.step``.
+ *   * A schema function returning ``undefined`` falls into the
+ *     passthrough branch — same as a view with no schema at all.
+ *
  * Properties:
  *   * No state, no persistence, no side effects.
  *   * No JSON-mode drift. The action's ``mode`` flows through to
@@ -56,7 +66,7 @@ import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { WebSurfaceV0_2_View as V } from "./viewContract";
 import { parseFormBody } from "./formParser";
 import { executeRenderPipeline } from "./renderPipeline";
-import { getView } from "./viewRegistry";
+import { getView, resolveViewSchema } from "./viewRegistry";
 import { validateForm } from "./validator";
 
 
@@ -79,14 +89,19 @@ export async function handleForm(
 ): Promise<WebSurfaceV0_2.Response> {
   const fields = parseFormBody(action.rawBody);
 
-  // Card A14-R: schema lookup + optional validation.
+  // Card A14-R + A15: schema lookup + optional validation.
   // The view definition may carry a ``schema`` field; absent
-  // schema → behave like A13-R (passthrough fields). Unknown
-  // view (``getView`` returns undefined) is also treated as
-  // passthrough — the pipeline's defaultRenderer fallback will
-  // handle it.
+  // schema (or a schema-function returning undefined) → behave
+  // like A13-R (passthrough fields). Unknown view (``getView``
+  // returns undefined) is also treated as passthrough — the
+  // pipeline's defaultRenderer fallback will handle it.
+  //
+  // Card A15: ``def.schema`` may be a function picking a schema
+  // per-submission based on the parsed form fields. The wizard
+  // view uses this to validate a different field per step
+  // without server-side state.
   const def = getView(action.view);
-  const schema = def?.schema;
+  const schema = resolveViewSchema(def?.schema, fields);
 
   if (!schema) {
     return executeRenderPipeline({

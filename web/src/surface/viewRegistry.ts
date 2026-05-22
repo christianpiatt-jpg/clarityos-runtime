@@ -66,17 +66,72 @@ export type ViewRenderFn = (
  * schema is per-view, declarative, and pure — no validation
  * logic in the view's ``render`` itself.
  *
+ * Card A15 — ``template`` and ``schema`` may also be FUNCTIONS,
+ * not just literal values. This is the stateless multi-step form
+ * pattern: the wizard view picks a different template per step
+ * (function of ``ctx``) AND a different schema per step (function
+ * of the parsed form ``fields``), all without server-side state.
+ * The pipeline calls ``template(ctx)`` if it's a function;
+ * ``formHandler`` calls ``schema(fields)`` if it's a function.
+ * Pure extension — static-value views still work unchanged.
+ *
  * Security note: ``render`` is responsible for HTML-escaping any
  * values that originate from untrusted sources (request params,
  * external data). The template engine does not escape — see
  * ``templateEngine.ts`` for the rationale.
  */
+
+/** Card A15: a template name OR a function of the render context
+ *  that returns one. The pipeline resolves it at render time. */
+export type ViewTemplate =
+  | string
+  | ((ctx: V.RenderContext) => string);
+
+
+/** Card A15: a schema OR a function of the parsed form fields
+ *  that returns a schema (or undefined to skip validation). The
+ *  form handler resolves it at handle time. */
+export type ViewSchema =
+  | ValidationSchema
+  | ((fields: Record<string, string>) => ValidationSchema | undefined);
+
+
 export interface ViewDefinition {
-  template: string;
+  template: ViewTemplate;
   layout?: string;
   status?: number;
-  schema?: ValidationSchema;
+  schema?: ViewSchema;
   render: ViewRenderFn;
+}
+
+
+/**
+ * Resolve ``def.template`` to a literal string. Static templates
+ * pass through; function templates are called with ``ctx``.
+ * Exported so the renderer + tests share a single resolution
+ * point.
+ */
+export function resolveViewTemplate(
+  template: ViewTemplate,
+  ctx: V.RenderContext,
+): string {
+  return typeof template === "function" ? template(ctx) : template;
+}
+
+
+/**
+ * Resolve ``def.schema`` (if present) to a ValidationSchema or
+ * undefined. Static schemas pass through; function schemas are
+ * called with the parsed form ``fields``. Returning ``undefined``
+ * skips validation entirely (the form handler then falls into
+ * the A13-R passthrough branch).
+ */
+export function resolveViewSchema(
+  schema: ViewSchema | undefined,
+  fields: Record<string, string>,
+): ValidationSchema | undefined {
+  if (schema === undefined) return undefined;
+  return typeof schema === "function" ? schema(fields) : schema;
 }
 
 

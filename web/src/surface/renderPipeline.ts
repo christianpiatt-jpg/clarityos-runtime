@@ -7,13 +7,19 @@
  * Card A9        : pipeline auto-injects fingerprinted asset URLs.
  * Card A10       : asset URLs come from the committed JSON
  *                  snapshot (manifest.json), not runtime hashes.
- * Card A11 (this): pipeline catches any thrown exception and
+ * Card A11       : pipeline catches any thrown exception and
  *                  renders ``errors/500`` directly (minimal,
  *                  no layout / no view binding / no asset
  *                  injection) so a fault in any of those paths
  *                  can't double-fault the error response. Views
  *                  with a ``status`` field (e.g. error_404,
  *                  error_500) are honoured on the happy path.
+ * Card A15 (this): pipeline resolves ``def.template`` via
+ *                  ``resolveViewTemplate`` — supports both
+ *                  static literal names and per-request
+ *                  ``(ctx) => string`` functions (the multi-step
+ *                  wizard pattern). Static-template behaviour
+ *                  is unchanged.
  *
  * Mode-aware dispatch (preserved from A4/A5):
  *
@@ -80,7 +86,7 @@
  *     populated on every render after the first.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
-import { getView } from "./viewRegistry";
+import { getView, resolveViewTemplate } from "./viewRegistry";
 import { loadCachedTemplate } from "./templateCache";
 import { loadCachedLayout } from "./layoutCache";
 import { renderTemplate } from "./templateEngine";
@@ -180,8 +186,12 @@ export async function executeRenderPipeline(
       ...(await def.render(ctx)),
     };
 
-    // 3. View-template substitution.
-    const viewTemplate = loadCachedTemplate(def.template);
+    // 3. View-template substitution. Card A15: ``def.template``
+    // may be a function — resolve it against ``ctx`` to get the
+    // concrete template name. Static-string templates pass
+    // through unchanged.
+    const templateName = resolveViewTemplate(def.template, ctx);
+    const viewTemplate = loadCachedTemplate(templateName);
     const viewHtml = renderTemplate(viewTemplate, vars);
 
     // 4. Layout wrapping (optional). The layout receives the view's

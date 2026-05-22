@@ -1,0 +1,12 @@
+<h1>{{ title }}</h1>
+<p>Step 2 of 3 — Email</p>
+<form method="POST" action="/web-surface/v0.2/form_wizard">
+  <input type="hidden" name="step" value="2">
+  <input type="hidden" name="name" value="{{ name }}">
+  <label>
+    Email:
+    <input type="email" name="email" value="{{ email }}">
+    <span class="error">{{ errors.email }}</span>
+  </label>
+  <button type="submit">Next</button>
+</form>
