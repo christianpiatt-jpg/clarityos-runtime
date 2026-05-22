@@ -1,0 +1,129 @@
+{
+  "$comment": "Auto-generated from web/src/contracts/webSurfaceV0_2.ts. Do not hand-edit — run `npm run contracts:gen` in web/ instead. The version field below is extracted from the contract's VERSION constant.",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Record<string,string>": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "Record<string,unknown>": {
+      "additionalProperties": {},
+      "type": "object"
+    },
+    "WebSurfaceV0_2.ErrorEnvelope": {
+      "additionalProperties": false,
+      "description": "Stable error envelope. The `error` string is a machine-readable code (e.g. `\"not_implemented\"`, `\"unauthorized\"`); `detail` is an optional, opaque payload the caller may surface for diagnostics. Adding fields is allowed; removing or renaming `error` is a breaking change that requires a new contract version.",
+      "properties": {
+        "detail": {},
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "type": "object"
+    },
+    "WebSurfaceV0_2.Request": {
+      "additionalProperties": false,
+      "description": "Every Web Surface call carries this request shape.",
+      "properties": {
+        "body": {},
+        "headers": {
+          "$ref": "#/definitions/Record%3Cstring%2Cstring%3E"
+        },
+        "method": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "method",
+        "headers",
+        "body"
+      ],
+      "type": "object"
+    },
+    "WebSurfaceV0_2.Response": {
+      "additionalProperties": false,
+      "description": "Every Web Surface call returns this response shape.",
+      "properties": {
+        "body": {},
+        "headers": {
+          "$ref": "#/definitions/Record%3Cstring%2Cstring%3E"
+        },
+        "status": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "status",
+        "headers",
+        "body"
+      ],
+      "type": "object"
+    },
+    "WebSurfaceV0_2.SurfaceAction": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "noop",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "params": {
+              "$ref": "#/definitions/Record%3Cstring%2Cunknown%3E"
+            },
+            "type": {
+              "const": "render",
+              "type": "string"
+            },
+            "view": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "view"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "navigate",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "path"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "Discriminated union, keyed on `type`. Consumers exhaustively `switch` on `action.type` and TypeScript narrows the remaining fields. New action variants must be added before they are emitted; the absence of a default case in a switch is the compile-time guard that catches missed variants.\n\nVariants:   * `noop`      — explicit no-op; useful as a sentinel + as the                   first/safe entry in any reducer that needs a                   default case during migration.   * `render`    — render a named view, optionally with params.   * `navigate`  — change the current route path."
+    }
+  },
+  "title": "WebSurfaceV0_2",
+  "version": "v0.2.0"
+}
