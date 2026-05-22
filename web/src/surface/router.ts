@@ -12,6 +12,7 @@
  */
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { classifyWebSurfaceRequest } from "./classifier";
+import { renderWebSurface } from "./renderer";
 
 
 /**
@@ -59,15 +60,14 @@ export async function routeWebSurface(
         },
       );
     case "render":
-      // TODO(Card 9): return renderWebSurface({ view, params }).
-      return notImplementedResponse(
-        "web_surface_renderer_pending",
-        {
-          message: "renderer skeleton not yet wired",
-          view:    action.view,
-          version: WebSurfaceV0_2.VERSION,
-        },
-      );
+      // Card 9: dispatch to the render pipeline skeleton. Still a
+      // 501 stub today (renderer returns the not-implemented
+      // envelope), but the wiring is exercised by router tests so
+      // future card replacements only touch the renderer body.
+      return renderWebSurface({
+        view:   action.view,
+        params: action.params,
+      });
     default: {
       // Exhaustive-switch guard. If a new ClassifiedSurfaceAction
       // variant lands without this switch being updated, TypeScript
