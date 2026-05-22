@@ -1,15 +1,22 @@
-// Card 8 — tests for the v0.2.0 Web Surface request classifier.
+// Tests for the v0.2.0 Web Surface request classifier.
 //
-// The classifier is a pure function: same Request in → same
-// ClassifiedSurfaceAction out, no side effects. These tests lock
-// in three contracts:
+// Card 8 (original) — classifier always returned ``{ kind: "noop" }``.
+// Card A2 (this revision) — classifier delegates to
+// ``viewResolution.resolveView`` and always returns
+// ``{ kind: "render", view, params, mode }``. The noop variant
+// remains in the union for future use (health probes, etc.) but
+// the classifier itself never emits it today.
 //
-//   1. Every valid request classifies to ``{ kind: "noop" }`` for
-//      v0.2.0 (until real classification rules land).
-//   2. The output discriminator routes correctly through an
-//      exhaustive ``switch`` — the compile-time ``never`` guard
-//      catches a missed variant in any future caller.
-//   3. The function is side-effect-free: same input → same output,
+// These tests lock four contracts:
+//
+//   1. Every valid request classifies to ``{ kind: "render" }``
+//      for v0.2.0.
+//   2. The render variant carries view + mode + params resolved
+//      from the request.
+//   3. The discriminator narrows correctly through an exhaustive
+//      switch (the compile-time ``never`` guard catches missed
+//      variant updates).
+//   4. The function is side-effect-free: same input → same output,
 //      no global state, no module-import side effects.
 //
 // Path: web/src/surface/__tests__/classifier.test.ts
@@ -21,6 +28,7 @@ import {
   ClassifiedSurfaceActionKind,
 } from "../classifier";
 import { WebSurfaceV0_2 } from "../../contracts/webSurfaceV0_2";
+import { WebSurfaceV0_2_View as V } from "../viewContract";
 
 
 // ---------------------------------------------------------------------------
@@ -38,42 +46,76 @@ function reqOf(overrides: Partial<WebSurfaceV0_2.Request> = {}): WebSurfaceV0_2.
 
 
 // ---------------------------------------------------------------------------
-// 1. v0.2.0 behaviour — every request classifies to noop
+// 1. Card A2 behaviour — every request classifies to render
 // ---------------------------------------------------------------------------
-describe("classifyWebSurfaceRequest — v0.2.0 default", () => {
-  test("GET / classifies to noop", () => {
+describe("classifyWebSurfaceRequest — Card A2 default", () => {
+  test("GET / classifies to render (view='index', mode='html')", () => {
     const action = classifyWebSurfaceRequest(reqOf());
-    expect(action.kind).toBe("noop");
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.view).toBe("index");
+      expect(action.mode).toBe(V.Mode.html);
+      expect(action.params).toEqual({});
+    }
   });
 
   test.each([
     "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
-  ])("%s classifies to noop", (method) => {
+  ])("%s classifies to render", (method) => {
     const action = classifyWebSurfaceRequest(reqOf({ method }));
-    expect(action.kind).toBe("noop");
+    expect(action.kind).toBe("render");
   });
 
   test.each([
-    "/", "/foo", "/foo/bar", "/x?y=z", "/web-surface/v0.2/anything",
-  ])("path %s classifies to noop", (path) => {
+    ["/",                              "index"],
+    ["/home",                          "home"],
+    ["/web-surface/v0.2/dashboard",    "dashboard"],
+    ["/web-surface/v0.2/foo/bar",      "bar"],
+  ])("path %s → view %s", (path, expectedView) => {
     const action = classifyWebSurfaceRequest(reqOf({ path }));
-    expect(action.kind).toBe("noop");
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.view).toBe(expectedView);
+    }
+  });
+
+  test("Accept: application/json header → mode=json", () => {
+    const action = classifyWebSurfaceRequest(reqOf({
+      headers: { accept: "application/json" },
+    }));
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.mode).toBe(V.Mode.json);
+    }
+  });
+
+  test("?mode=json query param → mode=json (and stripped from params)", () => {
+    const action = classifyWebSurfaceRequest(reqOf({
+      path: "/home?mode=json&id=abc",
+    }));
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.mode).toBe(V.Mode.json);
+      // ``mode`` is consumed by the resolver, not exposed as a param.
+      expect(action.params).toEqual({ id: "abc" });
+    }
+  });
+
+  test("no Accept + no ?mode= → mode=html (default)", () => {
+    const action = classifyWebSurfaceRequest(reqOf({ path: "/home" }));
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.mode).toBe(V.Mode.html);
+    }
   });
 
   test("request body content does not change classification (v0.2.0)", () => {
     const a = classifyWebSurfaceRequest(reqOf({ body: null }));
     const b = classifyWebSurfaceRequest(reqOf({ body: { x: 1 } }));
     const c = classifyWebSurfaceRequest(reqOf({ body: "text" }));
-    expect(a.kind).toBe("noop");
-    expect(b.kind).toBe("noop");
-    expect(c.kind).toBe("noop");
-  });
-
-  test("request headers do not change classification (v0.2.0)", () => {
-    const action = classifyWebSurfaceRequest(
-      reqOf({ headers: { "x-trace": "abc", "user-agent": "spa" } }),
-    );
-    expect(action.kind).toBe("noop");
+    expect(a.kind).toBe("render");
+    expect(b.kind).toBe("render");
+    expect(c.kind).toBe("render");
   });
 });
 
@@ -94,7 +136,7 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
         const paramCount = action.params
           ? Object.keys(action.params).length
           : 0;
-        return `render:${action.view}:${paramCount}`;
+        return `render:${action.view}:${action.mode}:${paramCount}`;
       }
       default: {
         const _exhaustive: never = action;
@@ -108,27 +150,28 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
     expect(describeAction(action)).toBe("noop");
   });
 
-  test("render variant routes (no params)", () => {
+  test("render variant routes (json mode, no params)", () => {
     const action: ClassifiedSurfaceAction = {
       kind: "render",
       view: "dashboard",
+      mode: V.Mode.json,
     };
-    expect(describeAction(action)).toBe("render:dashboard:0");
+    expect(describeAction(action)).toBe("render:dashboard:json:0");
   });
 
-  test("render variant routes (with params)", () => {
+  test("render variant routes (html mode, with params)", () => {
     const action: ClassifiedSurfaceAction = {
       kind:   "render",
       view:   "operator",
       params: { id: "abc", verbose: true },
+      mode:   V.Mode.html,
     };
-    expect(describeAction(action)).toBe("render:operator:2");
+    expect(describeAction(action)).toBe("render:operator:html:2");
   });
 
   test("ClassifiedSurfaceActionKind mirrors the union exactly", () => {
     expect(ClassifiedSurfaceActionKind.noop).toBe("noop");
     expect(ClassifiedSurfaceActionKind.render).toBe("render");
-    // Set-equality: keys of the constants object == set of union kinds.
     expect(Object.keys(ClassifiedSurfaceActionKind).sort()).toEqual(
       ["noop", "render"],
     );
@@ -136,7 +179,6 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
 
   test("classifier output is a valid ClassifiedSurfaceAction shape", () => {
     const action = classifyWebSurfaceRequest(reqOf());
-    // Must have ``kind`` field that's one of the documented values.
     expect(action).toHaveProperty("kind");
     expect(["noop", "render"]).toContain(action.kind);
   });
@@ -156,8 +198,8 @@ describe("classifyWebSurfaceRequest — purity", () => {
 
   test("does not mutate the input request", () => {
     const req = reqOf({
-      path: "/x", method: "GET",
-      headers: { "x-trace": "abc" },
+      path: "/x?q=1", method: "GET",
+      headers: { "accept": "application/json" },
       body: { k: "v" },
     });
     const frozen = JSON.stringify(req);

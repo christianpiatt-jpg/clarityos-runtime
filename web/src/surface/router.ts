@@ -13,7 +13,6 @@
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { classifyWebSurfaceRequest } from "./classifier";
 import { renderWebSurface } from "./renderer";
-import { WebSurfaceV0_2_View as V } from "./viewContract";
 
 
 /**
@@ -61,15 +60,14 @@ export async function routeWebSurface(
         },
       );
     case "render":
-      // Card A1: dispatch to the view engine. The renderer resolves
-      // ``view`` against ``viewRegistry`` and falls back to
-      // ``defaultRenderer`` for unknown names. Mode is hardcoded to
-      // ``json`` until Card A2 introduces content-negotiation
-      // (Accept-header → mode) at the router boundary.
+      // Card A2: the classifier resolves mode via
+      // ``viewResolution.resolveView`` (Accept header / ?mode=
+      // query / default html), so the router forwards
+      // ``action.mode`` through to the renderer unchanged.
       return renderWebSurface({
         view:   action.view,
         params: action.params,
-        mode:   V.Mode.json,
+        mode:   action.mode,
       });
     default: {
       // Exhaustive-switch guard. If a new ClassifiedSurfaceAction

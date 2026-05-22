@@ -7,9 +7,12 @@
  * is the router's switch-on input; new classification rules
  * land here, no other module changes required.
  *
- * For v0.2.0 every request classifies to ``noop`` — real
- * classification rules (path + method → render view) arrive in
- * a follow-up card once the route table exists.
+ * Card A2 update: every request now resolves to a ``render``
+ * action via ``viewResolution.resolveView``. The previous Card 8
+ * "always noop" behaviour is gone — the noop variant of
+ * ``ClassifiedSurfaceAction`` remains in the union for future
+ * use (e.g. health-probe requests that should bypass rendering)
+ * but the classifier itself never emits it today.
  *
  * Constraints:
  *   * MUST be pure: same Request in → same ClassifiedSurfaceAction out
@@ -19,6 +22,8 @@
  * Anchor docs: ../../../../docs/web_surface/v0.2.0-contract.md
  */
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
+import { WebSurfaceV0_2_View as V } from "./viewContract";
+import { resolveView } from "./viewResolution";
 
 
 /**
@@ -30,14 +35,21 @@ import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
  * reviews.
  *
  * Variants:
- *   * ``noop``   — request did not match any classification rule;
- *                  router falls through to the 501 stub.
- *   * ``render`` — request matched a render rule for a named view;
- *                  router dispatches to the renderer.
+ *   * ``noop``   — request bypasses rendering (reserved for future
+ *                  use; not emitted by the classifier in v0.2.0).
+ *   * ``render`` — request mapped to a named view via the view
+ *                  resolution layer (Card A2). The render variant
+ *                  carries the resolver's full output: ``view``,
+ *                  optional ``params``, and required ``mode``.
  */
 export type ClassifiedSurfaceAction =
   | { kind: "noop" }
-  | { kind: "render"; view: string; params?: Record<string, unknown> };
+  | {
+      kind: "render";
+      view: string;
+      params?: Record<string, unknown>;
+      mode: V.Mode;
+    };
 
 
 /** Discriminator constants — paired with the union for typo-safety. */
@@ -50,20 +62,19 @@ export const ClassifiedSurfaceActionKind = {
 /**
  * Classify a Web Surface request.
  *
- * For v0.2.0 every request returns ``{ kind: "noop" }``. The
- * function is wired through the router today so that when real
- * rules land in a future card, only this body changes — the
- * router + tests already exercise the noop AND render branches
- * via the discriminator.
+ * Card A2: delegates to ``resolveView`` and always emits a render
+ * action. The noop variant is held in the union for future
+ * specialisations (e.g. a future health-probe path that should
+ * bypass the renderer entirely).
  */
 export function classifyWebSurfaceRequest(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _req: WebSurfaceV0_2.Request,
+  req: WebSurfaceV0_2.Request,
 ): ClassifiedSurfaceAction {
-  // TODO(v0.2.0): expand classification rules.
-  // Anticipated future shape:
-  //   if (req.method === "GET" && KNOWN_VIEWS.has(req.path)) {
-  //     return { kind: "render", view: ROUTE_TO_VIEW[req.path] };
-  //   }
-  return { kind: "noop" };
+  const resolved = resolveView(req);
+  return {
+    kind:   "render",
+    view:   resolved.view,
+    params: resolved.params,
+    mode:   resolved.mode,
+  };
 }
