@@ -38,9 +38,15 @@ function escapeHtml(s: string): string {
 export const homeView: ViewDefinition = {
   template: "home",
   async render(ctx: V.RenderContext) {
+    // Card A6: ``subtitle`` is consumed by the ``header`` partial
+    // that home.html now includes via ``{{> header}}``. Title +
+    // content are the template's own placeholders. All three
+    // pass through the local HTML escape (caller-side policy,
+    // per ``templateEngine.ts``).
     return {
-      title:   escapeHtml("Home"),
-      content: escapeHtml(JSON.stringify(ctx.params ?? {}, null, 2)),
+      title:    escapeHtml("Home"),
+      subtitle: escapeHtml("Welcome"),
+      content:  escapeHtml(JSON.stringify(ctx.params ?? {}, null, 2)),
     };
   },
 };

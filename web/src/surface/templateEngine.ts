@@ -1,56 +1,82 @@
 /**
  * Web Surface v0.2.0 — template engine.
  *
- * Card A3 — Track A. Minimal, deterministic, dependency-free
- * variable substitution. No logic, no loops, no conditionals, no
- * partials. Strictly ``{{ var_name }}`` placeholders → string
- * substitution.
+ * Card A3 (initial): variable substitution + unfilled stripping.
+ * Card A6 (current): adds partial inclusion as a FIRST pass.
  *
- * Security policy:
- *   * The engine itself does NOT HTML-escape values. The caller
- *     decides per-value whether to escape (typically the renderer,
- *     which knows the output content-type). Keeping escape policy
- *     out of the engine lets the same primitive emit non-HTML
- *     output (text, markdown) without unwanted entity expansion.
- *   * The renderer for HTML output (``viewDefaultRenderer.ts``)
- *     escapes every interpolated value before calling
- *     ``renderTemplate`` — that's the load-bearing XSS regression
- *     contract (locked by ``viewEngine.test.ts``).
+ * Minimal, deterministic, dependency-free. No logic, no loops,
+ * no conditionals beyond the explicit two-pass structure below.
  *
- * Unfilled-placeholder policy:
- *   * Any placeholder of shape ``{{ identifier }}`` not present in
- *     the ``vars`` map is silently removed (replaced with empty
- *     string). This keeps a half-populated template from leaking
- *     literal ``{{ admin_password }}`` text into the output if a
- *     caller forgets a variable.
+ * Render passes (run in order):
  *
- * Placeholder grammar:
- *   * Matches ``{{ name }}`` with optional whitespace inside the
- *     braces. ``name`` is a JS identifier or dotted path (``[\w.]+``).
- *   * Dotted paths are unfilled — the substitution loop only
- *     resolves flat ``vars`` keys; nested-dotted placeholders fall
- *     through to the "unfilled → remove" branch.
+ *   1. Partial inclusion
+ *      Each ``{{> name }}`` is replaced with the body of the
+ *      named partial via ``loadCachedPartial(name)``. Missing
+ *      partials silently substitute to empty string — same
+ *      "silent removal on miss" policy as unfilled variables.
+ *
+ *   2. Variable substitution
+ *      Each ``{{ key }}`` is replaced with ``String(vars[key])``.
+ *      Variables present in partials (e.g. ``{{ subtitle }}`` in
+ *      header.html) are substituted in this pass — partials are
+ *      included BEFORE variables so this works.
+ *
+ *   3. Unfilled-placeholder strip
+ *      Any ``{{ identifier }}`` not present in ``vars`` is
+ *      silently removed. Never leaks literal ``{{ ... }}`` text
+ *      into the output.
+ *
+ * Security policy (unchanged from A3):
+ *   * Engine does NOT HTML-escape values. Caller (renderer / view)
+ *     escapes per output content-type.
+ *
+ * No-nesting policy (Card A6 implementation choice):
+ *   * Step 1 runs ``replace`` exactly once. If a partial body
+ *     contains ``{{> other }}``, that text appears literally in
+ *     the output — partials cannot include other partials.
+ *   * This is deliberate. Multi-pass with cycle detection adds
+ *     complexity that v0.2.0 doesn't need. If nested partials
+ *     are needed later, this is the single line to revisit.
+ *
+ * No-double-evaluation policy:
+ *   * Variable values are substituted as-is. If a value happens
+ *     to be the string ``{{> header }}``, it appears literally
+ *     in the output (NOT expanded as a partial). Same property
+ *     for nested ``{{ x }}`` syntax. Locked by tests.
  */
+import { loadCachedPartial } from "./partialCache";
 
 
-/** Recognises ``{{ identifier }}`` (with optional whitespace).
- *  Used for the final unfilled-placeholder strip pass. */
-const _UNFILLED_PLACEHOLDER_RE = /{{\s*[\w.]+\s*}}/g;
+/** Matches ``{{> name }}`` partial-inclusion placeholders. The
+ *  name allows word chars + hyphens (e.g. ``site-header``). */
+const _PARTIAL_RE = /{{>\s*([\w-]+)\s*}}/g;
+
+
+/** Matches ``{{ identifier }}`` variable placeholders. Captures
+ *  the key (which may contain word chars + dots). Used for the
+ *  single-pass variable substitution. */
+const _VAR_RE = /{{\s*([\w.]+)\s*}}/g;
 
 
 /**
- * Substitute ``{{ key }}`` placeholders in ``template`` with the
- * matching value from ``vars``. Unfilled placeholders are removed.
+ * Substitute ``{{> name }}`` partials and ``{{ key }}`` variables
+ * in ``template``. Unfilled variables are removed.
+ *
+ * Card A6 fix: variable substitution is now SINGLE-PASS — one
+ * regex scan of the output, with each match's key looked up in
+ * vars. The pre-A6 engine looped over ``Object.entries(vars)``
+ * and applied each substitution sequentially over the
+ * accumulated output, which meant a variable VALUE containing
+ * ``{{ another_key }}`` would be re-substituted on a later
+ * iteration (server-side template injection vector). The
+ * single-pass design eliminates double evaluation.
  *
  * Determinism:
- *   * Output depends only on the ``template`` string and the
- *     ``vars`` map. No globals, no cwd, no time, no fetch.
- *   * Iteration order of ``Object.entries(vars)`` follows
- *     insertion order, but the substitution itself is order-
- *     independent (each placeholder matches at most one key).
- *
- * Returns the substituted output with leading/trailing whitespace
- * trimmed (the ``base.html`` template carries trailing newlines).
+ *   * Output depends only on the template string, the vars map,
+ *     and the contents of the partial files.
+ *   * Partial cache is the only stateful dependency — it's
+ *     populated additively on first miss; same partial → same
+ *     bytes for the lifetime of the process.
  */
 export function renderTemplate(
   template: string,
@@ -58,24 +84,32 @@ export function renderTemplate(
 ): string {
   let output = template;
 
-  for (const [key, value] of Object.entries(vars)) {
-    // Build a per-key regex. We escape the key just in case a
-    // caller passes one carrying regex metacharacters (defence in
-    // depth — flat identifiers won't normally need this).
-    const escapedKey = _escapeForRegex(key);
-    const pattern = new RegExp(`{{\\s*${escapedKey}\\s*}}`, "g");
-    output = output.replace(pattern, String(value));
-  }
+  // Pass 1: partial inclusion. Run BEFORE variable substitution
+  // so that variables inside a partial body (e.g. {{ subtitle }}
+  // in header.html) get filled in pass 2.
+  output = output.replace(_PARTIAL_RE, (_match, name) => {
+    try {
+      return loadCachedPartial(name);
+    } catch {
+      // Missing partial → silent removal. Matches the "unfilled
+      // placeholder removed" policy for variables.
+      return "";
+    }
+  });
 
-  // Strip any unfilled placeholder so the output never leaks
-  // literal ``{{ unmapped_var }}`` text.
-  output = output.replace(_UNFILLED_PLACEHOLDER_RE, "");
+  // Pass 2: variable substitution + unfilled strip in one scan.
+  // The replace callback fires once per placeholder found in the
+  // current output; replacements are inserted into a FRESH output
+  // string and NOT re-scanned. This is what prevents double
+  // evaluation (a value of "{{ secret }}" is inserted as literal
+  // text, never expanded against vars.secret).
+  output = output.replace(_VAR_RE, (_match, key: string) => {
+    if (Object.prototype.hasOwnProperty.call(vars, key)) {
+      return String(vars[key]);
+    }
+    // Unfilled placeholder → silent removal.
+    return "";
+  });
 
   return output.trim();
-}
-
-
-/** Escape regex metacharacters in a key name. */
-function _escapeForRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
