@@ -16,6 +16,15 @@ COPY ELINS/ /app/ELINS/
 COPY el_ins/ /app/el_ins/
 COPY problem_solver/ /app/problem_solver/
 
+# v0.2.0 Cloud Run Web Surface (DISABLED skeleton — Card 10).
+# The entrypoint module ``web_surface_entry.py`` is picked up by the
+# ``COPY *.py /app/`` line above. When v0.2.0 activation lands (a
+# future card), a split-deployment build would override CMD with:
+#   CMD exec uvicorn web_surface_entry:create_web_surface_app \
+#       --factory --host 0.0.0.0 --port ${PORT}
+# Until then nothing changes: this single-stage build keeps running
+# ``app:app`` and the surface module sits inert in the image.
+
 COPY BUILD_VERSION /app/BUILD_VERSION
 ENV BUILD_VERSION_FILE=/app/BUILD_VERSION
 
