@@ -3,7 +3,8 @@
  *
  * Card A5 (initial): single source of truth for rendering.
  * Card A6        : engine gained partial inclusion.
- * Card A7 (this) : pipeline gains optional layout wrapping.
+ * Card A7        : pipeline gained optional layout wrapping.
+ * Card A9 (this) : pipeline auto-injects fingerprinted asset URLs.
  *
  * Mode-aware dispatch (preserved from A4/A5):
  *
@@ -18,17 +19,32 @@
  *   2. ``vars = await def.render(ctx)``. The view owns DATA; the
  *      pipeline owns ENVELOPE.
  *
+ *   2.5 Asset-var injection (NEW in A9). The pipeline merges a
+ *      small fixed set of fingerprinted asset URLs into ``vars``
+ *      BEFORE template + layout substitution:
+ *
+ *        style_css → fingerprintedPath("style.css")
+ *        app_js    → fingerprintedPath("app.js")
+ *
+ *      The layout (``standard.html``) consumes these via
+ *      ``{{ style_css }}`` / ``{{ app_js }}`` placeholders inside
+ *      ``<link>`` and ``<script>`` tags. View templates ignore the
+ *      vars (unused placeholders just disappear). View renders
+ *      that happen to declare their own ``style_css`` / ``app_js``
+ *      win — the spread order keeps view-supplied values
+ *      authoritative.
+ *
  *   3. View-template substitution. Load + cache ``def.template``,
  *      run it through the template engine with ``vars``. This is
  *      ``viewHtml``.
  *
- *   4. Layout wrapping (NEW in A7). If ``def.layout`` is set,
- *      load + cache the named layout and run it through the
- *      template engine with ``{ ...vars, yield: viewHtml }``.
- *      ``{{ yield }}`` in the layout substitutes the rendered
- *      view body; all other ``vars`` propagate through unchanged.
- *      If ``def.layout`` is undefined, the unwrapped ``viewHtml``
- *      is the final output.
+ *   4. Layout wrapping (A7). If ``def.layout`` is set, load + cache
+ *      the named layout and run it through the template engine with
+ *      ``{ ...vars, yield: viewHtml }``. ``{{ yield }}`` in the
+ *      layout substitutes the rendered view body; all other ``vars``
+ *      (including the asset vars) propagate through unchanged. If
+ *      ``def.layout`` is undefined, the unwrapped ``viewHtml`` is
+ *      the final output.
  *
  *   5. Return deterministic 200 + ``text/html`` Response.
  *
@@ -44,11 +60,15 @@
  *                documents (like base.html).
  *
  * Determinism guarantees (locked by tests):
- *   * Same ``ctx`` in → same ``RenderOutput`` out, byte-for-byte.
+ *   * Same ``ctx`` in → same ``RenderOutput`` out, byte-for-byte
+ *     (asset vars derive from the asset bytes via SHA-256, so the
+ *     fingerprints themselves are deterministic).
  *   * Pipeline does not mutate ``ctx``, the registry, or the
  *     view's vars (the layout-substitution context is a fresh
  *     spread, not an in-place mutation).
  *   * Caches grow additively on first miss; never overwrite.
+ *   * Asset manifest is process-singleton; the same vars object is
+ *     populated on every render after the first.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
 import { getView } from "./viewRegistry";
@@ -56,6 +76,25 @@ import { loadCachedTemplate } from "./templateCache";
 import { loadCachedLayout } from "./layoutCache";
 import { renderTemplate } from "./templateEngine";
 import { defaultRenderer } from "./viewDefaultRenderer";
+import { getFingerprintedPath } from "./assetManifest";
+
+
+/**
+ * Build the asset-var bag that the render pipeline merges into
+ * every view's ``vars``. Exported so tests can compare what the
+ * pipeline computes against what the layout actually renders.
+ *
+ * Each fingerprinted URL is computed via the manifest, which
+ * caches the SHA-256 → 12-hex result. Two calls produce the same
+ * strings; production runs incur one disk read per asset per
+ * process lifetime.
+ */
+export function buildAssetVars(): Record<string, string> {
+  return {
+    style_css: getFingerprintedPath("style.css"),
+    app_js:    getFingerprintedPath("app.js"),
+  };
+}
 
 
 export async function executeRenderPipeline(
@@ -73,7 +112,14 @@ export async function executeRenderPipeline(
   }
 
   // 2. Compute view variables.
-  const vars = await def.render(ctx);
+  // 2.5 Merge in the pipeline-owned asset vars. Asset vars go
+  // FIRST so a view's own render() can override them by simply
+  // including the same key in its return value — defaults that
+  // bend to view authority, not the other way round.
+  const vars = {
+    ...buildAssetVars(),
+    ...(await def.render(ctx)),
+  };
 
   // 3. View-template substitution.
   const viewTemplate = loadCachedTemplate(def.template);
