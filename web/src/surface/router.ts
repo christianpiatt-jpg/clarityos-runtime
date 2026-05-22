@@ -13,6 +13,12 @@
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { classifyWebSurfaceRequest } from "./classifier";
 import { renderWebSurface } from "./renderer";
+import { routeAsset } from "./assetRouter";
+
+
+/** URL prefix the asset router claims. Anything below this path
+ *  short-circuits the classifier and serves a static file. */
+const _ASSETS_PREFIX = "/web-surface/v0.2/assets/";
 
 
 /**
@@ -46,6 +52,14 @@ function notImplementedResponse(
 export async function routeWebSurface(
   req: WebSurfaceV0_2.Request,
 ): Promise<WebSurfaceV0_2.Response> {
+  // Card A8: asset short-circuit. Requests under
+  // ``/web-surface/v0.2/assets/`` are static files — bypass the
+  // classifier + view renderer entirely and serve the bytes.
+  if (req.path.startsWith(_ASSETS_PREFIX)) {
+    const pathname = req.path.slice(_ASSETS_PREFIX.length);
+    return routeAsset(pathname);
+  }
+
   const action = classifyWebSurfaceRequest(req);
 
   switch (action.kind) {

@@ -1,0 +1,9 @@
+body {
+  font-family: sans-serif;
+  margin: 2rem;
+}
+
+header, footer {
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
