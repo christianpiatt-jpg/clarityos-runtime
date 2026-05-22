@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "contracts:gen": "node scripts/gen-contract-schema.mjs",
-    "contracts:check": "node scripts/gen-contract-schema.mjs && git diff --exit-code src/contracts/webSurfaceV0_2.schema.json"
+    "contracts:check": "node scripts/gen-contract-schema.mjs && git diff --exit-code src/contracts/webSurfaceV0_2.schema.json",
+    "assets:gen": "node scripts/gen-asset-manifest.mjs",
+    "assets:check": "node scripts/gen-asset-manifest.mjs && git diff --exit-code assets/v0.2/manifest.json"
   },
   "dependencies": {
     "react": "19.1.0",

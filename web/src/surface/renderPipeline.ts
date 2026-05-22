@@ -4,7 +4,9 @@
  * Card A5 (initial): single source of truth for rendering.
  * Card A6        : engine gained partial inclusion.
  * Card A7        : pipeline gained optional layout wrapping.
- * Card A9 (this) : pipeline auto-injects fingerprinted asset URLs.
+ * Card A9        : pipeline auto-injects fingerprinted asset URLs.
+ * Card A10 (this): asset URLs come from the committed JSON
+ *                  snapshot (manifest.json), not runtime hashes.
  *
  * Mode-aware dispatch (preserved from A4/A5):
  *
@@ -76,23 +78,35 @@ import { loadCachedTemplate } from "./templateCache";
 import { loadCachedLayout } from "./layoutCache";
 import { renderTemplate } from "./templateEngine";
 import { defaultRenderer } from "./viewDefaultRenderer";
-import { getFingerprintedPath } from "./assetManifest";
+
+// Card A10: the committed snapshot at
+// ``web/assets/v0.2/manifest.json`` is the runtime source of
+// truth for cache-safe asset URLs. The render pipeline reads it
+// directly — no runtime fingerprinting, no disk hashes per
+// render. The drift gate at ``scripts/check_asset_manifest.sh``
+// ensures the snapshot stays in lock-step with the asset bytes.
+//
+// Resolved relative to this file: web/src/surface/renderPipeline.ts
+//   ..    → web/src/
+//   ../.. → web/
+//   ../../assets/v0.2/manifest.json → web/assets/v0.2/manifest.json
+import assetManifestSnapshot from "../../assets/v0.2/manifest.json";
 
 
 /**
  * Build the asset-var bag that the render pipeline merges into
  * every view's ``vars``. Exported so tests can compare what the
- * pipeline computes against what the layout actually renders.
+ * pipeline reads against what the layout actually renders.
  *
- * Each fingerprinted URL is computed via the manifest, which
- * caches the SHA-256 → 12-hex result. Two calls produce the same
- * strings; production runs incur one disk read per asset per
- * process lifetime.
+ * Each value is a direct lookup into the committed manifest
+ * snapshot. No SHA-256, no fs read, no per-render hashing — the
+ * snapshot is bundled at module-evaluation time by the importer
+ * (vitest / Vite) and the lookups are O(1) Map-style reads.
  */
 export function buildAssetVars(): Record<string, string> {
   return {
-    style_css: getFingerprintedPath("style.css"),
-    app_js:    getFingerprintedPath("app.js"),
+    style_css: assetManifestSnapshot["style.css"],
+    app_js:    assetManifestSnapshot["app.js"],
   };
 }
 
