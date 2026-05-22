@@ -182,6 +182,8 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
           : 0;
         return `render:${action.view}:${action.mode}:${paramCount}`;
       }
+      case ClassifiedSurfaceActionKind.redirect:
+        return `redirect:${action.to}:${action.mode}`;
       default: {
         const _exhaustive: never = action;
         return _exhaustive;
@@ -213,18 +215,28 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
     expect(describeAction(action)).toBe("render:operator:html:2");
   });
 
+  test("redirect variant routes (html mode)", () => {
+    const action: ClassifiedSurfaceAction = {
+      kind: "redirect",
+      to:   "/foo",
+      mode: V.Mode.html,
+    };
+    expect(describeAction(action)).toBe("redirect:/foo:html");
+  });
+
   test("ClassifiedSurfaceActionKind mirrors the union exactly", () => {
     expect(ClassifiedSurfaceActionKind.noop).toBe("noop");
     expect(ClassifiedSurfaceActionKind.render).toBe("render");
+    expect(ClassifiedSurfaceActionKind.redirect).toBe("redirect");
     expect(Object.keys(ClassifiedSurfaceActionKind).sort()).toEqual(
-      ["noop", "render"],
+      ["noop", "redirect", "render"],
     );
   });
 
   test("classifier output is a valid ClassifiedSurfaceAction shape", () => {
     const action = classifyWebSurfaceRequest(reqOf());
     expect(action).toHaveProperty("kind");
-    expect(["noop", "render"]).toContain(action.kind);
+    expect(["noop", "render", "redirect"]).toContain(action.kind);
   });
 });
 

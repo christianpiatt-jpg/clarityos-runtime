@@ -23,6 +23,16 @@
  * ``view: "error_404"``), and an HTML request receives the
  * structured 404 page.
  *
+ * Card A12 update: a new ``redirect`` action variant. Any request
+ * resolving to the magic view name ``"redirect"`` is intercepted
+ * BEFORE the registry check and emitted as
+ * ``{kind: "redirect", to, mode}``. The target URL comes from the
+ * ``?to=...`` query param; a missing / non-string value falls
+ * back to the default home URL. The router dispatches this to
+ * ``renderRedirect`` (JSON envelope or HTML redirect page).
+ * Redirects are NEVER served as HTTP 302 — both responses are
+ * 200 with the redirect target carried in the body.
+ *
  * Constraints:
  *   * MUST be deterministic: same (Request, registry state) in →
  *     same ClassifiedSurfaceAction out. The dependency on the
@@ -45,6 +55,19 @@ import { getView } from "./viewRegistry";
 export const ERROR_404_VIEW = "error_404";
 
 
+/** The magic view name that triggers the redirect-action branch.
+ *  ``/web-surface/v0.2/redirect`` (or any path resolving to last
+ *  segment ``"redirect"``) → ``{kind: "redirect", ...}``. Held
+ *  here as a constant so the renderer + navigation helper can
+ *  import it without re-typing the literal. */
+export const REDIRECT_VIEW_NAME = "redirect";
+
+
+/** Fallback target when ``?to=...`` is missing or non-string.
+ *  Matches the home URL the v0.2 surface ships with. */
+export const DEFAULT_REDIRECT_TARGET = "/web-surface/v0.2/home";
+
+
 /**
  * The classifier's output type. Distinct from
  * ``WebSurfaceV0_2.SurfaceAction`` — that's what the SPA EMITS to
@@ -54,12 +77,18 @@ export const ERROR_404_VIEW = "error_404";
  * reviews.
  *
  * Variants:
- *   * ``noop``   — request bypasses rendering (reserved for future
- *                  use; not emitted by the classifier in v0.2.0).
- *   * ``render`` — request mapped to a named view via the view
- *                  resolution layer (Card A2). The render variant
- *                  carries the resolver's full output: ``view``,
- *                  optional ``params``, and required ``mode``.
+ *   * ``noop``     — request bypasses rendering (reserved for future
+ *                    use; not emitted by the classifier in v0.2.0).
+ *   * ``render``   — request mapped to a named view via the view
+ *                    resolution layer (Card A2). The render variant
+ *                    carries the resolver's full output: ``view``,
+ *                    optional ``params``, and required ``mode``.
+ *   * ``redirect`` — request asked for a navigation jump (Card A12).
+ *                    Carries the validated target URL + mode. The
+ *                    router dispatches to ``renderRedirect``, which
+ *                    returns either a JSON ``RedirectEnvelope`` or
+ *                    an HTML redirect page (client-side navigation,
+ *                    no HTTP 302).
  */
 export type ClassifiedSurfaceAction =
   | { kind: "noop" }
@@ -68,13 +97,19 @@ export type ClassifiedSurfaceAction =
       view: string;
       params?: Record<string, unknown>;
       mode: V.Mode;
+    }
+  | {
+      kind: "redirect";
+      to: string;
+      mode: V.Mode;
     };
 
 
 /** Discriminator constants — paired with the union for typo-safety. */
 export const ClassifiedSurfaceActionKind = {
-  noop:   "noop",
-  render: "render",
+  noop:     "noop",
+  render:   "render",
+  redirect: "redirect",
 } as const;
 
 
@@ -90,6 +125,22 @@ export function classifyWebSurfaceRequest(
   req: WebSurfaceV0_2.Request,
 ): ClassifiedSurfaceAction {
   const resolved = resolveView(req);
+
+  // Card A12: redirect interception. The magic ``"redirect"``
+  // view name triggers the redirect action regardless of registry
+  // state — it's a URL routing primitive, not a view. The target
+  // URL comes from ``?to=...``; missing / non-string falls back
+  // to the home default. Final URL validation happens in the
+  // renderer / view (strict allowlist) so the classifier stays
+  // free of HTML / JS concerns.
+  if (resolved.view === REDIRECT_VIEW_NAME) {
+    const target = resolved.params["to"];
+    return {
+      kind: "redirect",
+      to:   typeof target === "string" ? target : DEFAULT_REDIRECT_TARGET,
+      mode: resolved.mode,
+    };
+  }
 
   // Card A11: unknown view → structured 404 rewrite. Mode is
   // preserved so callers asking for JSON still get JSON.

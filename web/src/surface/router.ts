@@ -22,6 +22,7 @@ import { WebSurfaceV0_2_View as V } from "./viewContract";
 import { classifyWebSurfaceRequest } from "./classifier";
 import { renderWebSurface } from "./renderer";
 import { routeAsset } from "./assetRouter";
+import { renderRedirect } from "./redirectRenderer";
 
 
 /** URL prefix the asset router claims. Anything below this path
@@ -182,6 +183,13 @@ export async function routeWebSurface(
         params: action.params,
         mode:   action.mode,
       });
+      break;
+    case "redirect":
+      // Card A12: redirect dispatch. The renderer returns either
+      // a JSON RedirectEnvelope or an HTML redirect page — both
+      // with status 200 (no HTTP 302; navigation is a payload,
+      // not a transport-level instruction).
+      response = await renderRedirect(action.to, action.mode);
       break;
     default: {
       // Exhaustive-switch guard. If a new ClassifiedSurfaceAction
