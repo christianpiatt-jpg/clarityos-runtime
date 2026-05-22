@@ -26,7 +26,11 @@
  *     content-type ``text/html; charset=utf-8``.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
-import { loadTemplate } from "./templateLoader";
+// Card A5: switched from ``loadTemplate`` (uncached) to
+// ``loadCachedTemplate`` so the base.html read happens once per
+// process. Behaviour is byte-identical — caching is purely a
+// performance improvement.
+import { loadCachedTemplate } from "./templateCache";
 import { renderTemplate } from "./templateEngine";
 
 
@@ -59,7 +63,7 @@ export async function defaultRenderer(
   // ``title`` and ``content`` are the two placeholders in
   // ``base.html``. Both are HTML-escaped before substitution so
   // the engine itself stays content-type-agnostic.
-  const template = loadTemplate("base");
+  const template = loadCachedTemplate("base");
   const html = renderTemplate(template, {
     title:   escapeHtml(ctx.view),
     content: escapeHtml(JSON.stringify(params, null, 2)),
