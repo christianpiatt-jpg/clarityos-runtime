@@ -1,23 +1,23 @@
 // Tests for the v0.2.0 Web Surface render dispatcher.
 //
-// Card 9 introduced the renderer as a 501 stub. Card A1 promoted it
-// to a real dispatcher that routes through the view registry +
-// default renderer. This file's assertions reflect the Card A1
-// behaviour:
+// Card history pinned by this file:
+//   * Card 9   — 501 stub
+//   * Card A1  — dispatch via registry, default fallback
+//   * Card A3  — defaultRenderer uses the template engine
+//   * Card A4  — registry registrations are ``ViewDefinition``s
+//                (template + render-to-vars), not callable
+//                renderers. JSON mode bypasses view definitions.
 //
-//   1. The renderer accepts a ``WebSurfaceV0_2_View.RenderContext``
-//      and returns a ``RenderOutput`` whose shape is structurally
-//      compatible with ``WebSurfaceV0_2.Response``.
-//   2. Without a registered view, the request falls through to
-//      ``defaultRenderer`` — 200 + JSON or HTML body keyed on
-//      ``ctx.mode``.
-//   3. With a registered view, ``getView`` resolves and the
-//      registered renderer is called instead of the default.
-//   4. The renderer is side-effect-free for any given input.
+// These tests lock the renderer dispatcher's post-A4 contract:
 //
-// The full view-engine test surface lives in
-// ``viewEngine.test.ts`` next door; this file pins the renderer
-// dispatcher's contract specifically.
+//   1. Output shape always conforms to ``RenderOutput`` and is
+//      structurally compatible with ``WebSurfaceV0_2.Response``.
+//   2. JSON mode always uses ``defaultRenderer`` (canonical
+//      ``{view, params}`` shape) regardless of view registration.
+//   3. HTML mode + unknown view → ``defaultRenderer`` (template-
+//      based base.html).
+//   4. HTML mode + registered view → template-bound render.
+//   5. The dispatcher is side-effect-free for any given input.
 //
 // Path: web/src/surface/__tests__/renderer.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
@@ -65,35 +65,47 @@ describe("renderWebSurface — output shape", () => {
 
 
 // ---------------------------------------------------------------------------
-// 2. Falls through to defaultRenderer when no view is registered
+// 2. JSON mode always uses defaultRenderer (canonical shape)
 // ---------------------------------------------------------------------------
-describe("renderWebSurface — default fallback", () => {
-  test("unknown view + json mode → 200 + JSON body via defaultRenderer", async () => {
+describe("renderWebSurface — JSON mode dispatch", () => {
+  test("JSON mode + unknown view → defaultRenderer body shape", async () => {
     const out = await renderWebSurface({
-      view:   "unregistered-view",
+      view:   "anything-unknown",
       params: { id: "abc" },
       mode:   V.Mode.json,
     });
     expect(out.status).toBe(200);
     expect(out.headers["content-type"]).toBe("application/json");
     expect(out.body).toEqual({
-      view:   "unregistered-view",
+      view:   "anything-unknown",
       params: { id: "abc" },
     });
   });
 
-  test("unknown view + html mode → 200 + HTML body via defaultRenderer", async () => {
-    const out = await renderWebSurface({
-      view:   "unregistered-view",
-      mode:   V.Mode.html,
+  test("JSON mode + REGISTERED view → defaultRenderer body shape (bypass)", async () => {
+    // Post-A4 invariant: the view's render() is NEVER called for
+    // JSON mode. The canonical {view, params} shape is the JSON
+    // contract; per-view JSON shaping is a future card.
+    let viewRenderCalled = false;
+    registerView("custom", {
+      template: "base",
+      async render(ctx) {
+        viewRenderCalled = true;
+        return { title: "Custom", content: ctx.view };
+      },
     });
-    expect(out.status).toBe(200);
-    expect(out.headers["content-type"]).toBe("text/html; charset=utf-8");
-    expect(typeof out.body).toBe("string");
-    expect(out.body as string).toContain("unregistered-view");
+
+    const out = await renderWebSurface({
+      view:   "custom",
+      params: { id: "xyz" },
+      mode:   V.Mode.json,
+    });
+    expect(viewRenderCalled).toBe(false);
+    expect(out.headers["content-type"]).toBe("application/json");
+    expect(out.body).toEqual({ view: "custom", params: { id: "xyz" } });
   });
 
-  test("missing params fall back to empty object", async () => {
+  test("JSON mode params fall back to empty object", async () => {
     const out = await renderWebSurface({
       view: "no-params",
       mode: V.Mode.json,
@@ -104,64 +116,111 @@ describe("renderWebSurface — default fallback", () => {
 
 
 // ---------------------------------------------------------------------------
-// 3. Registered view overrides the default
+// 3. HTML mode + unknown view → defaultRenderer (template-based)
 // ---------------------------------------------------------------------------
-describe("renderWebSurface — registered view dispatch", () => {
-  test("registered view's renderer is called instead of defaultRenderer", async () => {
-    registerView("custom", async (ctx) => ({
-      status:  201,
-      headers: { "x-custom": "yes" },
-      body:    { customMarker: "hit", echoView: ctx.view },
-    }));
-
+describe("renderWebSurface — HTML mode fallback to defaultRenderer", () => {
+  test("HTML mode + unknown view → 200 + HTML via base template", async () => {
     const out = await renderWebSurface({
-      view: "custom",
-      mode: V.Mode.json,
-    });
-    expect(out.status).toBe(201);
-    expect(out.headers["x-custom"]).toBe("yes");
-    expect((out.body as Record<string, unknown>).customMarker).toBe("hit");
-    expect((out.body as Record<string, unknown>).echoView).toBe("custom");
-  });
-
-  test("renderer is awaited (async function is supported)", async () => {
-    registerView("async-view", async (ctx) => {
-      await new Promise((r) => setTimeout(r, 1));
-      return {
-        status:  202,
-        headers: {},
-        body:    { view: ctx.view },
-      };
-    });
-
-    const out = await renderWebSurface({
-      view: "async-view",
-      mode: V.Mode.json,
-    });
-    expect(out.status).toBe(202);
-  });
-
-  test("re-registering the same name overrides the previous renderer", async () => {
-    registerView("rename", async () => ({
-      status: 100, headers: {}, body: { v: 1 },
-    }));
-    registerView("rename", async () => ({
-      status: 200, headers: {}, body: { v: 2 },
-    }));
-    const out = await renderWebSurface({
-      view: "rename", mode: V.Mode.json,
+      view:   "unregistered-view",
+      mode:   V.Mode.html,
     });
     expect(out.status).toBe(200);
-    expect((out.body as Record<string, unknown>).v).toBe(2);
+    expect(out.headers["content-type"]).toBe("text/html; charset=utf-8");
+    expect(typeof out.body).toBe("string");
+    const html = out.body as string;
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("<h1>unregistered-view</h1>");
   });
 });
 
 
 // ---------------------------------------------------------------------------
-// 4. Purity
+// 4. HTML mode + registered view → template-bound render
 // ---------------------------------------------------------------------------
-describe("renderWebSurface — purity for the default-fallback path", () => {
-  test("does not mutate the input RenderContext", async () => {
+describe("renderWebSurface — HTML mode template binding", () => {
+  test("registered view's render() is called and vars substitute into the template", async () => {
+    registerView("custom", {
+      template: "base",
+      async render() {
+        return {
+          title:   "Custom Title",
+          content: "custom content body",
+        };
+      },
+    });
+
+    const out = await renderWebSurface({
+      view: "custom",
+      mode: V.Mode.html,
+    });
+    expect(out.status).toBe(200);
+    expect(out.headers["content-type"]).toBe("text/html; charset=utf-8");
+    const html = out.body as string;
+    expect(html).toContain("<title>Custom Title</title>");
+    expect(html).toContain("<h1>Custom Title</h1>");
+    expect(html).toContain("custom content body");
+  });
+
+  test("render() may be async (awaited)", async () => {
+    registerView("async-view", {
+      template: "base",
+      async render() {
+        await new Promise((r) => setTimeout(r, 1));
+        return { title: "Async", content: "ok" };
+      },
+    });
+
+    const out = await renderWebSurface({
+      view: "async-view",
+      mode: V.Mode.html,
+    });
+    expect(out.status).toBe(200);
+    expect(out.body as string).toContain("<h1>Async</h1>");
+  });
+
+  test("re-registering the same name overrides the previous definition", async () => {
+    registerView("rename", {
+      template: "base",
+      async render() { return { title: "first", content: "" }; },
+    });
+    registerView("rename", {
+      template: "base",
+      async render() { return { title: "second", content: "" }; },
+    });
+    const out = await renderWebSurface({
+      view: "rename", mode: V.Mode.html,
+    });
+    expect(out.body as string).toContain("<h1>second</h1>");
+  });
+
+  test("view + ctx are passed through to render()", async () => {
+    let receivedCtx: V.RenderContext | null = null;
+    registerView("pass-through", {
+      template: "base",
+      async render(ctx) {
+        receivedCtx = ctx;
+        return { title: "x", content: "y" };
+      },
+    });
+
+    await renderWebSurface({
+      view:   "pass-through",
+      params: { a: "1" },
+      mode:   V.Mode.html,
+    });
+    expect(receivedCtx).not.toBeNull();
+    expect(receivedCtx!.view).toBe("pass-through");
+    expect(receivedCtx!.params).toEqual({ a: "1" });
+    expect(receivedCtx!.mode).toBe(V.Mode.html);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// 5. Purity
+// ---------------------------------------------------------------------------
+describe("renderWebSurface — purity", () => {
+  test("does not mutate the input RenderContext (fallback path)", async () => {
     const ctx: RenderContext = {
       view:   "no-mutate",
       params: { id: "abc", count: 3 },
@@ -172,7 +231,7 @@ describe("renderWebSurface — purity for the default-fallback path", () => {
     expect(JSON.stringify(ctx)).toBe(frozen);
   });
 
-  test("two calls with the same ctx produce equivalent outputs", async () => {
+  test("two calls with the same ctx produce equivalent outputs (fallback path)", async () => {
     const ctx: RenderContext = {
       view: "same", params: { a: 1 }, mode: V.Mode.json,
     };

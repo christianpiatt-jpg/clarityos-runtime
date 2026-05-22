@@ -23,7 +23,7 @@ import { WebSurfaceV0_2_View as V } from "../viewContract";
 import {
   registerView,
   getView,
-  ViewRenderer,
+  ViewDefinition,
   _listRegisteredViewsForTests,
   _clearViewRegistryForTests,
 } from "../viewRegistry";
@@ -172,14 +172,19 @@ describe("defaultRenderer — HTML mode", () => {
 
 // ---------------------------------------------------------------------------
 // 4. Registry — register / get / clear / list
+//
+// Post-A4: registrations are ``ViewDefinition`` (template + render),
+// not callable renderers. Tests here exercise the registry primitive
+// only; the renderer-side integration is in renderer.test.ts.
 // ---------------------------------------------------------------------------
 describe("view registry", () => {
-  test("registered view is retrievable by name", () => {
-    const renderer: ViewRenderer = async () => ({
-      status: 200, headers: {}, body: { hit: true },
-    });
-    registerView("hello", renderer);
-    expect(getView("hello")).toBe(renderer);
+  test("registered view definition is retrievable by name", () => {
+    const def: ViewDefinition = {
+      template: "base",
+      async render() { return { title: "hello", content: "" }; },
+    };
+    registerView("hello", def);
+    expect(getView("hello")).toBe(def);
   });
 
   test("unregistered name returns undefined", () => {
@@ -187,24 +192,28 @@ describe("view registry", () => {
   });
 
   test("re-registering the same name overrides", () => {
-    const first: ViewRenderer = async () => ({
-      status: 100, headers: {}, body: {},
-    });
-    const second: ViewRenderer = async () => ({
-      status: 200, headers: {}, body: {},
-    });
+    const first: ViewDefinition = {
+      template: "base",
+      async render() { return { v: 1 }; },
+    };
+    const second: ViewDefinition = {
+      template: "base",
+      async render() { return { v: 2 }; },
+    };
     registerView("doubled", first);
     registerView("doubled", second);
     expect(getView("doubled")).toBe(second);
   });
 
   test("multiple distinct registrations are kept independently", () => {
-    const a: ViewRenderer = async () => ({
-      status: 200, headers: {}, body: { which: "a" },
-    });
-    const b: ViewRenderer = async () => ({
-      status: 200, headers: {}, body: { which: "b" },
-    });
+    const a: ViewDefinition = {
+      template: "base",
+      async render() { return { which: "a" }; },
+    };
+    const b: ViewDefinition = {
+      template: "base",
+      async render() { return { which: "b" }; },
+    };
     registerView("a", a);
     registerView("b", b);
     expect(getView("a")).toBe(a);
@@ -213,9 +222,10 @@ describe("view registry", () => {
   });
 
   test("test-helper clears the registry", () => {
-    registerView("temp", async () => ({
-      status: 200, headers: {}, body: {},
-    }));
+    registerView("temp", {
+      template: "base",
+      async render() { return {}; },
+    });
     expect(_listRegisteredViewsForTests()).toContain("temp");
     _clearViewRegistryForTests();
     expect(_listRegisteredViewsForTests()).toEqual([]);
@@ -245,17 +255,25 @@ describe("RenderOutput — structural contract", () => {
     expect(typeof out.body).toBe("string");
   });
 
-  test("registered renderer's output may use the full RenderOutput shape", async () => {
-    registerView("rich", async () => ({
-      status:  418,
-      headers: { "x-tea-pot": "yes" },
-      body:    { error: "im_a_teapot", detail: { rfc: 2324 } },
-    }));
-    const renderer = getView("rich")!;
-    const out = await renderer({ view: "rich", mode: V.Mode.json });
-    expect(out.status).toBe(418);
-    expect(out.headers["x-tea-pot"]).toBe("yes");
-    expect((out.body as Record<string, unknown>).error).toBe("im_a_teapot");
+  test("registered view definition stores template + render fn", async () => {
+    // Post-A4: views can't control status / headers / body shape —
+    // those are renderer-owned. View definitions store ``template``
+    // (which template name to use) and ``render`` (which vars to
+    // produce). The renderer applies them consistently across all
+    // views.
+    registerView("rich", {
+      template: "base",
+      async render() {
+        return { title: "I'm a teapot", content: "RFC 2324" };
+      },
+    });
+    const def = getView("rich")!;
+    expect(def.template).toBe("base");
+    const vars = await def.render({
+      view: "rich", mode: V.Mode.html,
+    });
+    expect(vars.title).toBe("I'm a teapot");
+    expect(vars.content).toBe("RFC 2324");
   });
 });
 

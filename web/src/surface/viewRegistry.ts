@@ -1,56 +1,84 @@
 /**
  * Web Surface v0.2.0 — view registry.
  *
- * Deterministic lookup table for named view renderers. Registered
- * at module-import time by feature modules (one per view); consumed
- * by ``renderer.ts`` via ``getView(name)``. An unknown name returns
- * ``undefined`` so the renderer can fall back to the default
- * renderer.
+ * Card A4 update: registrations now carry a ``ViewDefinition``
+ * (template name + render function returning template vars), not
+ * a raw ``ViewRenderer`` function. Views own ``what data goes
+ * into the template``; the renderer (``renderer.ts``) owns
+ * ``which template + how to substitute + how to package as a
+ * Response``. Splitting these gives the renderer one consistent
+ * status / content-type / shape for every registered view.
  *
- * The registry is module-singleton (one Map per process). It is
- * NOT thread-safe in a meaningful sense because TypeScript runs in
- * a single event loop; concurrent registrations from different
- * import paths interleave deterministically.
+ * Card A1 contract for reference (removed in A4):
+ *   type ViewRenderer = (ctx) => Promise<RenderOutput>
  *
- * Card A1 — Track A — View Engine foundation.
+ * Card A4 contract (current):
+ *   interface ViewDefinition {
+ *     template: string;
+ *     render:   (ctx) => Promise<Record<string, unknown>>;
+ *   }
+ *
+ * The registry is module-singleton (one Map per process) and
+ * order-preserving. NOT thread-safe in any meaningful sense
+ * because JS is single-event-loop; concurrent registrations from
+ * different import paths interleave deterministically.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
 
 
-/** Function signature for a view renderer. */
-export type ViewRenderer = (
+/**
+ * Render function: takes a request context and returns template
+ * variables. The renderer then applies these vars to the named
+ * template. The function MAY be async (for views that need to
+ * load data) but MUST be pure with respect to the registry — it
+ * MUST NOT call back into ``registerView`` / ``getView`` itself.
+ */
+export type ViewRenderFn = (
   ctx: V.RenderContext,
-) => Promise<V.RenderOutput>;
-
-
-/** The singleton registry. Map preserves insertion order, which is
- *  useful for diagnostics (the introspection helpers below dump
- *  registered names in insertion order). */
-const registry = new Map<string, ViewRenderer>();
+) => Promise<Record<string, unknown>>;
 
 
 /**
- * Register a renderer for ``name``. Subsequent calls with the same
- * name overwrite the previous registration — the last writer wins.
- * This is intentional: it lets a downstream feature module override
- * a default renderer for a specific view name.
+ * A view definition. ``template`` is the basename (no extension)
+ * of an HTML file under ``web/templates/v0.2/``; ``render``
+ * produces the variable bag that gets substituted into it.
+ *
+ * Security note: ``render`` is responsible for HTML-escaping any
+ * values that originate from untrusted sources (request params,
+ * external data). The template engine does not escape — see
+ * ``templateEngine.ts`` for the rationale.
  */
-export function registerView(name: string, renderer: ViewRenderer): void {
-  registry.set(name, renderer);
+export interface ViewDefinition {
+  template: string;
+  render: ViewRenderFn;
 }
 
 
-/** Look up a registered renderer. Returns ``undefined`` for an
- *  unknown name so the caller can fall back to the default. */
-export function getView(name: string): ViewRenderer | undefined {
+const registry = new Map<string, ViewDefinition>();
+
+
+/**
+ * Register a view definition for ``name``. Subsequent calls with
+ * the same name overwrite the previous definition — the last
+ * writer wins. This is intentional: lets a downstream module
+ * override a default view registration for a specific name.
+ */
+export function registerView(name: string, def: ViewDefinition): void {
+  registry.set(name, def);
+}
+
+
+/** Look up a registered view definition. Returns ``undefined``
+ *  for an unknown name so the caller can fall back to the default
+ *  renderer. */
+export function getView(name: string): ViewDefinition | undefined {
   return registry.get(name);
 }
 
 
 /**
- * Test-only: list every registered view name. Useful for asserting
- * the registry state in unit tests without inspecting the Map
- * directly.
+ * Test-only: list every registered view name in insertion order.
+ * Useful for asserting registry state in unit tests.
  */
 export function _listRegisteredViewsForTests(): string[] {
   return Array.from(registry.keys());
