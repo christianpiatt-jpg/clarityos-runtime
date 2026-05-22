@@ -75,6 +75,16 @@ export type ViewRenderFn = (
  * ``formHandler`` calls ``schema(fields)`` if it's a function.
  * Pure extension — static-value views still work unchanged.
  *
+ * Card A17 — optional ``stream`` field, an async-generator factory
+ * the streaming handler calls when the request opts into chunked
+ * output (header ``x-stream: 1``). Each yielded string becomes a
+ * chunk in the assembled Response. Views without a ``stream``
+ * field fall back to the default streaming strategy (the view's
+ * ``render()`` output turned into key/value div chunks). v0.2.0
+ * collects chunks deterministically and returns a single
+ * Response; a future card can stream the same chunks over the
+ * wire when Cloud Run activation lands.
+ *
  * Security note: ``render`` is responsible for HTML-escaping any
  * values that originate from untrusted sources (request params,
  * external data). The template engine does not escape — see
@@ -96,11 +106,22 @@ export type ViewSchema =
   | ((fields: Record<string, string>) => ValidationSchema | undefined);
 
 
+/** Card A17: an async-generator factory for chunked output. The
+ *  ``params`` argument mirrors the render context's params field
+ *  so streaming views can read the same data the standard render
+ *  path sees. Each yielded string is one chunk in the assembled
+ *  Response body. */
+export type ViewStreamFn = (
+  params?: Record<string, unknown>,
+) => AsyncIterable<string>;
+
+
 export interface ViewDefinition {
   template: ViewTemplate;
   layout?: string;
   status?: number;
   schema?: ViewSchema;
+  stream?: ViewStreamFn;
   render: ViewRenderFn;
 }
 

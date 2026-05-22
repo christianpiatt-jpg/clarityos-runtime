@@ -40,13 +40,19 @@
  * Card A16 update: a new ``upload`` action variant. ``POST``
  * requests with ``content-type: multipart/form-data; boundary=...``
  * are emitted as ``{kind: "upload", view, rawBody, boundary, mode}``.
- * Detection precedence (top wins):
+ *
+ * Card A17 update: a new ``stream`` action variant. Requests
+ * carrying the ``x-stream: 1`` header opt into chunked output.
+ * The classifier emits ``{kind: "stream", view, params, mode}``;
+ * the router dispatches to ``handleStream``, which collects the
+ * view's async-generator chunks into a deterministic Response
+ * body. Detection precedence (top wins):
  *   1. Redirect  (URL-routed primitive — wins regardless of method)
- *   2. Upload    (POST + multipart content-type + Buffer body
- *                 + extractable boundary)
+ *   2. Upload    (POST + multipart content-type + Buffer body)
  *   3. Form      (POST + form-urlencoded content-type + string body)
- *   4. 404 rewrite (unknown view)
- *   5. Normal render
+ *   4. Stream    (any method + ``x-stream: 1`` header)
+ *   5. 404 rewrite (unknown view)
+ *   6. Normal render
  *
  * Why form precedes the 404 rewrite: a POST to an unknown view
  * with form data should preserve the input by routing through
@@ -114,6 +120,13 @@ export const FORM_URLENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
 export const MULTIPART_FORM_DATA_CONTENT_TYPE = "multipart/form-data";
 
 
+/** Header name + opt-in value the stream classifier branch tests
+ *  against. Streaming is request-opt-in (not URL-driven) so that
+ *  the same view can serve both buffered and chunked clients. */
+export const STREAM_HEADER = "x-stream";
+export const STREAM_OPT_IN_VALUE = "1";
+
+
 /**
  * Extract the boundary token from a multipart Content-Type
  * header. Tolerant of quoted values + other parameters before
@@ -179,6 +192,12 @@ export const DEFAULT_REDIRECT_TARGET = "/web-surface/v0.2/home";
  *                    ``handleUpload``, which spreads fields + a
  *                    ``files`` map into the render pipeline's
  *                    ``params``.
+ *   * ``stream``   — opt-in chunked-output request (Card A17).
+ *                    Triggered by the ``x-stream: 1`` header.
+ *                    The router dispatches to ``handleStream``,
+ *                    which runs the view's ``stream(params)``
+ *                    async generator (or the default fallback)
+ *                    and assembles the chunks into a Response.
  */
 export type ClassifiedSurfaceAction =
   | { kind: "noop" }
@@ -205,6 +224,12 @@ export type ClassifiedSurfaceAction =
       rawBody: Buffer;
       boundary: string;
       mode: V.Mode;
+    }
+  | {
+      kind: "stream";
+      view: string;
+      params?: Record<string, unknown>;
+      mode: V.Mode;
     };
 
 
@@ -215,6 +240,7 @@ export const ClassifiedSurfaceActionKind = {
   redirect: "redirect",
   form:     "form",
   upload:   "upload",
+  stream:   "stream",
 } as const;
 
 
@@ -311,6 +337,25 @@ export function classifyWebSurfaceRequest(
         mode:    resolved.mode,
       };
     }
+  }
+
+  // Card A17: streaming opt-in. The ``x-stream: 1`` header makes
+  // the request chunked-output. The classifier emits a ``stream``
+  // action regardless of method — streaming is request-shape-
+  // driven, not URL-routed. Placed AFTER the form/upload branches
+  // (so POST + form-encoded body that also sets x-stream still
+  // routes through form parsing) but BEFORE the 404 rewrite so
+  // streaming requests can hit views even if the registry's
+  // unknown-view fallback would otherwise fire. The handler
+  // checks registry presence; an unregistered view falls into
+  // its default streaming strategy.
+  if (req.headers[STREAM_HEADER] === STREAM_OPT_IN_VALUE) {
+    return {
+      kind:   "stream",
+      view:   resolved.view,
+      params: resolved.params,
+      mode:   resolved.mode,
+    };
   }
 
   // Card A11: unknown view → structured 404 rewrite. Mode is

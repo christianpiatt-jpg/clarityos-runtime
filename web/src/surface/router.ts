@@ -25,6 +25,7 @@ import { routeAsset } from "./assetRouter";
 import { renderRedirect } from "./redirectRenderer";
 import { handleForm } from "./formHandler";
 import { handleUpload } from "./uploadHandler";
+import { handleStream } from "./streamHandler";
 
 
 /** URL prefix the asset router claims. Anything below this path
@@ -220,6 +221,20 @@ export async function routeWebSurface(
         rawBody:  action.rawBody,
         boundary: action.boundary,
         mode:     action.mode,
+      });
+      break;
+    case "stream":
+      // Card A17: streaming dispatch. The handler runs the
+      // view's ``stream(params)`` async generator (or the
+      // default fallback) and assembles the chunks into a
+      // single Response. v0.2 collects chunks deterministically;
+      // a future card can swap the in-memory collection for
+      // real wire chunked-encoding when Cloud Run activates.
+      response = await handleStream({
+        kind:   "stream",
+        view:   action.view,
+        params: action.params,
+        mode:   action.mode,
       });
       break;
     default: {

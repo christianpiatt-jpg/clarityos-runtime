@@ -188,6 +188,12 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
         return `form:${action.view}:${action.mode}:${action.rawBody.length}`;
       case ClassifiedSurfaceActionKind.upload:
         return `upload:${action.view}:${action.mode}:${action.boundary}:${action.rawBody.length}`;
+      case ClassifiedSurfaceActionKind.stream: {
+        const paramCount = action.params
+          ? Object.keys(action.params).length
+          : 0;
+        return `stream:${action.view}:${action.mode}:${paramCount}`;
+      }
       default: {
         const _exhaustive: never = action;
         return _exhaustive;
@@ -249,21 +255,32 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
     expect(describeAction(action)).toBe("upload:upload_demo:html:----b:15");
   });
 
+  test("stream variant routes (html mode, with params)", () => {
+    const action: ClassifiedSurfaceAction = {
+      kind:   "stream",
+      view:   "stream_demo",
+      params: { a: "1", b: "2" },
+      mode:   V.Mode.html,
+    };
+    expect(describeAction(action)).toBe("stream:stream_demo:html:2");
+  });
+
   test("ClassifiedSurfaceActionKind mirrors the union exactly", () => {
     expect(ClassifiedSurfaceActionKind.noop).toBe("noop");
     expect(ClassifiedSurfaceActionKind.render).toBe("render");
     expect(ClassifiedSurfaceActionKind.redirect).toBe("redirect");
     expect(ClassifiedSurfaceActionKind.form).toBe("form");
     expect(ClassifiedSurfaceActionKind.upload).toBe("upload");
+    expect(ClassifiedSurfaceActionKind.stream).toBe("stream");
     expect(Object.keys(ClassifiedSurfaceActionKind).sort()).toEqual(
-      ["form", "noop", "redirect", "render", "upload"],
+      ["form", "noop", "redirect", "render", "stream", "upload"],
     );
   });
 
   test("classifier output is a valid ClassifiedSurfaceAction shape", () => {
     const action = classifyWebSurfaceRequest(reqOf());
     expect(action).toHaveProperty("kind");
-    expect(["noop", "render", "redirect", "form", "upload"])
+    expect(["noop", "render", "redirect", "form", "upload", "stream"])
       .toContain(action.kind);
   });
 });
