@@ -35,12 +35,18 @@
  *
  * Card A13-R update: a new ``form`` action variant. ``POST``
  * requests with ``content-type: application/x-www-form-urlencoded``
- * are emitted as ``{kind: "form", view, rawBody, mode}``. Detection
- * precedence (top wins):
- *   1. Redirect (URL-routed primitive — wins regardless of method)
- *   2. Form (POST + form content-type)
- *   3. 404 rewrite (unknown view)
- *   4. Normal render
+ * are emitted as ``{kind: "form", view, rawBody, mode}``.
+ *
+ * Card A16 update: a new ``upload`` action variant. ``POST``
+ * requests with ``content-type: multipart/form-data; boundary=...``
+ * are emitted as ``{kind: "upload", view, rawBody, boundary, mode}``.
+ * Detection precedence (top wins):
+ *   1. Redirect  (URL-routed primitive — wins regardless of method)
+ *   2. Upload    (POST + multipart content-type + Buffer body
+ *                 + extractable boundary)
+ *   3. Form      (POST + form-urlencoded content-type + string body)
+ *   4. 404 rewrite (unknown view)
+ *   5. Normal render
  *
  * Why form precedes the 404 rewrite: a POST to an unknown view
  * with form data should preserve the input by routing through
@@ -48,15 +54,23 @@
  * pipeline's defaultRenderer fallback), rather than discarding
  * the body and rewriting to an error page.
  *
- * Non-string body policy (A13-R):
+ * Why upload precedes form: ``multipart/form-data`` is the more
+ * specific content-type; without an explicit branch a POST with
+ * file uploads would fall through to the form branch (which
+ * expects a string body) and the non-string-body check would
+ * route it to error_500 — losing the file metadata.
+ *
+ * Body-shape policy:
  *   * The wire contract types ``req.body`` as ``unknown`` —
  *     callers may pass strings, Buffers, parsed objects, etc.
- *   * For a POST with form content-type, the body MUST be a
- *     string. The classifier rejects any other shape by emitting
- *     a ``render(error_500)`` action with a diagnostic message,
- *     rather than silently coercing to an empty form (which
- *     would mask malformed requests as legitimate "user
- *     submitted blank form" cases).
+ *   * For a POST with FORM content-type, the body MUST be a
+ *     string. Otherwise → render(error_500).
+ *   * For a POST with MULTIPART content-type, the body MUST be a
+ *     ``Buffer`` AND the content-type header MUST carry an
+ *     extractable ``boundary=`` parameter. Otherwise →
+ *     render(error_500). This is the same "no silent coercion"
+ *     policy: malformed uploads surface explicitly rather than
+ *     parsing as empty.
  *
  * Constraints:
  *   * MUST be deterministic: same (Request, registry state) in →
@@ -91,6 +105,32 @@ export const ERROR_500_VIEW = "error_500";
  *  ``application/x-www-form-urlencoded; charset=utf-8`` form
  *  some clients send. */
 export const FORM_URLENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
+
+
+/** Content-type prefix the upload classifier branch tests against
+ *  (case-insensitive). The full header is
+ *  ``multipart/form-data; boundary=...``; the parameter portion
+ *  is extracted separately via ``_extractMultipartBoundary``. */
+export const MULTIPART_FORM_DATA_CONTENT_TYPE = "multipart/form-data";
+
+
+/**
+ * Extract the boundary token from a multipart Content-Type
+ * header. Tolerant of quoted values + other parameters before
+ * boundary (``multipart/form-data; charset=utf-8; boundary=abc``).
+ * Returns ``null`` if no boundary parameter is present or it's
+ * empty.
+ *
+ * Exported for tests.
+ */
+export function _extractMultipartBoundary(
+  contentType: string,
+): string | null {
+  const match = /boundary=("?)([^";,\s]+)\1/i.exec(contentType);
+  if (!match) return null;
+  const boundary = match[2];
+  return boundary.length > 0 ? boundary : null;
+}
 
 
 /** The magic view name that triggers the redirect-action branch.
@@ -132,6 +172,13 @@ export const DEFAULT_REDIRECT_TARGET = "/web-surface/v0.2/home";
  *                    body verbatim into the action; parsing happens
  *                    in ``handleForm`` (which dispatches the parsed
  *                    fields back through the render pipeline).
+ *   * ``upload``   — POST submission carrying a multipart/form-data
+ *                    body (Card A16). The classifier copies the
+ *                    raw Buffer + the extracted boundary token
+ *                    into the action; parsing happens in
+ *                    ``handleUpload``, which spreads fields + a
+ *                    ``files`` map into the render pipeline's
+ *                    ``params``.
  */
 export type ClassifiedSurfaceAction =
   | { kind: "noop" }
@@ -151,6 +198,13 @@ export type ClassifiedSurfaceAction =
       view: string;
       rawBody: string;
       mode: V.Mode;
+    }
+  | {
+      kind: "upload";
+      view: string;
+      rawBody: Buffer;
+      boundary: string;
+      mode: V.Mode;
     };
 
 
@@ -160,6 +214,7 @@ export const ClassifiedSurfaceActionKind = {
   render:   "render",
   redirect: "redirect",
   form:     "form",
+  upload:   "upload",
 } as const;
 
 
@@ -192,12 +247,52 @@ export function classifyWebSurfaceRequest(
     };
   }
 
-  // Card A13-R: form-submission interception. POST + form
-  // content-type → ``form`` action. A non-string body is rejected
-  // with a render(error_500) action — see the module docstring
-  // for the rationale (silent coercion masks malformed requests).
+  // Card A13-R + A16: form / upload interception. POST requests
+  // dispatch on content-type. Upload checked BEFORE form because
+  // multipart/form-data is the more specific shape and its body
+  // is a Buffer, not a string (so the form branch's "must be a
+  // string" check would otherwise route legitimate uploads to
+  // error_500 and lose the file metadata).
   if (req.method === "POST") {
     const contentType = req.headers["content-type"] ?? "";
+
+    // --- Upload branch (multipart/form-data) ---
+    if (
+      contentType.toLowerCase().startsWith(MULTIPART_FORM_DATA_CONTENT_TYPE)
+    ) {
+      if (!Buffer.isBuffer(req.body)) {
+        return {
+          kind:   "render",
+          view:   ERROR_500_VIEW,
+          params: {
+            message:
+              "Multipart upload body must be a Buffer.",
+          },
+          mode:   resolved.mode,
+        };
+      }
+      const boundary = _extractMultipartBoundary(contentType);
+      if (boundary === null) {
+        return {
+          kind:   "render",
+          view:   ERROR_500_VIEW,
+          params: {
+            message:
+              "Multipart upload content-type is missing a boundary.",
+          },
+          mode:   resolved.mode,
+        };
+      }
+      return {
+        kind:     "upload",
+        view:     resolved.view,
+        rawBody:  req.body,
+        boundary,
+        mode:     resolved.mode,
+      };
+    }
+
+    // --- Form branch (application/x-www-form-urlencoded) ---
     if (contentType.includes(FORM_URLENCODED_CONTENT_TYPE)) {
       if (typeof req.body !== "string") {
         return {

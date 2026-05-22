@@ -1,0 +1,10 @@
+<h1>{{ title }}</h1>
+
+<form method="POST" enctype="multipart/form-data" action="/web-surface/v0.2/upload_demo">
+  <input type="file" name="file">
+  <button type="submit">Upload</button>
+</form>
+
+<p>Filename: {{ filename }}</p>
+<p>Type: {{ contentType }}</p>
+<p>Size: {{ size }} bytes</p>

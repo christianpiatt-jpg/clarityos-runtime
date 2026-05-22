@@ -24,6 +24,7 @@ import { renderWebSurface } from "./renderer";
 import { routeAsset } from "./assetRouter";
 import { renderRedirect } from "./redirectRenderer";
 import { handleForm } from "./formHandler";
+import { handleUpload } from "./uploadHandler";
 
 
 /** URL prefix the asset router claims. Anything below this path
@@ -204,6 +205,21 @@ export async function routeWebSurface(
         view:    action.view,
         rawBody: action.rawBody,
         mode:    action.mode,
+      });
+      break;
+    case "upload":
+      // Card A16: file-upload dispatch. The handler parses the
+      // multipart Buffer, separates text fields from file
+      // uploads, and dispatches through the render pipeline
+      // with ``params = {...fields, files}``. No disk writes,
+      // no persistence — files live in memory only for the
+      // duration of this request.
+      response = await handleUpload({
+        kind:     "upload",
+        view:     action.view,
+        rawBody:  action.rawBody,
+        boundary: action.boundary,
+        mode:     action.mode,
       });
       break;
     default: {
