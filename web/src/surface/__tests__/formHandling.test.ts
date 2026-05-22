@@ -383,6 +383,9 @@ describe("handleForm", () => {
   });
 
   test("JSON mode stays canonical (returns {view, params} envelope)", async () => {
+    // Card A14-R: form_demo declares a schema, so the envelope's
+    // params carries the validated ``values`` PLUS an ``errors``
+    // map. A valid submission has ``errors: {}``.
     const res = await handleForm({
       kind:    "form",
       view:    "form_demo",
@@ -393,7 +396,7 @@ describe("handleForm", () => {
     expect(res.headers["content-type"]).toBe("application/json");
     expect(res.body).toEqual({
       view:   "form_demo",
-      params: { name: "Alice", email: "a@b.com" },
+      params: { name: "Alice", email: "a@b.com", errors: {} },
     });
   });
 
@@ -450,6 +453,10 @@ describe("routeWebSurface — form_demo round-trip", () => {
   });
 
   test("POST with JSON Accept returns the canonical envelope", async () => {
+    // Card A14-R: ``name=Alice`` (valid 5-char string, passes
+    // min=2) + missing ``email`` (required). The envelope echoes
+    // the validated name + an errors map with email's required
+    // message.
     const res = await routeWebSurface(formReq("/form_demo", "name=Alice", {
       headers: {
         "content-type": FORM_URLENCODED_CONTENT_TYPE,
@@ -459,7 +466,10 @@ describe("routeWebSurface — form_demo round-trip", () => {
     expect(res.headers["content-type"]).toBe("application/json");
     expect(res.body).toEqual({
       view:   "form_demo",
-      params: { name: "Alice" },
+      params: {
+        name:   "Alice",
+        errors: { email: "This field is required." },
+      },
     });
   });
 
@@ -495,13 +505,19 @@ describe("form_demo — XSS safety", () => {
     expect(html).toContain("&quot;");
   });
 
-  test("hostile email value is HTML-escaped too", async () => {
+  test("invalid email is dropped from output (validation+escape)", async () => {
+    // Card A14-R: a hostile email value fails the email-format
+    // check, so it's NOT in ``values`` and never reaches the
+    // template's input-value substitution. The error message
+    // appears in its place. The raw payload — neither URL-decoded
+    // nor HTML-escaped — must not appear anywhere in the body.
     const hostile = "'\"><img src=x onerror=alert(1)>";
-    const body = `name=A&email=${encodeURIComponent(hostile)}`;
+    const body = `name=Alice&email=${encodeURIComponent(hostile)}`;
     const res = await routeWebSurface(formReq("/form_demo", body));
     const html = res.body as string;
     expect(html).not.toContain("<img src=x onerror=alert(1)>");
-    expect(html).toContain("&lt;img");
+    expect(html).not.toContain(hostile);
+    expect(html).toContain("Invalid email address.");
   });
 
   test("script-tag count stays at the layout baseline (no injection)", async () => {

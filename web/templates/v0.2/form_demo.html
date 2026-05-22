@@ -1,8 +1,18 @@
 <h1>{{ title }}</h1>
 
 <form method="POST" action="/web-surface/v0.2/form_demo">
-  <label>Name: <input type="text" name="name" value="{{ name }}"></label><br>
-  <label>Email: <input type="email" name="email" value="{{ email }}"></label><br>
+  <label>
+    Name:
+    <input type="text" name="name" value="{{ name }}">
+    <span class="error">{{ errors.name }}</span>
+  </label><br>
+
+  <label>
+    Email:
+    <input type="email" name="email" value="{{ email }}">
+    <span class="error">{{ errors.email }}</span>
+  </label><br>
+
   <button type="submit">Submit</button>
 </form>
 

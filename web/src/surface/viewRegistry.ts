@@ -24,6 +24,7 @@
  * different import paths interleave deterministically.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
+import { ValidationSchema } from "./validationSchema";
 
 
 /**
@@ -56,6 +57,15 @@ export type ViewRenderFn = (
  * appropriate HTTP code so the pipeline can return the correct
  * status without hard-coded view-name branches.
  *
+ * Card A14-R — Optional ``schema`` field. When set, the form
+ * handler reads the schema from this view's definition, runs
+ * ``validator.validateForm`` over the parsed form fields, and
+ * dispatches through the render pipeline with
+ * ``{...values, errors}`` as ``params``. Views without a schema
+ * pass form fields through untouched (A13-R behaviour). The
+ * schema is per-view, declarative, and pure — no validation
+ * logic in the view's ``render`` itself.
+ *
  * Security note: ``render`` is responsible for HTML-escaping any
  * values that originate from untrusted sources (request params,
  * external data). The template engine does not escape — see
@@ -65,6 +75,7 @@ export interface ViewDefinition {
   template: string;
   layout?: string;
   status?: number;
+  schema?: ValidationSchema;
   render: ViewRenderFn;
 }
 
