@@ -12,6 +12,16 @@ and is additionally guarded by the environment flag
 string "true" (case-insensitive), the surface is wired in but every
 request short-circuits to a 503 disabled response. This keeps the
 surface inert in production until it is explicitly turned on.
+
+Schema-bridge integration (PASS — Task Card 7):
+    Every stub response is constructed via the Pydantic model
+    ``WebSurfaceV02ErrorEnvelope`` (auto-generated from the shared
+    JSON Schema at ``web/src/contracts/webSurfaceV0_2.schema.json``).
+    Because the envelope enforces ``additionalProperties: false``,
+    any fields beyond ``error`` and ``detail`` are nested under
+    ``detail`` to keep the wire shape schema-compliant. This is the
+    Python end of the bi-directional contract bridge — TS edits flow
+    TS → JSON Schema → Python model → here.
 """
 
 from __future__ import annotations
@@ -22,9 +32,12 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from web_surface_models import WebSurfaceV02ErrorEnvelope
+
 
 WEB_SURFACE_PREFIX = "/web-surface/v0.2"
 WEB_SURFACE_FLAG_ENV = "WEB_SURFACE_V0_2_ENABLED"
+WEB_SURFACE_VERSION = "v0.2.0"
 
 router = APIRouter(prefix=WEB_SURFACE_PREFIX, tags=["web-surface-v0.2"])
 
@@ -34,27 +47,51 @@ def is_web_surface_enabled() -> bool:
     return os.environ.get(WEB_SURFACE_FLAG_ENV, "").strip().lower() == "true"
 
 
-def _disabled_response() -> JSONResponse:
+def _error_envelope_response(
+    *,
+    status_code: int,
+    error: str,
+    detail: Any,
+) -> JSONResponse:
+    """Build a JSONResponse whose body is a schema-validated
+    ``WebSurfaceV02ErrorEnvelope``.
+
+    The envelope's ``extra="forbid"`` config + the schema's
+    ``additionalProperties: false`` together mean any non-(error|detail)
+    field must live inside ``detail``. Routing context like the
+    request path is therefore nested there rather than spread across
+    the top level.
+    """
+    envelope = WebSurfaceV02ErrorEnvelope(error=error, detail=detail)
     return JSONResponse(
+        status_code=status_code,
+        content=envelope.model_dump(mode="json"),
+    )
+
+
+def _disabled_response() -> JSONResponse:
+    return _error_envelope_response(
         status_code=503,
-        content={
-            "error": "web_surface_disabled",
-            "detail": (
+        error="web_surface_disabled",
+        detail={
+            "message": (
                 "Web Surface v0.2.0 is not enabled in this environment. "
                 f"Set {WEB_SURFACE_FLAG_ENV}=true to enable."
             ),
+            "flag_env": WEB_SURFACE_FLAG_ENV,
+            "version":  WEB_SURFACE_VERSION,
         },
     )
 
 
 def _not_implemented_response(path: str) -> JSONResponse:
-    return JSONResponse(
+    return _error_envelope_response(
         status_code=501,
-        content={
-            "error": "web_surface_not_implemented",
-            "detail": "Web Surface v0.2.0 not implemented yet",
-            "path": path,
-            "version": "v0.2.0",
+        error="web_surface_not_implemented",
+        detail={
+            "message": "Web Surface v0.2.0 not implemented yet",
+            "path":    path,
+            "version": WEB_SURFACE_VERSION,
         },
     )
 

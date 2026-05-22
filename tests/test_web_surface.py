@@ -16,7 +16,12 @@ import importlib
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
+
+# PASS — Task Card 7: switch from ``fastapi.testclient.TestClient``
+# (which trips httpx >=0.28's removal of the ``app=`` kwarg) to the
+# conftest's ``AppClient`` wrapper, which speaks ``httpx.ASGITransport``
+# and works across every httpx version the repo supports.
+from conftest import TestClient
 
 import web_surface
 
@@ -43,17 +48,26 @@ def test_disabled_returns_503(client_disabled):
     resp = client_disabled.get("/web-surface/v0.2/anything")
     assert resp.status_code == 503
     body = resp.json()
+    # PASS — Task Card 7: body is a schema-conformant
+    # WebSurfaceV02ErrorEnvelope. The top level carries only
+    # ``error`` + ``detail``; routing/diagnostic fields nest under
+    # ``detail`` because the envelope forbids additional properties.
+    assert set(body.keys()) == {"error", "detail"}
     assert body["error"] == "web_surface_disabled"
-    assert web_surface.WEB_SURFACE_FLAG_ENV in body["detail"]
+    assert web_surface.WEB_SURFACE_FLAG_ENV in body["detail"]["message"]
+    assert body["detail"]["flag_env"] == web_surface.WEB_SURFACE_FLAG_ENV
 
 
 def test_enabled_returns_501_stub(client_enabled):
     resp = client_enabled.get("/web-surface/v0.2/ping")
     assert resp.status_code == 501
     body = resp.json()
+    # PASS — Task Card 7: schema-conformant envelope.
+    assert set(body.keys()) == {"error", "detail"}
     assert body["error"] == "web_surface_not_implemented"
-    assert body["version"] == "v0.2.0"
-    assert body["path"] == "/web-surface/v0.2/ping"
+    assert body["detail"]["version"] == "v0.2.0"
+    assert body["detail"]["path"] == "/web-surface/v0.2/ping"
+    assert body["detail"]["message"] == "Web Surface v0.2.0 not implemented yet"
 
 
 def test_enabled_root_returns_501(client_enabled):

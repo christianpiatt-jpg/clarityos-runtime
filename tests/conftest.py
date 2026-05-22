@@ -73,6 +73,16 @@ class AppClient:
                 return await ac.get(url, headers=headers)
             if method == "POST":
                 return await ac.post(url, json=json, headers=headers)
+            # PASS — Task Card 7: PUT/PATCH/DELETE added so the
+            # web_surface catchall multi-method test (which exercises
+            # every verb the router declares) can run through the
+            # same httpx wrapper.
+            if method == "PUT":
+                return await ac.put(url, json=json, headers=headers)
+            if method == "PATCH":
+                return await ac.patch(url, json=json, headers=headers)
+            if method == "DELETE":
+                return await ac.delete(url, headers=headers)
             raise ValueError(f"unsupported method {method}")
 
     def get(self, url, headers=None):
@@ -80,6 +90,15 @@ class AppClient:
 
     def post(self, url, json=None, headers=None):
         return self._run(self._do("POST", url, json=json, headers=headers))
+
+    def put(self, url, json=None, headers=None):
+        return self._run(self._do("PUT", url, json=json, headers=headers))
+
+    def patch(self, url, json=None, headers=None):
+        return self._run(self._do("PATCH", url, json=json, headers=headers))
+
+    def delete(self, url, headers=None):
+        return self._run(self._do("DELETE", url, headers=headers))
 
 
 # Backward-compatible alias used by tests.
