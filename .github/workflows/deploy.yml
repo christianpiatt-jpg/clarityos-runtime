@@ -107,7 +107,7 @@ jobs:
   # passes (``needs: ci-gate``) so a regressed tag cannot deploy.
   # ---------------------------------------------------------------------------
   deploy:
-    name: deploy ${{ env.CLOUD_RUN_SERVICE }} (scaffold — no real deploy)
+    name: deploy clarityos-runtime (scaffold — no real deploy)
     needs: ci-gate
     runs-on: ubuntu-latest
     timeout-minutes: 15
