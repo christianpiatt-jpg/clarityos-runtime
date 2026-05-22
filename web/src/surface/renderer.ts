@@ -1,64 +1,49 @@
 /**
- * Web Surface v0.2.0 — render pipeline skeleton.
+ * Web Surface v0.2.0 — render dispatcher.
  *
- * Card 9 placeholder. Today every call returns a schema-conformant
- * 501 ``ErrorEnvelope`` Response that carries the requested view +
- * params under ``detail`` for diagnostics. A future card will
- * replace this with real view dispatch (HTML / JSON / templated
- * output, dictionary of view-name → handler).
+ * Card A1 update: the renderer is no longer a 501 stub. It now
+ * dispatches to a view registry (``viewRegistry.ts``) and falls
+ * back to a deterministic default renderer
+ * (``viewDefaultRenderer.ts``) when the requested view name isn't
+ * registered. Output is real HTML or JSON depending on
+ * ``ctx.mode``.
  *
- * Constraints:
- *   * Pure: same RenderContext in → equivalent Response out
- *           (modulo identity — the function always builds a fresh
- *            response object).
- *   * Output MUST conform to ``WebSurfaceV0_2.Response``.
- *   * Output body MUST conform to ``WebSurfaceV0_2.ErrorEnvelope``
- *     until real rendering lands (top-level keys = {error, detail}).
- *   * No side effects: no fetch, no storage, no globals.
+ * The dispatcher's return type is the view contract's
+ * ``RenderOutput``, which is a structural subtype of the wire
+ * contract's ``WebSurfaceV0_2.Response`` — the router can return
+ * it directly with no field shimming.
+ *
+ * Behavioural note:
+ *   * The router's classifier today always returns
+ *     ``{ kind: "noop" }``, so the renderer is never called from
+ *     the live request path. Direct callers (tests, future
+ *     classifier rules) get the real view output via this module.
  */
-import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
+import { WebSurfaceV0_2_View as V } from "./viewContract";
+import { defaultRenderer } from "./viewDefaultRenderer";
+import { getView } from "./viewRegistry";
 
 
 /**
- * Input to the renderer. Mirrors the ``render`` variant of
- * ``ClassifiedSurfaceAction`` from the classifier — the router
- * destructures the variant into this shape before dispatch.
+ * Backward-compat alias: external callers built against Card 9's
+ * ``RenderContext`` interface keep working. The view-engine
+ * contract is the source of truth going forward.
  */
-export interface RenderContext {
-  view: string;
-  params?: Record<string, unknown>;
-}
+export type RenderContext = V.RenderContext;
 
 
 /**
- * Render a Web Surface view.
+ * Dispatch a Web Surface render request.
  *
- * v0.2.0 stub: returns a 501 ErrorEnvelope. The requested view +
- * any params are echoed under ``detail`` so a caller can confirm
- * the classification → render pipeline composed correctly (the
- * router-level integration tests rely on this).
+ * Resolves the view name against ``viewRegistry``; falls back to
+ * ``defaultRenderer`` for unknown names. The returned
+ * ``RenderOutput`` is type-compatible with
+ * ``WebSurfaceV0_2.Response`` so the router can return it
+ * unchanged.
  */
 export async function renderWebSurface(
-  ctx: RenderContext,
-): Promise<WebSurfaceV0_2.Response> {
-  // TODO(v0.2.0): replace with real view dispatch. Anticipated shape:
-  //   const handler = VIEW_HANDLERS[ctx.view];
-  //   if (!handler) return notFoundResponse(ctx.view);
-  //   return handler(ctx.params ?? {});
-  const envelope: WebSurfaceV0_2.ErrorEnvelope = {
-    error: "web_surface_renderer_not_implemented",
-    detail: {
-      message: "Web Surface renderer not implemented",
-      view:    ctx.view,
-      version: WebSurfaceV0_2.VERSION,
-      ...(ctx.params !== undefined
-        ? { param_count: Object.keys(ctx.params).length }
-        : {}),
-    },
-  };
-  return {
-    status:  501,
-    headers: { "content-type": "application/json" },
-    body:    envelope,
-  };
+  ctx: V.RenderContext,
+): Promise<V.RenderOutput> {
+  const renderer = getView(ctx.view) ?? defaultRenderer;
+  return renderer(ctx);
 }

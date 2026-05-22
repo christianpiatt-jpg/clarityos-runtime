@@ -13,6 +13,7 @@
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { classifyWebSurfaceRequest } from "./classifier";
 import { renderWebSurface } from "./renderer";
+import { WebSurfaceV0_2_View as V } from "./viewContract";
 
 
 /**
@@ -60,13 +61,15 @@ export async function routeWebSurface(
         },
       );
     case "render":
-      // Card 9: dispatch to the render pipeline skeleton. Still a
-      // 501 stub today (renderer returns the not-implemented
-      // envelope), but the wiring is exercised by router tests so
-      // future card replacements only touch the renderer body.
+      // Card A1: dispatch to the view engine. The renderer resolves
+      // ``view`` against ``viewRegistry`` and falls back to
+      // ``defaultRenderer`` for unknown names. Mode is hardcoded to
+      // ``json`` until Card A2 introduces content-negotiation
+      // (Accept-header → mode) at the router boundary.
       return renderWebSurface({
         view:   action.view,
         params: action.params,
+        mode:   V.Mode.json,
       });
     default: {
       // Exhaustive-switch guard. If a new ClassifiedSurfaceAction
