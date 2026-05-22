@@ -14,16 +14,35 @@
  * use (e.g. health-probe requests that should bypass rendering)
  * but the classifier itself never emits it today.
  *
+ * Card A11 update: classification now consults the view registry.
+ * If ``getView(resolved.view)`` returns undefined (no view bound
+ * to the requested name), the classifier rewrites the action to
+ * ``error_404`` with the resolved name embedded in the message.
+ * The mode is preserved — a JSON request for an unknown view
+ * still receives JSON (rendered via the default JSON path with
+ * ``view: "error_404"``), and an HTML request receives the
+ * structured 404 page.
+ *
  * Constraints:
- *   * MUST be pure: same Request in → same ClassifiedSurfaceAction out
- *   * MUST NOT touch fetch / storage / globals
- *   * MUST stay typed against ``WebSurfaceV0_2`` from the contract
+ *   * MUST be deterministic: same (Request, registry state) in →
+ *     same ClassifiedSurfaceAction out. The dependency on the
+ *     registry is the one stateful escape hatch — the registry
+ *     itself is module-singleton and only mutated at view
+ *     registration time.
+ *   * MUST NOT touch fetch / storage / globals beyond the registry.
+ *   * MUST stay typed against ``WebSurfaceV0_2`` from the contract.
  *
  * Anchor docs: ../../../../docs/web_surface/v0.2.0-contract.md
  */
 import { WebSurfaceV0_2 } from "../contracts/webSurfaceV0_2";
 import { WebSurfaceV0_2_View as V } from "./viewContract";
 import { resolveView } from "./viewResolution";
+import { getView } from "./viewRegistry";
+
+
+/** Registry key for the 404 view, kept as a constant so tests
+ *  can assert against it without re-typing the literal. */
+export const ERROR_404_VIEW = "error_404";
 
 
 /**
@@ -71,6 +90,18 @@ export function classifyWebSurfaceRequest(
   req: WebSurfaceV0_2.Request,
 ): ClassifiedSurfaceAction {
   const resolved = resolveView(req);
+
+  // Card A11: unknown view → structured 404 rewrite. Mode is
+  // preserved so callers asking for JSON still get JSON.
+  if (!getView(resolved.view)) {
+    return {
+      kind:   "render",
+      view:   ERROR_404_VIEW,
+      params: { message: `View '${resolved.view}' not found.` },
+      mode:   resolved.mode,
+    };
+  }
+
   return {
     kind:   "render",
     view:   resolved.view,

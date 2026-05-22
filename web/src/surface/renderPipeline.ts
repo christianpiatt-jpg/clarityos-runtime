@@ -5,8 +5,15 @@
  * Card A6        : engine gained partial inclusion.
  * Card A7        : pipeline gained optional layout wrapping.
  * Card A9        : pipeline auto-injects fingerprinted asset URLs.
- * Card A10 (this): asset URLs come from the committed JSON
+ * Card A10       : asset URLs come from the committed JSON
  *                  snapshot (manifest.json), not runtime hashes.
+ * Card A11 (this): pipeline catches any thrown exception and
+ *                  renders ``errors/500`` directly (minimal,
+ *                  no layout / no view binding / no asset
+ *                  injection) so a fault in any of those paths
+ *                  can't double-fault the error response. Views
+ *                  with a ``status`` field (e.g. error_404,
+ *                  error_500) are honoured on the happy path.
  *
  * Mode-aware dispatch (preserved from A4/A5):
  *
@@ -111,51 +118,100 @@ export function buildAssetVars(): Record<string, string> {
 }
 
 
+/**
+ * Card A11 — minimal 500 fallback.
+ *
+ * Builds an HTML 500 response WITHOUT touching the view registry,
+ * layout cache, asset manifest, or partial cache. Loads the
+ * ``errors/500`` template directly and substitutes a fixed
+ * message. If even that fails (template file missing / unreadable
+ * disk), the function falls through to a static string body — the
+ * pipeline never re-throws.
+ *
+ * Stack traces are NEVER included in the body. The caught error
+ * is intentionally discarded; surfacing it would leak internals.
+ */
+function _render500Fallback(): V.RenderOutput {
+  try {
+    const template = loadCachedTemplate("errors/500");
+    const html = renderTemplate(template, {
+      title:   "Internal Error",
+      message: "An unexpected error occurred.",
+    });
+    return {
+      status:  500,
+      headers: { "content-type": "text/html; charset=utf-8" },
+      body:    html,
+    };
+  } catch {
+    // Triple-fault safety net — return a tiny static body so the
+    // client at least gets the right status code.
+    return {
+      status:  500,
+      headers: { "content-type": "text/html; charset=utf-8" },
+      body:    "<h1>Internal Error</h1>",
+    };
+  }
+}
+
+
 export async function executeRenderPipeline(
   ctx: V.RenderContext,
 ): Promise<V.RenderOutput> {
-  // 0. Mode dispatch — JSON bypasses view bindings entirely.
-  if (ctx.mode === V.Mode.json) {
-    return defaultRenderer(ctx);
+  try {
+    // 0. Mode dispatch — JSON bypasses view bindings entirely.
+    if (ctx.mode === V.Mode.json) {
+      return await defaultRenderer(ctx);
+    }
+
+    // 1. Resolve view definition.
+    const def = getView(ctx.view);
+    if (!def) {
+      return await defaultRenderer(ctx);
+    }
+
+    // 2. Compute view variables.
+    // 2.5 Merge in the pipeline-owned asset vars. Asset vars go
+    // FIRST so a view's own render() can override them by simply
+    // including the same key in its return value — defaults that
+    // bend to view authority, not the other way round.
+    const vars = {
+      ...buildAssetVars(),
+      ...(await def.render(ctx)),
+    };
+
+    // 3. View-template substitution.
+    const viewTemplate = loadCachedTemplate(def.template);
+    const viewHtml = renderTemplate(viewTemplate, vars);
+
+    // 4. Layout wrapping (optional). The layout receives the view's
+    // vars + an auto-added ``yield`` that contains the rendered
+    // view body. Note: the spread builds a FRESH object — vars is
+    // not mutated.
+    let finalHtml = viewHtml;
+    if (def.layout) {
+      const layoutTemplate = loadCachedLayout(def.layout);
+      finalHtml = renderTemplate(layoutTemplate, {
+        ...vars,
+        yield: viewHtml,
+      });
+    }
+
+    // 5. Return deterministic output. ``def.status`` lets error
+    // views (error_404, error_500) carry their HTTP code without
+    // hard-coded view-name branches; default is 200.
+    return {
+      status:  def.status ?? 200,
+      headers: { "content-type": "text/html; charset=utf-8" },
+      body:    finalHtml,
+    };
+  } catch {
+    // Card A11: any thrown exception ANYWHERE in the pipeline
+    // (view.render, template load, layout load, partial load,
+    // asset manifest read, ...) maps to a structured 500 page.
+    // The fallback path does not touch the registry / layout /
+    // partials, so a fault in any of those can't double-fault
+    // the error response itself.
+    return _render500Fallback();
   }
-
-  // 1. Resolve view definition.
-  const def = getView(ctx.view);
-  if (!def) {
-    return defaultRenderer(ctx);
-  }
-
-  // 2. Compute view variables.
-  // 2.5 Merge in the pipeline-owned asset vars. Asset vars go
-  // FIRST so a view's own render() can override them by simply
-  // including the same key in its return value — defaults that
-  // bend to view authority, not the other way round.
-  const vars = {
-    ...buildAssetVars(),
-    ...(await def.render(ctx)),
-  };
-
-  // 3. View-template substitution.
-  const viewTemplate = loadCachedTemplate(def.template);
-  const viewHtml = renderTemplate(viewTemplate, vars);
-
-  // 4. Layout wrapping (optional). The layout receives the view's
-  // vars + an auto-added ``yield`` that contains the rendered
-  // view body. Note: the spread builds a FRESH object — vars is
-  // not mutated.
-  let finalHtml = viewHtml;
-  if (def.layout) {
-    const layoutTemplate = loadCachedLayout(def.layout);
-    finalHtml = renderTemplate(layoutTemplate, {
-      ...vars,
-      yield: viewHtml,
-    });
-  }
-
-  // 5. Return deterministic output.
-  return {
-    status: 200,
-    headers: { "content-type": "text/html; charset=utf-8" },
-    body: finalHtml,
-  };
 }

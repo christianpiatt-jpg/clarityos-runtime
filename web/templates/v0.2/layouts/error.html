@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/web-surface/v0.2/assets/{{ style_css }}">
+  </head>
+  <body>
+    {{> header}}
+    <div id="error">
+      {{ yield }}
+    </div>
+    {{> footer}}
+  </body>
+</html>

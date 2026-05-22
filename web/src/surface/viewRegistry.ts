@@ -51,6 +51,11 @@ export type ViewRenderFn = (
  * passed to both the template and the layout (with ``yield``
  * added to the layout's substitution context).
  *
+ * Card A11 — Optional ``status`` field. Defaults to 200. Error
+ * views (``error_404`` / ``error_500``) set this to their
+ * appropriate HTTP code so the pipeline can return the correct
+ * status without hard-coded view-name branches.
+ *
  * Security note: ``render`` is responsible for HTML-escaping any
  * values that originate from untrusted sources (request params,
  * external data). The template engine does not escape — see
@@ -59,6 +64,7 @@ export type ViewRenderFn = (
 export interface ViewDefinition {
   template: string;
   layout?: string;
+  status?: number;
   render: ViewRenderFn;
 }
 

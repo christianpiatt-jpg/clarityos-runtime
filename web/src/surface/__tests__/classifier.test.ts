@@ -6,29 +6,39 @@
 // ``{ kind: "render", view, params, mode }``. The noop variant
 // remains in the union for future use (health probes, etc.) but
 // the classifier itself never emits it today.
+// Card A11 — classifier now consults the view registry. Unknown
+// views are rewritten to ``error_404`` with the resolved name in
+// the message. Every test below either registers the view it
+// asserts on (so the classifier falls through to the normal
+// render branch) or explicitly checks the 404-rewrite path.
 //
 // These tests lock four contracts:
 //
-//   1. Every valid request classifies to ``{ kind: "render" }``
-//      for v0.2.0.
-//   2. The render variant carries view + mode + params resolved
-//      from the request.
+//   1. Known views classify to ``{ kind: "render", view: <name>, ... }``.
+//   2. Unknown views classify to ``{ kind: "render", view: "error_404", ... }``
+//      with the resolved name embedded in ``params.message``.
 //   3. The discriminator narrows correctly through an exhaustive
 //      switch (the compile-time ``never`` guard catches missed
 //      variant updates).
-//   4. The function is side-effect-free: same input → same output,
-//      no global state, no module-import side effects.
+//   4. Output depends only on (Request, registry state) — no
+//      hidden globals, no module-import side effects.
 //
 // Path: web/src/surface/__tests__/classifier.test.ts
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import {
   classifyWebSurfaceRequest,
   ClassifiedSurfaceAction,
   ClassifiedSurfaceActionKind,
+  ERROR_404_VIEW,
 } from "../classifier";
 import { WebSurfaceV0_2 } from "../../contracts/webSurfaceV0_2";
 import { WebSurfaceV0_2_View as V } from "../viewContract";
+import {
+  registerView,
+  _clearViewRegistryForTests,
+} from "../viewRegistry";
+import { error404View } from "../views/errors";
 
 
 // ---------------------------------------------------------------------------
@@ -43,6 +53,40 @@ function reqOf(overrides: Partial<WebSurfaceV0_2.Request> = {}): WebSurfaceV0_2.
     ...overrides,
   };
 }
+
+
+/** Minimal stub view definition for tests that only care about
+ *  classifier output, not about what the view actually renders. */
+const _stubView = {
+  template: "base",
+  async render() {
+    return { title: "stub", content: "" };
+  },
+};
+
+
+/**
+ * Register a small set of stub views so the classifier's
+ * registry-check falls through to the normal render branch for
+ * every name asserted against below. The 404-rewrite tests use
+ * names NOT in this set (e.g. ``"missing-view"``).
+ */
+function _registerStubViews(): void {
+  registerView(ERROR_404_VIEW, error404View);
+  for (const name of ["index", "home", "dashboard", "bar", "x", "operator"]) {
+    registerView(name, _stubView);
+  }
+}
+
+
+beforeEach(() => {
+  _clearViewRegistryForTests();
+  _registerStubViews();
+});
+
+afterEach(() => {
+  _clearViewRegistryForTests();
+});
 
 
 // ---------------------------------------------------------------------------
@@ -211,5 +255,78 @@ describe("classifyWebSurfaceRequest — purity", () => {
     const first = await import("../classifier");
     const second = await import("../classifier");
     expect(first).toBe(second);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// 4. Card A11 — unknown view → error_404 rewrite
+// ---------------------------------------------------------------------------
+describe("classifyWebSurfaceRequest — Card A11 404 rewrite", () => {
+  test("unknown view name → error_404 (HTML mode)", () => {
+    const action = classifyWebSurfaceRequest(reqOf({
+      path: "/missing-view",
+    }));
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.view).toBe(ERROR_404_VIEW);
+      expect(action.mode).toBe(V.Mode.html);
+      expect(action.params).toEqual({
+        message: "View 'missing-view' not found.",
+      });
+    }
+  });
+
+  test("unknown view name → error_404 preserves JSON mode", () => {
+    const action = classifyWebSurfaceRequest(reqOf({
+      path:    "/missing-view",
+      headers: { accept: "application/json" },
+    }));
+    expect(action.kind).toBe("render");
+    if (action.kind === "render") {
+      expect(action.view).toBe(ERROR_404_VIEW);
+      expect(action.mode).toBe(V.Mode.json);
+    }
+  });
+
+  test("unknown view rewrite embeds the resolved view name verbatim", () => {
+    const action = classifyWebSurfaceRequest(reqOf({
+      path: "/web-surface/v0.2/totally/nonexistent",
+    }));
+    if (action.kind !== "render") throw new Error("expected render");
+    expect(action.view).toBe(ERROR_404_VIEW);
+    expect((action.params as { message: string }).message).toBe(
+      "View 'nonexistent' not found.",
+    );
+  });
+
+  test("404 rewrite drops the original querystring params (replaces with message)", () => {
+    // Unknown views don't carry through the original querystring —
+    // params is fully replaced with the 404 envelope. This is the
+    // contract the renderer relies on (it reads ``params.message``).
+    const action = classifyWebSurfaceRequest(reqOf({
+      path: "/missing?keep=1&also=2",
+    }));
+    if (action.kind !== "render") throw new Error("expected render");
+    expect(action.params).toEqual({
+      message: "View 'missing' not found.",
+    });
+  });
+
+  test("known views fall through to the normal render branch (no rewrite)", () => {
+    // Sanity-check the negative case: the views registered in
+    // _registerStubViews must NOT be rewritten to error_404.
+    for (const name of ["home", "dashboard", "bar"]) {
+      const action = classifyWebSurfaceRequest(reqOf({ path: `/${name}` }));
+      if (action.kind !== "render") throw new Error("expected render");
+      expect(action.view).toBe(name);
+    }
+  });
+
+  test("classifier does not mutate the request on 404 rewrite", () => {
+    const req = reqOf({ path: "/missing?x=1" });
+    const frozen = JSON.stringify(req);
+    classifyWebSurfaceRequest(req);
+    expect(JSON.stringify(req)).toBe(frozen);
   });
 });
