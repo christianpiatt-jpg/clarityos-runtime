@@ -125,14 +125,18 @@ describe("defaultRenderer — HTML mode", () => {
     expect(html).toContain("<title>dashboard</title>");
   });
 
-  test("body contains JSON-serialised params under <pre>", async () => {
+  test("body contains JSON-serialised params under the content slot", async () => {
+    // Card A3 — the inline ``<pre>`` from Card A1 became the
+    // template's ``<div id="content">``. The params still flow in
+    // as HTML-escaped JSON; the test verifies the new structural
+    // slot AND the still-active escape behaviour.
     const out = await defaultRenderer({
       view:   "with-params",
       params: { id: "abc" },
       mode:   V.Mode.html,
     });
     const html = out.body as string;
-    expect(html).toContain("<pre>");
+    expect(html).toContain('<div id="content">');
     expect(html).toMatch(/&quot;id&quot;/);  // escaped JSON quotes
     expect(html).toMatch(/abc/);
   });

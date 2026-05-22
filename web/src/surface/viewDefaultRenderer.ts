@@ -3,26 +3,31 @@
  *
  * Fallback renderer used when ``getView(ctx.view)`` returns
  * ``undefined``. Produces a deterministic HTML or JSON output that
- * echoes the requested view + params — useful for stubbing a view
- * during development and as a base case for the test suite.
+ * echoes the requested view + params.
+ *
+ * Card A1 (initial):       inline HTML construction with manual escape.
+ * Card A3 (this revision): HTML mode now uses the template engine —
+ *                          loads ``base.html`` from
+ *                          ``web/templates/v0.2/`` and substitutes
+ *                          ``title`` + ``content`` placeholders.
+ *                          JSON mode is unchanged.
+ *
+ * Security policy (locked by tests):
+ *   * The renderer HTML-escapes every value BEFORE it reaches the
+ *     template engine. The engine itself does not escape (so it
+ *     can also drive non-HTML outputs in the future). This
+ *     separation keeps the XSS guard at the boundary that knows
+ *     the output content-type.
  *
  * Deterministic shape:
  *   * ``mode === "json"`` → 200 with body ``{ view, params }``,
  *     content-type ``application/json``.
- *   * ``mode === "html"`` → 200 with body containing the view name
- *     in an ``<h1>`` plus the params under a ``<pre>`` block,
+ *   * ``mode === "html"`` → 200 with ``base.html`` substituted,
  *     content-type ``text/html; charset=utf-8``.
- *
- * Security note (locked by tests):
- *   * The HTML output passes the view name + params through a
- *     minimal HTML-entity escape. Even at skeleton stage, the
- *     renderer MUST NOT emit raw unescaped strings into the DOM —
- *     otherwise a future caller could pass user-controlled input
- *     and the renderer would be the XSS vector.
- *
- * Card A1 — Track A — View Engine foundation.
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
+import { loadTemplate } from "./templateLoader";
+import { renderTemplate } from "./templateEngine";
 
 
 /** Minimal HTML-entity escape. Covers the five characters that
@@ -50,21 +55,15 @@ export async function defaultRenderer(
     };
   }
 
-  // HTML mode — content-type charset is explicit so the browser
-  // doesn't sniff. The view name + params are HTML-escaped before
-  // interpolation.
-  const safeView = escapeHtml(ctx.view);
-  const safeParams = escapeHtml(JSON.stringify(params, null, 2));
-  const html = [
-    "<!DOCTYPE html>",
-    "<html>",
-    `  <head><title>${safeView}</title></head>`,
-    "  <body>",
-    `    <h1>${safeView}</h1>`,
-    `    <pre>${safeParams}</pre>`,
-    "  </body>",
-    "</html>",
-  ].join("\n");
+  // HTML mode — template engine + per-value escape at the boundary.
+  // ``title`` and ``content`` are the two placeholders in
+  // ``base.html``. Both are HTML-escaped before substitution so
+  // the engine itself stays content-type-agnostic.
+  const template = loadTemplate("base");
+  const html = renderTemplate(template, {
+    title:   escapeHtml(ctx.view),
+    content: escapeHtml(JSON.stringify(params, null, 2)),
+  });
 
   return {
     status: 200,
