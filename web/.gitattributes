@@ -1,0 +1,27 @@
+# Force LF on every file whose CONTENT-HASH is load-bearing —
+# the asset manifest tracks SHA-256 of these bytes, and a
+# Windows ``core.autocrlf=true`` checkout that injects CRLF
+# would compute a different hash than the LF-source-of-truth
+# they were generated from. Locking these here means
+# ``client:gen`` + ``assets:gen`` produce byte-identical
+# output on every platform.
+
+# Hash-tracked assets + their manifest.
+assets/v0.2/app.js       text eol=lf
+assets/v0.2/style.css    text eol=lf
+assets/v0.2/manifest.json text eol=lf
+
+# Hash-tracked contract + generator script outputs.
+src/contracts/webSurfaceV0_2.schema.json text eol=lf
+
+# Template files — the template-engine + drift tests assume
+# stable byte representation.
+templates/v0.2/**/*.html text eol=lf
+
+# Generator scripts (mjs) — their output above depends on
+# being interpreted with LF terminators consistent across
+# platforms.
+scripts/*.mjs            text eol=lf
+
+# All other text files: let Git normalize per platform defaults.
+* text=auto
