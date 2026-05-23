@@ -47,6 +47,15 @@
  *        → each message replaces the target's ``innerHTML``.
  *        → on error, closes the source (no reconnection storm).
  *
+ *   4. Diagnostic toggle (Card A21-R).
+ *      ``<button data-diagnostic-toggle data-diagnostic-target="#out">``
+ *        → click fetches ``/__diagnostics`` and, if the response
+ *          carries ``text/html``, replaces the target's
+ *          ``innerHTML`` with the server-rendered fragment.
+ *        → non-HTML responses and network failures are a silent
+ *          no-op (no native fallback — the diagnostics route is
+ *          read-only, so there is no "submit" to fall back to).
+ *
  * The ``has-js`` class is added to ``<html>`` on script load so
  * stylesheets can opt into JS-only states (e.g., progressively
  * disclosed UIs) without ever blocking the no-JS path.
@@ -148,7 +157,48 @@ function _bindDelegatedListeners(): void {
     void _submitFetchAndReplace(form, target);
   });
 
-  // --- 4. SSE wiring: schedule the FIRST scan ---
+  // --- 4. Diagnostic toggle delegate (Card A21-R) ---
+  //
+  // Sits alongside the toggle / form delegates: a single
+  // document-level click handler walks ``closest`` to find a
+  // trigger carrying ``data-diagnostic-toggle``. The diagnostics
+  // route is fixed at ``/__diagnostics`` (see
+  // ``web/src/server/routes/diagnostics.ts``); the trigger only
+  // needs to name the swap target via ``data-diagnostic-target``.
+  //
+  // Behaviour:
+  //   * HTML response → replace target.innerHTML (mirrors the
+  //     A20-R content-type-based form path).
+  //   * Non-HTML response → silent no-op.
+  //   * Network failure → silent no-op.
+  //
+  // There is no native fallback because ``/__diagnostics`` is
+  // read-only — there's no form submission to defer to. With JS
+  // off, the trigger element simply does nothing; the server's
+  // base page is unaffected.
+  document.addEventListener("click", (event) => {
+    const node = event.target;
+    if (!(node instanceof Element)) return;
+    const trigger = node.closest("[data-diagnostic-toggle]");
+    if (!(trigger instanceof Element)) return;
+
+    const selector = trigger.getAttribute("data-diagnostic-target");
+    if (!selector) return;
+
+    let target: Element | null = null;
+    try {
+      target = document.querySelector(selector);
+    } catch {
+      // Bad selector — silently no-op (defensive).
+      return;
+    }
+    if (!target) return;
+
+    event.preventDefault();
+    void _fetchDiagnosticFragment(target);
+  });
+
+  // --- 5. SSE wiring: schedule the FIRST scan ---
   // The post-load rescan (every module re-eval) is at the
   // bottom of this file; this branch handles the initial
   // DOMContentLoaded firing exactly once per document lifetime.
@@ -156,6 +206,45 @@ function _bindDelegatedListeners(): void {
     document.addEventListener("DOMContentLoaded", _wireSseContainers);
   }
 }
+
+
+/**
+ * Fetch the diagnostic fragment and swap it into ``target``.
+ * Card A21-R helper.
+ *
+ * Content-type branching mirrors the A20-R form path:
+ *   * ``text/html`` (case-insensitive, charset-tolerant) →
+ *     replace ``target.innerHTML``.
+ *   * Anything else → silent no-op (no native fallback).
+ *
+ * Network failures are also silent — the catch block swallows
+ * the throw without disturbing the page.
+ */
+async function _fetchDiagnosticFragment(target: Element): Promise<void> {
+  try {
+    const response = await fetch(_DIAGNOSTICS_URL, {
+      method:      "GET",
+      credentials: "same-origin",
+    });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("text/html")) {
+      // Non-HTML response → silent no-op. Mirrors the A20-R
+      // form path's content-type check; the diagnostics route
+      // is read-only so there's nothing to fall back to.
+      return;
+    }
+    const html = await response.text();
+    target.innerHTML = html;
+  } catch {
+    // Network failure → silent no-op.
+  }
+}
+
+
+/** URL of the server-level diagnostics interceptor. Held as a
+ *  module constant so the fetch target matches the server's
+ *  ``DIAGNOSTICS_PATH`` constant exactly. */
+const _DIAGNOSTICS_URL = "/__diagnostics";
 
 
 async function _submitFetchAndReplace(

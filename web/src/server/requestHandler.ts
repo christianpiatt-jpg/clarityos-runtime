@@ -48,6 +48,10 @@ import {
   HEALTH_PATHS,
   handleHealth,
 } from "./healthRouter";
+import {
+  DIAGNOSTICS_PATH,
+  handleDiagnostics,
+} from "./routes/diagnostics";
 
 
 /** Compile-time guard so we can reuse the constant in narrow
@@ -101,6 +105,20 @@ export function createRequestHandler(): (
       const path = _pathOnly(req.url);
       if (_HEALTH_PATH_SET.has(path)) {
         writeSurfaceResponse(res, handleHealth());
+        return;
+      }
+
+      // Card A21-R: diagnostics interceptor. Same shape as the
+      // health bypass — matched BEFORE the surface router so a
+      // broken view registry can't take operator diagnostics
+      // down with it. We still build a normalised surface
+      // request (the collector reads method / path / headers
+      // off it) but ``routeWebSurface`` is never called.
+      if (path === DIAGNOSTICS_PATH) {
+        const diagBody = await readRequestBody(req);
+        const diagReq = buildSurfaceRequest(req, diagBody);
+        const diagRes = await handleDiagnostics(diagReq);
+        writeSurfaceResponse(res, diagRes);
         return;
       }
 

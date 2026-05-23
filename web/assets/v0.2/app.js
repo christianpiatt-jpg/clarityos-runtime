@@ -49,10 +49,43 @@
       event.preventDefault();
       void _submitFetchAndReplace(form, target);
     });
+    document.addEventListener("click", (event) => {
+      const node = event.target;
+      if (!(node instanceof Element)) return;
+      const trigger = node.closest("[data-diagnostic-toggle]");
+      if (!(trigger instanceof Element)) return;
+      const selector = trigger.getAttribute("data-diagnostic-target");
+      if (!selector) return;
+      let target = null;
+      try {
+        target = document.querySelector(selector);
+      } catch {
+        return;
+      }
+      if (!target) return;
+      event.preventDefault();
+      void _fetchDiagnosticFragment(target);
+    });
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", _wireSseContainers);
     }
   }
+  async function _fetchDiagnosticFragment(target) {
+    try {
+      const response = await fetch(_DIAGNOSTICS_URL, {
+        method: "GET",
+        credentials: "same-origin"
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("text/html")) {
+        return;
+      }
+      const html = await response.text();
+      target.innerHTML = html;
+    } catch {
+    }
+  }
+  const _DIAGNOSTICS_URL = "/__diagnostics";
   async function _submitFetchAndReplace(form, target) {
     const params = new URLSearchParams();
     const data = new FormData(form);
