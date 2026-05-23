@@ -71,7 +71,8 @@
         // Same-origin cookies by default. No CORS expansion.
         credentials: "same-origin"
       });
-      if (!response.ok) {
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("text/html")) {
         _fallBackToNativeSubmit(form);
         return;
       }

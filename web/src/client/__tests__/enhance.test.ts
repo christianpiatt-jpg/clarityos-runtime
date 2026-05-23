@@ -160,10 +160,18 @@ describe("toggle delegate", () => {
 // ---------------------------------------------------------------------------
 describe("fetch-and-replace form enhancement", () => {
   test("happy path replaces the target fragment", async () => {
+    // Card A20-R: the enhance.ts response handler now branches
+    // on Content-Type rather than HTTP status. The mock must
+    // expose ``headers.get`` so the new check can run.
     const fetchMock = vi.fn(async () => ({
-      ok:     true,
-      status: 200,
-      text:   async () => "<p>fragment-from-server</p>",
+      ok:      true,
+      status:  200,
+      headers: {
+        get(name: string) {
+          return name.toLowerCase() === "content-type" ? "text/html" : null;
+        },
+      },
+      text:    async () => "<p>fragment-from-server</p>",
     }) as unknown as Response);
     vi.stubGlobal("fetch", fetchMock);
 

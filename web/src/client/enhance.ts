@@ -185,7 +185,20 @@ async function _submitFetchAndReplace(
       // Same-origin cookies by default. No CORS expansion.
       credentials: "same-origin",
     });
-    if (!response.ok) {
+
+    // Card A20-R: response-handling shifts from "status-based"
+    // to "content-type-based" so 4xx-with-HTML-error-fragment
+    // (e.g., the form-validation rerender) can swap into the
+    // target instead of triggering a full-page native submit.
+    //
+    // Detection rules:
+    //   * HTML response (any status)  → replace target.
+    //   * Non-HTML response (JSON, plain text, anything else)
+    //                                  → fall back.
+    //   * Network failure (fetch throws) → fall back (catch
+    //                                  block below).
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("text/html")) {
       _fallBackToNativeSubmit(form);
       return;
     }
