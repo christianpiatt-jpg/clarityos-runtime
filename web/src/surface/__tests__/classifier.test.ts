@@ -194,6 +194,12 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
           : 0;
         return `stream:${action.view}:${action.mode}:${paramCount}`;
       }
+      case ClassifiedSurfaceActionKind.sse: {
+        const paramCount = action.params
+          ? Object.keys(action.params).length
+          : 0;
+        return `sse:${action.view}:${action.mode}:${paramCount}`;
+      }
       default: {
         const _exhaustive: never = action;
         return _exhaustive;
@@ -265,6 +271,16 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
     expect(describeAction(action)).toBe("stream:stream_demo:html:2");
   });
 
+  test("sse variant routes (html mode, with params)", () => {
+    const action: ClassifiedSurfaceAction = {
+      kind:   "sse",
+      view:   "stream_sse_demo",
+      params: { x: "1" },
+      mode:   V.Mode.html,
+    };
+    expect(describeAction(action)).toBe("sse:stream_sse_demo:html:1");
+  });
+
   test("ClassifiedSurfaceActionKind mirrors the union exactly", () => {
     expect(ClassifiedSurfaceActionKind.noop).toBe("noop");
     expect(ClassifiedSurfaceActionKind.render).toBe("render");
@@ -272,15 +288,16 @@ describe("ClassifiedSurfaceAction — discriminated union contract", () => {
     expect(ClassifiedSurfaceActionKind.form).toBe("form");
     expect(ClassifiedSurfaceActionKind.upload).toBe("upload");
     expect(ClassifiedSurfaceActionKind.stream).toBe("stream");
+    expect(ClassifiedSurfaceActionKind.sse).toBe("sse");
     expect(Object.keys(ClassifiedSurfaceActionKind).sort()).toEqual(
-      ["form", "noop", "redirect", "render", "stream", "upload"],
+      ["form", "noop", "redirect", "render", "sse", "stream", "upload"],
     );
   });
 
   test("classifier output is a valid ClassifiedSurfaceAction shape", () => {
     const action = classifyWebSurfaceRequest(reqOf());
     expect(action).toHaveProperty("kind");
-    expect(["noop", "render", "redirect", "form", "upload", "stream"])
+    expect(["noop", "render", "redirect", "form", "upload", "stream", "sse"])
       .toContain(action.kind);
   });
 });

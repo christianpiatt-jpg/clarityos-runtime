@@ -25,6 +25,7 @@
  */
 import { WebSurfaceV0_2_View as V } from "./viewContract";
 import { ValidationSchema } from "./validationSchema";
+import { SseEvent } from "./sseEvent";
 
 
 /**
@@ -85,6 +86,15 @@ export type ViewRenderFn = (
  * Response; a future card can stream the same chunks over the
  * wire when Cloud Run activation lands.
  *
+ * Card A18 — optional ``events`` field, an async-generator factory
+ * the SSE handler calls when the request opts into server-sent
+ * events (header ``x-sse: 1``). Each yielded ``SseEvent`` becomes
+ * a framed line group in the assembled Response. Views without an
+ * ``events`` field fall back to the default SSE adapter (the
+ * view's ``render()`` output wrapped in a single SSE event).
+ * Same forward-compatibility story as A17: v0.2.0 assembles
+ * frames in memory; Track C's wire activation can pipe them.
+ *
  * Security note: ``render`` is responsible for HTML-escaping any
  * values that originate from untrusted sources (request params,
  * external data). The template engine does not escape — see
@@ -116,12 +126,22 @@ export type ViewStreamFn = (
 ) => AsyncIterable<string>;
 
 
+/** Card A18: an async-generator factory for Server-Sent Events.
+ *  Same per-call shape as ``ViewStreamFn`` but yields structured
+ *  ``SseEvent``s instead of raw strings — the SSE handler does
+ *  the framing. */
+export type ViewEventsFn = (
+  params?: Record<string, unknown>,
+) => AsyncIterable<SseEvent>;
+
+
 export interface ViewDefinition {
   template: ViewTemplate;
   layout?: string;
   status?: number;
   schema?: ViewSchema;
   stream?: ViewStreamFn;
+  events?: ViewEventsFn;
   render: ViewRenderFn;
 }
 

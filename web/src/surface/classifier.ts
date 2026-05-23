@@ -46,13 +46,21 @@
  * The classifier emits ``{kind: "stream", view, params, mode}``;
  * the router dispatches to ``handleStream``, which collects the
  * view's async-generator chunks into a deterministic Response
- * body. Detection precedence (top wins):
+ * body.
+ *
+ * Card A18 update: a new ``sse`` action variant. Requests
+ * carrying the ``x-sse: 1`` header opt into Server-Sent Events.
+ * The classifier emits ``{kind: "sse", view, params, mode}``;
+ * the router dispatches to ``handleSse``, which assembles
+ * ``SseEvent``s into framed ``text/event-stream`` body.
+ * Detection precedence (top wins):
  *   1. Redirect  (URL-routed primitive — wins regardless of method)
  *   2. Upload    (POST + multipart content-type + Buffer body)
  *   3. Form      (POST + form-urlencoded content-type + string body)
  *   4. Stream    (any method + ``x-stream: 1`` header)
- *   5. 404 rewrite (unknown view)
- *   6. Normal render
+ *   5. SSE       (any method + ``x-sse: 1`` header)
+ *   6. 404 rewrite (unknown view)
+ *   7. Normal render
  *
  * Why form precedes the 404 rewrite: a POST to an unknown view
  * with form data should preserve the input by routing through
@@ -127,6 +135,14 @@ export const STREAM_HEADER = "x-stream";
 export const STREAM_OPT_IN_VALUE = "1";
 
 
+/** Header name + opt-in value the SSE classifier branch tests
+ *  against. Same request-opt-in pattern as the stream branch;
+ *  a view can therefore serve buffered + chunked + SSE clients
+ *  from a single registration. */
+export const SSE_HEADER = "x-sse";
+export const SSE_OPT_IN_VALUE = "1";
+
+
 /**
  * Extract the boundary token from a multipart Content-Type
  * header. Tolerant of quoted values + other parameters before
@@ -198,6 +214,13 @@ export const DEFAULT_REDIRECT_TARGET = "/web-surface/v0.2/home";
  *                    which runs the view's ``stream(params)``
  *                    async generator (or the default fallback)
  *                    and assembles the chunks into a Response.
+ *   * ``sse``      — opt-in Server-Sent Events request (Card A18).
+ *                    Triggered by the ``x-sse: 1`` header. The
+ *                    router dispatches to ``handleSse``, which
+ *                    runs the view's ``events(params)`` async
+ *                    generator (or the default fallback wrapping
+ *                    ``render``) and assembles the events into
+ *                    framed ``text/event-stream`` body.
  */
 export type ClassifiedSurfaceAction =
   | { kind: "noop" }
@@ -230,6 +253,12 @@ export type ClassifiedSurfaceAction =
       view: string;
       params?: Record<string, unknown>;
       mode: V.Mode;
+    }
+  | {
+      kind: "sse";
+      view: string;
+      params?: Record<string, unknown>;
+      mode: V.Mode;
     };
 
 
@@ -241,6 +270,7 @@ export const ClassifiedSurfaceActionKind = {
   form:     "form",
   upload:   "upload",
   stream:   "stream",
+  sse:      "sse",
 } as const;
 
 
@@ -352,6 +382,23 @@ export function classifyWebSurfaceRequest(
   if (req.headers[STREAM_HEADER] === STREAM_OPT_IN_VALUE) {
     return {
       kind:   "stream",
+      view:   resolved.view,
+      params: resolved.params,
+      mode:   resolved.mode,
+    };
+  }
+
+  // Card A18: SSE opt-in. Same request-shape-driven pattern as
+  // stream, just emits a ``sse`` action instead. Placed AFTER
+  // stream so a request that sets BOTH ``x-stream: 1`` and
+  // ``x-sse: 1`` takes the stream branch (stream is the more
+  // general chunked-string output; SSE is the specialised
+  // event-framed output, but if a client asks for both it
+  // probably means "give me whatever chunked you have" — pick
+  // the simpler one).
+  if (req.headers[SSE_HEADER] === SSE_OPT_IN_VALUE) {
+    return {
+      kind:   "sse",
       view:   resolved.view,
       params: resolved.params,
       mode:   resolved.mode,

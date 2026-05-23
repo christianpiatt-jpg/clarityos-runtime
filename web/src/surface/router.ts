@@ -26,6 +26,7 @@ import { renderRedirect } from "./redirectRenderer";
 import { handleForm } from "./formHandler";
 import { handleUpload } from "./uploadHandler";
 import { handleStream } from "./streamHandler";
+import { handleSse } from "./sseHandler";
 
 
 /** URL prefix the asset router claims. Anything below this path
@@ -232,6 +233,20 @@ export async function routeWebSurface(
       // real wire chunked-encoding when Cloud Run activates.
       response = await handleStream({
         kind:   "stream",
+        view:   action.view,
+        params: action.params,
+        mode:   action.mode,
+      });
+      break;
+    case "sse":
+      // Card A18: SSE dispatch. The handler runs the view's
+      // ``events(params)`` async generator (or the default
+      // adapter that wraps ``render``) and assembles the
+      // events into framed ``text/event-stream`` body. Same
+      // forward-compat story as ``stream`` — Track C swaps
+      // the in-memory collection for real wire emission.
+      response = await handleSse({
+        kind:   "sse",
         view:   action.view,
         params: action.params,
         mode:   action.mode,
