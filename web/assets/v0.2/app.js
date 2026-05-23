@@ -118,6 +118,47 @@
       const message = trigger.getAttribute("data-loading-message");
       void _fetchLoadingFragment(target, message);
     });
+    document.addEventListener("click", (event) => {
+      const node = event.target;
+      if (!(node instanceof Element)) return;
+      const trigger = node.closest("[data-perplexity-query]");
+      if (!(trigger instanceof Element)) return;
+      if (trigger instanceof HTMLFormElement) return;
+      const selector = trigger.getAttribute("data-perplexity-target");
+      if (!selector) return;
+      const query = trigger.getAttribute("data-query");
+      if (!query || query.length === 0) return;
+      let target = null;
+      try {
+        target = document.querySelector(selector);
+      } catch {
+        return;
+      }
+      if (!target) return;
+      event.preventDefault();
+      void _fetchPerplexityFragment(target, query, null);
+    });
+    document.addEventListener("submit", (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.hasAttribute("data-perplexity-query")) return;
+      const selector = form.getAttribute("data-perplexity-target");
+      if (!selector) return;
+      let target = null;
+      try {
+        target = document.querySelector(selector);
+      } catch {
+        return;
+      }
+      if (!target) return;
+      const data = new FormData(form);
+      const raw = data.get("query");
+      if (typeof raw !== "string" || raw.length === 0) {
+        return;
+      }
+      event.preventDefault();
+      void _fetchPerplexityFragment(target, raw, form);
+    });
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", _wireSseContainers);
     }
@@ -185,6 +226,35 @@
   }
   const _DIAGNOSTICS_URL = "/__diagnostics";
   const _LOADING_URL = "/__loading";
+  const _PERPLEXITY_URL = "/__perplexity";
+  async function _fetchPerplexityFragment(target, query, formForFallback) {
+    const fallback = () => {
+      if (formForFallback) {
+        formForFallback.removeAttribute("data-perplexity-query");
+        try {
+          formForFallback.submit();
+        } catch {
+        }
+      }
+    };
+    try {
+      const response = await fetch(_PERPLEXITY_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ query }),
+        credentials: "same-origin"
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("text/html")) {
+        fallback();
+        return;
+      }
+      const html = await response.text();
+      target.innerHTML = html;
+    } catch {
+      fallback();
+    }
+  }
   async function _fetchLoadingFragment(target, message) {
     const body = message && message.length > 0 ? { message } : {};
     try {

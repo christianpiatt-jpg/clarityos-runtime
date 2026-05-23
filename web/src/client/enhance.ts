@@ -93,6 +93,29 @@
  *          no-op (no native fallback — the trigger is a
  *          click, not a submit).
  *
+ *   8. Perplexity relay (Card A30-R).
+ *      Click variant:
+ *        ``<button data-perplexity-query
+ *                  data-perplexity-target="#out"
+ *                  data-query="what is the weather?">``
+ *        → click POSTs ``{query}`` to ``/__perplexity``.
+ *        → HTML response → replace target.
+ *        → Non-HTML / network failure → silent no-op (no
+ *          form to fall back to).
+ *      Form variant:
+ *        ``<form data-perplexity-query
+ *                data-perplexity-target="#out">
+ *           <input name="query">
+ *         </form>``
+ *        → submit POSTs ``{query: <field value>}`` to
+ *          ``/__perplexity``.
+ *        → HTML response → replace target.
+ *        → Non-HTML / network failure → fall back to native
+ *          submit (mirrors A19-R/A20-R form behaviour).
+ *      The same attribute (``data-perplexity-query``) marks
+ *      both element shapes; the handler dispatches on event
+ *      type.
+ *
  * The ``has-js`` class is added to ``<html>`` on script load so
  * stylesheets can opt into JS-only states (e.g., progressively
  * disclosed UIs) without ever blocking the no-JS path.
@@ -352,6 +375,82 @@ function _bindDelegatedListeners(): void {
     void _fetchLoadingFragment(target, message);
   });
 
+  // --- 5c. Perplexity relay — click variant (Card A30-R) ---
+  //
+  // The relay route is fixed at ``/__perplexity`` (see
+  // ``web/src/server/routes/perplexity.ts``). The trigger
+  // names the swap target via ``data-perplexity-target`` and
+  // the query via ``data-query``. With no ``data-query``
+  // attribute, the click is a silent no-op — there's no
+  // sensible default for a search query.
+  //
+  // Distinct from section 5d below (the form-submit variant)
+  // because form elements get the submit handler instead.
+  // The handler skips form triggers here so the two branches
+  // don't double-fire.
+  document.addEventListener("click", (event) => {
+    const node = event.target;
+    if (!(node instanceof Element)) return;
+    const trigger = node.closest("[data-perplexity-query]");
+    if (!(trigger instanceof Element)) return;
+    // Forms go through the submit branch — don't fire a
+    // duplicate POST from the click that opened the submit.
+    if (trigger instanceof HTMLFormElement) return;
+
+    const selector = trigger.getAttribute("data-perplexity-target");
+    if (!selector) return;
+
+    const query = trigger.getAttribute("data-query");
+    if (!query || query.length === 0) return;
+
+    let target: Element | null = null;
+    try {
+      target = document.querySelector(selector);
+    } catch {
+      return;  // bad selector
+    }
+    if (!target) return;
+
+    event.preventDefault();
+    void _fetchPerplexityFragment(target, query, null);
+  });
+
+  // --- 5d. Perplexity relay — form submit variant (Card A30-R) ---
+  //
+  // Same ``data-perplexity-query`` marker, but on a ``<form>``.
+  // The query is the value of the ``name="query"`` field.
+  // Falls back to native submit on missing target / non-HTML
+  // response / network failure (mirrors A19-R/A20-R/A23-R
+  // form behaviour).
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (!form.hasAttribute("data-perplexity-query")) return;
+
+    const selector = form.getAttribute("data-perplexity-target");
+    if (!selector) return;
+
+    let target: Element | null = null;
+    try {
+      target = document.querySelector(selector);
+    } catch {
+      return;  // bad selector → let native submit proceed
+    }
+    if (!target) return;
+
+    // Pull the query from the form's "query" field. Missing
+    // / empty → fall back to native submit (the user's
+    // intent is unclear; let the browser handle it).
+    const data = new FormData(form);
+    const raw = data.get("query");
+    if (typeof raw !== "string" || raw.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    void _fetchPerplexityFragment(target, raw, form);
+  });
+
   // --- 6. SSE wiring: schedule the FIRST scan ---
   // The post-load rescan (every module re-eval) is at the
   // bottom of this file; this branch handles the initial
@@ -495,6 +594,69 @@ const _DIAGNOSTICS_URL = "/__diagnostics";
  *  module constant so the POST target matches the server's
  *  ``LOADING_PATH`` constant exactly. */
 const _LOADING_URL = "/__loading";
+
+
+/** URL of the server-level Perplexity relay. Held as a module
+ *  constant so the POST target matches the server's
+ *  ``PERPLEXITY_PATH`` constant exactly. */
+const _PERPLEXITY_URL = "/__perplexity";
+
+
+/**
+ * POST to ``/__perplexity`` with ``{query}`` and swap the
+ * response into ``target``. Card A30-R helper.
+ *
+ * The optional ``formForFallback`` argument controls the
+ * non-HTML / network-failure path:
+ *   * ``null`` (click trigger)   → silent no-op.
+ *   * ``HTMLFormElement`` (form) → strip ``data-perplexity-query``
+ *                                  and re-submit natively (mirrors
+ *                                  ``_fallBackToNativeSubmit`` for
+ *                                  the A19-R / A23-R forms).
+ *
+ * Content-type branching matches the A20-R / A23-R / A24-R
+ * paths: any ``text/html`` response replaces the target; any
+ * other response triggers the appropriate fallback.
+ */
+async function _fetchPerplexityFragment(
+  target: Element,
+  query: string,
+  formForFallback: HTMLFormElement | null,
+): Promise<void> {
+  const fallback = (): void => {
+    if (formForFallback) {
+      // Match the A19-R/A23-R fallback contract: strip the
+      // marker attribute and re-submit so the next submission
+      // goes native.
+      formForFallback.removeAttribute("data-perplexity-query");
+      try {
+        formForFallback.submit();
+      } catch {
+        // .submit() may throw if invoked from inside an
+        // already-preventDefault'd handler. Best-effort.
+      }
+    }
+    // Click branch (formForFallback === null) → silent no-op.
+  };
+
+  try {
+    const response = await fetch(_PERPLEXITY_URL, {
+      method:      "POST",
+      headers:     { "content-type": "application/json" },
+      body:        JSON.stringify({ query }),
+      credentials: "same-origin",
+    });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("text/html")) {
+      fallback();
+      return;
+    }
+    const html = await response.text();
+    target.innerHTML = html;
+  } catch {
+    fallback();
+  }
+}
 
 
 /**

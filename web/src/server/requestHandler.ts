@@ -64,6 +64,10 @@ import {
   LOADING_PATH,
   handleLoading,
 } from "./routes/loading";
+import {
+  PERPLEXITY_PATH,
+  handlePerplexity,
+} from "./routes/perplexity";
 
 
 /** Compile-time guard so we can reuse the constant in narrow
@@ -175,6 +179,21 @@ export function createRequestHandler(): (
         const loadingReq = buildSurfaceRequest(req, loadingBody);
         const loadingRes = await handleLoading(loadingReq);
         writeSurfaceResponse(res, loadingRes);
+        return;
+      }
+
+      // Card A30-R: Perplexity relay interceptor. POST with
+      // {query} JSON; delegates to the existing upstream
+      // module (MOCK by default, REAL when PERPLEXITY_MODE +
+      // PERPLEXITY_API_KEY are set) and returns a server-
+      // rendered fragment with the upstream's text + token
+      // count. Bad input or upstream failures still render as
+      // HTML fragments — the operator-facing UX is uniform.
+      if (path === PERPLEXITY_PATH) {
+        const perpBody = await readRequestBody(req);
+        const perpReq = buildSurfaceRequest(req, perpBody);
+        const perpRes = await handlePerplexity(perpReq);
+        writeSurfaceResponse(res, perpRes);
         return;
       }
 
