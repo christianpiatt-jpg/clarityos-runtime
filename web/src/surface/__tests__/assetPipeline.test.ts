@@ -73,7 +73,10 @@ describe("assetLoader", () => {
   test("loads app.js as a Buffer", () => {
     const body = loadAsset("app.js");
     expect(Buffer.isBuffer(body)).toBe(true);
-    expect(body.toString("utf8")).toContain("Web Surface v0.2.0 loaded");
+    // Card A19-R replaced the original 1-line stub with the
+    // generated progressive-enhancement bundle. Match the
+    // generator's banner instead of the old stub text.
+    expect(body.toString("utf8")).toContain("ClarityOS v0.2 Web Surface");
   });
 
   test("throws on a missing asset name", () => {
@@ -208,7 +211,9 @@ describe("routeAsset", () => {
     const res = routeAsset("app.js");
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toBe("application/javascript");
-    expect((res.body as Buffer).toString("utf8")).toContain("Web Surface v0.2.0 loaded");
+    // Post-A19-R: app.js is the generated progressive-
+    // enhancement bundle. Match its banner.
+    expect((res.body as Buffer).toString("utf8")).toContain("ClarityOS v0.2 Web Surface");
   });
 
   test("missing asset → 404 + JSON envelope", () => {

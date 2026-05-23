@@ -285,8 +285,10 @@ describe("routeAsset — fingerprinted URL resolution", () => {
     const res = routeAsset(fp);
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toBe("application/javascript");
+    // Card A19-R replaced the 1-line stub with the generated
+    // progressive-enhancement bundle; match its banner.
     expect((res.body as Buffer).toString("utf8"))
-      .toContain("Web Surface v0.2.0 loaded");
+      .toContain("ClarityOS v0.2 Web Surface");
   });
 
   test("fingerprinted body is byte-identical to original body", () => {
