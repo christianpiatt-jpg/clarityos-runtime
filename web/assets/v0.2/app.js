@@ -49,6 +49,22 @@
       event.preventDefault();
       void _submitFetchAndReplace(form, target);
     });
+    document.addEventListener("submit", (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (form.getAttribute("data-enhance") !== "status") return;
+      const targetSelector = form.getAttribute("data-status-target");
+      if (!targetSelector) return;
+      let target = null;
+      try {
+        target = document.querySelector(targetSelector);
+      } catch {
+        return;
+      }
+      if (!target) return;
+      event.preventDefault();
+      void _submitStatusJson(form, target);
+    });
     document.addEventListener("click", (event) => {
       const node = event.target;
       if (!(node instanceof Element)) return;
@@ -179,6 +195,35 @@
       _fallBackToNativeSubmit(form);
     }
   }
+  async function _submitStatusJson(form, target) {
+    const payload = {};
+    const data = new FormData(form);
+    for (const [key, value] of data.entries()) {
+      if (typeof value !== "string") {
+        _fallBackToNativeSubmit(form);
+        return;
+      }
+      payload[key] = value;
+    }
+    try {
+      const response = await fetch(_STATUS_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "same-origin"
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("text/html")) {
+        _fallBackToNativeSubmit(form);
+        return;
+      }
+      const html = await response.text();
+      target.innerHTML = html;
+    } catch {
+      _fallBackToNativeSubmit(form);
+    }
+  }
+  const _STATUS_URL = "/__status";
   function _fallBackToNativeSubmit(form) {
     form.removeAttribute("data-enhance");
     try {

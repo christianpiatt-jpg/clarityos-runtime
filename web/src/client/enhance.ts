@@ -69,6 +69,17 @@
  *          the marker is cleared on close so the user can
  *          re-run the task.
  *
+ *   6. Status surface submit (Card A23-R).
+ *      ``<form data-enhance="status" data-status-target="#out">``
+ *        → submit is intercepted, form fields are serialised
+ *          to JSON, POSTed to ``/__status``.
+ *        → HTML response (any status) → replace target.
+ *        → Non-HTML response OR network failure → fall back to
+ *          native submit (mirrors A19-R/A20-R behaviour).
+ *      Distinct from the A19-R/A20-R ``data-enhance="fetch"``
+ *      branch: the status branch POSTs ``application/json`` to
+ *      a fixed system route, never the form's own ``action``.
+ *
  * The ``has-js`` class is added to ``<html>`` on script load so
  * stylesheets can opt into JS-only states (e.g., progressively
  * disclosed UIs) without ever blocking the no-JS path.
@@ -168,6 +179,39 @@ function _bindDelegatedListeners(): void {
 
     event.preventDefault();
     void _submitFetchAndReplace(form, target);
+  });
+
+  // --- 3b. Status-surface submit (Card A23-R) ---
+  //
+  // Distinct from the A19-R/A20-R ``data-enhance="fetch"``
+  // branch above. Forms tagged ``data-enhance="status"``
+  // serialise their fields to JSON and POST to the fixed
+  // ``/__status`` route (not the form's own ``action``). The
+  // server always returns an HTML fragment; the response goes
+  // into ``data-status-target``'s ``innerHTML``.
+  //
+  // Falls back to native submit on:
+  //   * Missing / unresolvable ``data-status-target``.
+  //   * Non-HTML response.
+  //   * Network failure.
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.getAttribute("data-enhance") !== "status") return;
+
+    const targetSelector = form.getAttribute("data-status-target");
+    if (!targetSelector) return;
+
+    let target: Element | null = null;
+    try {
+      target = document.querySelector(targetSelector);
+    } catch {
+      return;  // bad selector → let native submit proceed
+    }
+    if (!target) return;
+
+    event.preventDefault();
+    void _submitStatusJson(form, target);
   });
 
   // --- 4. Diagnostic toggle delegate (Card A21-R) ---
@@ -439,6 +483,64 @@ async function _submitFetchAndReplace(
     _fallBackToNativeSubmit(form);
   }
 }
+
+
+/**
+ * Card A23-R helper. Serialise the form's fields into a JSON
+ * object and POST to ``/__status``. On HTML response, replace
+ * ``target.innerHTML``. On non-HTML / network failure, fall
+ * back to native submit (same defensive policy as
+ * ``_submitFetchAndReplace``).
+ *
+ * Serialisation rules:
+ *   * Each input contributes one key/value pair: name → string
+ *     value.
+ *   * Duplicate keys (radio groups, multi-checkbox) collapse
+ *     to the LAST submitted value. The route's payload schema
+ *     only has two scalar fields (``kind``, ``message``), so
+ *     this is the expected shape; complex multi-value forms
+ *     should use ``data-enhance="fetch"`` instead.
+ *   * File inputs are not supported (they'd require multipart);
+ *     a file-bearing form falls back to native submit.
+ */
+async function _submitStatusJson(
+  form: HTMLFormElement,
+  target: Element,
+): Promise<void> {
+  const payload: Record<string, string> = {};
+  const data = new FormData(form);
+  for (const [key, value] of data.entries()) {
+    if (typeof value !== "string") {
+      _fallBackToNativeSubmit(form);
+      return;
+    }
+    payload[key] = value;
+  }
+
+  try {
+    const response = await fetch(_STATUS_URL, {
+      method:  "POST",
+      headers: { "content-type": "application/json" },
+      body:    JSON.stringify(payload),
+      credentials: "same-origin",
+    });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("text/html")) {
+      _fallBackToNativeSubmit(form);
+      return;
+    }
+    const html = await response.text();
+    target.innerHTML = html;
+  } catch {
+    _fallBackToNativeSubmit(form);
+  }
+}
+
+
+/** URL of the server-level status route. Held as a module
+ *  constant so the POST target matches the server's
+ *  ``STATUS_PATH`` constant exactly. */
+const _STATUS_URL = "/__status";
 
 
 function _fallBackToNativeSubmit(form: HTMLFormElement): void {

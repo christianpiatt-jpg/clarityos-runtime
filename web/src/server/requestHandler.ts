@@ -56,6 +56,10 @@ import {
   STREAM_PATH,
   handleStream,
 } from "./routes/stream";
+import {
+  STATUS_PATH,
+  handleStatus,
+} from "./routes/status";
 
 
 /** Compile-time guard so we can reuse the constant in narrow
@@ -138,6 +142,20 @@ export function createRequestHandler(): (
         const streamReq = buildSurfaceRequest(req, streamBody);
         const streamRes = await handleStream(streamReq);
         writeSurfaceResponse(res, streamRes);
+        return;
+      }
+
+      // Card A23-R: unified status surface interceptor. POST-
+      // only, accepts {kind, message} JSON, always returns an
+      // HTML fragment (success/warning/failure). Same
+      // interception position as the diagnostics + stream
+      // routes — operator surfaces must respond regardless of
+      // view-registry state.
+      if (path === STATUS_PATH) {
+        const statusBody = await readRequestBody(req);
+        const statusReq = buildSurfaceRequest(req, statusBody);
+        const statusRes = await handleStatus(statusReq);
+        writeSurfaceResponse(res, statusRes);
         return;
       }
 
