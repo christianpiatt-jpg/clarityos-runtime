@@ -1,0 +1,28 @@
+# ClarityOS Web Surface v0.2.0 — Docker build context filter.
+#
+# The Dockerfile builds from the repo root, but only ``web/``
+# matters for this image. This file slims the context that
+# gets uploaded to the daemon.
+#
+# Items here are still readable by COPY directives that
+# explicitly reference them — .dockerignore filters the
+# context, not COPY targets.
+
+# Build artefacts
+node_modules
+dist
+dist-embed
+*.tsbuildinfo
+
+# Test scaffolding (the runtime never imports __tests__)
+**/__tests__/
+
+# Dev tooling
+.vite-smoketest.log
+vite-web.log
+
+# OS / IDE noise
+.DS_Store
+Thumbs.db
+.vscode
+.idea
