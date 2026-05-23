@@ -56,6 +56,19 @@
  *          no-op (no native fallback — the diagnostics route is
  *          read-only, so there is no "submit" to fall back to).
  *
+ *   5. Streaming task (Card A22-R).
+ *      ``<button data-stream-start data-stream-target="#panel">``
+ *        with ``#panel`` containing ``[data-stream-log]`` and
+ *        ``[data-stream-status]`` children.
+ *        → click opens ``new EventSource("/__stream")``.
+ *        → ``log`` events append a line to the ``<pre>``.
+ *        → ``status`` events replace the ``<div>`` text.
+ *        → ``done`` / ``error`` events close the source.
+ *        → A per-trigger ``data-stream-active`` marker prevents
+ *          opening a second connection while one is active;
+ *          the marker is cleared on close so the user can
+ *          re-run the task.
+ *
  * The ``has-js`` class is added to ``<html>`` on script load so
  * stylesheets can opt into JS-only states (e.g., progressively
  * disclosed UIs) without ever blocking the no-JS path.
@@ -198,13 +211,142 @@ function _bindDelegatedListeners(): void {
     void _fetchDiagnosticFragment(target);
   });
 
-  // --- 5. SSE wiring: schedule the FIRST scan ---
+  // --- 5. Streaming task delegate (Card A22-R) ---
+  //
+  // Sits alongside the toggle / form / diagnostic delegates:
+  // a single document-level click handler walks ``closest`` to
+  // find a trigger carrying ``data-stream-start``. The
+  // streaming route is fixed at ``/__stream`` (see
+  // ``web/src/server/routes/stream.ts``); the trigger only
+  // needs to name the panel target via ``data-stream-target``.
+  //
+  // Per-trigger idempotency: once a session is active, the
+  // trigger gets ``data-stream-active="1"``. Re-clicking is a
+  // no-op until the session closes (cleared on ``done`` /
+  // ``error``). This mirrors the SSE-container active marker
+  // already used by ``_wireSseContainers``.
+  document.addEventListener("click", (event) => {
+    const node = event.target;
+    if (!(node instanceof Element)) return;
+    const trigger = node.closest("[data-stream-start]");
+    if (!(trigger instanceof Element)) return;
+
+    // Already running → silent no-op until ``done``/``error``
+    // clears the marker.
+    if (trigger.hasAttribute(_STREAM_ACTIVE_ATTR)) return;
+
+    const selector = trigger.getAttribute("data-stream-target");
+    if (!selector) return;
+
+    let panel: Element | null = null;
+    try {
+      panel = document.querySelector(selector);
+    } catch {
+      return;  // bad selector
+    }
+    if (!panel) return;
+
+    event.preventDefault();
+    _startStreamSession(trigger, panel);
+  });
+
+  // --- 6. SSE wiring: schedule the FIRST scan ---
   // The post-load rescan (every module re-eval) is at the
   // bottom of this file; this branch handles the initial
   // DOMContentLoaded firing exactly once per document lifetime.
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", _wireSseContainers);
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// Card A22-R — streaming-task wiring helpers
+// ---------------------------------------------------------------------------
+
+/** URL of the server-level streaming route. Held as a module
+ *  constant so the EventSource target matches the server's
+ *  ``STREAM_PATH`` constant exactly. */
+const _STREAM_URL = "/__stream";
+
+/** Per-trigger marker preventing duplicate concurrent sessions.
+ *  Cleared when the stream closes (done/error). */
+const _STREAM_ACTIVE_ATTR = "data-stream-active";
+
+
+/**
+ * Open an ``EventSource`` to ``/__stream`` and route incoming
+ * events into the panel's log + status children. Card A22-R.
+ *
+ * Defensive guarantees:
+ *   * If ``EventSource`` is unavailable (jsdom, etc.) the
+ *     function is a silent no-op.
+ *   * If the constructor throws (malformed URL, CSP block) the
+ *     active marker is never set so the trigger remains
+ *     re-clickable.
+ *   * ``log`` events that arrive with malformed JSON are
+ *     silently dropped — partial corruption never disturbs the
+ *     panel's existing content.
+ */
+function _startStreamSession(trigger: Element, panel: Element): void {
+  if (typeof EventSource === "undefined") return;
+
+  const logEl    = panel.querySelector("[data-stream-log]");
+  const statusEl = panel.querySelector("[data-stream-status]");
+
+  let source: EventSource;
+  try {
+    source = new EventSource(_STREAM_URL);
+  } catch {
+    return;
+  }
+  trigger.setAttribute(_STREAM_ACTIVE_ATTR, "1");
+
+  const closeSession = (): void => {
+    try { source.close(); } catch { /* noop */ }
+    trigger.removeAttribute(_STREAM_ACTIVE_ATTR);
+  };
+
+  source.addEventListener("log", (msg: MessageEvent) => {
+    if (!logEl) return;
+    const message = _extractStreamMessage(msg.data);
+    if (message === null) return;
+    // Append (don't replace) — the log is a running transcript.
+    logEl.textContent = (logEl.textContent ?? "") + message + "\n";
+  });
+
+  source.addEventListener("status", (msg: MessageEvent) => {
+    if (!statusEl) return;
+    const message = _extractStreamMessage(msg.data);
+    if (message === null) return;
+    // Replace (don't append) — the status reflects the current
+    // phase, not the history of phases.
+    statusEl.textContent = message;
+  });
+
+  source.addEventListener("done",  closeSession);
+  source.addEventListener("error", closeSession);
+}
+
+
+/** Pull the ``message`` field out of an SSE ``data`` payload.
+ *  Returns ``null`` for malformed JSON or for payloads where
+ *  ``message`` isn't a string. Defensive: never throws. */
+function _extractStreamMessage(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      typeof (parsed as { message?: unknown }).message === "string"
+    ) {
+      return (parsed as { message: string }).message;
+    }
+  } catch {
+    // Malformed JSON — silent drop.
+  }
+  return null;
 }
 
 

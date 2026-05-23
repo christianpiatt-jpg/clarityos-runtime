@@ -52,6 +52,10 @@ import {
   DIAGNOSTICS_PATH,
   handleDiagnostics,
 } from "./routes/diagnostics";
+import {
+  STREAM_PATH,
+  handleStream,
+} from "./routes/stream";
 
 
 /** Compile-time guard so we can reuse the constant in narrow
@@ -119,6 +123,21 @@ export function createRequestHandler(): (
         const diagReq = buildSurfaceRequest(req, diagBody);
         const diagRes = await handleDiagnostics(diagReq);
         writeSurfaceResponse(res, diagRes);
+        return;
+      }
+
+      // Card A22-R: streaming interceptor. Same interception
+      // shape as the diagnostics route — matched BEFORE the
+      // surface router so a broken view registry can't disable
+      // operator-facing long-running-task feedback. The route
+      // returns an SSE-shaped Response (a single buffered body
+      // with ``text/event-stream`` content-type) that the
+      // browser's ``EventSource`` can consume directly.
+      if (path === STREAM_PATH) {
+        const streamBody = await readRequestBody(req);
+        const streamReq = buildSurfaceRequest(req, streamBody);
+        const streamRes = await handleStream(streamReq);
+        writeSurfaceResponse(res, streamRes);
         return;
       }
 

@@ -66,9 +66,73 @@
       event.preventDefault();
       void _fetchDiagnosticFragment(target);
     });
+    document.addEventListener("click", (event) => {
+      const node = event.target;
+      if (!(node instanceof Element)) return;
+      const trigger = node.closest("[data-stream-start]");
+      if (!(trigger instanceof Element)) return;
+      if (trigger.hasAttribute(_STREAM_ACTIVE_ATTR)) return;
+      const selector = trigger.getAttribute("data-stream-target");
+      if (!selector) return;
+      let panel = null;
+      try {
+        panel = document.querySelector(selector);
+      } catch {
+        return;
+      }
+      if (!panel) return;
+      event.preventDefault();
+      _startStreamSession(trigger, panel);
+    });
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", _wireSseContainers);
     }
+  }
+  const _STREAM_URL = "/__stream";
+  const _STREAM_ACTIVE_ATTR = "data-stream-active";
+  function _startStreamSession(trigger, panel) {
+    if (typeof EventSource === "undefined") return;
+    const logEl = panel.querySelector("[data-stream-log]");
+    const statusEl = panel.querySelector("[data-stream-status]");
+    let source;
+    try {
+      source = new EventSource(_STREAM_URL);
+    } catch {
+      return;
+    }
+    trigger.setAttribute(_STREAM_ACTIVE_ATTR, "1");
+    const closeSession = () => {
+      try {
+        source.close();
+      } catch {
+      }
+      trigger.removeAttribute(_STREAM_ACTIVE_ATTR);
+    };
+    source.addEventListener("log", (msg) => {
+      if (!logEl) return;
+      const message = _extractStreamMessage(msg.data);
+      if (message === null) return;
+      logEl.textContent = (logEl.textContent ?? "") + message + "\n";
+    });
+    source.addEventListener("status", (msg) => {
+      if (!statusEl) return;
+      const message = _extractStreamMessage(msg.data);
+      if (message === null) return;
+      statusEl.textContent = message;
+    });
+    source.addEventListener("done", closeSession);
+    source.addEventListener("error", closeSession);
+  }
+  function _extractStreamMessage(raw) {
+    if (typeof raw !== "string") return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed !== null && typeof parsed === "object" && typeof parsed.message === "string") {
+        return parsed.message;
+      }
+    } catch {
+    }
+    return null;
   }
   async function _fetchDiagnosticFragment(target) {
     try {
