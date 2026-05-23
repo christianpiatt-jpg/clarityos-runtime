@@ -100,6 +100,24 @@
       event.preventDefault();
       _startStreamSession(trigger, panel);
     });
+    document.addEventListener("click", (event) => {
+      const node = event.target;
+      if (!(node instanceof Element)) return;
+      const trigger = node.closest("[data-loading-trigger]");
+      if (!(trigger instanceof Element)) return;
+      const selector = trigger.getAttribute("data-loading-target");
+      if (!selector) return;
+      let target = null;
+      try {
+        target = document.querySelector(selector);
+      } catch {
+        return;
+      }
+      if (!target) return;
+      event.preventDefault();
+      const message = trigger.getAttribute("data-loading-message");
+      void _fetchLoadingFragment(target, message);
+    });
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", _wireSseContainers);
     }
@@ -166,6 +184,25 @@
     }
   }
   const _DIAGNOSTICS_URL = "/__diagnostics";
+  const _LOADING_URL = "/__loading";
+  async function _fetchLoadingFragment(target, message) {
+    const body = message && message.length > 0 ? { message } : {};
+    try {
+      const response = await fetch(_LOADING_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+        credentials: "same-origin"
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("text/html")) {
+        return;
+      }
+      const html = await response.text();
+      target.innerHTML = html;
+    } catch {
+    }
+  }
   async function _submitFetchAndReplace(form, target) {
     const params = new URLSearchParams();
     const data = new FormData(form);

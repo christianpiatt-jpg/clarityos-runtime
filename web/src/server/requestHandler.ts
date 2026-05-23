@@ -60,6 +60,10 @@ import {
   STATUS_PATH,
   handleStatus,
 } from "./routes/status";
+import {
+  LOADING_PATH,
+  handleLoading,
+} from "./routes/loading";
 
 
 /** Compile-time guard so we can reuse the constant in narrow
@@ -156,6 +160,21 @@ export function createRequestHandler(): (
         const statusReq = buildSurfaceRequest(req, statusBody);
         const statusRes = await handleStatus(statusReq);
         writeSurfaceResponse(res, statusRes);
+        return;
+      }
+
+      // Card A24-R: loading surface interceptor. POST with
+      // optional {message} JSON; always returns 200 + a
+      // loading-fragment HTML response. Lenient body parsing
+      // (missing / malformed body degrades to default
+      // message) so the surface is hard to break — operators
+      // showing a spinner shouldn't have to worry about
+      // request shape.
+      if (path === LOADING_PATH) {
+        const loadingBody = await readRequestBody(req);
+        const loadingReq = buildSurfaceRequest(req, loadingBody);
+        const loadingRes = await handleLoading(loadingReq);
+        writeSurfaceResponse(res, loadingRes);
         return;
       }
 

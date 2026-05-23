@@ -80,6 +80,19 @@
  *      branch: the status branch POSTs ``application/json`` to
  *      a fixed system route, never the form's own ``action``.
  *
+ *   7. Loading surface trigger (Card A24-R).
+ *      ``<button data-loading-trigger
+ *                data-loading-target="#panel"
+ *                data-loading-message="Working…">``
+ *        → click POSTs to ``/__loading`` with an
+ *          ``application/json`` body of
+ *          ``{message: "<data-loading-message>"}`` (or ``{}``
+ *          when the attribute is missing).
+ *        → HTML response → replace target.
+ *        → Non-HTML response OR network failure → silent
+ *          no-op (no native fallback — the trigger is a
+ *          click, not a submit).
+ *
  * The ``has-js`` class is added to ``<html>`` on script load so
  * stylesheets can opt into JS-only states (e.g., progressively
  * disclosed UIs) without ever blocking the no-JS path.
@@ -294,6 +307,51 @@ function _bindDelegatedListeners(): void {
     _startStreamSession(trigger, panel);
   });
 
+  // --- 5b. Loading surface trigger (Card A24-R) ---
+  //
+  // Sits alongside the toggle / diagnostic / stream delegates:
+  // a single document-level click handler walks ``closest`` to
+  // find a trigger carrying ``data-loading-trigger``. The
+  // loading route is fixed at ``/__loading`` (see
+  // ``web/src/server/routes/loading.ts``); the trigger names
+  // the swap target via ``data-loading-target`` and
+  // (optionally) the message via ``data-loading-message``.
+  //
+  // Behaviour:
+  //   * HTML response → replace target.innerHTML.
+  //   * Non-HTML response → silent no-op.
+  //   * Network failure → silent no-op.
+  //
+  // There is no native fallback because ``/__loading`` is a
+  // click-driven indicator — there's no form submission to
+  // defer to. With JS off, the trigger element simply does
+  // nothing; the server's base page is unaffected.
+  document.addEventListener("click", (event) => {
+    const node = event.target;
+    if (!(node instanceof Element)) return;
+    const trigger = node.closest("[data-loading-trigger]");
+    if (!(trigger instanceof Element)) return;
+
+    const selector = trigger.getAttribute("data-loading-target");
+    if (!selector) return;
+
+    let target: Element | null = null;
+    try {
+      target = document.querySelector(selector);
+    } catch {
+      // Bad selector — silently no-op (defensive).
+      return;
+    }
+    if (!target) return;
+
+    event.preventDefault();
+    // Forward the optional ``data-loading-message`` attribute
+    // verbatim. The route's renderer falls back to the default
+    // "Loading…" copy when the attribute is missing or empty.
+    const message = trigger.getAttribute("data-loading-message");
+    void _fetchLoadingFragment(target, message);
+  });
+
   // --- 6. SSE wiring: schedule the FIRST scan ---
   // The post-load rescan (every module re-eval) is at the
   // bottom of this file; this branch handles the initial
@@ -431,6 +489,53 @@ async function _fetchDiagnosticFragment(target: Element): Promise<void> {
  *  module constant so the fetch target matches the server's
  *  ``DIAGNOSTICS_PATH`` constant exactly. */
 const _DIAGNOSTICS_URL = "/__diagnostics";
+
+
+/** URL of the server-level loading interceptor. Held as a
+ *  module constant so the POST target matches the server's
+ *  ``LOADING_PATH`` constant exactly. */
+const _LOADING_URL = "/__loading";
+
+
+/**
+ * POST to ``/__loading`` and swap the response into ``target``.
+ * Card A24-R helper.
+ *
+ * Body shape:
+ *   * ``message`` present and non-empty → ``{message: "..."}``.
+ *   * ``message`` missing / empty → ``{}`` (server falls back
+ *     to the default "Loading…" copy).
+ *
+ * Content-type branching mirrors the A21-R diagnostic +
+ * A23-R status paths: HTML → replace; non-HTML or network
+ * failure → silent no-op.
+ */
+async function _fetchLoadingFragment(
+  target: Element,
+  message: string | null,
+): Promise<void> {
+  const body: Record<string, string> =
+    message && message.length > 0 ? { message } : {};
+  try {
+    const response = await fetch(_LOADING_URL, {
+      method:      "POST",
+      headers:     { "content-type": "application/json" },
+      body:        JSON.stringify(body),
+      credentials: "same-origin",
+    });
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("text/html")) {
+      // Non-HTML response → silent no-op. Mirrors the A21-R
+      // diagnostic path; the loading route is fire-and-forget,
+      // so there's nothing to fall back to.
+      return;
+    }
+    const html = await response.text();
+    target.innerHTML = html;
+  } catch {
+    // Network failure → silent no-op.
+  }
+}
 
 
 async function _submitFetchAndReplace(
