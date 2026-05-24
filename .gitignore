@@ -122,3 +122,5 @@ gcr-image-cache/
 # Anything an operator explicitly stashes under a local/ directory.
 local/
 scratch/
+.claude/settings.local.json
+scripts/cleanup_claude_settings.sh
