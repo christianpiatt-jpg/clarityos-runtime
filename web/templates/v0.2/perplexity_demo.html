@@ -1,0 +1,23 @@
+<h1>{{ title }}</h1>
+
+<p>
+  Submit a query below. With JS enabled, the A19-R/A20-R/A30-R
+  enhancement layer intercepts the submit, POSTs the query to
+  <code>/__perplexity</code>, and swaps the server-rendered
+  answer fragment into the target panel without a page reload.
+  With JS disabled, the form falls back to a native POST to
+  this same view's URL.
+</p>
+
+<form method="POST"
+      action="/web-surface/v0.2/perplexity_demo"
+      data-perplexity-query
+      data-perplexity-target="#perplexity-result">
+  <label>
+    Query:
+    <input type="text" name="query" value="" required>
+  </label>
+  <button type="submit">Ask Perplexity</button>
+</form>
+
+<div id="perplexity-result" class="perplexity-result-panel"></div>
