@@ -37,12 +37,19 @@ def client(monkeypatch):
     app.include_router(rh_mod.providers_router)
 
     # Clean env so each test sets exactly the keys it cares about.
+    # New (fork β.3) reachability-based providers added below so the
+    # urllib path inside _check_provider_reachability bails out at the
+    # "no api key configured" guard and never hits the real network.
     for k in (
         "CLARITYOS_ANTHROPIC_KEY",
         "CLARITYOS_OPENAI_KEY",
         "CLARITYOS_GEMINI_KEY",
         "CLARITYOS_XAI_KEY",
         "CLARITYOS_LOCAL_MODEL_PATH",
+        # Reachability-checked providers (fork β.3):
+        "CLARITYOS_PERPLEXITY_API_KEY",
+        "CLARITYOS_MISTRAL_API_KEY",
+        "CLARITYOS_DEEPSEEK_API_KEY",
     ):
         monkeypatch.delenv(k, raising=False)
 
@@ -78,7 +85,12 @@ class TestNoKeys:
         body = r.json()
         assert body["mock"]["available"] is True
         assert body["mock"]["error"] is None
+        # Inference-checked providers (existing).
         for provider in ("anthropic", "openai", "gemini"):
+            assert body[provider]["available"] is False
+            assert "no api key" in body[provider]["error"]
+        # Reachability-checked providers (fork β.3).
+        for provider in ("xai", "perplexity", "mistral", "deepseek"):
             assert body[provider]["available"] is False
             assert "no api key" in body[provider]["error"]
 
@@ -179,9 +191,15 @@ class TestStubbedFailure:
 # F. Response shape locked
 # ===========================================================================
 class TestResponseShape:
-    def test_keys_are_exactly_four_providers(self, client):
+    def test_keys_are_exactly_the_supported_providers(self, client):
         r = client.get("/runtime/providers/health", headers=_auth()).json()
-        assert set(r.keys()) == {"anthropic", "openai", "gemini", "mock"}
+        # Fork β.3 — keys now include the 4 reachability-checked
+        # providers alongside the 3 inference-checked ones plus mock.
+        assert set(r.keys()) == {
+            "anthropic", "openai", "gemini",          # inference-path
+            "xai", "perplexity", "mistral", "deepseek",  # reachability
+            "mock",                                    # always-available
+        }
 
     def test_each_provider_carries_locked_inner_keys(self, client):
         r = client.get("/runtime/providers/health", headers=_auth()).json()
