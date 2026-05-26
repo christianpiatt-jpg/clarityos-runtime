@@ -215,12 +215,24 @@ class TestResponseShape:
 
     def test_each_provider_carries_locked_inner_keys(self, client):
         r = client.get("/runtime/providers/health", headers=_auth()).json()
+        # Enhanced-diagnostics patch — ``available`` and ``error`` are
+        # required on every entry; ``body`` is an optional third key
+        # added only when the failure was an ``urllib.error.HTTPError``
+        # so the upstream's response body can be surfaced verbatim.
+        allowed = {"available", "error", "body"}
+        required = {"available", "error"}
         for provider, entry in r.items():
-            assert set(entry.keys()) == {"available", "error"}, (
-                f"{provider!r} entry keys: {set(entry.keys())}"
+            keys = set(entry.keys())
+            assert required.issubset(keys), (
+                f"{provider!r} missing required keys; got {keys}"
+            )
+            assert keys.issubset(allowed), (
+                f"{provider!r} has unexpected keys; got {keys}"
             )
             assert isinstance(entry["available"], bool)
             assert entry["error"] is None or isinstance(entry["error"], str)
+            if "body" in entry:
+                assert entry["body"] is None or isinstance(entry["body"], str)
 
     def test_mock_is_always_available(self, client):
         r = client.get("/runtime/providers/health", headers=_auth()).json()

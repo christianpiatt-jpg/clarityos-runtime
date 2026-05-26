@@ -63,6 +63,7 @@ Errors:
 from __future__ import annotations
 
 import time
+import urllib.error
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -739,6 +740,24 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
             else:
                 return {"available": False, "error": f"unknown provider {provider!r}"}
         return {"available": True, "error": None}
+    except urllib.error.HTTPError as e:  # pragma: no cover (real-network path)
+        # Enhanced-diagnostics patch — surface the upstream response body
+        # alongside the HTTP status so callers can tell apart
+        # model_not_found / permission_denied / quota_exhausted / etc.
+        # without guessing. Body is bounded so a verbose HTML error page
+        # can't blow up the response.
+        try:
+            raw = e.read()
+            body = raw.decode("utf-8", errors="replace") if raw else None
+            if body and len(body) > 2000:
+                body = body[:2000] + "...[truncated]"
+        except Exception:
+            body = None
+        return {
+            "available": False,
+            "error": f"HTTP {e.code}: {e.reason}",
+            "body": body,
+        }
     except Exception as e:  # pragma: no cover (real-network path)
         return {"available": False, "error": str(e)}
 
