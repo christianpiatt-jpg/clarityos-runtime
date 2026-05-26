@@ -609,13 +609,13 @@ def _http_post_json(url: str, *, headers: dict, body: dict) -> dict:
 # Same pattern for xAI where the registry's `xai:groq-llama` is a
 # legacy / mock-era name; the real Grok deployment is `grok-2-latest`.
 _ANTHROPIC_WIRE_OVERRIDES: dict[str, str] = {
-    "claude-3.7": "claude-3-5-sonnet-20241022",
+    "claude-3.7": "claude-sonnet-4-6",
 }
 _XAI_WIRE_OVERRIDES: dict[str, str] = {
-    "groq-llama": "grok-2-1212",
+    "groq-llama": "grok-3",
 }
 _GEMINI_WIRE_OVERRIDES: dict[str, str] = {
-    "gemini-2.0-flash": "gemini-2.0-flash-001",
+    "gemini-2.0-flash": "gemini-2.5-flash",
 }
 
 

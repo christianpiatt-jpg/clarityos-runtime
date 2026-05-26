@@ -671,7 +671,7 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                         "Content-Type": "application/json",
                     },
                     body={
-                        "model": "claude-3-5-sonnet-20241022",
+                        "model": "claude-sonnet-4-6",
                         "max_tokens": 1,
                         "messages": [{"role": "user", "content": "?"}],
                     },
@@ -691,7 +691,7 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                 )
             elif provider == "gemini":
                 _mr._http_post_json(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key={key}",
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}",
                     headers={"Content-Type": "application/json"},
                     body={
                         "contents": [{"parts": [{"text": "?"}]}],
@@ -706,7 +706,7 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                         "Content-Type": "application/json",
                     },
                     body={
-                        "model": "grok-2-1212",
+                        "model": "grok-3",
                         "messages": [{"role": "user", "content": "?"}],
                         "max_tokens": 1,
                     },
