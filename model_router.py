@@ -609,10 +609,13 @@ def _http_post_json(url: str, *, headers: dict, body: dict) -> dict:
 # Same pattern for xAI where the registry's `xai:groq-llama` is a
 # legacy / mock-era name; the real Grok deployment is `grok-2-latest`.
 _ANTHROPIC_WIRE_OVERRIDES: dict[str, str] = {
-    "claude-3.7": "claude-3-7-sonnet-latest",
+    "claude-3.7": "claude-3-5-sonnet-20241022",
 }
 _XAI_WIRE_OVERRIDES: dict[str, str] = {
-    "groq-llama": "grok-2-latest",
+    "groq-llama": "grok-2-1212",
+}
+_GEMINI_WIRE_OVERRIDES: dict[str, str] = {
+    "gemini-2.0-flash": "gemini-2.0-flash-001",
 }
 
 
@@ -702,6 +705,8 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     key = _provider_key("gemini")
     # model_id is "google:gemini-2.0-flash"; strip prefix for wire.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    # Provider-repair patch — friendly→deployable wire-model override.
+    wire_model = _GEMINI_WIRE_OVERRIDES.get(wire_model, wire_model)
     try:
         body = {
             "contents": [{"parts": [{"text": prompt}]}],
