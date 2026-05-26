@@ -37,19 +37,29 @@ def client(monkeypatch):
     app.include_router(rh_mod.providers_router)
 
     # Clean env so each test sets exactly the keys it cares about.
-    # New (fork β.3) reachability-based providers added below so the
-    # urllib path inside _check_provider_reachability bails out at the
-    # "no api key configured" guard and never hits the real network.
+    # Provider-repair patch — _PROVIDER_ENV_KEYS now accepts BOTH the
+    # legacy CLARITYOS_*-namespaced name AND the bare canonical name
+    # mounted on clarity-engine, so the fixture must clear both
+    # variants for every provider. mistral/deepseek were added as new
+    # router providers; xai is now inference-checked alongside
+    # anthropic/openai/gemini (the β.3 reachability split collapsed
+    # back into a single inference-path semantic).
     for k in (
+        # Legacy CLARITYOS_*-namespaced names.
         "CLARITYOS_ANTHROPIC_KEY",
         "CLARITYOS_OPENAI_KEY",
         "CLARITYOS_GEMINI_KEY",
         "CLARITYOS_XAI_KEY",
         "CLARITYOS_LOCAL_MODEL_PATH",
-        # Reachability-checked providers (fork β.3):
-        "CLARITYOS_PERPLEXITY_API_KEY",
-        "CLARITYOS_MISTRAL_API_KEY",
-        "CLARITYOS_DEEPSEEK_API_KEY",
+        "CLARITYOS_MISTRAL_KEY",
+        "CLARITYOS_DEEPSEEK_KEY",
+        # Bare canonical names (Cloud Run secret mounts).
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "XAI_API_KEY",
+        "MISTRAL_API_KEY",
+        "DEEPSEEK_API_KEY",
     ):
         monkeypatch.delenv(k, raising=False)
 
@@ -85,12 +95,11 @@ class TestNoKeys:
         body = r.json()
         assert body["mock"]["available"] is True
         assert body["mock"]["error"] is None
-        # Inference-checked providers (existing).
-        for provider in ("anthropic", "openai", "gemini"):
-            assert body[provider]["available"] is False
-            assert "no api key" in body[provider]["error"]
-        # Reachability-checked providers (fork β.3).
-        for provider in ("xai", "perplexity", "mistral", "deepseek"):
+        # All 6 real router providers — every one should report
+        # "no api key" when no env var is set under any of its
+        # registered names (CLARITYOS_* + bare canonical).
+        for provider in ("anthropic", "openai", "gemini",
+                         "xai", "mistral", "deepseek"):
             assert body[provider]["available"] is False
             assert "no api key" in body[provider]["error"]
 
@@ -193,12 +202,15 @@ class TestStubbedFailure:
 class TestResponseShape:
     def test_keys_are_exactly_the_supported_providers(self, client):
         r = client.get("/runtime/providers/health", headers=_auth()).json()
-        # Fork β.3 — keys now include the 4 reachability-checked
-        # providers alongside the 3 inference-checked ones plus mock.
+        # Provider-repair patch — all 6 real router providers are now
+        # inference-checked through the same _check_provider_health
+        # helper. perplexity is intentionally NOT in the response
+        # because it lives in perplexity_oracle.py and is not (yet)
+        # wired into model_router._PROVIDER_HANDLERS.
         assert set(r.keys()) == {
-            "anthropic", "openai", "gemini",          # inference-path
-            "xai", "perplexity", "mistral", "deepseek",  # reachability
-            "mock",                                    # always-available
+            "anthropic", "openai", "gemini",
+            "xai", "mistral", "deepseek",
+            "mock",
         }
 
     def test_each_provider_carries_locked_inner_keys(self, client):

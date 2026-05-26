@@ -75,6 +75,12 @@ MODEL_REGISTRY: dict[str, tuple[str, ...]] = {
     "google":    ("google:gemini-2.0-flash",),
     "xai":       ("xai:groq-llama",),
     "local":     ("local:llama3.1",),
+    # Provider-repair patch — added so mistral/deepseek model_ids
+    # validate through is_valid_model() and route through the new
+    # handlers below. Wire models are the concrete deployment names
+    # each provider's HTTP API accepts as-is (no override needed).
+    "mistral":   ("mistral:mistral-large-latest",),
+    "deepseek":  ("deepseek:deepseek-chat",),
 }
 
 # Derived flat tuple. ``auto`` is appended once (routing sentinel, not
@@ -96,6 +102,8 @@ PROVIDER_PREFIXES: tuple = (
     ("google:",    "gemini"),
     ("xai:",       "xai"),
     ("local:",     "local"),
+    ("mistral:",   "mistral"),
+    ("deepseek:",  "deepseek"),
 )
 
 # Task → default model. OpenAI keys are wired, so the reasoning + thread
@@ -137,11 +145,22 @@ TASK_DEFAULTS: dict[str, str] = {
 # "configured". local provider keys on a path; everything else uses an
 # API-key style.
 _PROVIDER_ENV_KEYS: dict[str, tuple[str, ...]] = {
-    "openai":    ("CLARITYOS_OPENAI_KEY",),
-    "anthropic": ("CLARITYOS_ANTHROPIC_KEY",),
-    "gemini":    ("CLARITYOS_GEMINI_KEY",),
-    "xai":       ("CLARITYOS_XAI_KEY",),
+    # Provider-repair patch — each tuple now lists both the
+    # CLARITYOS_*-namespaced env name (legacy / preferred for
+    # local-only deploys) AND the bare canonical name actually
+    # mounted on the clarity-engine Cloud Run service (e.g.
+    # ANTHROPIC_API_KEY mapped from secret ANTHROPIC_API_KEY).
+    # ``_provider_configured`` / ``_provider_key`` iterate the
+    # tuple and return True / the value of the first non-empty
+    # match, so adding the bare names is purely additive —
+    # existing CLARITYOS_*-only deploys keep working unchanged.
+    "openai":    ("CLARITYOS_OPENAI_KEY",    "OPENAI_API_KEY"),
+    "anthropic": ("CLARITYOS_ANTHROPIC_KEY", "ANTHROPIC_API_KEY"),
+    "gemini":    ("CLARITYOS_GEMINI_KEY",    "GEMINI_API_KEY"),
+    "xai":       ("CLARITYOS_XAI_KEY",       "XAI_API_KEY"),
     "local":     ("CLARITYOS_LOCAL_MODEL_PATH",),
+    "mistral":   ("CLARITYOS_MISTRAL_KEY",   "MISTRAL_API_KEY"),
+    "deepseek":  ("CLARITYOS_DEEPSEEK_KEY",  "DEEPSEEK_API_KEY"),
 }
 
 # Founder global override.
@@ -240,6 +259,24 @@ def _provider_configured(provider: str) -> bool:
         if (os.environ.get(k) or "").strip():
             return True
     return False
+
+
+def _provider_key(provider: str) -> str:
+    """Return the first non-empty env value among the names registered
+    for ``provider`` in ``_PROVIDER_ENV_KEYS``. Empty string when none
+    is set. Mirrors the iteration order of ``_provider_configured`` so
+    health checks and call paths agree on which key counts as active.
+
+    Provider-repair patch — call paths now route every env read
+    through this helper so the bare-name secret mounts on
+    clarity-engine (e.g. ANTHROPIC_API_KEY) are consumed alongside
+    the legacy CLARITYOS_*-namespaced env names.
+    """
+    for name in _PROVIDER_ENV_KEYS.get(provider) or ():
+        val = (os.environ.get(name) or "").strip()
+        if val:
+            return val
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -562,11 +599,28 @@ def _http_post_json(url: str, *, headers: dict, body: dict) -> dict:
     return decoded
 
 
+# Wire-model overrides — bridges friendly MODEL_REGISTRY ids to the
+# concrete deployment names each provider's HTTP API actually accepts.
+# Empty entry / no match → wire model = model_id suffix as-is.
+#
+# Provider-repair patch — added so `anthropic:claude-3.7` (the
+# friendly MODEL_REGISTRY id used throughout TASK_DEFAULTS and aliases)
+# is rewritten to a real Anthropic deployment name on the wire.
+# Same pattern for xAI where the registry's `xai:groq-llama` is a
+# legacy / mock-era name; the real Grok deployment is `grok-2-latest`.
+_ANTHROPIC_WIRE_OVERRIDES: dict[str, str] = {
+    "claude-3.7": "claude-3-7-sonnet-latest",
+}
+_XAI_WIRE_OVERRIDES: dict[str, str] = {
+    "groq-llama": "grok-2-latest",
+}
+
+
 def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
     started = time.time()
     if not _provider_configured("openai"):
         return _mock_result(model_id, "openai", prompt, started)
-    key = (os.environ.get("CLARITYOS_OPENAI_KEY") or "").strip()
+    key = _provider_key("openai")
     # model_id is "openai:gpt-4o"; strip the prefix for the wire model.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
@@ -602,8 +656,10 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
     started = time.time()
     if not _provider_configured("anthropic"):
         return _mock_result(model_id, "anthropic", prompt, started)
-    key = (os.environ.get("CLARITYOS_ANTHROPIC_KEY") or "").strip()
+    key = _provider_key("anthropic")
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    # Provider-repair patch — friendly→deployable wire-model override.
+    wire_model = _ANTHROPIC_WIRE_OVERRIDES.get(wire_model, wire_model)
     try:
         body = {
             "model": wire_model,
@@ -643,7 +699,7 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     started = time.time()
     if not _provider_configured("gemini"):
         return _mock_result(model_id, "gemini", prompt, started)
-    key = (os.environ.get("CLARITYOS_GEMINI_KEY") or "").strip()
+    key = _provider_key("gemini")
     # model_id is "google:gemini-2.0-flash"; strip prefix for wire.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
@@ -678,12 +734,47 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
 
 
 def _call_xai(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
-    # xAI / Groq still mock — Christian's v65 spec only listed Anthropic
-    # + OpenAI + Gemini for the real-call wiring. xAI handler kept at
-    # mock so v44/v45 test expectations are preserved.
+    """Real xAI (Grok) connector — OpenAI-compatible chat-completions API.
+
+    Provider-repair patch — replaced the legacy mock-only stub. The
+    wire model is overridden via ``_XAI_WIRE_OVERRIDES`` so the
+    registry's friendly ``xai:groq-llama`` id maps to a real Grok
+    deployment name. Failures (timeout, auth, parse) fall back to
+    ``_mock_result`` with ``fallback_error`` set, matching the
+    OpenAI/Anthropic/Gemini patterns.
+    """
+    started = time.time()
     if not _provider_configured("xai"):
-        return _mock_result(model_id, "xai", prompt, time.time())
-    return _mock_result(model_id, "xai", prompt, time.time())
+        return _mock_result(model_id, "xai", prompt, started)
+    key = _provider_key("xai")
+    wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    wire_model = _XAI_WIRE_OVERRIDES.get(wire_model, wire_model)
+    try:
+        body = {
+            "model": wire_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        with _request_timeout(runtime_http_config.get_call_timeout("xai")):
+            out = _http_post_json(
+                "https://api.x.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type":  "application/json",
+                },
+                body=body,
+            )
+        text = out.get("choices", [{}])[0].get("message", {}).get("content")
+        if not isinstance(text, str):
+            raise ValueError("xai response missing choices[0].message.content")
+        return {
+            "ok": True, "model_id": model_id, "provider": "xai",
+            "text": text, "mock": False, "ts": started,
+        }
+    except Exception as e:  # pragma: no cover (real-network path)
+        logger.warning("xai call failed → mock; err=%s", e)
+        return _mock_result(model_id, "xai", prompt, started, error=str(e))
 
 
 def _call_local(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
@@ -790,12 +881,97 @@ def get_local_runtime_status() -> dict:
     return local_model_runtime.get_runtime_status()
 
 
+def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
+    """Real Mistral connector — OpenAI-compatible chat-completions API.
+
+    Provider-repair patch — new handler. Wire model comes from
+    ``MODEL_REGISTRY["mistral"]`` (currently ``mistral-large-latest``,
+    a real deployment name). Failures fall back to ``_mock_result``
+    with ``fallback_error`` set, matching the existing pattern.
+    """
+    started = time.time()
+    if not _provider_configured("mistral"):
+        return _mock_result(model_id, "mistral", prompt, started)
+    key = _provider_key("mistral")
+    wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    try:
+        body = {
+            "model": wire_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        with _request_timeout(runtime_http_config.get_call_timeout("mistral")):
+            out = _http_post_json(
+                "https://api.mistral.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type":  "application/json",
+                },
+                body=body,
+            )
+        text = out.get("choices", [{}])[0].get("message", {}).get("content")
+        if not isinstance(text, str):
+            raise ValueError("mistral response missing choices[0].message.content")
+        return {
+            "ok": True, "model_id": model_id, "provider": "mistral",
+            "text": text, "mock": False, "ts": started,
+        }
+    except Exception as e:  # pragma: no cover (real-network path)
+        logger.warning("mistral call failed → mock; err=%s", e)
+        return _mock_result(model_id, "mistral", prompt, started, error=str(e))
+
+
+def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
+    """Real DeepSeek connector — OpenAI-compatible chat-completions API.
+
+    Provider-repair patch — new handler. Wire model comes from
+    ``MODEL_REGISTRY["deepseek"]`` (currently ``deepseek-chat``).
+    Failures fall back to ``_mock_result`` with ``fallback_error``.
+    """
+    started = time.time()
+    if not _provider_configured("deepseek"):
+        return _mock_result(model_id, "deepseek", prompt, started)
+    key = _provider_key("deepseek")
+    wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    try:
+        body = {
+            "model": wire_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        with _request_timeout(runtime_http_config.get_call_timeout("deepseek")):
+            out = _http_post_json(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type":  "application/json",
+                },
+                body=body,
+            )
+        text = out.get("choices", [{}])[0].get("message", {}).get("content")
+        if not isinstance(text, str):
+            raise ValueError("deepseek response missing choices[0].message.content")
+        return {
+            "ok": True, "model_id": model_id, "provider": "deepseek",
+            "text": text, "mock": False, "ts": started,
+        }
+    except Exception as e:  # pragma: no cover (real-network path)
+        logger.warning("deepseek call failed → mock; err=%s", e)
+        return _mock_result(model_id, "deepseek", prompt, started, error=str(e))
+
+
 _PROVIDER_HANDLERS: dict[str, Any] = {
     "openai":    _call_openai,
     "anthropic": _call_anthropic,
     "gemini":    _call_gemini,
     "xai":       _call_xai,
     "local":     _call_local,
+    # Provider-repair patch — new handlers for the two providers
+    # added to MODEL_REGISTRY / _PROVIDER_ENV_KEYS above.
+    "mistral":   _call_mistral,
+    "deepseek":  _call_deepseek,
 }
 
 

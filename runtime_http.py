@@ -636,8 +636,18 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
     ``{"available": bool, "error": str | None}``.
 
     Returns ``available: False, error: "no api key configured"`` when
-    the env key is unset. Any other failure carries the exception
-    text.
+    no env key is set. Any other failure carries the exception text.
+
+    Provider-repair patch — extended to cover all 6 real router
+    providers (openai, anthropic, gemini, xai, mistral, deepseek)
+    using the same inference-path check pattern. Keys are read via
+    ``model_router._provider_key`` so the bare-name secret mounts
+    on clarity-engine (e.g. ANTHROPIC_API_KEY) are consumed
+    alongside the legacy CLARITYOS_*-namespaced names. Anthropic
+    wire model updated from the legacy placeholder
+    ``claude-3.7-sonnet-20250101`` to the real deployment alias
+    ``claude-3-7-sonnet-latest``. xAI wire model is the real Grok
+    alias ``grok-2-latest``.
     """
     import model_router as _mr
 
@@ -648,11 +658,10 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
     # registry. Override the call-path timeout transactionally via the
     # `_request_timeout` context manager that model_router exports.
     health_timeout = runtime_http_config.get_health_timeout(provider)
+    key = _mr._provider_key(provider)
     try:
         with _mr._request_timeout(health_timeout):
             if provider == "anthropic":
-                wire_model = "claude-3.7-sonnet-20250101"  # placeholder; provider validates
-                key = (os.environ.get("CLARITYOS_ANTHROPIC_KEY") or "").strip()
                 _mr._http_post_json(
                     "https://api.anthropic.com/v1/messages",
                     headers={
@@ -661,13 +670,12 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                         "Content-Type": "application/json",
                     },
                     body={
-                        "model": wire_model,
+                        "model": "claude-3-7-sonnet-latest",
                         "max_tokens": 1,
                         "messages": [{"role": "user", "content": "?"}],
                     },
                 )
             elif provider == "openai":
-                key = (os.environ.get("CLARITYOS_OPENAI_KEY") or "").strip()
                 _mr._http_post_json(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
@@ -681,7 +689,6 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                     },
                 )
             elif provider == "gemini":
-                key = (os.environ.get("CLARITYOS_GEMINI_KEY") or "").strip()
                 _mr._http_post_json(
                     f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}",
                     headers={"Content-Type": "application/json"},
@@ -690,91 +697,48 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                         "generationConfig": {"maxOutputTokens": 1},
                     },
                 )
+            elif provider == "xai":
+                _mr._http_post_json(
+                    "https://api.x.ai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {key}",
+                        "Content-Type": "application/json",
+                    },
+                    body={
+                        "model": "grok-2-latest",
+                        "messages": [{"role": "user", "content": "?"}],
+                        "max_tokens": 1,
+                    },
+                )
+            elif provider == "mistral":
+                _mr._http_post_json(
+                    "https://api.mistral.ai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {key}",
+                        "Content-Type": "application/json",
+                    },
+                    body={
+                        "model": "mistral-large-latest",
+                        "messages": [{"role": "user", "content": "?"}],
+                        "max_tokens": 1,
+                    },
+                )
+            elif provider == "deepseek":
+                _mr._http_post_json(
+                    "https://api.deepseek.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {key}",
+                        "Content-Type": "application/json",
+                    },
+                    body={
+                        "model": "deepseek-chat",
+                        "messages": [{"role": "user", "content": "?"}],
+                        "max_tokens": 1,
+                    },
+                )
             else:
                 return {"available": False, "error": f"unknown provider {provider!r}"}
         return {"available": True, "error": None}
-    except Exception as e:  # pragma: no cover (real-network path)
-        return {"available": False, "error": str(e)}
-
-
-# Need os in this scope. Already imported at module top via app.py
-# auth pattern, but re-import here defensively.
-import os  # noqa: E402
-
-
-# ---------------------------------------------------------------------------
-# v66+ (fork β.3) — Lightweight reachability check for providers that do
-# NOT have an inference path in ``model_router``. Used by
-# ``get_provider_health`` for {xai, perplexity, mistral, deepseek}.
-#
-# Semantic difference vs. ``_check_provider_health``:
-#   * ``_check_provider_health`` POSTs a 1-token completion to the
-#     provider's inference endpoint — verifies the full request path
-#     works (auth, model, billing, schema).
-#   * ``_check_provider_reachability`` GETs the provider's /models
-#     endpoint with bearer auth — verifies the API key + endpoint
-#     are reachable, but does NOT exercise inference. Cheaper, narrower.
-#
-# Both helpers return the SAME ``{available, error}`` shape so the
-# locked response contract in ``tests/test_provider_health.py`` stays
-# uniform across all entries.
-#
-# Env-var naming:
-#   * xai uses ``CLARITYOS_XAI_KEY`` to match ``model_router._PROVIDER_ENV_KEYS``.
-#   * perplexity / mistral / deepseek use the longer ``CLARITYOS_<NAME>_API_KEY``
-#     form to match the env naming already used at the ``clarityos-api-v0-2``
-#     deploy (CLARITYOS_PERPLEXITY_API_KEY). New deployments wanting to
-#     enable these checks must mount the corresponding secrets on the
-#     ``clarity-engine`` service.
-# ---------------------------------------------------------------------------
-_PROVIDER_REACHABILITY_TARGETS: dict[str, tuple[str, str]] = {
-    # provider → (env_var_name, /models endpoint URL)
-    "xai":        ("CLARITYOS_XAI_KEY",            "https://api.x.ai/v1/models"),
-    "perplexity": ("CLARITYOS_PERPLEXITY_API_KEY", "https://api.perplexity.ai/models"),
-    "mistral":    ("CLARITYOS_MISTRAL_API_KEY",    "https://api.mistral.ai/v1/models"),
-    "deepseek":   ("CLARITYOS_DEEPSEEK_API_KEY",   "https://api.deepseek.com/v1/models"),
-}
-
-
-def _check_provider_reachability(provider: str) -> dict[str, Any]:
-    """Reachability check for providers without an inference health path.
-
-    Issues a ``GET <models>`` with ``Authorization: Bearer <key>`` and
-    a per-provider timeout (defaults to 3.0s via
-    ``runtime_http_config.get_health_timeout``). Returns the same
-    ``{available, error}`` shape as ``_check_provider_health`` so the
-    response contract stays uniform.
-
-    Returns ``{"available": False, "error": "no api key configured"}``
-    when the env key is unset. Any other failure carries the
-    exception text.
-    """
-    cfg = _PROVIDER_REACHABILITY_TARGETS.get(provider)
-    if cfg is None:
-        return {"available": False, "error": f"unknown provider {provider!r}"}
-
-    env_name, url = cfg
-    key = (os.environ.get(env_name) or "").strip()
-    if not key:
-        return {"available": False, "error": "no api key configured"}
-
-    # Local imports — stdlib only, no httpx dependency required.
-    from urllib import request as _urllib_request, error as _urllib_error
-
-    health_timeout = runtime_http_config.get_health_timeout(provider)
-    req = _urllib_request.Request(
-        url,
-        headers={"Authorization": f"Bearer {key}"},
-        method="GET",
-    )
-    try:
-        with _urllib_request.urlopen(req, timeout=health_timeout) as resp:
-            status = resp.getcode()
-        if status >= 400:
-            return {"available": False, "error": f"HTTP {status}"}
-        return {"available": True, "error": None}
-    except _urllib_error.HTTPError as e:
-        return {"available": False, "error": f"HTTP {e.code}"}
     except Exception as e:  # pragma: no cover (real-network path)
         return {"available": False, "error": str(e)}
 
@@ -786,28 +750,28 @@ def get_provider_health(
     """Per-provider availability snapshot.
 
     Returns a dict keyed by provider name with ``{available, error}``.
-    Two semantic classes:
+    All 6 real router providers use the inference-path check via
+    ``_check_provider_health`` (1-token completion). The synthetic
+    ``mock`` entry is always ``{available: True, error: null}``.
 
-      * ``anthropic`` / ``openai`` / ``gemini`` — inference-path check
-        via ``_check_provider_health`` (1-token completion).
-      * ``xai`` / ``perplexity`` / ``mistral`` / ``deepseek`` —
-        reachability check via ``_check_provider_reachability``
-        (``GET /v1/models`` with bearer auth). Lighter and narrower.
-
-    The synthetic ``mock`` entry is always ``{available: True, error: null}``.
+    Provider-repair patch — extended from {anthropic, openai, gemini,
+    mock} to include xai, mistral, deepseek. The earlier β.3 split
+    between inference-checked and reachability-checked providers has
+    been collapsed back into a single inference-path semantic so
+    404 / auth / model_not_found errors are reported consistently
+    across every entry.
 
     Returns 401 on missing / invalid / expired X-Session-ID.
     """
     _ = operator_id  # auth-only; result is system-level
     return {
-        "anthropic":  _check_provider_health("anthropic"),
-        "openai":     _check_provider_health("openai"),
-        "gemini":     _check_provider_health("gemini"),
-        "xai":        _check_provider_reachability("xai"),
-        "perplexity": _check_provider_reachability("perplexity"),
-        "mistral":    _check_provider_reachability("mistral"),
-        "deepseek":   _check_provider_reachability("deepseek"),
-        "mock":       {"available": True, "error": None},
+        "anthropic": _check_provider_health("anthropic"),
+        "openai":    _check_provider_health("openai"),
+        "gemini":    _check_provider_health("gemini"),
+        "xai":       _check_provider_health("xai"),
+        "mistral":   _check_provider_health("mistral"),
+        "deepseek":  _check_provider_health("deepseek"),
+        "mock":      {"available": True, "error": None},
     }
 
 

@@ -136,11 +136,28 @@ def client(monkeypatch):
     app = FastAPI()
     app.include_router(rh_mod.providers_router)
     for k in (
+        # Legacy CLARITYOS_*-namespaced names.
         "CLARITYOS_ANTHROPIC_KEY",
         "CLARITYOS_OPENAI_KEY",
         "CLARITYOS_GEMINI_KEY",
         "CLARITYOS_XAI_KEY",
         "CLARITYOS_LOCAL_MODEL_PATH",
+        "CLARITYOS_MISTRAL_KEY",
+        "CLARITYOS_DEEPSEEK_KEY",
+        # Provider-repair patch — _PROVIDER_ENV_KEYS now also reads
+        # bare canonical names (the Cloud Run secret mounts). Must
+        # clear both variants so test isolation holds — otherwise a
+        # stray ANTHROPIC_API_KEY / OPENAI_API_KEY in the operator's
+        # shell env makes additional providers count as "configured"
+        # and their _check_provider_health calls overwrite the value
+        # this test observes (see test_health_check_applies_config_
+        # health_timeout below).
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "XAI_API_KEY",
+        "MISTRAL_API_KEY",
+        "DEEPSEEK_API_KEY",
     ):
         monkeypatch.delenv(k, raising=False)
     mr._reset_for_tests()

@@ -75,8 +75,12 @@ class TestResponseShape:
         body = client.get(
             "/runtime/providers/models", headers=_auth(),
         ).json()
+        # Provider-repair patch — registry now carries 7 provider
+        # keys (added mistral, deepseek alongside the original 5).
+        # Test name kept for git-blame continuity; assertion updated.
         assert set(body["registry"].keys()) == {
             "openai", "anthropic", "google", "xai", "local",
+            "mistral", "deepseek",
         }
 
     def test_registry_values_are_string_lists(self, client):
