@@ -26,6 +26,7 @@ import "./formDemo";
 import "./formWizard";
 import "./perplexityDemo";
 import "./redirect";
+import "./runtime";
 import "./streamDemo";
 import "./streamSseDemo";
 import "./uploadDemo";
