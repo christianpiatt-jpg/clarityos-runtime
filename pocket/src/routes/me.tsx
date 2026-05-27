@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import {
   me,
   logout,
+  getSessionAge,
   AuthRequiredError,
   type MeResponse,
 } from "../api/client";
@@ -13,18 +14,43 @@ import ErrorBlock from "../components/Error";
 import Loading from "../components/Loading";
 import SectionTitle from "../components/SectionTitle";
 
+/** Coarse human-readable duration. We don't need second-level
+ *  precision for a "signed in 5 min ago" indicator. */
+function formatDuration(ms: number): string {
+  if (ms < 0) return "expired";
+  const totalSec = Math.floor(ms / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  if (mins > 0) return `${mins}m`;
+  return "<1m";
+}
+
 /**
- * Pocket Me — v0.3.2.
+ * Pocket Me — v0.3.4.
  *
  * GETs ``/me`` on mount. Renders two states cleanly:
- *   * signed-in:  identity card + features chips + sign-out
+ *   * signed-in:  identity card + session-age card + features chips
+ *                 + sign-out
  *   * signed-out: gate card with primary CTA to /login
+ *
+ * Session age (v0.3.4): if local metadata is present the page shows
+ * how long ago the session was created + how long until it expires.
+ * Updates once per minute via setInterval; no backend round-trip.
+ *
+ * Sign-out: clears local session AND navigates to /login so the
+ * post-logout state is unambiguous (no "you're on /me but
+ * unauthenticated" middle state).
  */
 export default function MeRoute() {
+  const navigate = useNavigate();
   const [data, setData] = useState<MeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [, setTick] = useState(0);
 
   async function load() {
     setLoading(true);
@@ -45,10 +71,19 @@ export default function MeRoute() {
     void load();
   }, []);
 
+  // Tick the age indicator once a minute. No-ops when no session
+  // metadata is available.
+  useEffect(() => {
+    if (!data) return;
+    const id = window.setInterval(() => setTick((t) => t + 1), 60 * 1000);
+    return () => window.clearInterval(id);
+  }, [data]);
+
   function onSignOut() {
     logout();
     setData(null);
     setNeedsAuth(true);
+    navigate("/login", { replace: true });
   }
 
   if (loading) {
@@ -92,6 +127,8 @@ export default function MeRoute() {
     .map(([k]) => k)
     .sort();
 
+  const age = getSessionAge();
+
   return (
     <>
       <Card>
@@ -117,6 +154,25 @@ export default function MeRoute() {
           </dd>
         </dl>
       </Card>
+
+      {age ? (
+        <>
+          <SectionTitle>Session</SectionTitle>
+          <Card>
+            <dl className="pkt-dl">
+              <dt>Signed in</dt>
+              <dd>{formatDuration(age.ageMs)} ago</dd>
+
+              <dt>Expires in</dt>
+              <dd>
+                {age.remainingMs > 0
+                  ? formatDuration(age.remainingMs)
+                  : "(expired — next request will redirect to /login)"}
+              </dd>
+            </dl>
+          </Card>
+        </>
+      ) : null}
 
       {enabledFeatures.length > 0 ? (
         <>

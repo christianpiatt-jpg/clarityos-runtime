@@ -1,5 +1,10 @@
 import { FormEvent, useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import {
+  useNavigate,
+  useLocation,
+  useSearchParams,
+  Link,
+} from "react-router-dom";
 
 import { login, ApiError } from "../api/client";
 import Button from "../components/Button";
@@ -12,17 +17,44 @@ interface NavState {
   from?: string;
 }
 
+/** Only accept in-app paths as the post-login destination; reject
+ *  anything that smells like an open-redirect (full URLs, protocol-
+ *  relative paths, missing leading slash). */
+function isSafeFromPath(p: string | null | undefined): p is string {
+  if (!p) return false;
+  return p.startsWith("/") && !p.startsWith("//");
+}
+
 /**
- * Pocket Login — v0.3.2.
+ * Pocket Login — v0.3.4.
  *
  * Single Card with username + password, primary submit at the
- * bottom. On success routes back to ``location.state.from`` or
- * ``/me`` by default.
+ * bottom. On success routes back to the originating screen.
+ *
+ * The "from" path can arrive two ways:
+ *   * Via React-Router ``location.state.from`` — used by the
+ *     in-app auth-gate links (``<Link state={{from: ...}}>``).
+ *   * Via ``?from=`` query param — used by the centralized 401 /
+ *     expiry redirect in ``api/client.ts`` (which goes through
+ *     ``window.location.replace`` and therefore can't carry
+ *     React state).
+ *
+ * The query param is sanitised through ``isSafeFromPath`` so a
+ * crafted ``?from=https://attacker.example`` cannot bounce the
+ * user off the surface after authentication.
  */
 export default function LoginRoute() {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPath = (location.state as NavState | null)?.from ?? "/me";
+  const [searchParams] = useSearchParams();
+
+  const fromState = (location.state as NavState | null)?.from;
+  const fromQuery = searchParams.get("from");
+  const fromPath = isSafeFromPath(fromState)
+    ? fromState
+    : isSafeFromPath(fromQuery)
+      ? fromQuery
+      : "/me";
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -38,6 +70,9 @@ export default function LoginRoute() {
       await login(username, password);
       navigate(fromPath, { replace: true });
     } catch (e) {
+      // 401 on /login = bad credentials. The centralized redirect
+      // in apiFetch no-ops because we are already on /login, so
+      // the AuthRequiredError bubbles up cleanly.
       if (e instanceof ApiError && e.status === 401) {
         setError(new Error("Username or password is incorrect."));
       } else {
@@ -55,6 +90,12 @@ export default function LoginRoute() {
         Sign in with your ClarityOS account to use{" "}
         <code>/me</code>, <code>/clarify</code>, and <code>/runs</code>.
       </p>
+
+      {fromPath !== "/me" ? (
+        <p className="pocket-faint" style={{ fontSize: 13, marginBottom: 16 }}>
+          You&rsquo;ll return to <code>{fromPath}</code> after signing in.
+        </p>
+      ) : null}
 
       <form
         onSubmit={onSubmit}

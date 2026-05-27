@@ -1,5 +1,5 @@
 /**
- * Pocket API client — v0.3.1 (functional surface).
+ * Pocket API client — v0.3.4 (session persistence + expiry hygiene).
  *
  * Talks to the Python ``clarity-engine`` Cloud Run backend over HTTP
  * (no proxy, no Node mediation). The backend URL is injected at
@@ -7,46 +7,53 @@
  * falls back to the live URL so local dev works without an
  * ``.env.local`` file.
  *
- * Session model:
+ * Session model (v0.3.4):
  *   * ``POST /login`` returns ``{ session_id, expires_in, user, ok }``
  *   * The session id is stored in localStorage under
  *     ``clarityos_pocket_session``
- *   * Every subsequent request adds ``X-Session-ID: <id>``
- *   * A 401 from the backend clears the session AND throws
- *     ``AuthRequiredError`` so screens can route to /login
+ *   * A second key, ``clarityos_pocket_session_meta``, holds
+ *     ``{ created_at, expires_at, user }`` so the surface can
+ *     display session age and refuse to send expired sessions
+ *   * Every request adds ``X-Session-ID: <id>``
+ *
+ * Auth hygiene:
+ *   * Pre-flight: if the session is past ``expires_at``, clear it
+ *     and hard-navigate to ``/login?from=<current_path>``. No
+ *     backend round-trip needed.
+ *   * 401 from the backend: same — clear + hard-navigate. Also
+ *     throws ``AuthRequiredError`` as a backstop for code paths
+ *     that catch synchronously (e.g. the login screen itself).
+ *   * Infinite-loop guard: ``redirectToLogin`` no-ops when the
+ *     user is already on ``/login``.
+ *   * 401 is NEVER retried. Network errors retry ONCE after 300ms
+ *     and ONLY for ``GET`` (POSTs may have executed server-side;
+ *     re-issuing risks double-mutation).
+ *
+ * No backend ``/refresh`` endpoint exists, so silent reauth is
+ * intentionally NOT implemented. Expired sessions route to /login.
  *
  * Endpoint surface (backend-aligned to what actually exists today):
- *   * ``login(u, p)``        → POST /login          (no session header)
- *   * ``logout()``           → local clear only (no /logout endpoint)
- *   * ``health()``           → GET  /health         (public)
- *   * ``me()``               → GET  /me             (session required)
- *   * ``clarify(text)``      → POST /markov         (session required)
- *                              The card's ``/clarify`` does not exist on
- *                              the backend; ``/markov`` is the closest
- *                              semantic match (text in, LLM out).
- *   * ``runs()``             → GET  /elins/regression/runs
- *                              (session required; no bare ``/runs``)
- *   * ``run(id)``            → GET  /elins/regression/run/{id}
- *                              (session required)
- *
- * Status/stream/upload stubs from v0.3.0 stay as throw-stubs until
- * their backend contracts are defined.
+ *   * ``login(u, p)``     → POST /login          (no session header)
+ *   * ``logout()``        → local clear only (no /logout endpoint)
+ *   * ``health()``        → GET  /health         (public)
+ *   * ``me()``            → GET  /me             (session required)
+ *   * ``clarify(text)``   → POST /markov         (session required)
+ *   * ``runs()``          → GET  /elins/regression/runs
+ *   * ``run(id)``         → GET  /elins/regression/run/{id}
  */
 
 const LIVE_BACKEND_FALLBACK =
   "https://clarity-engine-736968277491.us-central1.run.app";
 
 const SESSION_KEY = "clarityos_pocket_session";
+const SESSION_META_KEY = "clarityos_pocket_session_meta";
+
+const NETWORK_RETRY_DELAY_MS = 300;
 
 // ---------------------------------------------------------------------------
-// Config + session helpers
+// Config helpers
 // ---------------------------------------------------------------------------
 
-/** Resolve the backend URL the client will hit.
- *  ``VITE_CLARITY_ENGINE_URL`` wins if set (build-time inlined by Vite);
- *  otherwise we fall back to the known live URL so local dev works
- *  without an env file. The fallback is documented intentionally —
- *  see ``LIVE_BACKEND_FALLBACK`` above. */
 export function getBackendUrl(): string {
   const raw =
     (import.meta.env.VITE_CLARITY_ENGINE_URL as string | undefined) ?? "";
@@ -54,12 +61,24 @@ export function getBackendUrl(): string {
   return trimmed || LIVE_BACKEND_FALLBACK;
 }
 
-/** True when the env var was explicitly supplied at build. Useful for
- *  the Runtime view to show "(env default)" vs the actual URL. */
 export function isBackendUrlFromEnv(): boolean {
   const raw =
     (import.meta.env.VITE_CLARITY_ENGINE_URL as string | undefined) ?? "";
   return raw.trim().length > 0;
+}
+
+// ---------------------------------------------------------------------------
+// Session helpers
+// ---------------------------------------------------------------------------
+
+export interface SessionMeta {
+  /** Epoch ms when ``login()`` set this session locally. */
+  created_at: number;
+  /** Epoch ms when the backend says this session expires.
+   *  Derived from the login response: ``created_at + expires_in * 1000``. */
+  expires_at: number;
+  /** Username that owns the session. */
+  user: string;
 }
 
 export function getSession(): string | null {
@@ -70,9 +89,29 @@ export function getSession(): string | null {
   }
 }
 
-export function setSession(id: string): void {
+export function getSessionMeta(): SessionMeta | null {
+  try {
+    const raw = localStorage.getItem(SESSION_META_KEY);
+    if (!raw) return null;
+    const j = JSON.parse(raw) as Partial<SessionMeta>;
+    if (
+      typeof j.created_at !== "number" ||
+      typeof j.expires_at !== "number" ||
+      typeof j.user !== "string"
+    ) {
+      return null;
+    }
+    return { created_at: j.created_at, expires_at: j.expires_at, user: j.user };
+  } catch {
+    return null;
+  }
+}
+
+/** Writes both the session id and the metadata together. */
+export function setSession(id: string, meta: SessionMeta): void {
   try {
     localStorage.setItem(SESSION_KEY, id);
+    localStorage.setItem(SESSION_META_KEY, JSON.stringify(meta));
   } catch {
     /* localStorage disabled — session stays in-memory only this tab */
   }
@@ -81,13 +120,68 @@ export function setSession(id: string): void {
 export function clearSession(): void {
   try {
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_META_KEY);
   } catch {
     /* ignore */
   }
 }
 
+/** True when the session id is present AND not past its expiry. */
 export function isAuthenticated(): boolean {
-  return getSession() !== null;
+  return getSession() !== null && !isSessionExpired();
+}
+
+/** True when the local metadata says the session is past expiry.
+ *  Returns ``false`` when the session id exists but no metadata is
+ *  stored (legacy session pre-v0.3.4); the backend will reject with
+ *  401 in that case and the centralized handler will clean up. */
+export function isSessionExpired(): boolean {
+  const m = getSessionMeta();
+  if (!m) return false;
+  return Date.now() >= m.expires_at;
+}
+
+/** Age + remaining time for the current session. Returns ``null``
+ *  if no metadata is stored (so callers can fall back to "unknown"). */
+export function getSessionAge():
+  | { ageMs: number; remainingMs: number }
+  | null {
+  const m = getSessionMeta();
+  if (!m) return null;
+  const now = Date.now();
+  return {
+    ageMs: Math.max(0, now - m.created_at),
+    remainingMs: m.expires_at - now,
+  };
+}
+
+/** Run once at app load (from main.tsx). Clears any expired session
+ *  BEFORE React renders so the first paint shows the correct
+ *  authed/unauthed state. Cheap; safe to call multiple times. */
+export function hydrateSessionOnLoad(): void {
+  if (isSessionExpired()) clearSession();
+}
+
+// ---------------------------------------------------------------------------
+// Redirect helper (centralized 401 / expiry hygiene)
+// ---------------------------------------------------------------------------
+
+/** Hard-navigate to ``/login?from=<current_path>``. Used by the
+ *  centralized 401 + expiry handlers in ``apiFetch``.
+ *
+ *  Guards:
+ *    * No-op when ``window`` is undefined (SSR / tests).
+ *    * No-op when already on ``/login`` (prevents the obvious
+ *      loop: 401 -> redirect -> page reloads on /login -> /login
+ *      submits credentials -> 401 -> ...).
+ *    * Uses ``replace`` (not ``assign``) so the broken page isn't
+ *      left in the browser history. */
+function redirectToLogin(): void {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname === "/login") return;
+  const from = window.location.pathname + window.location.search;
+  const url = `/login?from=${encodeURIComponent(from)}`;
+  window.location.replace(url);
 }
 
 // ---------------------------------------------------------------------------
@@ -106,13 +200,23 @@ export class ApiError extends Error {
   }
 }
 
-/** Thrown specifically on 401. Distinct subclass so screens can do
- *  ``if (e instanceof AuthRequiredError) redirect("/login")`` without
- *  string-matching status codes. */
+/** Thrown specifically on 401 OR pre-flight expiry. Subclass so
+ *  screens can branch on identity rather than status code. */
 export class AuthRequiredError extends ApiError {
   constructor() {
     super("Not signed in", 401, "auth_required");
     this.name = "AuthRequiredError";
+  }
+}
+
+/** Thrown after a fetch failure that doesn't resolve to an HTTP
+ *  response (offline, DNS, TLS, CORS preflight reject, etc.).
+ *  Distinct so the UI can offer a "Retry" affordance instead of a
+ *  generic error block. */
+export class NetworkError extends ApiError {
+  constructor(message: string) {
+    super(message, 0, "network");
+    this.name = "NetworkError";
   }
 }
 
@@ -121,9 +225,9 @@ export class AuthRequiredError extends ApiError {
 // ---------------------------------------------------------------------------
 
 interface ApiFetchInit extends RequestInit {
-  /** Skip the X-Session-ID header even if a session exists. Used by
-   *  ``login()`` so a stale session never poisons the credentials
-   *  POST. */
+  /** Skip the X-Session-ID header even if a session exists, AND
+   *  skip the pre-flight expiry check. Used by ``login()`` so a
+   *  stale session never poisons the credentials POST. */
   skipSession?: boolean;
 }
 
@@ -134,9 +238,17 @@ async function apiFetch<T>(
   const base = getBackendUrl();
   const url = `${base}${path}`;
   const { skipSession, ...rest } = init;
-  const session = skipSession ? null : getSession();
+  const method = (rest.method ?? "GET").toUpperCase();
 
-  const wantsBody = rest.method === "POST" || rest.method === "PUT";
+  // ---- pre-flight: refuse to send an expired session ----------------
+  if (!skipSession && isSessionExpired()) {
+    clearSession();
+    redirectToLogin();
+    throw new AuthRequiredError();
+  }
+
+  const session = skipSession ? null : getSession();
+  const wantsBody = method === "POST" || method === "PUT";
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(wantsBody ? { "Content-Type": "application/json" } : {}),
@@ -144,18 +256,39 @@ async function apiFetch<T>(
     ...((rest.headers as Record<string, string> | undefined) ?? {}),
   };
 
+  const requestInit: RequestInit = { ...rest, headers, method };
+  const doFetch = async (): Promise<Response> => fetch(url, requestInit);
+
+  // ---- transport: with GET-only single retry on network error -------
   let resp: Response;
   try {
-    resp = await fetch(url, { ...rest, headers });
+    resp = await doFetch();
   } catch (e) {
-    throw new ApiError((e as Error).message || "Network error", 0, "network");
+    // True transport failure (offline / DNS / TLS). Retry exactly
+    // once for GET — POSTs may have already executed on the server
+    // and re-issuing them risks double-mutation.
+    if (method === "GET") {
+      await new Promise((r) => setTimeout(r, NETWORK_RETRY_DELAY_MS));
+      try {
+        resp = await doFetch();
+      } catch (e2) {
+        throw new NetworkError(
+          (e2 as Error).message || "Network error",
+        );
+      }
+    } else {
+      throw new NetworkError((e as Error).message || "Network error");
+    }
   }
 
+  // ---- 401: centralized clear + redirect, then throw as backstop ----
   if (resp.status === 401) {
     clearSession();
+    redirectToLogin();
     throw new AuthRequiredError();
   }
 
+  // ---- other non-OK statuses: structured error parsing --------------
   if (!resp.ok) {
     const bodyText = await resp.text().catch(() => "");
     let message = bodyText || `HTTP ${resp.status}`;
@@ -176,7 +309,7 @@ async function apiFetch<T>(
     throw new ApiError(message, resp.status, code);
   }
 
-  // 204 No Content path — return undefined as T (callers know).
+  // ---- OK ----
   if (resp.status === 204) return undefined as T;
   return (await resp.json()) as T;
 }
@@ -238,7 +371,15 @@ export async function login(
     body: JSON.stringify({ username, password }),
     skipSession: true,
   });
-  if (data?.session_id) setSession(data.session_id);
+  if (data?.session_id) {
+    const now = Date.now();
+    const ttl = typeof data.expires_in === "number" ? data.expires_in : 0;
+    setSession(data.session_id, {
+      created_at: now,
+      expires_at: now + ttl * 1000,
+      user: data.user,
+    });
+  }
   return data;
 }
 
