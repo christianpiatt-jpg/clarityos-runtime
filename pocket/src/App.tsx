@@ -6,6 +6,9 @@ import LoginRoute from "./routes/login";
 import ClarifyRoute from "./routes/clarify";
 import MeRoute from "./routes/me";
 import RunsRoute from "./routes/runs";
+import LandingRoute from "./routes/landing";
+import PrivacyRoute from "./routes/privacy";
+import TermsRoute from "./routes/terms";
 import ThemeToggle from "./components/ThemeToggle";
 
 const NAV_LINKS: { to: string; label: string }[] = [
@@ -15,6 +18,7 @@ const NAV_LINKS: { to: string; label: string }[] = [
   { to: "/me",       label: "Me" },
   { to: "/runs",     label: "Runs" },
   { to: "/login",    label: "Sign in" },
+  { to: "/landing",  label: "Landing" },
 ];
 
 export default function App() {
@@ -45,6 +49,9 @@ export default function App() {
           <Route path="/clarify" element={<ClarifyRoute />} />
           <Route path="/me"      element={<MeRoute />} />
           <Route path="/runs"    element={<RunsRoute />} />
+          <Route path="/landing" element={<LandingRoute />} />
+          <Route path="/privacy" element={<PrivacyRoute />} />
+          <Route path="/terms"   element={<TermsRoute />} />
           <Route
             path="*"
             element={
