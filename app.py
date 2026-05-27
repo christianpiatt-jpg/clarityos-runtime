@@ -42,7 +42,8 @@ Environment variables
                                 https://www.pro-mediations.com,
                                 https://clarity.pro-mediations.com,
                                 https://pocket.clarityos.dev,
-                                http://localhost:5174"
+                                http://localhost:5174,
+                                https://clarityos-pocket-v0-3-736968277491.us-central1.run.app"
   CLARITYOS_ADMIN_USER         default "admin"
   CLARITYOS_ADMIN_PASSWORD     if unset, a random one is generated and
                                printed once on startup (bootstrap only)
@@ -301,11 +302,13 @@ THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60
 # origin), and trailing whitespace is stripped.
 #
 # Defaults (in order):
-#   * https://pro-mediations.com           — WordPress front-end (apex)
-#   * https://www.pro-mediations.com       — WordPress front-end (www)
-#   * https://clarity.pro-mediations.com   — Clarity subdomain front-end
-#   * https://pocket.clarityos.dev         — Pocket SPA prod (v0.3.0)
-#   * http://localhost:5174                — Pocket SPA dev (Vite dev server)
+#   * https://pro-mediations.com                      — WordPress front-end (apex)
+#   * https://www.pro-mediations.com                  — WordPress front-end (www)
+#   * https://clarity.pro-mediations.com              — Clarity subdomain front-end
+#   * https://pocket.clarityos.dev                    — Pocket SPA prod (custom domain, planned)
+#   * http://localhost:5174                           — Pocket SPA dev (Vite dev server)
+#   * https://clarityos-pocket-v0-3-…run.app          — Pocket SPA Cloud Run URL (used until
+#                                                       pocket.clarityos.dev domain mapping lands)
 #
 # The cockpit Node v0.2 surface at cockpit.pro-mediations.com is server-
 # rendered (no browser-side XHR to this API) so it deliberately does NOT
@@ -321,6 +324,7 @@ _CORS_DEFAULT = ",".join([
     "https://clarity.pro-mediations.com",
     "https://pocket.clarityos.dev",
     "http://localhost:5174",
+    "https://clarityos-pocket-v0-3-736968277491.us-central1.run.app",
 ])
 CORS_ORIGINS = [
     o.strip()
