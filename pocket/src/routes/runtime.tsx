@@ -1,24 +1,52 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { getBackendUrl } from "../api/client";
+import {
+  getBackendUrl,
+  isBackendUrlFromEnv,
+  health,
+  type HealthResponse,
+} from "../api/client";
+import ErrorBlock from "../components/Error";
+import Loading from "../components/Loading";
 
 /**
- * Pocket Runtime screen.
+ * Pocket Runtime screen — v0.3.1.
  *
  * PHONE-native runtime view. Surfaces Pocket's OWN deploy metadata
- * (build version + backend URL it was wired to). NOT a DOM embed
- * of the cockpit's Node runtime panel and NOT an API mirror of it.
+ * (build version + backend URL it was wired to) AND a live ping to
+ * the Python ``clarity-engine`` ``/health`` endpoint.
  *
- * The cockpit's Node runtime panel reads Cloud Run env vars on its
- * own service (``K_SERVICE`` / ``K_REVISION`` / ``ENVIRONMENT``).
- * Pocket lives on a different Cloud Run service and surfaces its
- * own build-time injected metadata. Keeping them independent is
- * the whole reason this is a separate SPA.
+ * Still NOT a DOM embed of the cockpit's Node runtime panel and NOT
+ * an API mirror of it. The cockpit's Node runtime panel reads its
+ * own Cloud Run env vars (K_SERVICE / K_REVISION). Pocket lives on
+ * a different Cloud Run service and surfaces ITS build-time injected
+ * metadata + ITS view of backend liveness.
  */
 export default function RuntimeRoute() {
   const backendUrl = getBackendUrl();
+  const backendUrlFromEnv = isBackendUrlFromEnv();
   const buildVersion =
     (import.meta.env.VITE_BUILD_VERSION as string | undefined) ?? "";
+
+  const [pinging, setPinging] = useState(false);
+  const [healthData, setHealthData] = useState<HealthResponse | null>(null);
+  const [healthError, setHealthError] = useState<Error | null>(null);
+
+  async function onPing() {
+    if (pinging) return;
+    setPinging(true);
+    setHealthError(null);
+    try {
+      const d = await health();
+      setHealthData(d);
+    } catch (e) {
+      setHealthError(e instanceof Error ? e : new Error(String(e)));
+      setHealthData(null);
+    } finally {
+      setPinging(false);
+    }
+  }
 
   return (
     <section className="pocket-runtime">
@@ -32,8 +60,45 @@ export default function RuntimeRoute() {
         <dd>{buildVersion || "(unset)"}</dd>
 
         <dt>Backend URL</dt>
-        <dd>{backendUrl || "(not configured)"}</dd>
+        <dd>
+          {backendUrl}{" "}
+          <span className="pocket-muted">
+            ({backendUrlFromEnv ? "from env" : "fallback"})
+          </span>
+        </dd>
       </dl>
+
+      <h2>Backend health</h2>
+      <p>
+        <button
+          type="button"
+          className="pocket-btn"
+          onClick={onPing}
+          disabled={pinging}
+        >
+          {pinging ? "Pinging…" : "Ping backend"}
+        </button>
+      </p>
+
+      {pinging ? <Loading label="Calling /health…" /> : null}
+      <ErrorBlock
+        error={healthError}
+        onRetry={onPing}
+        title="Backend ping failed"
+      />
+
+      {healthData ? (
+        <dl>
+          <dt>ok</dt>
+          <dd>{String(healthData.ok)}</dd>
+
+          <dt>status</dt>
+          <dd>{healthData.status}</dd>
+
+          <dt>version</dt>
+          <dd>{healthData.version}</dd>
+        </dl>
+      ) : null}
 
       <p>
         <Link to="/">&larr; Home</Link>
