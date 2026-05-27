@@ -39,7 +39,10 @@ Environment variables
   CLARITYOS_BACKEND            "memory" (default) or "firestore"
   CLARITYOS_CORS_ORIGINS       comma-separated allowed origins; default
                                "https://pro-mediations.com,
-                                https://www.pro-mediations.com"
+                                https://www.pro-mediations.com,
+                                https://clarity.pro-mediations.com,
+                                https://pocket.clarityos.dev,
+                                http://localhost:5174"
   CLARITYOS_ADMIN_USER         default "admin"
   CLARITYOS_ADMIN_PASSWORD     if unset, a random one is generated and
                                printed once on startup (bootstrap only)
@@ -296,7 +299,29 @@ THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60
 # call the API from any origin not on this list. Empty entries are dropped
 # so a stray comma in the env var doesn't accidentally permit "" (== same-
 # origin), and trailing whitespace is stripped.
-_CORS_DEFAULT = "https://pro-mediations.com,https://www.pro-mediations.com"
+#
+# Defaults (in order):
+#   * https://pro-mediations.com           — WordPress front-end (apex)
+#   * https://www.pro-mediations.com       — WordPress front-end (www)
+#   * https://clarity.pro-mediations.com   — Clarity subdomain front-end
+#   * https://pocket.clarityos.dev         — Pocket SPA prod (v0.3.0)
+#   * http://localhost:5174                — Pocket SPA dev (Vite dev server)
+#
+# The cockpit Node v0.2 surface at cockpit.pro-mediations.com is server-
+# rendered (no browser-side XHR to this API) so it deliberately does NOT
+# need a CORS allow entry.
+#
+# Production deploys override this default via the
+# ``CLARITYOS_CORS_ORIGINS`` env var on the Cloud Run service; keep
+# the two lists in sync so a future "remove the env var" never silently
+# drops a real prod origin.
+_CORS_DEFAULT = ",".join([
+    "https://pro-mediations.com",
+    "https://www.pro-mediations.com",
+    "https://clarity.pro-mediations.com",
+    "https://pocket.clarityos.dev",
+    "http://localhost:5174",
+])
 CORS_ORIGINS = [
     o.strip()
     for o in os.environ.get("CLARITYOS_CORS_ORIGINS", _CORS_DEFAULT).split(",")
