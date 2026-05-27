@@ -1,0 +1,61 @@
+# Per-service Cloud Build ignore for clarityos-web-v0-2.
+#
+# Used via:
+#   gcloud builds submit --ignore-file=.gcloudignore.web ...
+#
+# Why this exists: the project-level .gcloudignore is tuned for the
+# Python clarity-engine service and denylists web/ explicitly. That
+# breaks the web image build because web/Dockerfile and web/src/
+# never reach the build context. This file mirrors .gcloudignore but
+# KEEPS web/ in the upload and also excludes Python-only trees so the
+# context stays small.
+
+.git/
+__pycache__/
+_scratch/
+tests/
+phone/
+desktop/
+analysis/
+Galileo/
+Index_Records/
+Clarity_OS_Operating_System/
+Unified_Geometry/
+skills_export/
+clarity_skills/
+clarity_engine/
+copilot_notes/
+scripts/
+surface_v1_harness/
+
+# Python-only runtime modules — not needed in the Node web image.
+ELINS/
+el_ins/
+problem_solver/
+sos_runtime/
+.venv/
+.pytest_cache/
+
+*.pyc
+*.pyo
+*.log
+.vscode/
+.idea/
+
+# Node-side caches that should never enter the image.
+**/node_modules/
+**/dist/
+**/dist-embed/
+**/build/
+
+# Secrets — never enter the build context.
+Gemini API Key.txt
+foundercode_openai_apikey.txt
+sa.json
+
+# Don't upload .dockerignore — the project one excludes web/, which
+# would defeat this whole config. Without a .dockerignore in the
+# build context, Docker on Cloud Build has no filter, but every
+# tree we'd want to exclude is already excluded above, so the image
+# stays lean.
+.dockerignore

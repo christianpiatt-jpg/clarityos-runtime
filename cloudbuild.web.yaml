@@ -1,0 +1,36 @@
+# Cloud Build config for the ClarityOS v0.2 TypeScript Web Surface.
+#
+# Why this file exists:
+#   ``gcloud builds submit --tag IMG`` requires ``./Dockerfile`` at
+#   the source root, but the web surface Dockerfile lives at
+#   ``web/Dockerfile`` AND must build with the repo root as
+#   context (it COPYs ``web/src``, ``web/templates``, etc.).
+#   This config bridges that: build context = repo root, Dockerfile
+#   path = web/Dockerfile.
+#
+#   The root Dockerfile is for the Python ``clarity-engine`` service
+#   and is unaffected by this build.
+#
+# Submit with:
+#   gcloud builds submit `
+#       --config cloudbuild.web.yaml `
+#       --substitutions=_IMAGE=<image-uri> .
+#
+# Then deploy the produced image with ``gcloud run deploy
+# clarityos-web-v0-2 --image <image-uri> ...`` (see DEPLOY.md).
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --file
+      - web/Dockerfile
+      - --tag
+      - ${_IMAGE}
+      - .
+
+images:
+  - ${_IMAGE}
+
+options:
+  logging: CLOUD_LOGGING_ONLY
