@@ -1,0 +1,46 @@
+# Cloud Build config for the ClarityOS Pocket SPA.
+#
+# Why this file exists (parallel to ``cloudbuild.web.yaml``):
+#   ``gcloud builds submit --tag IMG`` requires ``./Dockerfile`` at
+#   the source root, but the Pocket Dockerfile lives at
+#   ``pocket/Dockerfile`` and the build context is ``pocket/``
+#   (not the repo root). This config bridges that, plus passes the
+#   build-time env vars Vite needs.
+#
+# Submit with (from the repo root):
+#   gcloud builds submit \
+#       --config pocket/cloudbuild.pocket.yaml \
+#       --ignore-file=pocket/.gcloudignore.pocket \
+#       --substitutions="_IMAGE=<image-uri>,_API_URL=<backend-url>,_BUILD_VERSION=<tag>" \
+#       .
+#
+# Then deploy the produced image with:
+#   gcloud run deploy clarityos-pocket-v0-3 --image <image-uri> ...
+# (see pocket/README.md for the full deploy command).
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --file
+      - pocket/Dockerfile
+      - --build-arg
+      - VITE_CLARITY_ENGINE_URL=${_API_URL}
+      - --build-arg
+      - VITE_BUILD_VERSION=${_BUILD_VERSION}
+      - --tag
+      - ${_IMAGE}
+      - pocket
+
+images:
+  - ${_IMAGE}
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  # Default backend = the live Python clarity-engine. Override at
+  # submit time with --substitutions=_API_URL=... if you need to
+  # target a different backend (e.g. staging clarity-engine).
+  _API_URL: "https://clarity-engine-736968277491.us-central1.run.app"
+  _BUILD_VERSION: "dev"

@@ -105,6 +105,7 @@ phone/node_modules/
 desktop/node_modules/
 desktop/dist/
 desktop/release/
+pocket/node_modules/
 surface_v1_harness/node_modules/
 
 # ---------------------------------------------------------------------------

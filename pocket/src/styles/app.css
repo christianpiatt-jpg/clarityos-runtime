@@ -1,0 +1,77 @@
+:root {
+  --pocket-bg:      #0d0e10;
+  --pocket-fg:      #e6e7e9;
+  --pocket-accent:  #4d8eff;
+  --pocket-muted:   #9aa0a6;
+  --pocket-border:  #22242a;
+  --pocket-ok:      #3ec07b;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--pocket-bg);
+  color: var(--pocket-fg);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+a { color: var(--pocket-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code {
+  font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.pocket-root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pocket-nav {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--pocket-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.pocket-main {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 1rem 0;
+}
+dt { color: var(--pocket-muted); }
+dd { margin: 0; word-break: break-all; }
+
+.pocket-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--pocket-muted);
+}
+.pocket-status-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--pocket-ok);
+  box-shadow: 0 0 6px var(--pocket-ok);
+}

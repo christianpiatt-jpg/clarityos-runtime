@@ -1,0 +1,20 @@
+# Pocket-specific Cloud Build upload filter.
+#
+# The repo root contains many trees that are irrelevant to the
+# Pocket image (Python service, Expo phone app, web v0.2 surface,
+# etc.). The Pocket build is self-contained inside ``pocket/`` so
+# we exclude every other root entry.
+#
+# Used via:
+#   gcloud builds submit --ignore-file=pocket/.gcloudignore.pocket ...
+
+# Exclude every root-level entry by default.
+/*
+
+# Re-include the pocket tree.
+!/pocket/
+
+# Pocket-internal junk we never want in the image.
+pocket/node_modules/
+pocket/dist/
+pocket/.env.local
