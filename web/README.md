@@ -104,3 +104,12 @@ The previous static HTML pages (`*.html`) and `assets/{js,css}` modules
 were replaced by this SPA. `dev_proxy.py` is kept as a legacy
 Python-based dev server option for anyone who prefers that path; the
 Vite dev server (`npm run dev`) is the primary tool now.
+
+## Next milestone — v0.2.1 Cockpit Runtime Panel
+
+Scope:
+
+- Add `/runtime` route
+- Load operator runtime panel
+- Expose version + system state
+- Prepare for PHONE surface integration
