@@ -1556,11 +1556,20 @@ def me(request: Request, session: dict = Depends(require_session)):
     user_doc = users_store.get_user(session["user"]) or {}
     cohort = user_doc.get("cohort")
 
-    # Card 16 — operator status: Operator token in the Authorization
-    # header always wins; otherwise the legacy "founder_exception"
-    # cohort is treated as operator (preserves existing privileged
-    # path so the change is purely additive).
-    operator = _is_operator_token(request) or (cohort == "founder_exception")
+    # Card 18 — operator identity model:
+    #   Operator identity is cohort-derived (durable) and token-override
+    #   (request-scoped).
+    #   - Cohort membership determines baseline operator identity.
+    #   - Operator token elevates the *request* for privileged endpoints.
+    #   This preserves identity semantics while keeping capability checks
+    #   isolated.
+    #
+    # ``FOUNDER_LIKE_COHORTS`` (= {"founder", "founder_exception"}) is the
+    # same set used by other cohort-derived privilege gates in this file
+    # (invite redemption, quota resolution) so the boundary stays
+    # consistent across the engine. Token-bearing requests are operator
+    # regardless of cohort — that path is unchanged from Card 16.
+    operator = _is_operator_token(request) or (cohort in FOUNDER_LIKE_COHORTS)
 
     # Card 16 — vault_ready: non-throwing probe so a misconfigured
     # vault never causes /me to 500. (This is what bit us in Card 15.)
