@@ -229,6 +229,12 @@ interface ApiFetchInit extends RequestInit {
    *  skip the pre-flight expiry check. Used by ``login()`` so a
    *  stale session never poisons the credentials POST. */
   skipSession?: boolean;
+  /** v0.3.12 / Card 17 — Skip the centralized 401 handler
+   *  (``clearSession`` + ``redirectToLogin``) AND still throw
+   *  ``AuthRequiredError`` for the caller. Used by
+   *  ``operatorState()`` so a bad Operator token does NOT log the
+   *  user out of their session OR bounce the SPA to ``/login``. */
+  skipAuthRedirect?: boolean;
 }
 
 async function apiFetch<T>(
@@ -237,7 +243,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   const base = getBackendUrl();
   const url = `${base}${path}`;
-  const { skipSession, ...rest } = init;
+  const { skipSession, skipAuthRedirect, ...rest } = init;
   const method = (rest.method ?? "GET").toUpperCase();
 
   // ---- pre-flight: refuse to send an expired session ----------------
@@ -283,8 +289,10 @@ async function apiFetch<T>(
 
   // ---- 401: centralized clear + redirect, then throw as backstop ----
   if (resp.status === 401) {
-    clearSession();
-    redirectToLogin();
+    if (!skipAuthRedirect) {
+      clearSession();
+      redirectToLogin();
+    }
     throw new AuthRequiredError();
   }
 
@@ -340,6 +348,28 @@ export interface MeResponse {
   tier: string;
   billing_expires_at: number | null;
   features: Record<string, boolean>;
+  /** v0.3.12 / Card 16 backend field. ``true`` when the request
+   *  carries a valid Operator token in ``Authorization`` OR the
+   *  user is in cohort ``founder_exception``. Pocket reads this
+   *  directly — no cohort/tier inference. */
+  operator?: boolean;
+  /** v0.3.12 / Card 16 backend field. ``true`` when the v46
+   *  memory vault is configured + the per-user key derivation
+   *  succeeds. ``false`` means the engine's vault is degraded
+   *  (typically ``CLARITYOS_VAULT_SECRET`` not set). */
+  vault_ready?: boolean;
+}
+
+/** v0.3.12 / Card 17 — shape of GET /operator/state response. */
+export interface OperatorState {
+  ok: boolean;
+  engine_revision: string;
+  vault_status: string;
+  active_sessions: number | string;
+  uptime_seconds: number;
+  cors_origins: string[];
+  backend: string;
+  version: string;
 }
 
 export interface MarkovResponse {
@@ -413,6 +443,57 @@ export async function run(id: string): Promise<unknown> {
   return apiFetch<unknown>(
     `/elins/regression/run/${encodeURIComponent(id)}`,
   );
+}
+
+// ---------------------------------------------------------------------------
+// v0.3.12 / Card 17 — operator token (in-memory only, no localStorage)
+// ---------------------------------------------------------------------------
+
+/** Module-local operator token. Intentionally NOT persisted to
+ *  localStorage — the card mandates in-memory storage so the token
+ *  dies on page reload. Trades UX (re-paste per session) for
+ *  reduced exposure surface. */
+let _operatorToken: string | null = null;
+
+export function setOperatorToken(token: string): void {
+  const trimmed = token.trim();
+  _operatorToken = trimmed.length > 0 ? trimmed : null;
+}
+
+export function getOperatorToken(): string | null {
+  return _operatorToken;
+}
+
+export function clearOperatorToken(): void {
+  _operatorToken = null;
+}
+
+export function hasOperatorToken(): boolean {
+  return _operatorToken !== null;
+}
+
+/**
+ * GET /operator/state — requires an Operator token previously set
+ * via ``setOperatorToken``. Sends ``Authorization: Operator <token>``
+ * (not the user session). Skips the centralized 401 redirect so a
+ * bad token does NOT log the user out OR bounce the SPA — the
+ * caller surfaces the error inline.
+ */
+export async function operatorState(): Promise<OperatorState> {
+  const token = _operatorToken;
+  if (!token) {
+    throw new ApiError(
+      "No operator token set. Paste it on /operator/state.",
+      0,
+      "no_operator_token",
+    );
+  }
+  return apiFetch<OperatorState>("/operator/state", {
+    method: "GET",
+    skipSession: true,
+    skipAuthRedirect: true,
+    headers: { Authorization: `Operator ${token}` },
+  });
 }
 
 // ---------------------------------------------------------------------------

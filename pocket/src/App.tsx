@@ -9,16 +9,19 @@ import RunsRoute from "./routes/runs";
 import LandingRoute from "./routes/landing";
 import PrivacyRoute from "./routes/privacy";
 import TermsRoute from "./routes/terms";
+import OperatorStateRoute from "./routes/operator-state";
+import MeStatus from "./components/MeStatus";
 import ThemeToggle from "./components/ThemeToggle";
 
 const NAV_LINKS: { to: string; label: string }[] = [
-  { to: "/",         label: "Home" },
-  { to: "/runtime",  label: "Runtime" },
-  { to: "/clarify",  label: "Clarify" },
-  { to: "/me",       label: "Me" },
-  { to: "/runs",     label: "Runs" },
-  { to: "/login",    label: "Sign in" },
-  { to: "/landing",  label: "Landing" },
+  { to: "/",               label: "Home" },
+  { to: "/runtime",        label: "Runtime" },
+  { to: "/clarify",        label: "Clarify" },
+  { to: "/me",             label: "Me" },
+  { to: "/runs",           label: "Runs" },
+  { to: "/operator/state", label: "Operator" },
+  { to: "/login",          label: "Sign in" },
+  { to: "/landing",        label: "Landing" },
 ];
 
 export default function App() {
@@ -39,19 +42,21 @@ export default function App() {
             </NavLink>
           ))}
         </div>
+        <MeStatus />
         <ThemeToggle />
       </nav>
       <main className="pocket-main">
         <Routes>
-          <Route path="/"        element={<HomeRoute />} />
-          <Route path="/runtime" element={<RuntimeRoute />} />
-          <Route path="/login"   element={<LoginRoute />} />
-          <Route path="/clarify" element={<ClarifyRoute />} />
-          <Route path="/me"      element={<MeRoute />} />
-          <Route path="/runs"    element={<RunsRoute />} />
-          <Route path="/landing" element={<LandingRoute />} />
-          <Route path="/privacy" element={<PrivacyRoute />} />
-          <Route path="/terms"   element={<TermsRoute />} />
+          <Route path="/"               element={<HomeRoute />} />
+          <Route path="/runtime"        element={<RuntimeRoute />} />
+          <Route path="/login"          element={<LoginRoute />} />
+          <Route path="/clarify"        element={<ClarifyRoute />} />
+          <Route path="/me"             element={<MeRoute />} />
+          <Route path="/runs"           element={<RunsRoute />} />
+          <Route path="/landing"        element={<LandingRoute />} />
+          <Route path="/privacy"        element={<PrivacyRoute />} />
+          <Route path="/terms"          element={<TermsRoute />} />
+          <Route path="/operator/state" element={<OperatorStateRoute />} />
           <Route
             path="*"
             element={

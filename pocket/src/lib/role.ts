@@ -1,73 +1,37 @@
 /**
- * Pocket — role inference helpers (v0.3.10).
+ * Pocket — role helpers (v0.3.12 / Card 17).
  *
- * Card 13 defines the target contract: the backend's ``/me`` should
- * return ``role: "founding_member" | "operator" | "free"`` and
- * Pocket should branch on that. Until the backend lands that field
- * (one-line addition to ``app.py``'s /me handler), Pocket INFERS
- * the role from the fields ``/me`` already returns today:
- * ``cohort`` and ``tier``.
+ * As of Card 16, the engine's ``/me`` response is authoritative:
+ *   * ``me.operator``    — true when the request carries a valid
+ *                          Operator token OR the user is in cohort
+ *                          ``founder_exception``
+ *   * ``me.vault_ready`` — true when the v46 memory vault is
+ *                          configured and the per-user key derivation
+ *                          succeeds
  *
- * Inference rules:
+ * Pocket reads those fields DIRECTLY. The v0.3.10 cohort-and-tier
+ * inference (``isFoundingMember`` from cohort==founder, etc.) is
+ * removed by Card 17: the backend is the single source of truth.
  *
- *   * ``cohort == "founder"``               -> founding_member  (operator-tier founder)
- *   * ``cohort == "founder_exception"``     -> founding_member  (founder exception flag)
- *   * ``tier   == "founding"``              -> founding_member  (Founding 500 cohort)
- *   * otherwise                              -> free
- *
- * When the backend grows a real ``role`` field, this module flips
- * to read it directly:
- *
- *   export function isFoundingMember(me: MeResponse | null): boolean {
- *     return me?.role === "founding_member" || me?.role === "operator";
- *   }
- *
- * Until then, the inference here is the contract Pocket uses.
- *
- * Why not just push the change to the backend now: Card 14 was
- * explicit about "no backend changes". This module satisfies the
- * card's intent (recognise Founding Members + unlock surface) on
- * the Pocket side alone.
+ * If the backend logic for ``operator`` changes (e.g. a future card
+ * extends the rule to cover Founding Members), Pocket inherits the
+ * change with zero edits here.
  */
 import type { MeResponse } from "../api/client";
 
-/** Cohort values the backend uses for founder-adjacent accounts. */
-const FOUNDER_LIKE_COHORTS = new Set<string>([
-  "founder",
-  "founder_exception",
-]);
-
-/** Tier values the backend uses to identify Founding Members. */
-const FOUNDING_TIERS = new Set<string>(["founding"]);
-
-/**
- * True when the ``/me`` response identifies this account as a
- * Founding Member. Operators (cohort "founder") are treated as
- * Founding Members for surface-unlock purposes — they get the
- * same access; the operator tooling is a separate concept.
- */
-export function isFoundingMember(me: MeResponse | null | undefined): boolean {
-  if (!me) return false;
-  if (me.cohort && FOUNDER_LIKE_COHORTS.has(me.cohort)) return true;
-  if (me.tier && FOUNDING_TIERS.has(me.tier)) return true;
-  return false;
-}
-
-/**
- * True when the ``/me`` response identifies this account as an
- * operator (cohort "founder" or "founder_exception"). Used for
- * UI affordances that should only appear to operators (e.g. a
- * "founder console" link in the future).
- */
 export function isOperator(me: MeResponse | null | undefined): boolean {
-  if (!me) return false;
-  return me.cohort != null && FOUNDER_LIKE_COHORTS.has(me.cohort);
+  return me?.operator === true;
 }
 
-/** Display label for the inferred role. Useful for the badge on /me. */
+export function isVaultReady(me: MeResponse | null | undefined): boolean {
+  // Distinct from "missing field" — if vault_ready is absent (older
+  // backend), treat as ready so Pocket doesn't show a false alarm.
+  return me?.vault_ready !== false;
+}
+
+/** Display label for the header / Me page badge. */
 export function roleLabel(me: MeResponse | null | undefined): string {
   if (!me) return "guest";
   if (isOperator(me)) return "operator";
-  if (isFoundingMember(me)) return "founding member";
-  return me.tier ?? "free";
+  return me.tier ?? "user";
 }

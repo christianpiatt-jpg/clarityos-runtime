@@ -13,10 +13,8 @@ import Card from "../components/Card";
 import ErrorBlock from "../components/Error";
 import Loading from "../components/Loading";
 import SectionTitle from "../components/SectionTitle";
-import { isFoundingMember, isOperator, roleLabel } from "../lib/role";
+import { isOperator, isVaultReady, roleLabel } from "../lib/role";
 
-/** Coarse human-readable duration. We don't need second-level
- *  precision for a "signed in 5 min ago" indicator. */
 function formatDuration(ms: number): string {
   if (ms < 0) return "expired";
   const totalSec = Math.floor(ms / 1000);
@@ -30,16 +28,24 @@ function formatDuration(ms: number): string {
 }
 
 /**
- * Pocket Me — v0.3.10 (role-aware).
+ * Pocket Me — v0.3.12 (Card 17, operator-mode).
  *
- * Same identity + session view as v0.3.4, plus:
- *   * a role badge derived from ``cohort`` + ``tier`` (Card 13
- *     contract; see ``src/lib/role.ts`` for the inference rules)
- *   * a "Become a Founding Member" upgrade CTA card for non-founding
- *     accounts (linking to /landing where the Stripe checkout lives)
+ * Reads ``me.operator`` and ``me.vault_ready`` DIRECTLY from /me
+ * (Card 16 made these fields authoritative). No more cohort/tier
+ * inference, no more isFoundingMember logic — the backend is the
+ * single source of truth.
  *
- * No backend changes; Pocket infers the role from the existing /me
- * response fields until the backend grows a real ``role`` field.
+ * Renders three cards:
+ *   1. Identity   — user, tier, cohort, badge (operator | <tier>)
+ *   2. Session    — signed-in age + expires-in countdown (v0.3.4)
+ *   3. Vault      — Vault Ready / Vault Degraded indicator (Card 17)
+ *   + optional Enabled-features chips card (v0.3.4)
+ *   + Sign-out card
+ *
+ * The legacy "Upgrade to Founding Member" card is removed; per
+ * Card 17 the user/operator split is the only one Pocket
+ * recognises. A separate, future card will reintroduce a tier-based
+ * upgrade surface if/when Founding Members get a distinct in-app UX.
  */
 export default function MeRoute() {
   const navigate = useNavigate();
@@ -123,8 +129,8 @@ export default function MeRoute() {
     .sort();
 
   const age = getSessionAge();
-  const founding = isFoundingMember(data);
-  const operator = isOperator(data);
+  const op = isOperator(data);
+  const ready = isVaultReady(data);
 
   return (
     <>
@@ -141,11 +147,7 @@ export default function MeRoute() {
           <h1 style={{ margin: 0 }}>Me</h1>
           <span
             className={`pkt-badge ${
-              operator
-                ? "pkt-badge--operator"
-                : founding
-                  ? "pkt-badge--founding"
-                  : "pkt-badge--free"
+              op ? "pkt-badge--operator" : "pkt-badge--free"
             }`}
           >
             {roleLabel(data)}
@@ -163,9 +165,12 @@ export default function MeRoute() {
           <dd>{data.cohort ?? "(none)"}</dd>
 
           <dt>Operator</dt>
+          <dd>{op ? "yes" : "no"}</dd>
+
+          <dt>Operator ID</dt>
           <dd>{data.operator_id ?? "(unset)"}</dd>
 
-          <dt>Expires</dt>
+          <dt>Billing expires</dt>
           <dd>
             {data.billing_expires_at
               ? new Date(data.billing_expires_at * 1000).toISOString()
@@ -193,24 +198,25 @@ export default function MeRoute() {
         </>
       ) : null}
 
-      {!founding ? (
-        <>
-          <SectionTitle>Upgrade</SectionTitle>
-          <Card>
-            <p style={{ marginTop: 0 }}>
-              You&rsquo;re signed in as <code>{roleLabel(data)}</code>. Become a
-              Founding Member to unlock the full Pocket surface,
-              early-access features, and direct operator support.
-            </p>
-            <Link
-              to="/landing"
-              className="pkt-btn pkt-btn--primary pkt-btn--md is-block"
-            >
-              View Founding Member offer
-            </Link>
-          </Card>
-        </>
-      ) : null}
+      <SectionTitle>Vault</SectionTitle>
+      <Card>
+        <p className="pkt-status">
+          <span
+            className={`pkt-vault-dot ${
+              ready ? "pkt-vault-dot--ready" : "pkt-vault-dot--degraded"
+            }`}
+          />
+          {ready ? "Vault Ready" : "Vault Degraded"}
+        </p>
+        {!ready ? (
+          <p className="pocket-faint" style={{ fontSize: 13 }}>
+            Engine reports the v46 memory vault as not configured for
+            this account. Some routes (intelligence kernel views) may
+            return partial data until the operator restores the
+            vault secret.
+          </p>
+        ) : null}
+      </Card>
 
       {enabledFeatures.length > 0 ? (
         <>

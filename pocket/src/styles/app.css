@@ -724,3 +724,60 @@ dl.pkt-dl dd {
   color: var(--fg-faint);
   border-color: var(--border);
 }
+
+/* =================================================================
+   v0.3.12 / Card 17 — header MeStatus + vault dot + CORS list
+   ================================================================= */
+
+.pkt-me-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-right: var(--space-2);
+}
+
+.pkt-vault-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.pkt-vault-dot--ready {
+  background: var(--ok);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--ok) 60%, transparent);
+}
+
+.pkt-vault-dot--degraded {
+  background: #e0b53d;
+  box-shadow: 0 0 6px color-mix(in srgb, #e0b53d 60%, transparent);
+  animation: pkt-vault-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pkt-vault-pulse {
+  0%, 100% { opacity: 0.65; }
+  50%      { opacity: 1;    }
+}
+
+.pkt-cors-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.pkt-cors-list li {
+  font-size: var(--text-xs);
+  word-break: break-all;
+}
+.pkt-cors-list li code {
+  display: block;
+  padding: var(--space-2);
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+

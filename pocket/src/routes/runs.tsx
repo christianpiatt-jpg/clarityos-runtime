@@ -12,25 +12,23 @@ import Card from "../components/Card";
 import ErrorBlock from "../components/Error";
 import { List, ListItem } from "../components/List";
 import Loading from "../components/Loading";
-import { isFoundingMember } from "../lib/role";
+import { isOperator } from "../lib/role";
 
 /**
- * Pocket Runs — v0.3.10 (Founding-Member-gated).
+ * Pocket Runs — v0.3.12 (Card 17, operator-mode).
  *
- * Same list of ``GET /elins/regression/runs`` as v0.3.2, with a
- * Pocket-side gate in front: only Founding Members see the table.
- * Non-founding accounts see a "Become a Founding Member" CTA
- * pointing at /landing.
+ * Now gated on the AUTHORITATIVE ``me.operator`` field (Card 16),
+ * not on the v0.3.10 cohort/tier inference. ``/me`` is fetched
+ * first; if the user isn't an operator, the runs API is skipped
+ * entirely and the page renders an inline gate (request operator
+ * access).
  *
- * Note: this is a UX gate, not a security gate. The backend doesn't
- * check tier on /elins/regression/runs — any authenticated session
- * can call it directly. Card 14 said "hide runs table for free
- * users"; that's what this does. Real authorization belongs in the
- * backend.
- *
- * /me is fetched first; if it shows the account is NOT a Founding
- * Member, the /runs API call is skipped entirely (saves a request +
- * keeps the upgrade CTA snappy).
+ * Note: this remains a UX gate, not a security gate. The backend
+ * does not check operator status on
+ * ``/elins/regression/runs`` itself — a determined caller with a
+ * session can still hit the API directly. The Card 17 contract is
+ * to make Pocket the operator-only console; the backend authz is
+ * a separate (future) concern.
  */
 export default function RunsRoute() {
   const [meData, setMeData] = useState<MeResponse | null>(null);
@@ -46,9 +44,7 @@ export default function RunsRoute() {
     try {
       const m = await me();
       setMeData(m);
-      // Skip the runs fetch entirely if the user isn't a Founding
-      // Member — the table won't render anyway.
-      if (!isFoundingMember(m)) {
+      if (!isOperator(m)) {
         setRows(null);
         return;
       }
@@ -93,24 +89,23 @@ export default function RunsRoute() {
     );
   }
 
-  // Founding-Member gate. /me succeeded but the account isn't a
-  // Founding Member — show the upgrade CTA instead of the table.
-  if (meData && !isFoundingMember(meData)) {
+  if (meData && !isOperator(meData)) {
     return (
       <Card>
         <h1>Runs</h1>
         <p className="pocket-muted" style={{ marginBottom: 8 }}>
-          Founding Members only.
+          Operator-only surface.
         </p>
         <p style={{ marginTop: 0 }}>
-          The regression-runs table is part of the Founding Member
-          surface. Sign up to unlock it (and the rest of Pocket).
+          The regression-runs table is part of the operator console.
+          Your account does not currently have operator privileges
+          on the engine.
         </p>
         <Link
-          to="/landing"
+          to="/operator/state"
           className="pkt-btn pkt-btn--primary pkt-btn--md is-block"
         >
-          View Founding Member offer
+          Open operator state &rarr;
         </Link>
       </Card>
     );
