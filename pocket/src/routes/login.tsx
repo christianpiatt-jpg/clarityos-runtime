@@ -2,7 +2,10 @@ import { FormEvent, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import { login, ApiError } from "../api/client";
+import Button from "../components/Button";
+import Card from "../components/Card";
 import ErrorBlock from "../components/Error";
+import Input from "../components/Input";
 import Loading from "../components/Loading";
 
 interface NavState {
@@ -10,12 +13,11 @@ interface NavState {
 }
 
 /**
- * Pocket Login screen.
+ * Pocket Login — v0.3.2.
  *
- * Calls ``POST /login`` with username + password, stores the returned
- * ``session_id`` in localStorage (handled inside ``api/client.ts``),
- * then routes to wherever the user was trying to go before being
- * bounced here (``location.state.from``), defaulting to ``/me``.
+ * Single Card with username + password, primary submit at the
+ * bottom. On success routes back to ``location.state.from`` or
+ * ``/me`` by default.
  */
 export default function LoginRoute() {
   const navigate = useNavigate();
@@ -33,20 +35,13 @@ export default function LoginRoute() {
     setError(null);
     setSubmitting(true);
     try {
-      const data = await login(username, password);
-      // Successful login — head to where the user was going, or /me.
+      await login(username, password);
       navigate(fromPath, { replace: true });
-      // touch ``data`` so noUnusedLocals stays happy
-      void data;
     } catch (e) {
-      const err = e instanceof Error ? e : new Error(String(e));
-      // 401 from /login means bad credentials — surface a clean
-      // message rather than the generic "Not signed in" from the
-      // AuthRequiredError path.
       if (e instanceof ApiError && e.status === 401) {
         setError(new Error("Username or password is incorrect."));
       } else {
-        setError(err);
+        setError(e instanceof Error ? e : new Error(String(e)));
       }
     } finally {
       setSubmitting(false);
@@ -54,53 +49,56 @@ export default function LoginRoute() {
   }
 
   return (
-    <section className="pocket-login">
+    <Card>
       <h1>Sign in</h1>
-      <p>
-        Sign in with your ClarityOS account to use <code>/me</code>,{" "}
-        <code>/clarify</code>, and <code>/runs</code>.
+      <p className="pocket-muted" style={{ marginBottom: 24 }}>
+        Sign in with your ClarityOS account to use{" "}
+        <code>/me</code>, <code>/clarify</code>, and <code>/runs</code>.
       </p>
 
-      <form onSubmit={onSubmit} className="pocket-form">
-        <label className="pocket-field">
-          <span>Username</span>
-          <input
-            type="text"
-            value={username}
-            autoComplete="username"
-            autoCapitalize="off"
-            autoCorrect="off"
-            required
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </label>
+      <form
+        onSubmit={onSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+      >
+        <Input
+          label="Username"
+          type="text"
+          autoComplete="username"
+          autoCapitalize="off"
+          autoCorrect="off"
+          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
 
-        <label className="pocket-field">
-          <span>Password</span>
-          <input
-            type="password"
-            value={password}
-            autoComplete="current-password"
-            required
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        <button
+        <Button
           type="submit"
-          className="pocket-btn"
+          block
           disabled={submitting || !username || !password}
         >
           {submitting ? "Signing in…" : "Sign in"}
-        </button>
+        </Button>
 
         {submitting ? <Loading label="Authenticating…" /> : null}
         <ErrorBlock error={error} title="Sign-in failed" />
       </form>
 
-      <p className="pocket-muted">
-        Already signed in elsewhere? <Link to="/me">Check session</Link>.
+      <p
+        className="pocket-faint"
+        style={{ fontSize: 13, marginTop: 16, marginBottom: 0 }}
+      >
+        Already signed in elsewhere?{" "}
+        <Link to="/me">Check session &rarr;</Link>
       </p>
-    </section>
+    </Card>
   );
 }

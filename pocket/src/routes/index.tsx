@@ -1,28 +1,58 @@
 import { Link } from "react-router-dom";
 
+import Card from "../components/Card";
+
 /**
- * Pocket Home — placeholder landing screen.
+ * Pocket Home — landing card.
  *
- * The v0.3.0 scaffold ships with only this route and ``/runtime``.
- * Concrete operator screens (``/clarify``, ``/me``, ``/runs``, etc.)
- * land in v0.3.x cards.
+ * Minimal greeting + the 4 functional entry points so a first-time
+ * visitor can immediately see what's here without crawling the nav.
  */
 export default function HomeRoute() {
   return (
-    <section className="pocket-home">
+    <Card>
       <h1>Pocket</h1>
-      <p>
+      <p className="pocket-muted">
         ClarityOS phone-sized web surface. Separate runtime from the
-        cockpit (Node v0.2 at <code>cockpit.pro-mediations.com</code>) and
-        the Expo native phone app under <code>/phone</code>.
+        cockpit and the Expo phone app.
       </p>
-      <p>
-        Surface skeleton v0.3.0 &mdash; concrete screens land in
-        v0.3.x.
+      <p className="pocket-faint" style={{ fontSize: 13 }}>
+        Skeleton v0.3.2 &mdash; somatic UI pass.
       </p>
-      <p>
-        <Link to="/runtime">View runtime &rarr;</Link>
-      </p>
-    </section>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          marginTop: 16,
+        }}
+      >
+        <Link
+          to="/runtime"
+          className="pkt-btn pkt-btn--secondary pkt-btn--md is-block"
+        >
+          Runtime
+        </Link>
+        <Link
+          to="/clarify"
+          className="pkt-btn pkt-btn--secondary pkt-btn--md is-block"
+        >
+          Clarify
+        </Link>
+        <Link
+          to="/me"
+          className="pkt-btn pkt-btn--secondary pkt-btn--md is-block"
+        >
+          Me
+        </Link>
+        <Link
+          to="/runs"
+          className="pkt-btn pkt-btn--secondary pkt-btn--md is-block"
+        >
+          Runs
+        </Link>
+      </div>
+    </Card>
   );
 }

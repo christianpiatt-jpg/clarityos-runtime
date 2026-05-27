@@ -6,20 +6,18 @@ import {
   AuthRequiredError,
   type RegressionRunRecord,
 } from "../api/client";
+import Card from "../components/Card";
 import ErrorBlock from "../components/Error";
+import { List, ListItem } from "../components/List";
 import Loading from "../components/Loading";
 
 /**
- * Pocket Runs screen.
+ * Pocket Runs — v0.3.2.
  *
- * Lists ``GET /elins/regression/runs`` (the backend's closest match
- * to the card's "/runs"). 401 → sign-in gate; non-empty array →
- * tabular list keyed by ``run_id``.
- *
- * Clicking a row is a v0.3.x-ish hook — the route exists at
- * ``GET /elins/regression/run/{id}`` (already wired in
- * ``api/client.ts``) but renders raw JSON for now. v0.3.x will own
- * the detail screen.
+ * Lists ``GET /elins/regression/runs`` (the backend's closest
+ * match to the card's "/runs"). Empty / 401 / error states each
+ * render their own Card; the populated case is a tight, scannable
+ * List.
  */
 export default function RunsRoute() {
   const [rows, setRows] = useState<RegressionRunRecord[] | null>(null);
@@ -35,11 +33,8 @@ export default function RunsRoute() {
       const data = await fetchRuns();
       setRows(data);
     } catch (e) {
-      if (e instanceof AuthRequiredError) {
-        setNeedsAuth(true);
-      } else {
-        setError(e instanceof Error ? e : new Error(String(e)));
-      }
+      if (e instanceof AuthRequiredError) setNeedsAuth(true);
+      else setError(e instanceof Error ? e : new Error(String(e)));
     } finally {
       setLoading(false);
     }
@@ -51,79 +46,83 @@ export default function RunsRoute() {
 
   if (loading) {
     return (
-      <section className="pocket-runs">
+      <Card>
         <h1>Runs</h1>
         <Loading label="Loading runs…" />
-      </section>
+      </Card>
     );
   }
 
   if (needsAuth) {
     return (
-      <section className="pocket-runs">
+      <Card>
         <h1>Runs</h1>
-        <p>Sign in required.</p>
-        <p>
-          <Link to="/login" state={{ from: "/runs" }} className="pocket-btn">
-            Sign in
-          </Link>
+        <p className="pocket-muted" style={{ marginBottom: 16 }}>
+          Sign in required.
         </p>
-      </section>
+        <Link
+          to="/login"
+          state={{ from: "/runs" }}
+          className="pkt-btn pkt-btn--primary pkt-btn--md is-block"
+        >
+          Sign in
+        </Link>
+      </Card>
     );
   }
 
   if (error || !rows) {
     return (
-      <section className="pocket-runs">
+      <Card>
         <h1>Runs</h1>
         <ErrorBlock
           error={error}
           onRetry={load}
           title="Could not load /elins/regression/runs"
         />
-      </section>
+      </Card>
     );
   }
 
   if (rows.length === 0) {
     return (
-      <section className="pocket-runs">
+      <Card>
         <h1>Runs</h1>
         <p className="pocket-muted">No runs recorded yet.</p>
-      </section>
+      </Card>
     );
   }
 
   return (
-    <section className="pocket-runs">
-      <h1>Runs</h1>
-      <p className="pocket-muted">
-        Source: <code>/elins/regression/runs</code> &middot; {rows.length} record
-        {rows.length === 1 ? "" : "s"}
-      </p>
+    <>
+      <Card>
+        <h1>Runs</h1>
+        <p className="pocket-faint" style={{ fontSize: 13 }}>
+          Source: <code>/elins/regression/runs</code> &middot;{" "}
+          {rows.length} record{rows.length === 1 ? "" : "s"}
+        </p>
+      </Card>
 
-      <table className="pocket-runs-table">
-        <thead>
-          <tr>
-            <th>run_id</th>
-            <th>created_at</th>
-            <th>source</th>
-            <th>engine</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Card padded={false}>
+        <List>
           {rows.map((r) => (
-            <tr key={r.run_id}>
-              <td>
-                <code>{r.run_id}</code>
-              </td>
-              <td>{r.created_at ?? "—"}</td>
-              <td>{r.source ?? "—"}</td>
-              <td>{r.engine_version ?? "—"}</td>
-            </tr>
+            <ListItem
+              key={r.run_id}
+              trailing={
+                <span className="src">{r.engine_version ?? "—"}</span>
+              }
+            >
+              <div className="pkt-runs-row">
+                <span className="id">{r.run_id}</span>
+                <span className="ts">{r.created_at ?? "—"}</span>
+              </div>
+              <span className="pocket-faint" style={{ fontSize: 12 }}>
+                {r.source ?? "—"}
+              </span>
+            </ListItem>
           ))}
-        </tbody>
-      </table>
-    </section>
+        </List>
+      </Card>
+    </>
   );
 }

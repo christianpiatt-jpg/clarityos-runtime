@@ -6,6 +6,7 @@ import LoginRoute from "./routes/login";
 import ClarifyRoute from "./routes/clarify";
 import MeRoute from "./routes/me";
 import RunsRoute from "./routes/runs";
+import ThemeToggle from "./components/ThemeToggle";
 
 const NAV_LINKS: { to: string; label: string }[] = [
   { to: "/",         label: "Home" },
@@ -19,19 +20,22 @@ const NAV_LINKS: { to: string; label: string }[] = [
 export default function App() {
   return (
     <div className="pocket-root">
-      <nav className="pocket-nav">
-        {NAV_LINKS.map((l) => (
-          <NavLink
-            key={l.to}
-            to={l.to}
-            end={l.to === "/"}
-            className={({ isActive }) =>
-              isActive ? "pocket-navlink active" : "pocket-navlink"
-            }
-          >
-            {l.label}
-          </NavLink>
-        ))}
+      <nav className="pocket-nav" aria-label="Primary">
+        <div className="pocket-nav-links">
+          {NAV_LINKS.map((l) => (
+            <NavLink
+              key={l.to}
+              to={l.to}
+              end={l.to === "/"}
+              className={({ isActive }) =>
+                isActive ? "pocket-navlink active" : "pocket-navlink"
+              }
+            >
+              {l.label}
+            </NavLink>
+          ))}
+        </div>
+        <ThemeToggle />
       </nav>
       <main className="pocket-main">
         <Routes>
@@ -44,13 +48,13 @@ export default function App() {
           <Route
             path="*"
             element={
-              <section className="pocket-notfound">
+              <div className="pkt-card is-padded">
                 <h1>Not found</h1>
-                <p>
+                <p className="pocket-muted">
                   This Pocket route is not implemented yet. Back to{" "}
                   <Link to="/">Home</Link>.
                 </p>
-              </section>
+              </div>
             }
           />
         </Routes>
