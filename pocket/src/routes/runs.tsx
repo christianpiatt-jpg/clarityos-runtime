@@ -2,24 +2,38 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
+  me,
   runs as fetchRuns,
   AuthRequiredError,
+  type MeResponse,
   type RegressionRunRecord,
 } from "../api/client";
 import Card from "../components/Card";
 import ErrorBlock from "../components/Error";
 import { List, ListItem } from "../components/List";
 import Loading from "../components/Loading";
+import { isFoundingMember } from "../lib/role";
 
 /**
- * Pocket Runs — v0.3.2.
+ * Pocket Runs — v0.3.10 (Founding-Member-gated).
  *
- * Lists ``GET /elins/regression/runs`` (the backend's closest
- * match to the card's "/runs"). Empty / 401 / error states each
- * render their own Card; the populated case is a tight, scannable
- * List.
+ * Same list of ``GET /elins/regression/runs`` as v0.3.2, with a
+ * Pocket-side gate in front: only Founding Members see the table.
+ * Non-founding accounts see a "Become a Founding Member" CTA
+ * pointing at /landing.
+ *
+ * Note: this is a UX gate, not a security gate. The backend doesn't
+ * check tier on /elins/regression/runs — any authenticated session
+ * can call it directly. Card 14 said "hide runs table for free
+ * users"; that's what this does. Real authorization belongs in the
+ * backend.
+ *
+ * /me is fetched first; if it shows the account is NOT a Founding
+ * Member, the /runs API call is skipped entirely (saves a request +
+ * keeps the upgrade CTA snappy).
  */
 export default function RunsRoute() {
+  const [meData, setMeData] = useState<MeResponse | null>(null);
   const [rows, setRows] = useState<RegressionRunRecord[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsAuth, setNeedsAuth] = useState(false);
@@ -30,6 +44,14 @@ export default function RunsRoute() {
     setError(null);
     setNeedsAuth(false);
     try {
+      const m = await me();
+      setMeData(m);
+      // Skip the runs fetch entirely if the user isn't a Founding
+      // Member — the table won't render anyway.
+      if (!isFoundingMember(m)) {
+        setRows(null);
+        return;
+      }
       const data = await fetchRuns();
       setRows(data);
     } catch (e) {
@@ -66,6 +88,29 @@ export default function RunsRoute() {
           className="pkt-btn pkt-btn--primary pkt-btn--md is-block"
         >
           Sign in
+        </Link>
+      </Card>
+    );
+  }
+
+  // Founding-Member gate. /me succeeded but the account isn't a
+  // Founding Member — show the upgrade CTA instead of the table.
+  if (meData && !isFoundingMember(meData)) {
+    return (
+      <Card>
+        <h1>Runs</h1>
+        <p className="pocket-muted" style={{ marginBottom: 8 }}>
+          Founding Members only.
+        </p>
+        <p style={{ marginTop: 0 }}>
+          The regression-runs table is part of the Founding Member
+          surface. Sign up to unlock it (and the rest of Pocket).
+        </p>
+        <Link
+          to="/landing"
+          className="pkt-btn pkt-btn--primary pkt-btn--md is-block"
+        >
+          View Founding Member offer
         </Link>
       </Card>
     );

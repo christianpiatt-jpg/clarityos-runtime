@@ -13,6 +13,7 @@ import Card from "../components/Card";
 import ErrorBlock from "../components/Error";
 import Loading from "../components/Loading";
 import SectionTitle from "../components/SectionTitle";
+import { isFoundingMember, isOperator, roleLabel } from "../lib/role";
 
 /** Coarse human-readable duration. We don't need second-level
  *  precision for a "signed in 5 min ago" indicator. */
@@ -29,20 +30,16 @@ function formatDuration(ms: number): string {
 }
 
 /**
- * Pocket Me — v0.3.4.
+ * Pocket Me — v0.3.10 (role-aware).
  *
- * GETs ``/me`` on mount. Renders two states cleanly:
- *   * signed-in:  identity card + session-age card + features chips
- *                 + sign-out
- *   * signed-out: gate card with primary CTA to /login
+ * Same identity + session view as v0.3.4, plus:
+ *   * a role badge derived from ``cohort`` + ``tier`` (Card 13
+ *     contract; see ``src/lib/role.ts`` for the inference rules)
+ *   * a "Become a Founding Member" upgrade CTA card for non-founding
+ *     accounts (linking to /landing where the Stripe checkout lives)
  *
- * Session age (v0.3.4): if local metadata is present the page shows
- * how long ago the session was created + how long until it expires.
- * Updates once per minute via setInterval; no backend round-trip.
- *
- * Sign-out: clears local session AND navigates to /login so the
- * post-logout state is unambiguous (no "you're on /me but
- * unauthenticated" middle state).
+ * No backend changes; Pocket infers the role from the existing /me
+ * response fields until the backend grows a real ``role`` field.
  */
 export default function MeRoute() {
   const navigate = useNavigate();
@@ -71,8 +68,6 @@ export default function MeRoute() {
     void load();
   }, []);
 
-  // Tick the age indicator once a minute. No-ops when no session
-  // metadata is available.
   useEffect(() => {
     if (!data) return;
     const id = window.setInterval(() => setTick((t) => t + 1), 60 * 1000);
@@ -128,12 +123,36 @@ export default function MeRoute() {
     .sort();
 
   const age = getSessionAge();
+  const founding = isFoundingMember(data);
+  const operator = isOperator(data);
 
   return (
     <>
       <Card>
-        <h1>Me</h1>
-        <dl className="pkt-dl" style={{ marginTop: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 4,
+          }}
+        >
+          <h1 style={{ margin: 0 }}>Me</h1>
+          <span
+            className={`pkt-badge ${
+              operator
+                ? "pkt-badge--operator"
+                : founding
+                  ? "pkt-badge--founding"
+                  : "pkt-badge--free"
+            }`}
+          >
+            {roleLabel(data)}
+          </span>
+        </div>
+
+        <dl className="pkt-dl" style={{ marginTop: 16 }}>
           <dt>User</dt>
           <dd>{data.user}</dd>
 
@@ -170,6 +189,25 @@ export default function MeRoute() {
                   : "(expired — next request will redirect to /login)"}
               </dd>
             </dl>
+          </Card>
+        </>
+      ) : null}
+
+      {!founding ? (
+        <>
+          <SectionTitle>Upgrade</SectionTitle>
+          <Card>
+            <p style={{ marginTop: 0 }}>
+              You&rsquo;re signed in as <code>{roleLabel(data)}</code>. Become a
+              Founding Member to unlock the full Pocket surface,
+              early-access features, and direct operator support.
+            </p>
+            <Link
+              to="/landing"
+              className="pkt-btn pkt-btn--primary pkt-btn--md is-block"
+            >
+              View Founding Member offer
+            </Link>
           </Card>
         </>
       ) : null}
