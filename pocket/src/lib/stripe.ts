@@ -26,11 +26,14 @@
 
 export type StripeTier = "founding" | "monthly" | "annual";
 
-/** TODO(stripe): replace each placeholder with the real Stripe
- *  Payment Link URL from the dashboard. Each tier is a separate
- *  Stripe product/price. */
+/** Stripe Payment Link URLs per tier. ``founding`` is live (real
+ *  Checkout Link from the Stripe dashboard); ``monthly`` and
+ *  ``annual`` are still placeholders until those tiers are created
+ *  in Stripe. ``isStripePlaceholder`` below lets the UI render a
+ *  small "Stripe link is a placeholder" note for the unfilled
+ *  tiers without changing call sites. */
 const STRIPE_CHECKOUT_URLS: Record<StripeTier, string> = {
-  founding: "https://buy.stripe.com/PLACEHOLDER_FOUNDING",
+  founding: "https://buy.stripe.com/fZu9ATclDb3re3cgFB0VO00",
   monthly:  "https://buy.stripe.com/PLACEHOLDER_MONTHLY",
   annual:   "https://buy.stripe.com/PLACEHOLDER_ANNUAL",
 };
