@@ -98,24 +98,40 @@ gcloud services enable \
     cloudbuild.googleapis.com \
     artifactregistry.googleapis.com
 
-# 3. Create the Artifact Registry repo (one-time per project).
-gcloud artifacts repositories create clarityos-web \
+# 3. Artifact Registry: the canonical repo is ``cloud-run-source-deploy``
+#    in ``us-central1``. Cloud Run auto-creates it on the first source
+#    deploy, so explicit creation is usually unnecessary. If you need to
+#    create it manually:
+gcloud artifacts repositories create cloud-run-source-deploy \
     --repository-format=docker \
-    --location=us-east4 \
-    --description="ClarityOS v0.2 TypeScript Web Surface images"
+    --location=us-central1 \
+    --description="Cloud Run Source Deployments"
 ```
 
 ### Build + push the image
 
+The web build uses two config files at repo root (both committed):
+
+- `cloudbuild.web.yaml` — Cloud Build steps. Drives
+  `docker build -f web/Dockerfile` with the repo root as context,
+  because `web/Dockerfile` references paths like `web/src/` and
+  `web/package.json` that only resolve from the workspace root.
+- `.gcloudignore.web` — per-service upload filter. **Required** because
+  the project-level `.gcloudignore` denylists `web/` (it is tuned for
+  the Python `clarity-engine` build). This file keeps `web/` in the
+  upload AND excludes `.dockerignore` (which also denylists `web/`),
+  so Docker on the Cloud Build worker has nothing to filter against.
+
 ```bash
-# Run from the repo root so the Dockerfile's COPY paths resolve.
+# Run from the repo root.
 PROJECT="YOUR_GCP_PROJECT_ID"
-REGION="us-east4"
-IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/clarityos-web/clarityos-web-v0-2:$(date -u +%Y%m%d%H%M%S)"
+REGION="us-central1"
+IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/cloud-run-source-deploy/clarityos-web-v0-2:$(date -u +%Y%m%d%H%M%S)"
 
 gcloud builds submit \
-    --tag "${IMAGE}" \
-    --file web/Dockerfile \
+    --config cloudbuild.web.yaml \
+    --ignore-file=.gcloudignore.web \
+    --substitutions=_IMAGE="${IMAGE}" \
     .
 ```
 
