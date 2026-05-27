@@ -62,6 +62,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 import bcrypt
+import hmac
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -151,6 +152,11 @@ _user_ref = _privacy.user_ref
 # App + config
 # ===========================================================================
 app = FastAPI(title="ClarityOS Cloud", version="2.4")
+
+# v0.3.11 / Card 16 — engine boot timestamp, used by /operator/state to
+# report uptime. Set once at module load; immutable for the life of the
+# revision.
+_ENGINE_START_TIME = time.time()
 
 # ----- ACCEPTANCE: harness dashboard router (additive, no existing routes touched) -----
 # Mounts /founder/acceptance/* endpoints used by the acceptance harness
@@ -554,6 +560,57 @@ def require_session(x_session_id: Optional[str] = Header(default=None)) -> dict:
     except Exception:  # pragma: no cover — defensive against backend hiccups
         cohort = None
     return {"session_id": x_session_id, "user": session["user"], "cohort": cohort}
+
+
+# ---------------------------------------------------------------------------
+# Card 16 — operator-token auth (privileged path)
+# ---------------------------------------------------------------------------
+def _is_operator_token(request: Request) -> bool:
+    """Return True iff the request carries a valid Operator token.
+
+    The token is expected in the ``Authorization`` header in the form:
+
+        Authorization: Operator <token>
+
+    The expected value comes from the ``CLARITYOS_OPERATOR_TOKEN`` env
+    var (mounted from Secret Manager in production). When the env var
+    is unset OR empty, no token can be valid — every operator-only
+    surface stays locked. Comparison is constant-time
+    (``hmac.compare_digest``) so the response time doesn't leak any
+    information about partial-match length.
+    """
+    expected = (os.environ.get("CLARITYOS_OPERATOR_TOKEN") or "").strip()
+    if not expected:
+        return False
+    auth = request.headers.get("authorization") or ""
+    # Case-insensitive scheme match; preserve whatever spacing the
+    # client used between scheme and token.
+    scheme, _, presented = auth.partition(" ")
+    if scheme.lower() != "operator":
+        return False
+    presented = presented.strip()
+    if not presented:
+        return False
+    return hmac.compare_digest(presented, expected)
+
+
+def require_operator_token(request: Request) -> dict:
+    """FastAPI dependency for operator-only endpoints.
+
+    Rejects with 401 unless the request carries a valid Operator
+    token. Returns a small dict so endpoints can log who hit them
+    (``operator=True`` is the only identity available — the token
+    has no user_id binding by design)."""
+    if not _is_operator_token(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=error_response(
+                "operator_token_required",
+                "This endpoint requires a valid Operator token in the "
+                "Authorization header.",
+            ),
+        )
+    return {"operator": True}
 
 
 # ===========================================================================
@@ -1491,18 +1548,45 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
 # Public routes (account + system)
 # ===========================================================================
 @app.get("/me")
-def me(session: dict = Depends(require_session)):
+def me(request: Request, session: dict = Depends(require_session)):
     logger.info(
         "me user=%s session=%s",
         _user_ref(session["user"]), _session_ref(session["session_id"]),
     )
     user_doc = users_store.get_user(session["user"]) or {}
     cohort = user_doc.get("cohort")
+
+    # Card 16 — operator status: Operator token in the Authorization
+    # header always wins; otherwise the legacy "founder_exception"
+    # cohort is treated as operator (preserves existing privileged
+    # path so the change is purely additive).
+    operator = _is_operator_token(request) or (cohort == "founder_exception")
+
+    # Card 16 — vault_ready: non-throwing probe so a misconfigured
+    # vault never causes /me to 500. (This is what bit us in Card 15.)
+    vault_ready = memory_vault.is_ready(session["user"])
+
+    # Card 16 — cache the intelligence_kernel view so a single call
+    # supplies all three downstream fields, AND tolerate failures so
+    # a broken kernel can't 500 /me. /me used to invoke this three
+    # times (line-by-line) which both inflated cost and tripled the
+    # vault-failure blast radius.
+    kernel_view: dict = {}
+    try:
+        kernel_view = intelligence_kernel.kernel_view_for_user(session["user"])
+    except Exception as e:
+        logger.warning(
+            "kernel_view_for_user failed user=%s err=%s",
+            _user_ref(session["user"]), e,
+        )
+
     return {
         "ok": True,
         "user": session["user"],
         "session_id": session["session_id"],
         "cohort": cohort,
+        "operator": operator,
+        "vault_ready": vault_ready,
         "operator_id": user_doc.get("operator_id"),
         "tier": user_doc.get("tier", "free"),
         "billing_expires_at": user_doc.get("billing_expires_at"),
@@ -1562,9 +1646,72 @@ def me(session: dict = Depends(require_session)):
         # /me/operator_state. v41 adds top-level shortcuts so older
         # clients can read external_signal_mode + eso_source without
         # walking the kernel block.
-        "intelligence_kernel": intelligence_kernel.kernel_view_for_user(session["user"]),
-        "external_signal_mode": intelligence_kernel.kernel_view_for_user(session["user"])["external_signal_mode"],
-        "eso_source": intelligence_kernel.kernel_view_for_user(session["user"])["eso_source"],
+        "intelligence_kernel": kernel_view,
+        "external_signal_mode": kernel_view.get("external_signal_mode"),
+        "eso_source": kernel_view.get("eso_source"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Card 16 — operator-only diagnostic endpoint
+# ---------------------------------------------------------------------------
+@app.get("/operator/state")
+def operator_state(_: dict = Depends(require_operator_token)):
+    """Operator-only diagnostic view of the engine.
+
+    Auth: ``Authorization: Operator <token>`` (validated against
+    ``CLARITYOS_OPERATOR_TOKEN``). No user session required — this is
+    the privileged "root shell" surface and is intentionally not
+    user-scoped.
+
+    Returns:
+      engine_revision   K_REVISION env (set by Cloud Run) or
+                        BUILD_VERSION file content
+      vault_status      "ready" or "not_configured"
+      active_sessions   count of live sessions in sessions_store
+      uptime_seconds    int seconds since module load
+      cors_origins      live CORS allow-list (same as /config)
+      backend           backend mode ("memory" / "firestore")
+      version           api version
+    """
+    # engine_revision — prefer K_REVISION (auto-set by Cloud Run);
+    # fall back to BUILD_VERSION file (read once on each call —
+    # tolerant of missing files).
+    engine_revision = os.environ.get("K_REVISION") or ""
+    if not engine_revision:
+        bv_path = os.environ.get("BUILD_VERSION_FILE", "BUILD_VERSION")
+        try:
+            with open(bv_path, "r", encoding="utf-8") as f:
+                engine_revision = f.read().strip()
+        except Exception:
+            engine_revision = "(unknown)"
+
+    # vault_status — non-throwing probe.
+    vault_status = "ready" if memory_vault.is_ready() else "not_configured"
+
+    # active_sessions — defensive count. sessions_store backends
+    # vary (memory vs firestore); a count() method may or may not
+    # exist. Try the most common shapes; fall back to "unknown".
+    active_sessions: int | str = "unknown"
+    try:
+        if hasattr(sessions_store, "count_sessions"):
+            active_sessions = int(sessions_store.count_sessions())
+        elif hasattr(sessions_store, "list_session_ids"):
+            active_sessions = len(list(sessions_store.list_session_ids()))
+    except Exception:
+        active_sessions = "unknown"
+
+    uptime_seconds = int(time.time() - _ENGINE_START_TIME)
+
+    return {
+        "ok": True,
+        "engine_revision": engine_revision,
+        "vault_status": vault_status,
+        "active_sessions": active_sessions,
+        "uptime_seconds": uptime_seconds,
+        "cors_origins": CORS_ORIGINS,
+        "backend": BACKEND,
+        "version": "2.4",
     }
 
 
