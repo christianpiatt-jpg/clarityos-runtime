@@ -31,6 +31,16 @@
  */
 import { createServer } from "node:http";
 
+// Side-effect import: registers every view module in the v0.2
+// surface (home, errors, formDemo, formWizard, perplexityDemo,
+// redirect, streamDemo, streamSseDemo, uploadDemo) plus the
+// ``"index"`` alias for ``"/"``. Without this, the registry is
+// empty in prod and every request returns ``"View 'X' not found."``
+// Tests import ``createRequestHandler`` directly and manage their
+// own registry state via ``_clearViewRegistryForTests``, so they
+// are unaffected.
+import "../surface/views";
+
 import { createRequestHandler } from "./requestHandler";
 
 
