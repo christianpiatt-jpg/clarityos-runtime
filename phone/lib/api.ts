@@ -2285,3 +2285,90 @@ export function extractPrimitiveLineage(
     })),
   };
 }
+
+// Card 32 — Primitive lineage diff (Phase-1 minimal).
+// Pure deterministic helper that compares pairwise-adjacent runs in
+// a lineage to surface: when the primitive appears / disappears, when
+// its metadata changed, when its hydraulic state changed, and when
+// its overlay changed. JSON.stringify equality is used for shape
+// comparison — deterministic for the deployed Engine V1 field types.
+export interface EngineV1PrimitiveLineageDiff {
+  primitive_id: string;
+
+  appearance: {
+    added:   number[];
+    removed: number[];
+  };
+
+  metadataChanges: Array<{
+    from:      EnginePrimitive | null;
+    to:        EnginePrimitive | null;
+    indexFrom: number;
+    indexTo:   number;
+  }>;
+
+  hydraulicChanges: Array<{
+    from:      EnginePrimitive | null;
+    to:        EnginePrimitive | null;
+    indexFrom: number;
+    indexTo:   number;
+  }>;
+
+  overlayChanges: Array<{
+    from:      EngineOverlayResult | null;
+    to:        EngineOverlayResult | null;
+    indexFrom: number;
+    indexTo:   number;
+  }>;
+}
+
+export function diffPrimitiveLineage(
+  lineage: EngineV1PrimitiveLineage,
+): EngineV1PrimitiveLineageDiff {
+  const { primitive_id, runs } = lineage;
+
+  const appearance: EngineV1PrimitiveLineageDiff["appearance"] = {
+    added:   [],
+    removed: [],
+  };
+  const metadataChanges:  EngineV1PrimitiveLineageDiff["metadataChanges"]  = [];
+  const hydraulicChanges: EngineV1PrimitiveLineageDiff["hydraulicChanges"] = [];
+  const overlayChanges:   EngineV1PrimitiveLineageDiff["overlayChanges"]   = [];
+
+  for (let i = 0; i < runs.length - 1; i++) {
+    const a = runs[i];
+    const b = runs[i + 1];
+
+    // Appearance / disappearance.
+    if (a.primitive === null && b.primitive !== null) appearance.added.push(b.index);
+    if (a.primitive !== null && b.primitive === null) appearance.removed.push(b.index);
+
+    // Metadata + hydraulic — only when the primitive is present on both sides.
+    if (a.primitive && b.primitive) {
+      if (JSON.stringify(a.primitive.metadata) !== JSON.stringify(b.primitive.metadata)) {
+        metadataChanges.push({
+          from: a.primitive, to: b.primitive,
+          indexFrom: a.index, indexTo: b.index,
+        });
+      }
+      if (JSON.stringify(a.primitive.hydraulic_state) !== JSON.stringify(b.primitive.hydraulic_state)) {
+        hydraulicChanges.push({
+          from: a.primitive, to: b.primitive,
+          indexFrom: a.index, indexTo: b.index,
+        });
+      }
+    }
+
+    // Overlay change (covers null↔non-null transitions too).
+    if (a.overlay || b.overlay) {
+      if (JSON.stringify(a.overlay) !== JSON.stringify(b.overlay)) {
+        overlayChanges.push({
+          from: a.overlay, to: b.overlay,
+          indexFrom: a.index, indexTo: b.index,
+        });
+      }
+    }
+  }
+
+  return { primitive_id, appearance, metadataChanges, hydraulicChanges, overlayChanges };
+}
