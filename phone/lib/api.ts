@@ -2372,3 +2372,25 @@ export function diffPrimitiveLineage(
 
   return { primitive_id, appearance, metadataChanges, hydraulicChanges, overlayChanges };
 }
+
+// Card 33 — Primitive lineage overlay (Phase-1 minimal).
+// Pure composition: pairs the Card 31 raw lineage with the Card 32
+// diff into a single operator-layer artifact. Becomes the canonical
+// "operator-ready" lineage payload for Cards 34-36 (lineage-based
+// regression tools, hydraulic evolution analysis, primitive-centric
+// debugging). No new logic, no inference.
+export interface EngineV1PrimitiveLineageOverlay {
+  primitive_id: string;
+  lineage:      EngineV1PrimitiveLineage;
+  diff:         EngineV1PrimitiveLineageDiff;
+}
+
+export function buildPrimitiveLineageOverlay(
+  lineage: EngineV1PrimitiveLineage,
+): EngineV1PrimitiveLineageOverlay {
+  return {
+    primitive_id: lineage.primitive_id,
+    lineage,
+    diff:         diffPrimitiveLineage(lineage),
+  };
+}
