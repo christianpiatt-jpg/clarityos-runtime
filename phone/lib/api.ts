@@ -2217,3 +2217,31 @@ export function diffDiagnostics(
   if (JSON.stringify(ad.interventions)  !== JSON.stringify(bd.interventions))  diff.interventions  = bd.interventions;
   return diff;
 }
+
+// Card 30 — Engine V1 unified delta object (Phase-1 minimal).
+// Pure composition over the Card 29 diff helpers. Becomes the
+// canonical "diff payload" higher-level operator tools (Cards 31-35:
+// diff panels, regression inspectors, multi-run overlays, historical
+// state tools) consume instead of calling the three helpers
+// separately. No new logic, no new fields, no mutation.
+export interface EngineV1Delta {
+  primitives: {
+    added:   EnginePrimitive[];
+    removed: EnginePrimitive[];
+  };
+  overlays: {
+    changed: EngineOverlayResult[];
+  };
+  diagnostics: Partial<EngineDiagnostics>;
+}
+
+export function computeEngineV1Delta(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): EngineV1Delta {
+  return {
+    primitives:  diffPrimitives(a, b),
+    overlays:    diffOverlays(a, b),
+    diagnostics: diffDiagnostics(a, b),
+  };
+}
