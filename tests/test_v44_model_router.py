@@ -458,3 +458,125 @@ def test_me_advertises_model_router_capability(app_module, client):
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "model_router" in ids
+
+
+# ---------------------------------------------------------------------------
+# Card 19 — /model/route compatibility adapter
+# ---------------------------------------------------------------------------
+def test_card_19_model_route_basic_task_default(app_module, client):
+    """Intent maps to a TASK_DEFAULTS bucket; no overrides set → reason
+    is ``task_default`` and the model matches TASK_DEFAULTS[intent]."""
+    import model_router as mr
+    user, sid = _make_user(app_module, "mr_basic", cohort=None)
+    r = client.post(
+        "/model/route", headers=_auth(sid),
+        json={"intent": "ELINS"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ok"] is True
+    assert body["model"] == mr.TASK_DEFAULTS["ELINS"]
+    assert body["reason"] == "task_default"
+
+
+def test_card_19_model_route_explicit_override(app_module, client):
+    """An explicit override wins precedence → reason is ``override``."""
+    user, sid = _make_user(app_module, "mr_override", cohort=None)
+    r = client.post(
+        "/model/route", headers=_auth(sid),
+        json={"intent": "ELINS", "override": "openai:gpt-4o"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["model"] == "openai:gpt-4o"
+    assert body["reason"] == "override"
+
+
+def test_card_19_model_route_user_preference(app_module, client):
+    """User preferred_model wins when no override + no founder default."""
+    import operator_state
+    user, sid = _make_user(app_module, "mr_pref", cohort=None)
+    operator_state.set_preferred_model(user, "anthropic:claude-3.7")
+    r = client.post(
+        "/model/route", headers=_auth(sid),
+        json={"intent": "c"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["model"] == "anthropic:claude-3.7"
+    assert body["reason"] == "user_preference"
+
+
+def test_card_19_model_route_founder_default(app_module, client):
+    """Founder global default beats user preferred_model."""
+    import model_router as mr
+    import operator_state
+    user, sid = _make_user(app_module, "mr_fd", cohort=None)
+    operator_state.set_preferred_model(user, "openai:gpt-4o")
+    mr.set_founder_default_model("anthropic:claude-3.7")
+    try:
+        r = client.post(
+            "/model/route", headers=_auth(sid),
+            json={"intent": "c"},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["model"] == "anthropic:claude-3.7"
+        assert body["reason"] == "founder_default"
+    finally:
+        mr.set_founder_default_model(None)
+
+
+def test_card_19_model_route_operator_flag_founder_cohort(app_module, client):
+    """Card 18 rule: founder cohort flips operator=True without any token."""
+    user, sid = _make_user(app_module, "mr_op_f", cohort="founder")
+    r = client.post(
+        "/model/route", headers=_auth(sid),
+        json={"intent": "ELINS"},
+    )
+    assert r.status_code == 200
+    assert r.json()["operator"] is True
+
+
+def test_card_19_model_route_operator_flag_regular_user(app_module, client):
+    """No token + non-founder cohort → operator=False."""
+    user, sid = _make_user(app_module, "mr_op_r", cohort="terrace_1")
+    r = client.post(
+        "/model/route", headers=_auth(sid),
+        json={"intent": "ELINS"},
+    )
+    assert r.status_code == 200
+    assert r.json()["operator"] is False
+
+
+def test_card_19_model_route_operator_flag_token(app_module, client, monkeypatch):
+    """Operator token flips operator=True even when cohort is non-founder."""
+    monkeypatch.setenv("CLARITYOS_OPERATOR_TOKEN", "secret-card19-token")
+    user, sid = _make_user(app_module, "mr_op_t", cohort=None)
+    r = client.post(
+        "/model/route",
+        headers={**_auth(sid), "Authorization": "Operator secret-card19-token"},
+        json={"intent": "ELINS"},
+    )
+    assert r.status_code == 200
+    assert r.json()["operator"] is True
+
+
+def test_card_19_model_route_bad_override_rejected(app_module, client):
+    """Unknown override model_id → 400 bad_input via v29_hardening."""
+    user, sid = _make_user(app_module, "mr_bad", cohort=None)
+    r = client.post(
+        "/model/route", headers=_auth(sid),
+        json={"intent": "ELINS", "override": "not_a_real_model"},
+    )
+    assert r.status_code == 400
+    assert (r.json().get("error") or "").startswith("bad_input")
+
+
+def test_card_19_model_route_requires_session(app_module, client):
+    """No X-Session-ID → 401 (require_session)."""
+    r = client.post(
+        "/model/route",
+        json={"intent": "ELINS"},
+    )
+    assert r.status_code == 401

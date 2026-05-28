@@ -1665,8 +1665,16 @@ def me(request: Request, session: dict = Depends(require_session)):
 # Card 16 — operator-only diagnostic endpoint
 # ---------------------------------------------------------------------------
 @app.get("/operator/state")
-def operator_state(_: dict = Depends(require_operator_token)):
+def operator_state_diagnostic(_: dict = Depends(require_operator_token)):
     """Operator-only diagnostic view of the engine.
+
+    Card 16.1: renamed from ``operator_state`` to ``operator_state_diagnostic``
+    so this view function no longer shadows the module-level
+    ``import operator_state`` (line 107). The URL stays ``/operator/state``;
+    the response shape is unchanged. The rename unblocks five callsites
+    that read ``operator_state.get_operator_state(...)`` /
+    ``set_preferred_model(...)`` later in the file, plus the new Card 19
+    ``/model/route`` adapter.
 
     Auth: ``Authorization: Operator <token>`` (validated against
     ``CLARITYOS_OPERATOR_TOKEN``). No user session required — this is
@@ -10824,6 +10832,87 @@ def founder_models_override(
         "ok": True,
         "default_model": chosen,
         "router": model_router.get_router_status(),
+    }
+
+
+# ---------- Card 19 — /model/route compatibility adapter ----------
+# Thin HTTP wrapper over model_router.select_model() so PHONE / WEB
+# clients can resolve a model_id without speaking the kernel's
+# internal vocabulary. Adapter-derived reason is computed here
+# (router still returns only a string); model_router.py is unchanged.
+class ModelRouteRequest(BaseModel):
+    intent: str
+    context: Optional[dict] = None        # accepted, unused (forward-compat)
+    override: Optional[str] = None        # explicit model_id override
+
+
+def _derive_route_reason(
+    user: str,
+    task: str,
+    override: Optional[str],
+    model_id: str,
+) -> str:
+    """Mirror model_router.select_model's precedence so callers can see
+    which rule won. Order matches select_model: override > founder
+    default > user preferred_model > task default."""
+    if override:
+        return "override"
+    founder = model_router.get_founder_default_model()
+    if founder and founder == model_id:
+        return "founder_default"
+    try:
+        state = operator_state.get_operator_state(user) or {}
+        pref = state.get("preferred_model")
+        if pref and pref == model_id:
+            return "user_preference"
+    except Exception:  # pragma: no cover (defensive)
+        pass
+    if model_router.TASK_DEFAULTS.get(task) == model_id:
+        return "task_default"
+    return "fallback"
+
+
+@app.post("/model/route")
+def model_route(
+    req: ModelRouteRequest,
+    request: Request,
+    session: dict = Depends(require_session),
+):
+    """Compatibility wrapper for ``model_router.select_model``.
+
+    PHONE and WEB clients call this to resolve which model_id to use
+    for a given intent. The adapter accepts a friendly ``intent`` and
+    optional ``override``; the response carries the resolved model_id,
+    an adapter-derived reason, and the operator flag (Card 18 rule:
+    operator token OR cohort in FOUNDER_LIKE_COHORTS).
+    """
+    user = session["user"]
+    cohort = session.get("cohort")
+    operator = _is_operator_token(request) or (cohort in FOUNDER_LIKE_COHORTS)
+
+    try:
+        model_id = model_router.select_model(
+            user,
+            task=req.intent,
+            override=req.override,
+        )
+    except ValueError as e:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_input", str(e))
+        )
+
+    reason = _derive_route_reason(
+        user=user,
+        task=req.intent,
+        override=req.override,
+        model_id=model_id,
+    )
+
+    return {
+        "ok": True,
+        "model": model_id,
+        "reason": reason,
+        "operator": operator,
     }
 
 
