@@ -173,6 +173,38 @@ describe("Card 25 — normalizeEngineResponse", () => {
     expect(out.diagnostics.interventions).toEqual([]);
   });
 
+  it("Card 26A — carries regression + projection through to the normalized view", () => {
+    // Card 26A extended NormalizedEngineV1 to include the top-level
+    // analytical outputs so downstream consumers (classifier, operator
+    // tools, future UI) don't need to keep the raw EngineResponseV1
+    // alongside the normalized view.
+    const response: EngineResponseV1 = {
+      ok: true,
+      primitives:  [],
+      overlays:    [],
+      regression:  null,
+      projection:  null,
+      diagnostics: fakeDiagnostics(),
+    };
+
+    const out = normalizeEngineResponse(response);
+    expect(out.regression).toBeNull();
+    expect(out.projection).toBeNull();
+
+    // When the response has analytical outputs, they pass through.
+    const responseWithRegression: EngineResponseV1 = {
+      ...response,
+      regression: {
+        primitive_id:           "prim_001",
+        // Minimal-shape regression (other required fields omitted via
+        // a defensive cast — this test only pins passthrough identity,
+        // not regression-result correctness).
+      } as unknown as NonNullable<EngineResponseV1["regression"]>,
+    };
+    const out2 = normalizeEngineResponse(responseWithRegression);
+    expect(out2.regression).toBe(responseWithRegression.regression);
+  });
+
   it("is pure — does not mutate the input response", () => {
     const response: EngineResponseV1 = {
       ok: true,

@@ -2028,6 +2028,12 @@ const EMPTY_ENGINE_DIAGNOSTICS: EngineDiagnostics = {
 export interface NormalizedEngineV1 {
   primitives:     EnginePrimitive[];
   overlays:       EngineOverlayResult[];
+  // Card 26A — top-level analytical outputs carried through unchanged
+  // so downstream consumers (classifier, operator tools, future UI)
+  // don't have to keep the raw EngineResponseV1 alongside the
+  // normalized view.
+  regression:     EngineRegressionResult | null;
+  projection:     EngineProjectionResult | null;
   diagnostics:    EngineDiagnostics;
   primitiveCount: number;
   overlayCount:   number;
@@ -2041,8 +2047,59 @@ export function normalizeEngineResponse(
   return {
     primitives,
     overlays,
+    regression:     response.regression ?? null,
+    projection:     response.projection ?? null,
     diagnostics:    response.diagnostics ?? EMPTY_ENGINE_DIAGNOSTICS,
     primitiveCount: primitives.length,
     overlayCount:   overlays.length,
+  };
+}
+
+// Card 26A — Engine V1 classifier (Phase-1 minimal, contract-faithful).
+// Pure deterministic categoriser keyed on the actual deployed
+// fields: primitive_type (signal/entity/attitude/...) and overlay
+// flow_regime + in_critical_zone + on_upper_branch. Regression and
+// projection are top-level analytical outputs on EngineResponseV1
+// (not overlay categories) and are passed through unchanged so
+// downstream tools don't need to keep the raw response alongside.
+export interface EngineV1Classification {
+  signals:               EnginePrimitive[];
+  entities:              EnginePrimitive[];
+  attitudes:             EnginePrimitive[];
+  relationships:         EnginePrimitive[];
+  events:                EnginePrimitive[];
+  temperatures:          EnginePrimitive[];
+
+  laminarOverlays:       EngineOverlayResult[];
+  transitionalOverlays:  EngineOverlayResult[];
+  turbulentOverlays:     EngineOverlayResult[];
+  criticalZoneOverlays:  EngineOverlayResult[];
+  upperBranchOverlays:   EngineOverlayResult[];
+
+  regression:            EngineRegressionResult | null;
+  projection:            EngineProjectionResult | null;
+  diagnostics:           EngineDiagnostics;
+}
+
+export function classifyEngineV1(
+  normalized: NormalizedEngineV1,
+): EngineV1Classification {
+  return {
+    signals:        normalized.primitives.filter((p) => p.metadata.primitive_type === "signal"),
+    entities:       normalized.primitives.filter((p) => p.metadata.primitive_type === "entity"),
+    attitudes:      normalized.primitives.filter((p) => p.metadata.primitive_type === "attitude"),
+    relationships:  normalized.primitives.filter((p) => p.metadata.primitive_type === "relationship"),
+    events:         normalized.primitives.filter((p) => p.metadata.primitive_type === "event"),
+    temperatures:   normalized.primitives.filter((p) => p.metadata.primitive_type === "temperature"),
+
+    laminarOverlays:      normalized.overlays.filter((o) => o.flow_regime === "laminar"),
+    transitionalOverlays: normalized.overlays.filter((o) => o.flow_regime === "transitional"),
+    turbulentOverlays:    normalized.overlays.filter((o) => o.flow_regime === "turbulent"),
+    criticalZoneOverlays: normalized.overlays.filter((o) => o.in_critical_zone),
+    upperBranchOverlays:  normalized.overlays.filter((o) => o.on_upper_branch),
+
+    regression:  normalized.regression ?? null,
+    projection:  normalized.projection ?? null,
+    diagnostics: normalized.diagnostics,
   };
 }
