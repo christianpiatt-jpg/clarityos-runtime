@@ -1,0 +1,878 @@
+{
+  "ok": true,
+  "primitives": [
+    {
+      "metadata": {
+        "primitive_id": "prim_example_001",
+        "primitive_type": "signal",
+        "timestamp": "2026-05-28T11:33:10.986051+00:00",
+        "version": "1.0.0",
+        "domain": "general",
+        "source": "engine_v1 example payload",
+        "parent_id": null,
+        "ancestors": [],
+        "depends_on": [],
+        "influences": [],
+        "confidence": 1.0,
+        "completeness": 1.0,
+        "reliability": 1.0
+      },
+      "content": {
+        "note": "first primitive — critical zone"
+      },
+      "hydraulic_state": {
+        "pressure": 5.0,
+        "gradient": 0.0,
+        "flow": 4.0,
+        "resistance": 2.0,
+        "timestamp": "2026-05-28T11:33:10.986051+00:00"
+      },
+      "origin_state": null,
+      "historical_states": []
+    },
+    {
+      "metadata": {
+        "primitive_id": "prim_example_002",
+        "primitive_type": "signal",
+        "timestamp": "2026-05-28T11:33:10.986051+00:00",
+        "version": "1.0.0",
+        "domain": "general",
+        "source": "engine_v1 example payload",
+        "parent_id": null,
+        "ancestors": [],
+        "depends_on": [],
+        "influences": [],
+        "confidence": 1.0,
+        "completeness": 1.0,
+        "reliability": 1.0
+      },
+      "content": {
+        "note": "second primitive — laminar"
+      },
+      "hydraulic_state": {
+        "pressure": 1.0,
+        "gradient": 0.0,
+        "flow": 1.0,
+        "resistance": 10.0,
+        "timestamp": "2026-05-28T11:33:10.986051+00:00"
+      },
+      "origin_state": null,
+      "historical_states": []
+    }
+  ],
+  "overlays": [
+    {
+      "primitive_id": "prim_example_001",
+      "reynolds_number": 4000.0,
+      "flow_regime": "turbulent",
+      "stability": 0.2,
+      "in_critical_zone": true,
+      "distance_to_fold": 0.0,
+      "resilience": 10.0,
+      "curve_position": 5.0,
+      "on_upper_branch": false,
+      "sensitivity": 4.0,
+      "hysteresis": 3.0
+    },
+    {
+      "primitive_id": "prim_example_002",
+      "reynolds_number": 40.0,
+      "flow_regime": "laminar",
+      "stability": 0.9,
+      "in_critical_zone": false,
+      "distance_to_fold": 4.0,
+      "resilience": 2.0,
+      "curve_position": 1.0,
+      "on_upper_branch": false,
+      "sensitivity": 1.0,
+      "hysteresis": 3.0
+    }
+  ],
+  "regression": {
+    "primitive_id": "prim_example_001",
+    "current_state": {
+      "metadata": {
+        "primitive_id": "prim_example_001",
+        "primitive_type": "signal",
+        "timestamp": "2026-05-28T11:33:10.986051+00:00",
+        "version": "1.0.0",
+        "domain": "general",
+        "source": "engine_v1 example payload",
+        "parent_id": null,
+        "ancestors": [],
+        "depends_on": [],
+        "influences": [],
+        "confidence": 1.0,
+        "completeness": 1.0,
+        "reliability": 1.0
+      },
+      "content": {
+        "note": "first primitive — critical zone"
+      },
+      "hydraulic_state": {
+        "pressure": 5.0,
+        "gradient": 0.0,
+        "flow": 4.0,
+        "resistance": 2.0,
+        "timestamp": "2026-05-28T11:33:10.986051+00:00"
+      },
+      "origin_state": null,
+      "historical_states": []
+    },
+    "origin_state": {
+      "metadata": {
+        "primitive_id": "prim_example_001",
+        "primitive_type": "signal",
+        "timestamp": "2026-02-27T11:33:10.986051+00:00",
+        "version": "1.0.0",
+        "domain": "general",
+        "source": "engine_v1 example payload",
+        "parent_id": null,
+        "ancestors": [],
+        "depends_on": [],
+        "influences": [],
+        "confidence": 0.7,
+        "completeness": 1.0,
+        "reliability": 1.0
+      },
+      "content": {
+        "note": "first primitive — critical zone"
+      },
+      "hydraulic_state": {
+        "pressure": 1.0,
+        "gradient": 0.0,
+        "flow": 6.7,
+        "resistance": 0.5,
+        "timestamp": "2026-02-27T11:33:10.986051+00:00"
+      },
+      "origin_state": null,
+      "historical_states": []
+    },
+    "path": [
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 5.0,
+          "gradient": 0.0,
+          "flow": 4.0,
+          "resistance": 2.0,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 4.8,
+          "gradient": 0.0,
+          "flow": 4.135,
+          "resistance": 1.925,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 4.6,
+          "gradient": 0.0,
+          "flow": 4.27,
+          "resistance": 1.85,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 4.4,
+          "gradient": 0.0,
+          "flow": 4.405,
+          "resistance": 1.775,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 4.2,
+          "gradient": 0.0,
+          "flow": 4.54,
+          "resistance": 1.7,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 4.0,
+          "gradient": 0.0,
+          "flow": 4.675,
+          "resistance": 1.625,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 3.8,
+          "gradient": 0.0,
+          "flow": 4.81,
+          "resistance": 1.55,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 3.6,
+          "gradient": 0.0,
+          "flow": 4.945,
+          "resistance": 1.475,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 3.4,
+          "gradient": 0.0,
+          "flow": 5.08,
+          "resistance": 1.4,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 3.2,
+          "gradient": 0.0,
+          "flow": 5.215,
+          "resistance": 1.325,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 3.0,
+          "gradient": 0.0,
+          "flow": 5.35,
+          "resistance": 1.25,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 2.8,
+          "gradient": 0.0,
+          "flow": 5.485,
+          "resistance": 1.175,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 2.6,
+          "gradient": 0.0,
+          "flow": 5.62,
+          "resistance": 1.1,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 2.4,
+          "gradient": 0.0,
+          "flow": 5.755,
+          "resistance": 1.025,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 2.2,
+          "gradient": 0.0,
+          "flow": 5.89,
+          "resistance": 0.95,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 2.0,
+          "gradient": 0.0,
+          "flow": 6.025,
+          "resistance": 0.875,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 1.8,
+          "gradient": 0.0,
+          "flow": 6.16,
+          "resistance": 0.8,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 1.6,
+          "gradient": 0.0,
+          "flow": 6.295,
+          "resistance": 0.725,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 1.4,
+          "gradient": 0.0,
+          "flow": 6.43,
+          "resistance": 0.65,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 1.2,
+          "gradient": 0.0,
+          "flow": 6.565,
+          "resistance": 0.575,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      },
+      {
+        "metadata": {
+          "primitive_id": "prim_example_001",
+          "primitive_type": "signal",
+          "timestamp": "2026-05-28T11:33:10.986051+00:00",
+          "version": "1.0.0",
+          "domain": "general",
+          "source": "engine_v1 example payload",
+          "parent_id": null,
+          "ancestors": [],
+          "depends_on": [],
+          "influences": [],
+          "confidence": 1.0,
+          "completeness": 1.0,
+          "reliability": 1.0
+        },
+        "content": {
+          "note": "first primitive — critical zone"
+        },
+        "hydraulic_state": {
+          "pressure": 1.0,
+          "gradient": 0.0,
+          "flow": 6.7,
+          "resistance": 0.5,
+          "timestamp": "2026-05-28T11:33:10.986051+00:00"
+        },
+        "origin_state": null,
+        "historical_states": []
+      }
+    ],
+    "reconstruction_error": 0.0,
+    "path_confidence": 0.7,
+    "deviation_from_origin": 8.2,
+    "historical_similarity": 0.5,
+    "attitude_match_score": 0.5
+  },
+  "projection": {
+    "primitive_id": "prim_example_001",
+    "source_state": {
+      "metadata": {
+        "primitive_id": "prim_example_001",
+        "primitive_type": "signal",
+        "timestamp": "2026-05-28T11:33:10.986051+00:00",
+        "version": "1.0.0",
+        "domain": "general",
+        "source": "engine_v1 example payload",
+        "parent_id": null,
+        "ancestors": [],
+        "depends_on": [],
+        "influences": [],
+        "confidence": 1.0,
+        "completeness": 1.0,
+        "reliability": 1.0
+      },
+      "content": {
+        "note": "first primitive — critical zone"
+      },
+      "hydraulic_state": {
+        "pressure": 5.0,
+        "gradient": 0.0,
+        "flow": 4.0,
+        "resistance": 2.0,
+        "timestamp": "2026-05-28T11:33:10.986051+00:00"
+      },
+      "origin_state": null,
+      "historical_states": []
+    },
+    "projected_state": {
+      "metadata": {
+        "primitive_id": "prim_example_001",
+        "primitive_type": "signal",
+        "timestamp": "2026-06-04T11:33:10.986051+00:00",
+        "version": "1.0.0",
+        "domain": "general",
+        "source": "engine_v1 example payload",
+        "parent_id": null,
+        "ancestors": [],
+        "depends_on": [],
+        "influences": [],
+        "confidence": 1.0,
+        "completeness": 1.0,
+        "reliability": 1.0
+      },
+      "content": {
+        "note": "first primitive — critical zone"
+      },
+      "hydraulic_state": {
+        "pressure": 4.65,
+        "gradient": -0.05,
+        "flow": 3.79,
+        "resistance": 2.14,
+        "timestamp": "2026-06-04T11:33:10.986051+00:00"
+      },
+      "origin_state": null,
+      "historical_states": []
+    },
+    "projection_days": 7,
+    "confidence": 0.984,
+    "uncertainty": 0.0617,
+    "pressure_trajectory": [
+      5.0,
+      4.95,
+      4.9,
+      4.85,
+      4.8,
+      4.75,
+      4.7,
+      4.65
+    ],
+    "flow_trajectory": [
+      4.0,
+      3.97,
+      3.94,
+      3.91,
+      3.88,
+      3.85,
+      3.82,
+      3.79
+    ],
+    "regime_changes": [
+      {
+        "day": 0,
+        "regime": "turbulent"
+      },
+      {
+        "day": 1,
+        "regime": "transitional"
+      }
+    ]
+  },
+  "diagnostics": {
+    "observation_id": "obs_139ca89c3c50",
+    "observer_notes": "engine_v1 Phase-1 deterministic run",
+    "confidence_level": 0.7,
+    "validation_status": "unvalidated",
+    "early_warnings": {
+      "critical_zone_count": 1.0,
+      "min_resilience": 2.0,
+      "mean_reynolds": 2020.0
+    },
+    "errors": [],
+    "interventions": []
+  },
+  "validation": null,
+  "cross_regression": null,
+  "backtest": null
+}

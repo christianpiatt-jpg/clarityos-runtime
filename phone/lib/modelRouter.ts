@@ -81,6 +81,54 @@ export async function probeModelSelection(
   }
 }
 
+/**
+ * Card 19.5: real-text completion result from the backend.
+ * ``mock`` is true when the server's provider key is unset and the
+ * router fell back to its deterministic stub.
+ */
+export interface CompletionResult {
+  ok: true;
+  model: CanonicalModelId;
+  text: string;
+  elapsed_ms: number;
+  mock: boolean;
+  provider: string | null;
+}
+
+/**
+ * Card 19.5: call the backend ``/model/complete`` adapter for real
+ * text generation. Throws ``ApiError`` on auth / network / 4xx / 5xx
+ * (including 429 rate-limit). Callers should typically fire-and-forget
+ * so a slow provider doesn't block the user-facing path; use
+ * ``probeCompleteText`` when you want the swallowed-error variant.
+ */
+export async function completeText(
+  model: CanonicalModelId,
+  prompt: string,
+): Promise<CompletionResult> {
+  return request<CompletionResult>(CLOUD_ROUTES.modelComplete, {
+    method: "POST",
+    body: { model, prompt },
+  });
+}
+
+/**
+ * Card 19.5: non-throwing wrapper over ``completeText``. Returns
+ * ``null`` on any failure (no session, network, 4xx/5xx, rate-limit).
+ * Use this for hybrid-mode observability where the real completion
+ * is best-effort and must never crash the user path.
+ */
+export async function probeCompleteText(
+  model: CanonicalModelId,
+  prompt: string,
+): Promise<CompletionResult | null> {
+  try {
+    return await completeText(model, prompt);
+  } catch {
+    return null;
+  }
+}
+
 export type ModelId =
   | "copilot"
   | "claude"

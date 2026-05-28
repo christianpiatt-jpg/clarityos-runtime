@@ -59,7 +59,7 @@ import secrets
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import bcrypt
 import hmac
@@ -10914,6 +10914,258 @@ def model_route(
         "reason": reason,
         "operator": operator,
     }
+
+
+# ---------- Card 19.5 — /model/complete completion adapter ----------
+# Thin wrapper over the existing model_router.route_request — that
+# function already handles real provider dispatch (OpenAI / Anthropic
+# / Gemini / xAI / local) with env-key-gated mock fallback and
+# per-provider timeouts. Re-implementing it here would silently fork
+# the dispatch path; the adapter just plumbs the HTTP shape.
+#
+# Cost guardrail: every call here is a paid LLM round-trip when
+# provider keys are configured, so the route is per-user rate-limited
+# via v29_hardening. Enforcement requires CLARITYOS_RATE_LIMIT_ENFORCE=1
+# in production; without it, breaches are logged but not rejected.
+class ModelCompleteRequest(BaseModel):
+    model: str
+    prompt: str
+
+
+@app.post("/model/complete")
+def model_complete(
+    req: ModelCompleteRequest,
+    session: dict = Depends(require_session),
+):
+    """Card 19.5: real-text-generation completion adapter.
+
+    Forwards ``(model, prompt)`` to ``model_router.route_request`` and
+    returns ``{ok, model, text, elapsed_ms, mock, provider}``. ``mock``
+    is true when the provider's env key is unset and the router
+    fell back to its deterministic stub — clients can treat that as
+    "no real generation happened" without parsing text shape.
+    """
+    user = session["user"]
+    v29_hardening.enforce_rate_limit(
+        user, "/model/complete",
+        capacity=10, window_s=60.0,
+    )
+    started = time.time()
+    try:
+        result = model_router.route_request(req.model, req.prompt)
+    except ValueError as e:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_input", str(e))
+        )
+    elapsed_ms = int((time.time() - started) * 1000)
+    return {
+        "ok": True,
+        "model": result["model_id"],
+        "text": result["text"],
+        "elapsed_ms": elapsed_ms,
+        "mock": bool(result.get("mock", False)),
+        "provider": result.get("provider"),
+    }
+
+
+# ---------- Engine V1 — canonical /engine/v1/run contract (Phase-1) ----------
+# Source-of-truth Pydantic models for the new umbrella engine endpoint.
+# WEB / PHONE / DESKTOP hand-mirror these shapes in their own lib/api.ts
+# files (per the established no-cross-tree-sharing rule); FastAPI's
+# /openapi.json keeps the wire definition canonical.
+#
+# Phase-1 covers: primitives, overlays, primary regression, projection,
+# diagnostics. Phase-2 (validation) and Phase-3 (cross_regression,
+# backtest) are reserved as Optional fields with empty placeholder
+# models so clients can begin integrating today without churn later.
+import engine_v1                          # Card "Engine V1 Contract — Phase 1"
+
+EnginePrimitiveTypeLiteral = Literal[
+    "entity", "attitude", "relationship", "event", "signal", "temperature",
+]
+EngineFlowRegimeLiteral = Literal["laminar", "transitional", "turbulent"]
+
+
+class EngineHydraulicState(BaseModel):
+    pressure:   float
+    gradient:   float
+    flow:       float
+    resistance: float
+    timestamp:  str
+
+
+class EnginePrimitiveMetadata(BaseModel):
+    primitive_id:   str
+    primitive_type: EnginePrimitiveTypeLiteral
+    timestamp:      str
+    version:        str
+    domain:         str
+    source:         str
+    parent_id:      Optional[str] = None
+    # Card 20 cherry-pick: lineage + dependency graph fields.
+    ancestors:      list[str] = []
+    depends_on:     list[str] = []
+    influences:     list[str] = []
+    confidence:     float
+    completeness:   float
+    reliability:    float
+
+
+class EnginePrimitive(BaseModel):
+    metadata:        EnginePrimitiveMetadata
+    content:         dict
+    hydraulic_state: EngineHydraulicState
+    # Card 20 cherry-pick: self-referential lineage. Phase-1 emits
+    # both as None / [] because there's no archive yet — the wire
+    # shape is locked early so Phase-2 (when the archive lands) only
+    # changes values, not field names.
+    origin_state:       Optional["EnginePrimitive"] = None
+    historical_states:  list["EnginePrimitive"] = []
+
+
+class EngineOverlayResult(BaseModel):
+    primitive_id:     str
+    reynolds_number:  float
+    flow_regime:      EngineFlowRegimeLiteral
+    stability:        float
+    in_critical_zone: bool
+    distance_to_fold: float
+    resilience:       float
+    # Card 20 cherry-pick: Godhard-curve fields. curve_position is the
+    # normalised position on the S-curve; on_upper_branch is the
+    # hysteresis branch indicator; sensitivity is the local slope
+    # (peaks inside the critical zone); hysteresis is the configured
+    # loop width.
+    curve_position:   float
+    on_upper_branch:  bool
+    sensitivity:      float
+    hysteresis:       float
+
+
+class EngineRegimeChange(BaseModel):
+    day:    int
+    regime: EngineFlowRegimeLiteral
+
+
+class EngineRegressionResult(BaseModel):
+    primitive_id:           str
+    current_state:          EnginePrimitive
+    origin_state:           EnginePrimitive
+    path:                   list[EnginePrimitive]
+    reconstruction_error:   float
+    path_confidence:        float
+    deviation_from_origin:  float
+    historical_similarity:  float
+    attitude_match_score:   float
+
+
+class EngineProjectionResult(BaseModel):
+    primitive_id:        str
+    source_state:        EnginePrimitive
+    projected_state:     EnginePrimitive
+    projection_days:     int
+    confidence:          float
+    uncertainty:         float
+    pressure_trajectory: list[float]
+    flow_trajectory:     list[float]
+    regime_changes:      list[EngineRegimeChange]
+
+
+class EngineDiagnostics(BaseModel):
+    observation_id:     str
+    observer_notes:     str
+    confidence_level:   float
+    validation_status:  str
+    early_warnings:     dict
+    errors:             list[str]
+    # Card 20 cherry-pick: applied-interventions trace (free-form for
+    # Phase-1; structured by a later card once intervention recipes
+    # land).
+    interventions:      list[str] = []
+
+
+# Reserved Phase-2 / Phase-3 placeholders. Empty by design — extending
+# them is a contract-level decision; clients must treat the parent
+# fields as optional and tolerate added keys.
+class EngineValidationResult(BaseModel):
+    """Phase-2 placeholder (dual-pass validation envelope)."""
+    model_config = ConfigDict(extra="allow")
+
+
+class EngineCrossRegressionResult(BaseModel):
+    """Phase-3 placeholder (cross-primitive regression envelope)."""
+    model_config = ConfigDict(extra="allow")
+
+
+class EngineBacktestResult(BaseModel):
+    """Phase-3 placeholder (historical backtest envelope)."""
+    model_config = ConfigDict(extra="allow")
+
+
+class EngineResponseV1(BaseModel):
+    ok:               Literal[True] = True
+    primitives:       list[EnginePrimitive]
+    overlays:         list[EngineOverlayResult]
+    regression:       Optional[EngineRegressionResult] = None
+    projection:       Optional[EngineProjectionResult] = None
+    diagnostics:      EngineDiagnostics
+    # Reserved — populated by future cards. Default None so existing
+    # consumers can ignore them safely.
+    validation:        Optional[EngineValidationResult]      = None
+    cross_regression:  Optional[EngineCrossRegressionResult] = None
+    backtest:          Optional[EngineBacktestResult]        = None
+
+
+class EnginePrimitiveInput(BaseModel):
+    primitive_id:   Optional[str] = None
+    primitive_type: Optional[EnginePrimitiveTypeLiteral] = "signal"
+    domain:         Optional[str] = "general"
+    source:         Optional[str] = ""
+    content:        Optional[dict] = None
+    pressure:       float
+    flow:           float
+    resistance:     float
+    gradient:       Optional[float] = 0.0
+
+
+class EngineRunRequest(BaseModel):
+    primitives:      list[EnginePrimitiveInput]
+    projection_days: int = 30
+
+
+# Resolve the self-reference on EnginePrimitive.origin_state /
+# historical_states (Pydantic v2 forward-ref pattern).
+EnginePrimitive.model_rebuild()
+
+
+@app.post("/engine/v1/run", response_model=EngineResponseV1)
+def engine_v1_run(
+    req: EngineRunRequest,
+    session: dict = Depends(require_session),
+):
+    """Umbrella Phase-1 engine endpoint.
+
+    Computes per-primitive overlays, runs a primary synthetic-origin
+    regression on the first primitive, and projects it forward.
+    Diagnostics summarise the batch. All math is deterministic and
+    documented in ``engine_v1.py``.
+    """
+    user = session["user"]
+    v29_hardening.enforce_rate_limit(
+        user, "/engine/v1/run",
+        capacity=30, window_s=60.0,
+    )
+    try:
+        payload = engine_v1.run(
+            [p.model_dump() for p in req.primitives],
+            projection_days=req.projection_days,
+        )
+    except ValueError as e:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_input", str(e))
+        )
+    # Validate on the way out so the wire contract is enforced.
+    return EngineResponseV1.model_validate(payload)
 
 
 # ---------- v45 — Local model runtime (on-device inference) ----------

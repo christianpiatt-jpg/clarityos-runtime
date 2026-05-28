@@ -39,6 +39,10 @@ export const CLOUD_ROUTES = {
   vaultPull: "/vault/pull",
   continuity: "/continuity/options",
   modelProxy: "/model/route",
+  // Card 19.5: real-text completion adapter. Per-user rate-limited
+  // server-side (cost guardrail). Clients should fire-and-forget so
+  // a slow provider call doesn't block the user-facing path.
+  modelComplete: "/model/complete",
 } as const;
 
 export function isCloudEnabled(feature: keyof CloudFeatures): boolean {

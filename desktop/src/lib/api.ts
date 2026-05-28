@@ -1071,3 +1071,158 @@ export function getOrgTimeline(window: OrgTimelineWindow): Promise<OrgTimelineRe
     { method: "GET", auth: true },
   );
 }
+
+
+// ===========================================================================
+// Engine V1 — canonical /engine/v1/run contract (Phase-1)
+//
+// Hand-mirrored from the Pydantic models in app.py per the established
+// no-cross-tree-sharing rule (desktop uses Vite, web uses Vite, phone
+// uses Metro — no shared package). Field shapes must stay 1:1 with the
+// engine; FastAPI's /openapi.json is the cross-language source of truth.
+// ===========================================================================
+export type EngineFlowRegime = "laminar" | "transitional" | "turbulent";
+
+export type EnginePrimitiveType =
+  | "entity"
+  | "attitude"
+  | "relationship"
+  | "event"
+  | "signal"
+  | "temperature";
+
+export interface EngineHydraulicState {
+  pressure:   number;
+  gradient:   number;
+  flow:       number;
+  resistance: number;
+  timestamp:  string;
+}
+
+export interface EnginePrimitiveMetadata {
+  primitive_id:   string;
+  primitive_type: EnginePrimitiveType;
+  timestamp:      string;
+  version:        string;
+  domain:         string;
+  source:         string;
+  parent_id:      string | null;
+  // Card 20 cherry-pick: lineage + dependency graph fields.
+  ancestors:      string[];
+  depends_on:     string[];
+  influences:     string[];
+  confidence:     number;
+  completeness:   number;
+  reliability:    number;
+}
+
+export interface EnginePrimitive {
+  metadata:        EnginePrimitiveMetadata;
+  content:         Record<string, unknown>;
+  hydraulic_state: EngineHydraulicState;
+  // Card 20 cherry-pick: self-referential lineage. Both null / empty
+  // in Phase-1 because there's no archive yet; shape locked early so
+  // Phase-2 only changes values.
+  origin_state:       EnginePrimitive | null;
+  historical_states:  EnginePrimitive[];
+}
+
+export interface EngineOverlayResult {
+  primitive_id:     string;
+  reynolds_number:  number;
+  flow_regime:      EngineFlowRegime;
+  stability:        number;
+  in_critical_zone: boolean;
+  distance_to_fold: number;
+  resilience:       number;
+  // Card 20 cherry-pick: Godhard-curve fields.
+  curve_position:   number;
+  on_upper_branch:  boolean;
+  sensitivity:      number;
+  hysteresis:       number;
+}
+
+export interface EngineRegimeChange {
+  day:    number;
+  regime: EngineFlowRegime;
+}
+
+export interface EngineRegressionResult {
+  primitive_id:           string;
+  current_state:          EnginePrimitive;
+  origin_state:           EnginePrimitive;
+  path:                   EnginePrimitive[];
+  reconstruction_error:   number;
+  path_confidence:        number;
+  deviation_from_origin:  number;
+  historical_similarity:  number;
+  attitude_match_score:   number;
+}
+
+export interface EngineProjectionResult {
+  primitive_id:        string;
+  source_state:        EnginePrimitive;
+  projected_state:     EnginePrimitive;
+  projection_days:     number;
+  confidence:          number;
+  uncertainty:         number;
+  pressure_trajectory: number[];
+  flow_trajectory:     number[];
+  regime_changes:      EngineRegimeChange[];
+}
+
+export interface EngineDiagnostics {
+  observation_id:    string;
+  observer_notes:    string;
+  confidence_level:  number;
+  validation_status: string;
+  early_warnings:    Record<string, number>;
+  errors:            string[];
+  // Card 20 cherry-pick: applied-interventions trace. Empty in
+  // Phase-1; structured by a later card.
+  interventions:     string[];
+}
+
+// Phase-2 / Phase-3 reserved placeholders. Empty by design; both
+// engine and clients tolerate extra keys as the contract evolves.
+export interface EngineValidationResult { [k: string]: unknown }
+export interface EngineCrossRegressionResult { [k: string]: unknown }
+export interface EngineBacktestResult { [k: string]: unknown }
+
+export interface EngineResponseV1 {
+  ok:               true;
+  primitives:       EnginePrimitive[];
+  overlays:         EngineOverlayResult[];
+  regression:       EngineRegressionResult | null;
+  projection:       EngineProjectionResult | null;
+  diagnostics:      EngineDiagnostics;
+  // Reserved — undefined or null until later cards land.
+  validation?:       EngineValidationResult       | null;
+  cross_regression?: EngineCrossRegressionResult  | null;
+  backtest?:         EngineBacktestResult         | null;
+}
+
+export interface EnginePrimitiveInput {
+  primitive_id?:   string;
+  primitive_type?: EnginePrimitiveType;
+  domain?:         string;
+  source?:         string;
+  content?:        Record<string, unknown>;
+  pressure:        number;
+  flow:            number;
+  resistance:      number;
+  gradient?:       number;
+}
+
+export interface EngineRunRequest {
+  primitives:       EnginePrimitiveInput[];
+  projection_days?: number;
+}
+
+export function engineV1Run(input: EngineRunRequest): Promise<EngineResponseV1> {
+  return request<EngineResponseV1>("/engine/v1/run", {
+    method: "POST",
+    body: input,
+    auth: true,
+  });
+}

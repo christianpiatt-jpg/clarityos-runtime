@@ -580,3 +580,108 @@ def test_card_19_model_route_requires_session(app_module, client):
         json={"intent": "ELINS"},
     )
     assert r.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# Card 19.5 — /model/complete completion adapter
+# ---------------------------------------------------------------------------
+def test_card_19_5_model_complete_returns_text(app_module, client):
+    """Happy path: valid model + prompt → wrapper returns text from
+    route_request. With no provider env keys configured, this is the
+    deterministic mock; ``mock`` is True and ``text`` is non-empty."""
+    user, sid = _make_user(app_module, "mc_basic", cohort=None)
+    r = client.post(
+        "/model/complete", headers=_auth(sid),
+        json={"model": "openai:gpt-4o-mini", "prompt": "hello world"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ok"] is True
+    assert body["model"] == "openai:gpt-4o-mini"
+    assert isinstance(body["text"], str) and len(body["text"]) > 0
+    assert body["mock"] is True  # no OPENAI_KEY in test env
+    assert body["provider"] == "openai"
+    assert isinstance(body["elapsed_ms"], int) and body["elapsed_ms"] >= 0
+
+
+def test_card_19_5_model_complete_rejects_unknown_model(app_module, client):
+    """Unknown model_id → 400 bad_input (route_request raises ValueError,
+    adapter routes through v29_hardening.raise_validation)."""
+    user, sid = _make_user(app_module, "mc_bad", cohort=None)
+    r = client.post(
+        "/model/complete", headers=_auth(sid),
+        json={"model": "not_a_real_model", "prompt": "x"},
+    )
+    assert r.status_code == 400
+    assert (r.json().get("error") or "").startswith("bad_input")
+
+
+def test_card_19_5_model_complete_requires_session(app_module, client):
+    """No X-Session-ID → 401."""
+    r = client.post(
+        "/model/complete",
+        json={"model": "openai:gpt-4o-mini", "prompt": "x"},
+    )
+    assert r.status_code == 401
+
+
+def test_card_19_5_model_complete_dispatches_per_provider(app_module, client):
+    """Different model_ids surface their providers in the response so
+    callers can confirm routing without parsing text content."""
+    user, sid = _make_user(app_module, "mc_disp", cohort=None)
+    cases = [
+        ("openai:gpt-4o",          "openai"),
+        ("anthropic:claude-3.7",   "anthropic"),
+        ("google:gemini-2.0-flash", "gemini"),
+        ("xai:groq-llama",         "xai"),
+        ("local:llama3.1",         "local"),
+    ]
+    for model_id, provider in cases:
+        r = client.post(
+            "/model/complete", headers=_auth(sid),
+            json={"model": model_id, "prompt": "ping"},
+        )
+        assert r.status_code == 200, f"{model_id} → {r.status_code}"
+        body = r.json()
+        assert body["provider"] == provider, f"{model_id} provider mismatch"
+        assert body["model"] == model_id
+
+
+def test_card_19_5_model_complete_rate_limit_enforced(app_module, client, monkeypatch):
+    """With enforcement on, the 11th call inside a fresh bucket window
+    is rejected with 429. Confirms /model/complete is wired into the
+    v29_hardening per-user rate limit (cost guardrail)."""
+    import v29_hardening
+    monkeypatch.setattr(v29_hardening, "_RATE_ENFORCE", True)
+    user, sid = _make_user(app_module, "mc_rl", cohort=None)
+    last_status = 200
+    for i in range(11):
+        r = client.post(
+            "/model/complete", headers=_auth(sid),
+            json={"model": "openai:gpt-4o-mini", "prompt": f"p{i}"},
+        )
+        last_status = r.status_code
+        if last_status == 429:
+            break
+    assert last_status == 429
+    assert (r.json().get("error") or "") == "rate_limited"
+
+
+def test_card_19_5_model_complete_no_route_request_changes(app_module, client):
+    """The adapter MUST forward to model_router.route_request unchanged
+    — no internal dispatch fork. This test pins the wrapper to the
+    canonical router by asserting the adapter's text matches a direct
+    route_request call for the same input (deterministic mock = same
+    string)."""
+    import model_router as mr
+    user, sid = _make_user(app_module, "mc_pin", cohort=None)
+    direct = mr.route_request("openai:gpt-4o-mini", "anchor-text")
+    r = client.post(
+        "/model/complete", headers=_auth(sid),
+        json={"model": "openai:gpt-4o-mini", "prompt": "anchor-text"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["text"] == direct["text"]
+    assert body["model"] == direct["model_id"]
+    assert body["provider"] == direct["provider"]
