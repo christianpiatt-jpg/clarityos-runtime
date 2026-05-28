@@ -2737,3 +2737,21 @@ export function debugEngineV1(response: EngineResponseV1): EngineV1DebugSnapshot
     firstOverlay:   response.overlays[0]   ?? null,
   };
 }
+
+// Card 24 — Engine V1 input builder (Phase-1 minimal).
+// Canonical, deterministic constructor for EngineRunRequest. TypeScript
+// enforces shape at compile time; runtime is intentionally pass-through
+// (no defensive copies, no field-level validation) so future operator
+// tools, projection/regression controls, and overlays all build engine
+// requests the same way without duplicating logic.
+//
+// Default projectionDays = 7 matches the Phase-1 example payload.
+export function buildEngineRunRequest(
+  primitives:     EnginePrimitiveInput[],
+  projectionDays: number = 7,
+): EngineRunRequest {
+  return {
+    primitives,
+    projection_days: projectionDays,
+  };
+}
