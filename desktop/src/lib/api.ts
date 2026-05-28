@@ -1276,3 +1276,47 @@ export function buildEngineRunRequest(
     projection_days: projectionDays,
   };
 }
+
+// Card 25 — Engine V1 output normalizer (Phase-1 minimal).
+// Pure deterministic normaliser that downstream consumers (operator
+// tools, future UI, regression/projection panels) call instead of
+// poking at EngineResponseV1 directly. Defensive ``??`` fallbacks
+// guard against malformed runtime payloads even though the type
+// declares the fields non-nullable.
+//
+// EMPTY_ENGINE_DIAGNOSTICS is the principled default for the
+// diagnostics fallback: the card spec's ``?? {}`` doesn't compile
+// because EngineDiagnostics is strict-typed with 7 required fields.
+// This constant supplies zero-value defaults so the fallback is
+// honest, type-safe, and visible.
+const EMPTY_ENGINE_DIAGNOSTICS: EngineDiagnostics = {
+  observation_id:    "",
+  observer_notes:    "",
+  confidence_level:  0,
+  validation_status: "unvalidated",
+  early_warnings:    {},
+  errors:            [],
+  interventions:     [],
+};
+
+export interface NormalizedEngineV1 {
+  primitives:     EnginePrimitive[];
+  overlays:       EngineOverlayResult[];
+  diagnostics:    EngineDiagnostics;
+  primitiveCount: number;
+  overlayCount:   number;
+}
+
+export function normalizeEngineResponse(
+  response: EngineResponseV1,
+): NormalizedEngineV1 {
+  const primitives = response.primitives ?? [];
+  const overlays   = response.overlays   ?? [];
+  return {
+    primitives,
+    overlays,
+    diagnostics:    response.diagnostics ?? EMPTY_ENGINE_DIAGNOSTICS,
+    primitiveCount: primitives.length,
+    overlayCount:   overlays.length,
+  };
+}
