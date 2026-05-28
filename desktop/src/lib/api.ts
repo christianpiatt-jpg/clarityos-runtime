@@ -1519,3 +1519,43 @@ export function computeEngineV1Delta(
     diagnostics: diffDiagnostics(a, b),
   };
 }
+
+// Card 31 — Primitive lineage extractor (Phase-1 minimal).
+// Pure deterministic helper: given a multi-run context and a
+// primitive id, return per-run presence + overlay of that primitive.
+// Foundation for Cards 32-34 (lineage diffing, visualization,
+// lineage-based operator tools).
+//
+// Spec deviation (implementation detail only): the card spec finds
+// primitives by concatenating the 6 classified arrays. We look them
+// up directly on ctx.normalized.primitives (the unpartitioned full
+// set) — equivalent by construction since classified is a partition
+// of normalized, simpler to read, and future-proof if a new
+// primitive_type enum value is ever added before the classifier
+// learns about it.
+export interface EngineV1PrimitiveLineage {
+  primitive_id: string;
+  runs: Array<{
+    index:     number;
+    primitive: EnginePrimitive     | null;
+    overlay:   EngineOverlayResult | null;
+  }>;
+}
+
+export function extractPrimitiveLineage(
+  multi:        EngineV1MultiRunContext,
+  primitive_id: string,
+): EngineV1PrimitiveLineage {
+  return {
+    primitive_id,
+    runs: multi.runs.map((ctx, index) => ({
+      index,
+      primitive: ctx.normalized.primitives.find(
+        (p) => p.metadata.primitive_id === primitive_id,
+      ) ?? null,
+      overlay: ctx.normalized.overlays.find(
+        (o) => o.primitive_id === primitive_id,
+      ) ?? null,
+    })),
+  };
+}
