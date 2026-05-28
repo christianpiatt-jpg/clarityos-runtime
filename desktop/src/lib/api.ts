@@ -1794,3 +1794,27 @@ export function buildHydraulicEvolutionMap(
 
   return { primitive_ids, perPrimitive, perRun };
 }
+
+// Card 36 — System-level Engine V1 overlay (Phase-1 minimal).
+// Top-level operator artifact: pure composition of the Card 34
+// lineage map and the Card 35 hydraulic evolution map. Becomes the
+// canonical "show me the whole system evolution" structure for
+// Cards 37-40 (system-level regression tools, evolution inspectors,
+// operator-surface integration).
+export interface EngineV1SystemOverlay {
+  primitive_ids:      string[];
+  lineageMap:         EngineV1LineageMap;
+  hydraulicEvolution: EngineV1HydraulicEvolutionMap;
+}
+
+export function buildSystemOverlay(
+  multi: EngineV1MultiRunContext,
+): EngineV1SystemOverlay {
+  const lineageMap         = buildLineageMap(multi);
+  const hydraulicEvolution = buildHydraulicEvolutionMap(lineageMap);
+  return {
+    primitive_ids: lineageMap.primitive_ids,
+    lineageMap,
+    hydraulicEvolution,
+  };
+}
