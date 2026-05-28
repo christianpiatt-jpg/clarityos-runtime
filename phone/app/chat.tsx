@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, Stack } from "expo-router";
 import ModelSelector, { Model } from "../components/ModelSelector";
 import { colors, geometry, spacing, typography } from "../lib/designSystem";
-import { routeModelRequest, type ModelId } from "../lib/modelRouter";
+import { probeModelSelection, routeModelRequest, type ModelId } from "../lib/modelRouter";
 import { runLangbridg, type ClarityObject } from "../lib/langbridg";
 import { transform } from "../lib/clarity";
 import { clearInterrupted, markInterrupted } from "../lib/continuity";
@@ -85,6 +85,13 @@ export default function ChatScreen() {
     await markInterrupted(id);
 
     try {
+      // Card 19.2: fire-and-forget probe of the real backend model
+      // router. Intent is the operation bucket ("thread"), not the raw
+      // user text — keeps user content out of the intent string and
+      // resolves to a meaningful task bucket server-side.
+      void probeModelSelection("thread").then((sel) => {
+        if (sel) console.log("[card19.2] chat model selection:", sel);
+      });
       const r = await routeModelRequest(toModelId(engineUsed), text);
       if (!r.ok) throw new Error(`${r.code}: ${r.error}`);
       const clarity = await runLangbridg(r.raw);

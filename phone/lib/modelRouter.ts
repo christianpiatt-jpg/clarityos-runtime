@@ -50,6 +50,22 @@ export async function selectModel(
   };
 }
 
+/**
+ * Card 19.2: non-throwing observability probe over ``selectModel``.
+ * Returns ``null`` on any failure (no session, network, 4xx/5xx). Use
+ * fire-and-forget at callsites so the user-facing path is never
+ * delayed or destabilised by the probe.
+ */
+export async function probeModelSelection(
+  intent: string,
+): Promise<ModelSelectionResult | null> {
+  try {
+    return await selectModel(intent);
+  } catch {
+    return null;
+  }
+}
+
 export type ModelId =
   | "copilot"
   | "claude"
