@@ -2871,3 +2871,40 @@ export async function runEngineV1Pipeline(
   const normalized = normalizeEngineResponse(response);
   return classifyEngineV1(normalized);
 }
+
+// Card 28 — Engine V1 OperatorContext (Phase-1 minimal).
+// Typed, immutable snapshot of a single engine run. Captures the
+// inputs (primitives + projection window) alongside every layer of
+// output (raw / normalized / classified) so Cards 29-40 operator
+// tools (overlay inspectors, regression viewers, lineage tools, etc.)
+// can reason about a run without re-passing primitives or recomputing
+// intermediate results.
+//
+// projectionDays is normalised to the Card 24 builder default (7) so
+// callers always see the actual window the engine ran against — not
+// undefined when omitted at the call site.
+export interface EngineV1OperatorContext {
+  primitives:     EnginePrimitiveInput[];
+  projectionDays: number;
+
+  raw:        EngineResponseV1;
+  normalized: NormalizedEngineV1;
+  classified: EngineV1Classification;
+}
+
+export async function createEngineV1Context(
+  primitives:     EnginePrimitiveInput[],
+  projectionDays?: number,
+): Promise<EngineV1OperatorContext> {
+  const request    = buildEngineRunRequest(primitives, projectionDays);
+  const raw        = await runEngineV1(request);
+  const normalized = normalizeEngineResponse(raw);
+  const classified = classifyEngineV1(normalized);
+  return {
+    primitives,
+    projectionDays: projectionDays ?? 7,
+    raw,
+    normalized,
+    classified,
+  };
+}
