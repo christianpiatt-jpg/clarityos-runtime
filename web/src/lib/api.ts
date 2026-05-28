@@ -2908,3 +2908,65 @@ export async function createEngineV1Context(
     classified,
   };
 }
+
+// Card 29 — Engine V1 multi-run context (Phase-1 minimal).
+// Typed container + pure diff helpers for comparing multiple
+// EngineV1OperatorContext snapshots. Foundation for Cards 30-35
+// (operator diff tools, regression inspectors, multi-run overlays).
+// Spec delta: card said match primitives by metadata.id; the
+// deployed field is metadata.primitive_id (Card 20 cherry-pick).
+export interface EngineV1MultiRunContext {
+  runs: EngineV1OperatorContext[];
+}
+
+export function createMultiRunContext(
+  runs: EngineV1OperatorContext[],
+): EngineV1MultiRunContext {
+  return { runs };
+}
+
+export function diffPrimitives(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): { added: EnginePrimitive[]; removed: EnginePrimitive[] } {
+  const aIds = new Set(a.raw.primitives.map((p) => p.metadata.primitive_id));
+  const bIds = new Set(b.raw.primitives.map((p) => p.metadata.primitive_id));
+  const added   = b.raw.primitives.filter((p) => !aIds.has(p.metadata.primitive_id));
+  const removed = a.raw.primitives.filter((p) => !bIds.has(p.metadata.primitive_id));
+  return { added, removed };
+}
+
+export function diffOverlays(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): { changed: EngineOverlayResult[] } {
+  const aMap = new Map(a.raw.overlays.map((o) => [o.primitive_id, o] as const));
+  const changed = b.raw.overlays.filter((bo) => {
+    const ao = aMap.get(bo.primitive_id);
+    if (!ao) return false;  // overlay only in b counts as added, not changed
+    return (
+      ao.flow_regime      !== bo.flow_regime      ||
+      ao.in_critical_zone !== bo.in_critical_zone ||
+      ao.on_upper_branch  !== bo.on_upper_branch  ||
+      ao.hysteresis       !== bo.hysteresis
+    );
+  });
+  return { changed };
+}
+
+export function diffDiagnostics(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): Partial<EngineDiagnostics> {
+  const diff: Partial<EngineDiagnostics> = {};
+  const ad = a.raw.diagnostics;
+  const bd = b.raw.diagnostics;
+  if (ad.observation_id    !== bd.observation_id)    diff.observation_id    = bd.observation_id;
+  if (ad.observer_notes    !== bd.observer_notes)    diff.observer_notes    = bd.observer_notes;
+  if (ad.confidence_level  !== bd.confidence_level)  diff.confidence_level  = bd.confidence_level;
+  if (ad.validation_status !== bd.validation_status) diff.validation_status = bd.validation_status;
+  if (JSON.stringify(ad.early_warnings) !== JSON.stringify(bd.early_warnings)) diff.early_warnings = bd.early_warnings;
+  if (JSON.stringify(ad.errors)         !== JSON.stringify(bd.errors))         diff.errors         = bd.errors;
+  if (JSON.stringify(ad.interventions)  !== JSON.stringify(bd.interventions))  diff.interventions  = bd.interventions;
+  return diff;
+}
