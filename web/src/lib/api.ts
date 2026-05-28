@@ -3193,3 +3193,83 @@ export function buildLineageMap(
 
   return { primitive_ids, lineages, diffs, overlays };
 }
+
+// Card 35 — Hydraulic evolution map (Phase-1 minimal).
+// First system-level hydraulic diagnostic. Given a lineage map (Card
+// 34), captures per-primitive hydraulic state across runs and rolls
+// up per-run system-wide regime / critical-zone / upper-branch
+// counts. Foundation for Cards 36-37 (system-level overlays + flow-
+// regime regression inspectors).
+//
+// Spec adjustment (documented in source): the card spec types
+// hydraulic_state as ``any | null``. Replaced with the deployed
+// EngineHydraulicState type — same shape at runtime, full TS
+// inference downstream.
+export interface EngineV1HydraulicEvolutionMap {
+  primitive_ids: string[];
+
+  perPrimitive: Record<string, {
+    primitive_id: string;
+    runs: Array<{
+      index:           number;
+      hydraulic_state: EngineHydraulicState | null;
+      overlay:         EngineOverlayResult  | null;
+    }>;
+  }>;
+
+  perRun: Array<{
+    index:         number;
+    laminar:       number;
+    transitional:  number;
+    turbulent:     number;
+    critical_zone: number;
+    upper_branch:  number;
+  }>;
+}
+
+export function buildHydraulicEvolutionMap(
+  lineageMap: EngineV1LineageMap,
+): EngineV1HydraulicEvolutionMap {
+  const { primitive_ids, lineages } = lineageMap;
+
+  const perPrimitive: EngineV1HydraulicEvolutionMap["perPrimitive"] = {};
+  for (const id of primitive_ids) {
+    const lineage = lineages[id];
+    perPrimitive[id] = {
+      primitive_id: id,
+      runs: lineage.runs.map((r) => ({
+        index:           r.index,
+        hydraulic_state: r.primitive ? r.primitive.hydraulic_state : null,
+        overlay:         r.overlay,
+      })),
+    };
+  }
+
+  // Card 31 lineages always cover every run in the source multi-run
+  // context, so the first primitive's run count is the system-wide
+  // run count. Empty primitive_ids → runCount = 0 → perRun = [].
+  const runCount = primitive_ids.length > 0
+    ? (lineages[primitive_ids[0]]?.runs.length ?? 0)
+    : 0;
+
+  const perRun: EngineV1HydraulicEvolutionMap["perRun"] = [];
+  for (let i = 0; i < runCount; i++) {
+    let laminar       = 0;
+    let transitional  = 0;
+    let turbulent     = 0;
+    let critical_zone = 0;
+    let upper_branch  = 0;
+    for (const id of primitive_ids) {
+      const overlay = perPrimitive[id].runs[i].overlay;
+      if (!overlay) continue;
+      if (overlay.flow_regime === "laminar")      laminar++;
+      if (overlay.flow_regime === "transitional") transitional++;
+      if (overlay.flow_regime === "turbulent")    turbulent++;
+      if (overlay.in_critical_zone)               critical_zone++;
+      if (overlay.on_upper_branch)                upper_branch++;
+    }
+    perRun.push({ index: i, laminar, transitional, turbulent, critical_zone, upper_branch });
+  }
+
+  return { primitive_ids, perPrimitive, perRun };
+}
