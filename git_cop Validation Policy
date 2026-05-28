@@ -1,0 +1,182 @@
+name: git_cop Validation Policy
+version: "1.0"
+description: |
+  Operator-grade enforcement rules for Cards 16 → 19.4.
+  All rules are mandatory. Any violation = PR rejected.
+
+metadata:
+  cards: [16, 19, 19.1, 19.2, 19.3, 19.4]
+  scope: "engine + phone routing + observability + metadata"
+  enforcement_mode: "strict"
+  pass_condition: "all rules must pass"
+  fail_condition: "any rule fails → PR rejected"
+
+rules:
+  rule_diff_scope:
+    name: "Diff Scope Validation"
+    description: "PR must contain only approved categories of changes"
+    enforcement: "strict"
+    allowed_scopes:
+      engine:
+        - pattern: "src/engine/**"
+        - pattern: "engine/**"
+        changes:
+          - "Card 16 regression fix (rename handler, no behavior change)"
+          - "Card 19 /model/route endpoint + helper + Pydantic model"
+          - "Card 19 test suite additions"
+      phone:
+        - pattern: "src/phone/**"
+        - pattern: "phone/**"
+        changes:
+          - "Card 19.1 additive selector (selectModel)"
+          - "Card 19.2 observability probes (probeModelSelection)"
+          - "Card 19.3 canonical mapping layer"
+          - "Card 19.4 hybrid metadata attachment to mock completion"
+      config_and_docs:
+        - pattern: ".github/**"
+        - pattern: "README.md"
+        - pattern: "docs/**"
+    forbidden_changes:
+      - unrelated_files_changed
+      - formatting_churn
+      - opportunistic_edits
+      - stray_test_files
+      - commented_out_code
+      - debug_logs_non_operator
+    fail_reason: "PR contains changes outside approved scope"
+
+  rule_engine_contract:
+    name: "Engine Contract Validation"
+    description: "Engine /model/route endpoint must match exact contract"
+    enforcement: "strict"
+    endpoint:
+      path: "/model/route"
+      method: "POST"
+      signature: "select_model(user, task, override)"
+      reason_adapter: "_derive_route_reason() [adapter-derived]"
+    constraints:
+      - model_router_py_untouched: true
+      - operator_detection_matches_card_18: true
+      - no_routing_logic_changes: true
+      - test_count_minimum: 9
+    fail_reason: "Engine contract violated or endpoint signature deviates"
+
+  rule_card_16_fix:
+    name: "Card 16 Regression Fix"
+    description: "Handler must be renamed to prevent import shadowing"
+    enforcement: "strict"
+    callsites_affected:
+      - get_operator_state
+      - set_preferred_model
+      - record_elins_interaction
+    fail_reason: "Handler still shadows operator_state module OR callsite broken"
+
+  rule_card_19_1_selector:
+    name: "Card 19.1 Additive Selector"
+    description: "selectModel() must be additive and non-invasive"
+    enforcement: "strict"
+    additions:
+      - function: "selectModel(intent, context?, override?)"
+      - location: "phone/lib/modelRouter.ts"
+      - exports: "request() from phone/lib/api.ts"
+      - uses_proxy: "CLOUD_ROUTES.modelProxy"
+    constraints:
+      - no_callsite_changes: true
+      - no_ui_changes: true
+      - no_completion_path_changes: true
+      - routeModelRequest_untouched: true
+    fail_reason: "Selector invasive OR callsites modified OR UI/completion changed"
+
+  rule_card_19_2_observability:
+    name: "Card 19.2 Non-Blocking Observability"
+    description: "Observability probes must be fire-and-forget"
+    enforcement: "strict"
+    probe_function: "probeModelSelection(intent)"
+    constraints:
+      - no_await_in_user_path: true
+      - no_raw_user_text_as_intent: true
+      - no_probe_in_loops: true
+    fail_reason: "Probe blocks user path OR uses raw user text OR in loop"
+
+  rule_card_19_3_canonical_mapping:
+    name: "Card 19.3 Canonical Model-ID Mapping"
+    description: "Mapping table must use only backend-verified canonical IDs"
+    enforcement: "strict"
+    canonical_ids_allowed:
+      - "openai:gpt-4o"
+      - "openai:gpt-4o-mini"
+      - "anthropic:claude-3.7"
+      - "google:gemini-2.0-flash"
+      - "xai:groq-llama"
+      - "local:llama3.1"
+    additions_required:
+      - type: "CanonicalModelId"
+      - constant: "canonicalModelMap"
+      - function: "mapCanonicalToModelId()"
+      - function: "mapModelIdToCanonical()"
+      - interface: "ProbedModelSelection"
+    constraints:
+      - mapping_matches_backend_registry: true
+      - no_type_holes_in_mapping: true
+    fail_reason: "Speculative IDs OR mapping mismatch OR type holes"
+
+  rule_card_19_4_hybrid_metadata:
+    name: "Card 19.4 Hybrid Routing Metadata"
+    description: "Metadata attachment must be non-breaking and additive"
+    enforcement: "strict"
+    return_signature:
+      existing_fields: ["ok", "model", "raw", "elapsedMs"]
+      new_fields: ["selectedCanonical", "selectedSimplified", "selectedReason", "selectedOperator"]
+    constraints:
+      - raw_field_untouched: true
+      - langbridg_untouched: true
+      - mock_completion_untouched: true
+      - no_callsite_changes: true
+    fail_reason: "Raw/Langbridg/mock changed OR callsites modified"
+
+  rule_typescript:
+    name: "TypeScript Validation"
+    description: "No new TypeScript errors introduced"
+    enforcement: "strict"
+    checks:
+      - tsc_noEmit: "must pass for all touched files"
+      - preexisting_errors: "must remain unchanged"
+      - new_errors: "must be zero"
+    fail_reason: "New TypeScript errors OR type safety regression"
+
+  rule_tests:
+    name: "Test Suite Validation"
+    description: "All test suites must pass"
+    enforcement: "strict"
+    test_suites:
+      - name: "v39"
+        status: "must pass"
+      - name: "v44"
+        status: "must pass"
+      - name: "v45"
+        status: "must pass"
+      - name: "Card 19 tests"
+        count: 9
+        status: "must pass"
+    constraints:
+      - no_skipped_tests: true
+      - no_commented_out_tests: true
+      - no_regressions: true
+    fail_reason: "Test failure OR skip OR regression"
+
+  rule_commit_hygiene:
+    name: "Commit Hygiene"
+    description: "Commit messages must reflect true scope"
+    enforcement: "strict"
+    constraints:
+      - no_misleading_language: "no 'cutover' language"
+      - scope_accurately_stated: true
+      - no_unrelated_commits: true
+    fail_reason: "Misleading commit message OR unrelated commits"
+
+policy:
+  mode: "strict"
+  rules_count: 10
+  pass_condition: "ALL rules must PASS"
+  fail_condition: "ANY rule FAILS → PR REJECTED"
+  appeal_process: "none (policy is definitive)"
