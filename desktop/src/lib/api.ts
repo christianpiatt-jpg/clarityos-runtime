@@ -1668,3 +1668,49 @@ export function buildPrimitiveLineageOverlay(
     diff:         diffPrimitiveLineage(lineage),
   };
 }
+
+// Card 34 — Multi-primitive lineage map (Phase-1 minimal).
+// Pure deterministic helper: enumerate every primitive_id that
+// appears in any run of a multi-run context, then build the lineage
+// + diff + overlay for each. Foundation for Cards 35-37 (system-level
+// hydraulic evolution tools, multi-primitive regression inspectors,
+// system-wide change utilities).
+//
+// Spec deviation (same approved simplification as Card 31): the card
+// spec enumerates primitive ids via the 6-way classified concat. We
+// use ctx.normalized.primitives — equivalent by construction
+// (classified is a partition of normalized) and future-proof if a
+// new primitive_type enum value lands before the classifier learns
+// about it. ID sort is default string-lexicographic for stable
+// deterministic ordering.
+export interface EngineV1LineageMap {
+  primitive_ids: string[];
+  lineages:      Record<string, EngineV1PrimitiveLineage>;
+  diffs:         Record<string, EngineV1PrimitiveLineageDiff>;
+  overlays:      Record<string, EngineV1PrimitiveLineageOverlay>;
+}
+
+export function buildLineageMap(
+  multi: EngineV1MultiRunContext,
+): EngineV1LineageMap {
+  const primitive_ids = Array.from(
+    new Set(
+      multi.runs.flatMap((ctx) =>
+        ctx.normalized.primitives.map((p) => p.metadata.primitive_id),
+      ),
+    ),
+  ).sort();
+
+  const lineages: Record<string, EngineV1PrimitiveLineage>        = {};
+  const diffs:    Record<string, EngineV1PrimitiveLineageDiff>    = {};
+  const overlays: Record<string, EngineV1PrimitiveLineageOverlay> = {};
+
+  for (const id of primitive_ids) {
+    const lineage = extractPrimitiveLineage(multi, id);
+    lineages[id] = lineage;
+    diffs[id]    = diffPrimitiveLineage(lineage);
+    overlays[id] = buildPrimitiveLineageOverlay(lineage);
+  }
+
+  return { primitive_ids, lineages, diffs, overlays };
+}
