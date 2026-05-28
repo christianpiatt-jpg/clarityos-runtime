@@ -2641,3 +2641,43 @@ export function computeSystemRegressionDiff(
     hydraulic,
   };
 }
+
+// Card 39 — Operator Console API surface (Phase-1 minimal).
+// Single ergonomic entrypoint that groups the Cards 28-37 operator-
+// layer helpers behind a stable, typed shape. The fields delegate by
+// identity to the underlying helpers (no wrapping, no adapters) so
+// downstream consumers can treat ``api.computeDelta`` and
+// ``computeEngineV1Delta`` as the same function. Becomes the
+// Operator Console's internal API for Card 40+.
+export interface EngineV1OperatorAPI {
+  // Context + Multi-run
+  createContext:           typeof createEngineV1Context;
+  createMultiRunContext:   typeof createMultiRunContext;
+  // Unified delta
+  computeDelta:            typeof computeEngineV1Delta;
+  // Lineage
+  extractLineage:          typeof extractPrimitiveLineage;
+  diffLineage:             typeof diffPrimitiveLineage;
+  buildLineageOverlay:     typeof buildPrimitiveLineageOverlay;
+  buildLineageMap:         typeof buildLineageMap;
+  // Hydraulic evolution
+  buildHydraulicEvolution: typeof buildHydraulicEvolutionMap;
+  // System-level
+  buildSystemOverlay:      typeof buildSystemOverlay;
+  computeSystemRegression: typeof computeSystemRegressionDiff;
+}
+
+export function createEngineV1OperatorAPI(): EngineV1OperatorAPI {
+  return {
+    createContext:           createEngineV1Context,
+    createMultiRunContext:   createMultiRunContext,
+    computeDelta:            computeEngineV1Delta,
+    extractLineage:          extractPrimitiveLineage,
+    diffLineage:             diffPrimitiveLineage,
+    buildLineageOverlay:     buildPrimitiveLineageOverlay,
+    buildLineageMap:         buildLineageMap,
+    buildHydraulicEvolution: buildHydraulicEvolutionMap,
+    buildSystemOverlay:      buildSystemOverlay,
+    computeSystemRegression: computeSystemRegressionDiff,
+  };
+}
