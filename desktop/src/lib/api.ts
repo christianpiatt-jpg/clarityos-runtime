@@ -1236,3 +1236,25 @@ export type EngineRequestV1 = EngineRunRequest;
 export async function runEngineV1(input: EngineRequestV1): Promise<EngineResponseV1> {
   return engineV1Run(input);
 }
+
+// Card 23 — Engine V1 Operator Debug Panel (Phase-1 minimal).
+// Pure, side-effect-free introspection helper. No network, no UI,
+// no session state. Returns a stable shape so dev tooling and tests
+// can read Engine V1 responses without re-deriving counts/firsts.
+export interface EngineV1DebugSnapshot {
+  primitiveCount: number;
+  overlayCount:   number;
+  diagnostics:    EngineDiagnostics;
+  firstPrimitive: EnginePrimitive      | null;
+  firstOverlay:   EngineOverlayResult  | null;
+}
+
+export function debugEngineV1(response: EngineResponseV1): EngineV1DebugSnapshot {
+  return {
+    primitiveCount: response.primitives.length,
+    overlayCount:   response.overlays.length,
+    diagnostics:    response.diagnostics,
+    firstPrimitive: response.primitives[0] ?? null,
+    firstOverlay:   response.overlays[0]   ?? null,
+  };
+}
