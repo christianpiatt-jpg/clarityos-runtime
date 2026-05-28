@@ -51,16 +51,31 @@ export async function selectModel(
 }
 
 /**
+ * Card 19.3: probe result enriched with the simplified ``ModelId``
+ * the backend's canonical id maps to (or ``null`` when no mapping
+ * exists — surfaces backend additions that the phone hasn't taught
+ * itself about yet).
+ */
+export interface ProbedModelSelection extends ModelSelectionResult {
+  simplifiedModel: ModelId | null;
+}
+
+/**
  * Card 19.2: non-throwing observability probe over ``selectModel``.
  * Returns ``null`` on any failure (no session, network, 4xx/5xx). Use
  * fire-and-forget at callsites so the user-facing path is never
  * delayed or destabilised by the probe.
+ *
+ * Card 19.3: enriches the response with ``simplifiedModel`` so callers
+ * see both the canonical backend id (``"openai:gpt-4o"``) and the
+ * phone's simplified id (``"chatgpt"``) in one round-trip.
  */
 export async function probeModelSelection(
   intent: string,
-): Promise<ModelSelectionResult | null> {
+): Promise<ProbedModelSelection | null> {
   try {
-    return await selectModel(intent);
+    const res = await selectModel(intent);
+    return { ...res, simplifiedModel: mapCanonicalToModelId(res.model) };
   } catch {
     return null;
   }
@@ -73,6 +88,57 @@ export type ModelId =
   | "gemini"
   | "grok"
   | "local";
+
+// Card 19.3: a canonical backend model id (e.g. ``"openai:gpt-4o"``).
+// Kept as ``string`` for forward-compatibility so the backend can add
+// new ids without a phone-side type update — the runtime mapping below
+// gates which ones the phone knows how to translate.
+export type CanonicalModelId = string;
+
+/**
+ * Card 19.3: authoritative map from canonical backend model ids →
+ * phone's simplified ``ModelId`` enum.
+ *
+ * Entries are restricted to ids that actually exist in the backend's
+ * ``MODEL_REGISTRY`` (model_router.py). Speculative entries (e.g.
+ * future Claude / GPT versions) are deliberately omitted so that when
+ * the backend ships a new id, ``mapCanonicalToModelId`` returns
+ * ``null`` and the gap is visible in observability logs instead of
+ * being silently masked.
+ */
+export const canonicalModelMap: Record<CanonicalModelId, ModelId> = {
+  "openai:gpt-4o":          "chatgpt",
+  "openai:gpt-4o-mini":     "chatgpt",
+  "anthropic:claude-3.7":   "claude",
+  "google:gemini-2.0-flash": "gemini",
+  "xai:groq-llama":         "grok",
+  "local:llama3.1":         "local",
+};
+
+/**
+ * Card 19.3: forward lookup — backend canonical id → phone ``ModelId``.
+ * Returns ``null`` when the backend id has no phone mapping yet
+ * (intentional: surfaces drift instead of hiding it).
+ */
+export function mapCanonicalToModelId(
+  canonical: CanonicalModelId,
+): ModelId | null {
+  return canonicalModelMap[canonical] ?? null;
+}
+
+/**
+ * Card 19.3: reverse lookup — phone ``ModelId`` → every backend
+ * canonical id that maps to it. Returns ``[]`` when the phone enum
+ * has no matching backend id. Multiple-to-one is expected (e.g. both
+ * ``openai:gpt-4o`` and ``openai:gpt-4o-mini`` map to ``"chatgpt"``).
+ */
+export function mapModelIdToCanonical(
+  model: ModelId,
+): CanonicalModelId[] {
+  return Object.entries(canonicalModelMap)
+    .filter(([, v]) => v === model)
+    .map(([k]) => k);
+}
 
 export type RouterErrorCode =
   | "no_credentials"
