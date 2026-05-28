@@ -8,7 +8,7 @@
 // (lineage map / hydraulic evolution / system overlay / regression
 // diff). All wiring through the Card 39 EngineV1OperatorAPI.
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Pressable,
   ScrollView,
@@ -112,31 +112,58 @@ export default function OperatorConsoleScreen() {
         {parseErr ? <Text style={styles.error}>{parseErr}</Text> : null}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.h2}>Lineage Map</Text>
+      {/* Card 41 — RN equivalent of <details>: a Pressable header
+          that toggles open state, with the body rendered only when
+          open. Per-primitive + per-run drill-ins below each top-
+          level Collapsible. Diff markers ([CHANGED]/[ADDED]/
+          [REMOVED]) are text-only. */}
+
+      <Collapsible
+        label={`Lineage Map${lineageMap ? ` (${lineageMap.primitive_ids.length} primitives)` : ""}`}
+      >
         <Text style={styles.pre}>
           {lineageMap ? JSON.stringify(lineageMap, null, 2) : "(no context loaded)"}
         </Text>
-      </View>
+        {lineageMap?.primitive_ids.map((id) => {
+          const d = lineageMap.diffs[id];
+          const changed =
+            d.appearance.added.length   > 0 ||
+            d.appearance.removed.length > 0 ||
+            d.metadataChanges.length    > 0 ||
+            d.hydraulicChanges.length   > 0 ||
+            d.overlayChanges.length     > 0;
+          return (
+            <Collapsible key={id} label={`${id}${changed ? " [CHANGED]" : ""}`}>
+              <Text style={styles.pre}>
+                {JSON.stringify(lineageMap.lineages[id], null, 2)}
+              </Text>
+            </Collapsible>
+          );
+        })}
+      </Collapsible>
 
-      <View style={styles.section}>
-        <Text style={styles.h2}>Hydraulic Evolution</Text>
+      <Collapsible
+        label={`Hydraulic Evolution${hydraulicEvolution ? ` (${hydraulicEvolution.perRun.length} runs)` : ""}`}
+      >
         <Text style={styles.pre}>
           {hydraulicEvolution
             ? JSON.stringify(hydraulicEvolution, null, 2)
             : "(no context loaded)"}
         </Text>
-      </View>
+        {hydraulicEvolution?.perRun.map((run) => (
+          <Collapsible key={run.index} label={`Run ${run.index}`}>
+            <Text style={styles.pre}>{JSON.stringify(run, null, 2)}</Text>
+          </Collapsible>
+        ))}
+      </Collapsible>
 
-      <View style={styles.section}>
-        <Text style={styles.h2}>System Overlay</Text>
+      <Collapsible label="System Overlay">
         <Text style={styles.pre}>
           {systemOverlay ? JSON.stringify(systemOverlay, null, 2) : "(no context loaded)"}
         </Text>
-      </View>
+      </Collapsible>
 
-      <View style={styles.section}>
-        <Text style={styles.h2}>System Regression Diff</Text>
+      <Collapsible label="System Regression Diff">
         <View style={styles.row}>
           <Text>fromIndex </Text>
           <TextInput
@@ -153,13 +180,48 @@ export default function OperatorConsoleScreen() {
             style={styles.indexInput}
           />
         </View>
+        {regressionDiff && "primitiveChanges" in regressionDiff ? (
+          <View>
+            {regressionDiff.primitiveChanges.added.map((id) => (
+              <Text key={`add-${id}`}>{id} [ADDED]</Text>
+            ))}
+            {regressionDiff.primitiveChanges.removed.map((id) => (
+              <Text key={`rem-${id}`}>{id} [REMOVED]</Text>
+            ))}
+            {regressionDiff.primitiveChanges.changed.map((id) => (
+              <Text key={`chg-${id}`}>{id} [CHANGED]</Text>
+            ))}
+          </View>
+        ) : null}
         <Text style={styles.pre}>
           {regressionDiff
             ? JSON.stringify(regressionDiff, null, 2)
             : "(load a context with at least 2 runs and valid indices)"}
         </Text>
-      </View>
+      </Collapsible>
     </ScrollView>
+  );
+}
+
+// Card 41 — minimal RN equivalent of HTML <details>/<summary>.
+// Pressable header (▶ / ▼ indicator) + conditionally rendered body.
+// Defined in-file rather than as a shared component to honour the
+// card's "no new components" spirit while keeping the body of the
+// console screen readable.
+interface CollapsibleProps {
+  label:    string;
+  children: ReactNode;
+}
+
+function Collapsible({ label, children }: CollapsibleProps) {
+  const [open, setOpen] = useState<boolean>(false);
+  return (
+    <View style={styles.section}>
+      <Pressable onPress={() => setOpen((v) => !v)}>
+        <Text style={styles.h2}>{open ? "▼ " : "▶ "}{label}</Text>
+      </Pressable>
+      {open ? <View>{children}</View> : null}
+    </View>
   );
 }
 

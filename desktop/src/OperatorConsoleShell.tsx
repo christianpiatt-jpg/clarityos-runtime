@@ -105,54 +105,107 @@ export default function OperatorConsoleShell({ onSignOut, onNavigate }: Props) {
         {parseErr ? <pre>{parseErr}</pre> : null}
       </section>
 
+      {/* Card 41 — collapsible structured views via native <details>.
+          Mirrors web/src/routes/OperatorConsole.tsx layout exactly. */}
+
       <section>
-        <h2>Lineage Map</h2>
-        <pre>
-          {lineageMap ? JSON.stringify(lineageMap, null, 2) : "(no context loaded)"}
-        </pre>
+        <details>
+          <summary>
+            Lineage Map{lineageMap ? ` (${lineageMap.primitive_ids.length} primitives)` : ""}
+          </summary>
+          <pre>
+            {lineageMap ? JSON.stringify(lineageMap, null, 2) : "(no context loaded)"}
+          </pre>
+          {lineageMap?.primitive_ids.map((id) => {
+            const d = lineageMap.diffs[id];
+            const changed =
+              d.appearance.added.length   > 0 ||
+              d.appearance.removed.length > 0 ||
+              d.metadataChanges.length    > 0 ||
+              d.hydraulicChanges.length   > 0 ||
+              d.overlayChanges.length     > 0;
+            return (
+              <details key={id}>
+                <summary>
+                  {id}
+                  {changed ? " [CHANGED]" : ""}
+                </summary>
+                <pre>{JSON.stringify(lineageMap.lineages[id], null, 2)}</pre>
+              </details>
+            );
+          })}
+        </details>
       </section>
 
       <section>
-        <h2>Hydraulic Evolution</h2>
-        <pre>
-          {hydraulicEvolution
-            ? JSON.stringify(hydraulicEvolution, null, 2)
-            : "(no context loaded)"}
-        </pre>
+        <details>
+          <summary>
+            Hydraulic Evolution
+            {hydraulicEvolution ? ` (${hydraulicEvolution.perRun.length} runs)` : ""}
+          </summary>
+          <pre>
+            {hydraulicEvolution
+              ? JSON.stringify(hydraulicEvolution, null, 2)
+              : "(no context loaded)"}
+          </pre>
+          {hydraulicEvolution?.perRun.map((run) => (
+            <details key={run.index}>
+              <summary>Run {run.index}</summary>
+              <pre>{JSON.stringify(run, null, 2)}</pre>
+            </details>
+          ))}
+        </details>
       </section>
 
       <section>
-        <h2>System Overlay</h2>
-        <pre>
-          {systemOverlay ? JSON.stringify(systemOverlay, null, 2) : "(no context loaded)"}
-        </pre>
+        <details>
+          <summary>System Overlay</summary>
+          <pre>
+            {systemOverlay ? JSON.stringify(systemOverlay, null, 2) : "(no context loaded)"}
+          </pre>
+        </details>
       </section>
 
       <section>
-        <h2>System Regression Diff</h2>
-        <div>
-          <label>
-            fromIndex{" "}
-            <input
-              type="number"
-              value={fromIndex}
-              onChange={(e) => setFromIndex(Number(e.target.value))}
-            />
-          </label>
-          <label>
-            {" "}toIndex{" "}
-            <input
-              type="number"
-              value={toIndex}
-              onChange={(e) => setToIndex(Number(e.target.value))}
-            />
-          </label>
-        </div>
-        <pre>
-          {regressionDiff
-            ? JSON.stringify(regressionDiff, null, 2)
-            : "(load a context with at least 2 runs and valid indices)"}
-        </pre>
+        <details>
+          <summary>System Regression Diff</summary>
+          <div>
+            <label>
+              fromIndex{" "}
+              <input
+                type="number"
+                value={fromIndex}
+                onChange={(e) => setFromIndex(Number(e.target.value))}
+              />
+            </label>
+            <label>
+              {" "}toIndex{" "}
+              <input
+                type="number"
+                value={toIndex}
+                onChange={(e) => setToIndex(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          {regressionDiff && "primitiveChanges" in regressionDiff ? (
+            <ul>
+              {regressionDiff.primitiveChanges.added.map((id) => (
+                <li key={`add-${id}`}>{id} [ADDED]</li>
+              ))}
+              {regressionDiff.primitiveChanges.removed.map((id) => (
+                <li key={`rem-${id}`}>{id} [REMOVED]</li>
+              ))}
+              {regressionDiff.primitiveChanges.changed.map((id) => (
+                <li key={`chg-${id}`}>{id} [CHANGED]</li>
+              ))}
+            </ul>
+          ) : null}
+          <pre>
+            {regressionDiff
+              ? JSON.stringify(regressionDiff, null, 2)
+              : "(load a context with at least 2 runs and valid indices)"}
+          </pre>
+        </details>
       </section>
     </div>
   );

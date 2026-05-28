@@ -357,4 +357,31 @@ describe("Card 40 — OperatorConsole smoke test", () => {
     fireEvent.click(screen.getByTestId("oc-load"));
     expect(screen.getByTestId("oc-error").textContent).toContain("runs");
   });
+
+  it("Card 41 — renders per-primitive drill-ins and regression diff markers", () => {
+    renderConsole();
+    const textarea = screen.getByTestId("oc-input") as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: JSON.stringify(STUB_CONTEXT) } });
+    fireEvent.click(screen.getByTestId("oc-load"));
+
+    // Per-primitive drill-in node for p1 exists (Card 41 lineage map
+    // primitive-level navigation).
+    const p1Section = screen.getByTestId("oc-lineage-primitive-p1");
+    expect(p1Section).toBeInTheDocument();
+    // The full lineage JSON for p1 is reachable through the drill-in.
+    expect(p1Section.textContent).toContain('"primitive_id"');
+    expect(p1Section.textContent).toContain("p1");
+
+    // Per-run drill-ins for run 0 and run 1 exist (Card 41 hydraulic
+    // run-level navigation).
+    expect(screen.getByTestId("oc-hydraulic-run-0")).toBeInTheDocument();
+    expect(screen.getByTestId("oc-hydraulic-run-1")).toBeInTheDocument();
+
+    // Regression-diff markers list exists. The stub context has p1 in
+    // both runs with identical state, so the changed/added/removed
+    // lists are all empty — the <ul> renders but has no <li> children.
+    const markers = screen.getByTestId("oc-regression-markers");
+    expect(markers).toBeInTheDocument();
+    expect(markers.querySelectorAll("li").length).toBe(0);
+  });
 });
