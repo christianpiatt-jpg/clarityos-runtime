@@ -1818,3 +1818,100 @@ export function buildSystemOverlay(
     hydraulicEvolution,
   };
 }
+
+// Card 37 — System-level regression diff (Phase-1 minimal).
+// Given a system overlay and two run indices, summarises what changed
+// between them: which primitives were added / removed / changed
+// (changed = any non-empty Card 32 diff entry on the matching index
+// pair) and how the system-wide hydraulic regime counts shifted.
+// Foundation for Cards 38-40 (operator console integration, phone
+// parity, multi-run evolution panels).
+//
+// Hardening (documented adjustments beyond the literal card spec):
+//   1. Upfront RangeError on out-of-bounds indices — the card spec
+//      reads perRun[badIndex].laminar which throws an opaque
+//      TypeError instead of a clear contract violation.
+//   2. Non-adjacent indices are accepted but `changed` is only
+//      populated for ADJACENT pairs (toIndex === fromIndex + 1)
+//      because Card 32 only records pairwise-adjacent diffs. For
+//      non-adjacent comparisons, hydraulic deltas + added/removed
+//      are still correct; `changed` returns []. Phase-2 can expand
+//      the analytic to span-comparisons when the need lands.
+export interface EngineV1SystemRegressionDiff {
+  fromIndex: number;
+  toIndex:   number;
+
+  primitiveChanges: {
+    added:   string[];
+    removed: string[];
+    changed: string[];
+  };
+
+  hydraulic: {
+    laminarDelta:       number;
+    transitionalDelta:  number;
+    turbulentDelta:     number;
+    criticalZoneDelta:  number;
+    upperBranchDelta:   number;
+  };
+}
+
+export function computeSystemRegressionDiff(
+  overlay:   EngineV1SystemOverlay,
+  fromIndex: number,
+  toIndex:   number,
+): EngineV1SystemRegressionDiff {
+  const { primitive_ids, lineageMap, hydraulicEvolution } = overlay;
+  const runCount = hydraulicEvolution.perRun.length;
+
+  if (
+    !Number.isInteger(fromIndex) || fromIndex < 0 || fromIndex >= runCount ||
+    !Number.isInteger(toIndex)   || toIndex   < 0 || toIndex   >= runCount
+  ) {
+    throw new RangeError(
+      `computeSystemRegressionDiff: indices out of range — fromIndex=${fromIndex}, ` +
+      `toIndex=${toIndex}, runCount=${runCount}`,
+    );
+  }
+
+  // Primitive-level: which ids gained / lost a primitive between the two runs.
+  const fromPresent = new Set(
+    primitive_ids.filter((id) => lineageMap.lineages[id].runs[fromIndex].primitive !== null),
+  );
+  const toPresent = new Set(
+    primitive_ids.filter((id) => lineageMap.lineages[id].runs[toIndex].primitive !== null),
+  );
+  const added   = Array.from(toPresent).filter((id) => !fromPresent.has(id));
+  const removed = Array.from(fromPresent).filter((id) => !toPresent.has(id));
+
+  // `changed` — primitives with any Card 32 diff entry exactly matching
+  // (fromIndex → toIndex). Card 32 only records adjacent pairs, so this
+  // populates only when toIndex === fromIndex + 1.
+  const changed = primitive_ids.filter((id) => {
+    const diff = lineageMap.diffs[id];
+    return (
+      diff.metadataChanges.some((d)  => d.indexFrom === fromIndex && d.indexTo === toIndex) ||
+      diff.hydraulicChanges.some((d) => d.indexFrom === fromIndex && d.indexTo === toIndex) ||
+      diff.overlayChanges.some((d)   => d.indexFrom === fromIndex && d.indexTo === toIndex)
+    );
+  });
+
+  // System-wide hydraulic regime deltas. Direct subtraction; positive
+  // means the count grew, negative means it shrank.
+  const fromRun = hydraulicEvolution.perRun[fromIndex];
+  const toRun   = hydraulicEvolution.perRun[toIndex];
+  const hydraulic = {
+    laminarDelta:       toRun.laminar       - fromRun.laminar,
+    transitionalDelta:  toRun.transitional  - fromRun.transitional,
+    turbulentDelta:     toRun.turbulent     - fromRun.turbulent,
+    criticalZoneDelta:  toRun.critical_zone - fromRun.critical_zone,
+    upperBranchDelta:   toRun.upper_branch  - fromRun.upper_branch,
+  };
+
+  return {
+    fromIndex,
+    toIndex,
+    primitiveChanges: { added, removed, changed },
+    hydraulic,
+  };
+}
