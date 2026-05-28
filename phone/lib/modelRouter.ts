@@ -2,6 +2,53 @@
 // text. v1 runs in STUB mode: no network, no API keys, deterministic
 // mock replies. Real implementations slot into the per-model functions
 // without changing the public contract.
+//
+// Card 19.1: ``selectModel`` (below) is an additive wrapper over the
+// new backend /model/route endpoint. It returns a *selection* result
+// (which model_id + why), not a completion. The mock completion path
+// (``routeModelRequest``, ``sendTo*``, ``RouterResult``) is preserved
+// because chat.tsx + ingest.tsx still depend on ``r.raw`` for their
+// langbridg pipeline. The two surfaces will be reconciled in a later
+// card once a real backend completion endpoint exists.
+
+import { request } from "./api";
+import { CLOUD_ROUTES } from "./cloud/config";
+
+export interface ModelSelectionResult {
+  model: string;
+  reason: string;
+  operator: boolean;
+}
+
+interface ModelRouteResponse extends ModelSelectionResult {
+  ok: true;
+}
+
+/**
+ * Call the backend /model/route adapter (Card 19) to resolve which
+ * model_id to use for a given intent. Returns the canonical backend
+ * model_id (e.g. ``"openai:gpt-4o"``), the precedence reason
+ * (``"override" | "founder_default" | "user_preference" | "task_default" | "fallback"``),
+ * and the Card 18 operator flag.
+ *
+ * Throws ``ApiError`` (from lib/api) on auth / network / 4xx / 5xx.
+ * No callsites yet — exposed for future integration.
+ */
+export async function selectModel(
+  intent: string,
+  context: Record<string, unknown> = {},
+  override?: string,
+): Promise<ModelSelectionResult> {
+  const res = await request<ModelRouteResponse>(CLOUD_ROUTES.modelProxy, {
+    method: "POST",
+    body: { intent, context, ...(override ? { override } : {}) },
+  });
+  return {
+    model: res.model,
+    reason: res.reason,
+    operator: res.operator,
+  };
+}
 
 export type ModelId =
   | "copilot"

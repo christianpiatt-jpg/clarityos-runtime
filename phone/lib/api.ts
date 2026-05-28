@@ -79,7 +79,7 @@ export class ApiError extends Error {
 
 type ReqOpts = { method?: string; body?: unknown; auth?: boolean };
 
-async function request<T = any>(path: string, opts: ReqOpts = {}): Promise<T> {
+export async function request<T = any>(path: string, opts: ReqOpts = {}): Promise<T> {
   const { method = "GET", body, auth = true } = opts;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
