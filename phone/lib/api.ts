@@ -2103,3 +2103,18 @@ export function classifyEngineV1(
     diagnostics: normalized.diagnostics,
   };
 }
+
+// Card 27 — Engine V1 one-shot pipeline (Phase-1 minimal).
+// Pure composition of the Card 24/22A/25/26A helpers: builder → request
+// → normalizer → classifier. Becomes the canonical operator-layer
+// entry point for Engine V1 so callers don't have to wire the same
+// four steps every time. No new semantics; no new logic.
+export async function runEngineV1Pipeline(
+  primitives:     EnginePrimitiveInput[],
+  projectionDays?: number,
+): Promise<EngineV1Classification> {
+  const request    = buildEngineRunRequest(primitives, projectionDays);
+  const response   = await runEngineV1(request);
+  const normalized = normalizeEngineResponse(response);
+  return classifyEngineV1(normalized);
+}
