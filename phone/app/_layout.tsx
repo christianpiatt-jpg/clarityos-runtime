@@ -164,6 +164,8 @@ export default function RootLayout() {
         <Stack.Screen name="org_timeline" options={{ title: "Org Timeline" }} />
         {/* v80 — Regression-First packet runner. */}
         <Stack.Screen name="regression_first" options={{ title: "Regression First" }} />
+        {/* Card 40 — Engine V1 operator console (Phase-1 diagnostic). */}
+        <Stack.Screen name="operator_console" options={{ title: "Operator Console" }} />
       </Stack>
     </>
   );
