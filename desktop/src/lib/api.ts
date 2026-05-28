@@ -1226,3 +1226,13 @@ export function engineV1Run(input: EngineRunRequest): Promise<EngineResponseV1> 
     auth: true,
   });
 }
+
+// Card 22A — naming alias only. ``runEngineV1`` is the public name the
+// upstream card vocabulary uses; ``EngineRequestV1`` is a type alias to
+// the deployed ``EngineRunRequest`` Pydantic body. No new request shape
+// is introduced; this is a compatibility shim, not a re-spec.
+export type EngineRequestV1 = EngineRunRequest;
+
+export async function runEngineV1(input: EngineRequestV1): Promise<EngineResponseV1> {
+  return engineV1Run(input);
+}
