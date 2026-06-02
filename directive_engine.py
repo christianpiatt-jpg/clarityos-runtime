@@ -36,6 +36,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 import cite_mode
+import structure_format          # A22 — #structure formatter
 
 # Canonical directive names, stable order.
 DIRECTIVES: Tuple[str, ...] = (
@@ -66,6 +67,10 @@ class DirectiveResult:
     retry_needed: bool = False
     retry_instruction: Optional[str] = None
     meta: dict = field(default_factory=dict)
+    # A22 — a rewritten reply, or None to leave the output unchanged. The
+    # first transforming handler is #structure; apply_post_enforcement threads
+    # this through so stacked handlers each see the prior handler's output.
+    output: Optional[str] = None
 
 
 @dataclass
@@ -127,12 +132,24 @@ class CiteHandler(BaseDirectiveHandler):
         )
 
 
-# A22–A27 replace these stubs with real handlers. They are registered now so
-# the engine already detects + routes the directive (no engine change later).
+# A22 — first concrete non-cite handler. Post-generation, deterministic,
+# meaning-preserving shape normalisation only: no prompt change, no retry, no
+# semantics, no correctness check.
 class StructureHandler(BaseDirectiveHandler):
     name = "structure"
 
+    def evaluate(self, output: str, *, retry_used: bool = False) -> DirectiveResult:
+        formatted = structure_format.format_output(output)
+        return DirectiveResult(
+            name="structure",
+            status="formatted",
+            output=formatted,
+            meta={"status": "formatted", "changed": formatted != output},
+        )
 
+
+# A23–A27 replace these stubs with real handlers. They are registered now so
+# the engine already detects + routes the directive (no engine change later).
 class PrimitivesHandler(BaseDirectiveHandler):
     name = "primitives"
 
@@ -220,17 +237,20 @@ def apply_post_enforcement(
     (e.g. cite → ``"incomplete"``). Only directives that produce a status or
     metadata appear in ``per_directive``; inert stubs contribute nothing.
 
-    ``final_output`` is the output unchanged at A21 — no handler rewrites it
-    yet. A directive that needs to transform the reply (e.g. ``#reduce``) will
-    do so here when its handler lands.
+    ``final_output`` reflects any handler rewrites: a handler that sets
+    ``DirectiveResult.output`` (A22: ``#structure``) transforms the reply, and
+    stacked handlers chain — each sees the prior handler's output.
     """
     meta = DirectiveMetadata()
     instructions: List[str] = []
+    current = output
     for name in directive_set.directives:
         handler = DIRECTIVE_HANDLERS.get(name)
         if handler is None:
             continue
-        result = handler.evaluate(output, retry_used=retry_used)
+        result = handler.evaluate(current, retry_used=retry_used)
+        if result.output is not None:
+            current = result.output       # A22 — stacked handlers chain outputs
         if result.meta or result.status is not None:
             meta.per_directive[name] = dict(result.meta)
         if result.retry_needed:
@@ -238,4 +258,4 @@ def apply_post_enforcement(
             if result.retry_instruction:
                 instructions.append(result.retry_instruction)
     meta.retry_instruction = " ".join(instructions) if instructions else None
-    return output, meta
+    return current, meta
