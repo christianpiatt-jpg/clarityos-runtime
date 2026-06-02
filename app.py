@@ -796,8 +796,47 @@ class EngineRequest(BaseModel):
 # ===========================================================================
 # Auth routes
 # ===========================================================================
+def _auth_rate_limit_enabled() -> bool:
+    """Brute-force throttle on /login + /register. Enforced in production;
+    the test suite disables it (conftest sets CLARITYOS_DISABLE_AUTH_RATE_LIMIT=1)
+    so cumulative auth calls across tests don't drain a shared per-IP bucket.
+    Read at call time so a test can toggle it via monkeypatch."""
+    return os.environ.get("CLARITYOS_DISABLE_AUTH_RATE_LIMIT", "0") != "1"
+
+
+def _throttle_auth(
+    request: Request, route: str, *, capacity: int, window_s: float
+) -> None:
+    """IP-keyed token-bucket guard for the unauthenticated auth endpoints.
+    Raises 429 (standard envelope) when the per-IP bucket is empty. The
+    bucket refills continuously, so a throttled client recovers on its own —
+    no admin unlock, no account lockout. No-op when disabled (tests).
+
+    Reuses the same ``v29_hardening`` limiter + ``_client_ip`` first-hop
+    extraction that ``/waitlist/join`` uses, and enforces unconditionally
+    (not gated by CLARITYOS_RATE_LIMIT_ENFORCE) because login brute force is
+    a hard boundary, not a soft observe-only limit."""
+    if not _auth_rate_limit_enabled():
+        return
+    ip = _client_ip(request)
+    if not v29_hardening.check_rate_limit(
+        f"ip:{ip}", route, capacity=capacity, window_s=window_s,
+    ):
+        v29_hardening.log_event(
+            "auth_rate_limited", route=route, success=False, ip=ip[:24],
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=error_response(
+                "rate_limited",
+                "Too many attempts; please wait a minute and try again",
+            ),
+        )
+
+
 @app.post("/login")
-def login(req: LoginRequest):
+def login(req: LoginRequest, request: Request):
+    _throttle_auth(request, "/login", capacity=5, window_s=900.0)
     user = users_store.get_user(req.username)
     if not user or not bcrypt.checkpw(
         req.password.encode("utf-8"), user["password_hash"]
@@ -826,7 +865,7 @@ def login(req: LoginRequest):
 
 
 @app.post("/register")
-def register(req: RegisterRequest):
+def register(req: RegisterRequest, request: Request):
     """
     Create a new user and auto-login.
 
@@ -837,6 +876,7 @@ def register(req: RegisterRequest):
     use /invite/{token}/redeem (founder_exception) or
     /invite/{token}/finalize (terrace_1) instead.
     """
+    _throttle_auth(request, "/register", capacity=3, window_s=3600.0)
     if INVITE_ONLY:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

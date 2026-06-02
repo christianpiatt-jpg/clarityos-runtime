@@ -31,6 +31,12 @@ os.environ.setdefault("CLARITYOS_LOG_LEVEL", "WARNING")
 # daemon thread on every import. Tests drive _run_macro_elins_once
 # directly when they need to exercise the pipeline.
 os.environ.setdefault("CLARITYOS_DISABLE_MACRO_SCHEDULER", "1")
+# Auth brute-force throttle (app._throttle_auth) is enforced in production
+# but disabled for the suite: every test shares one ASGI client IP, so
+# cumulative /login + /register calls would otherwise drain a per-IP token
+# bucket and spuriously 429 unrelated tests. test_auth_rate_limit.py
+# re-enables it via monkeypatch to exercise the enforced path.
+os.environ.setdefault("CLARITYOS_DISABLE_AUTH_RATE_LIMIT", "1")
 # memory_vault no longer has a built-in default secret — _secret() raises
 # if CLARITYOS_VAULT_SECRET is unset. Production mounts it from Google
 # Secret Manager; the test harness pins a fixed throwaway value so every
