@@ -823,17 +823,18 @@ def _apply_cite_grounding(
     model_id: str,
     prompt: str,
     first_output: str,
-) -> tuple[str, str]:
-    """Return ``(grounding_status, final_text)`` for a #cite turn.
+) -> tuple[str, str, bool]:
+    """Return ``(grounding_status, final_text, retry_used)`` for a #cite turn.
 
     ``grounding_status`` is ``"grounded"`` when the first (or retried)
     output satisfies ``cite_mode.validate_cite_output``, else
-    ``"incomplete"``. Issues at most one extra ``model_router.route_request``
-    — the hard retry cap.
+    ``"incomplete"``. ``retry_used`` (A20 telemetry) is True iff the single
+    capped re-query was issued. Issues at most one extra
+    ``model_router.route_request`` — the hard retry cap.
     """
     first_check = cite_mode.validate_cite_output(first_output)
     if first_check.ok:
-        return "grounded", first_output
+        return "grounded", first_output, False  # grounded first try, no retry
 
     # Single deterministic retry: append the validator's re-query
     # instruction to the same prompt and call exactly once more. No loop,
@@ -845,10 +846,10 @@ def _apply_cite_grounding(
     retry_output = str(retry_response.get("text") or "").strip()
     if not retry_output:
         # Empty retry — keep the first reply as best-effort, mark incomplete.
-        return "incomplete", first_output
+        return "incomplete", first_output, True
 
     retry_check = cite_mode.validate_cite_output(retry_output)
-    return ("grounded" if retry_check.ok else "incomplete"), retry_output
+    return ("grounded" if retry_check.ok else "incomplete"), retry_output, True
 
 
 def run_thread_message(
@@ -983,8 +984,9 @@ def run_thread_message(
     # capped re-query via _apply_cite_grounding. grounding_status stays
     # None for every non-#cite turn, so the existing contract is unchanged.
     grounding_status: Optional[str] = None
+    retry_used = False  # A20 — telemetry: did the single capped re-query fire?
     if cite_active:
-        grounding_status, assistant_text = _apply_cite_grounding(
+        grounding_status, assistant_text, retry_used = _apply_cite_grounding(
             model_id, prompt, assistant_text,
         )
 
@@ -1105,6 +1107,7 @@ def run_thread_message(
             "assistant_content_len": len(assistant_msg_saved.get("content") or ""),
             "reasoning_mode":    reasoning_mode,  # v71 / Unit 79 — None when per-turn off
             "grounding_status":  grounding_status,  # A18 — None unless #cite this turn
+            "retry_used":        retry_used,        # A20 — cite re-query fired this turn
         },
     )
 
