@@ -91,6 +91,7 @@ import membership_store            # v30 — cohort cap, waitlist, transactions
 import membership_billing          # v30 — charge / record_transaction
 import billing_intents             # v31 — PaymentIntent + webhook handler
 import billing_renewal             # v31 — daily renewal scheduler
+import billing_subscriptions        # C1 / A+D — Stripe Subscriptions (canonical)
 import waitlist_store              # v32 — public waitlist pipeline
 import comment_generator           # v33 — MRCG v1.0 (#cmt)
 import dm_store                    # v33 — manual DM tracking
@@ -1446,7 +1447,22 @@ async def billing_webhook(request: Request):
             pass
         return {"ok": True}
 
-    # v42 — subscription / checkout lifecycle handlers.
+    # C1 / A+D — Stripe Subscription lifecycle (canonical billing for new
+    # signups). Additive + idempotent: these sync the new subscription fields
+    # (and mirror billing_state / membership) for subscription members. They
+    # run alongside the v42 _handle_subscription_event below; each no-ops when
+    # the Stripe customer doesn't resolve to a user, so existing flows (and
+    # the v42 tests, which resolve by metadata) are untouched.
+    if etype in ("invoice.paid", "invoice.payment_succeeded"):
+        billing_subscriptions.handle_invoice_paid(obj)
+    elif etype == "invoice.payment_failed":
+        billing_subscriptions.handle_invoice_payment_failed(obj)
+    elif etype == "customer.subscription.updated":
+        billing_subscriptions.handle_subscription_updated(obj)
+    elif etype == "customer.subscription.deleted":
+        billing_subscriptions.handle_subscription_deleted(obj)
+
+    # v42 — subscription / checkout lifecycle handlers (billing_state mirror).
     _handle_subscription_event(etype, obj)
     return {"ok": True}
 
@@ -9371,6 +9387,77 @@ def membership_cancel(session: dict = Depends(require_session)):
         success=True,
     )
     return {"ok": True, "state": _membership_view(user)}
+
+
+# ===========================================================================
+# C1 / A+D — Stripe Subscription endpoints (canonical billing for new signups)
+# ===========================================================================
+class SubscriptionStartRequest(BaseModel):
+    price_id: Optional[str] = None
+
+
+class SubscriptionCancelRequest(BaseModel):
+    mode: str = "period_end"   # "immediate" | "period_end"
+
+
+@app.post("/billing/subscription/start")
+def subscription_start(req: SubscriptionStartRequest, session: dict = Depends(require_session)):
+    """Start a Stripe Subscription for the authed user. Returns the
+    ``client_secret`` for on-session SCA (client confirms via Stripe.js);
+    the member is activated by the ``invoice.paid`` webhook."""
+    user = session["user"]
+    cohort = session.get("cohort")
+    if not v29_hardening.feature_enabled("founder_tier_enabled", user=user, cohort=cohort):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("feature_disabled", "Founding tier is not enabled for your account"),
+            status_code=403,
+        )
+    v29_hardening.enforce_rate_limit(user, "/billing/subscription/start")
+    price_id = (
+        req.price_id
+        or os.environ.get("CLARITYOS_STRIPE_PRICE_FOUNDING")
+        or "price_founding_mock"
+    ).strip()
+    try:
+        out = billing_subscriptions.create_membership_subscription(user, price_id)
+    except billing_subscriptions.SubscriptionError as e:
+        raise HTTPException(status_code=402, detail=error_response(e.code, e.message))
+    v29_hardening.log_event(
+        "subscription_start", user=user, route="/billing/subscription/start",
+        success=True, subscription_id=out["subscription_id"], status=out.get("status"),
+    )
+    return {"ok": True, **out}
+
+
+@app.post("/billing/subscription/cancel")
+def subscription_cancel(req: SubscriptionCancelRequest, session: dict = Depends(require_session)):
+    """Cancel the authed user's subscription. ``mode`` = ``immediate`` |
+    ``period_end`` (default)."""
+    user = session["user"]
+    cohort = session.get("cohort")
+    if not v29_hardening.feature_enabled("membership_ui_enabled", user=user, cohort=cohort):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("feature_disabled", "Membership UI is not enabled for your account"),
+            status_code=403,
+        )
+    v29_hardening.enforce_rate_limit(user, "/billing/subscription/cancel")
+    mode = (req.mode or "period_end").strip().lower()
+    if mode not in ("immediate", "period_end"):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_mode", "mode must be 'immediate' or 'period_end'"),
+        )
+    try:
+        if mode == "immediate":
+            billing_subscriptions.cancel_subscription_immediately(user)
+        else:
+            billing_subscriptions.cancel_subscription_at_period_end(user)
+    except billing_subscriptions.SubscriptionError as e:
+        raise HTTPException(status_code=402, detail=error_response(e.code, e.message))
+    v29_hardening.log_event(
+        "subscription_cancel", user=user, route="/billing/subscription/cancel",
+        success=True, mode=mode,
+    )
+    return {"ok": True, "mode": mode, "state": _membership_view(user)}
 
 
 # ===========================================================================

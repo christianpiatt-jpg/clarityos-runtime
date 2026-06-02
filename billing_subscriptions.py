@@ -28,8 +28,10 @@ from __future__ import annotations
 import logging
 import os
 import secrets
+import time
 from typing import Optional
 
+import membership_store
 import users_store
 import v29_hardening
 
@@ -218,3 +220,141 @@ def cancel_subscription_at_period_end(user_id: str) -> None:
         "stripe_subscription_cancel_scheduled", user=user_id, mode=_mode(),
         subscription_id=sid, success=True,
     )
+
+
+# ---------------------------------------------------------------------------
+# Webhook handlers (Step 3) — pure, idempotent state-sync from a Stripe event
+# object onto the user doc. Stripe is canonical for subscription members, so
+# each handler sets the new subscription fields AND mirrors the v31
+# billing_state / membership so existing readers (entitlement_view,
+# /me/billing, the membership UI) keep working. Users resolve by
+# stripe_customer_id (invoices carry no metadata); subscription objects also
+# carry metadata.user_id as a fallback. Unknown customer -> no-op (these must
+# never raise out of the webhook).
+# ---------------------------------------------------------------------------
+_SUB_STATUS_TO_BILLING_STATE = {
+    "active": "active",
+    "trialing": "active",
+    "past_due": "past_due",
+    "unpaid": "past_due",
+    "incomplete": "past_due",
+    "incomplete_expired": "failed",
+    "canceled": "cancelled",
+}
+
+
+def _resolve_user(obj: dict) -> Optional[str]:
+    if not isinstance(obj, dict):
+        return None
+    customer = obj.get("customer")
+    if customer:
+        u = users_store.find_user_by_stripe_customer_id(str(customer))
+        if u:
+            return u
+    md = obj.get("metadata") or {}
+    uid = md.get("user_id")
+    return str(uid) if uid else None
+
+
+def _invoice_period_end(invoice: dict) -> Optional[int]:
+    if not isinstance(invoice, dict):
+        return None
+    pe = invoice.get("period_end")
+    if pe:
+        return int(pe)
+    lines = (invoice.get("lines") or {}).get("data") or []
+    if lines:
+        end = ((lines[0] or {}).get("period") or {}).get("end")
+        if end:
+            return int(end)
+    return None
+
+
+def handle_invoice_paid(invoice: dict) -> None:
+    """``invoice.paid`` / ``invoice.payment_succeeded`` — the subscription is
+    paid: activate (or renew) the member. Subscription fields -> active,
+    billing_state -> active, membership + cohort ensured, action-required
+    cleared. Idempotent on replay."""
+    user = _resolve_user(invoice)
+    if not user:
+        logger.info("invoice.paid: unresolved customer=%s", (invoice or {}).get("customer"))
+        return
+    period_end = _invoice_period_end(invoice)
+    users_store.update_subscription_status(user, status="active", current_period_end=period_end)
+    users_store.mark_payment_action_required(user, False)
+    users_store.set_billing_state(
+        user, billing_state="active",
+        renewal_ts=float(period_end) if period_end else None,
+    )
+    doc = users_store.get_user(user) or {}
+    if doc.get("membership_status") != "active":
+        users_store.set_membership(
+            user, tier=membership_store.FOUNDING_COHORT,
+            price=membership_store.FOUNDING_PRICE_LOCKED, status="active",
+            started_ts=time.time(),
+        )
+        try:
+            membership_store.add_member(user)
+        except ValueError:
+            pass  # already a member, or cap race — idempotent; operator audits
+    v29_hardening.log_event("sub_invoice_paid", user=user, mode=_mode(), success=True)
+
+
+def handle_invoice_payment_failed(invoice: dict) -> None:
+    """``invoice.payment_failed`` — past_due + flag for attention. Crude
+    off-session per the <=500-cohort scope: the operator resolves manually."""
+    user = _resolve_user(invoice)
+    if not user:
+        return
+    users_store.update_subscription_status(user, status="past_due")
+    users_store.set_billing_state(user, billing_state="past_due")
+    users_store.mark_payment_action_required(user, True)
+    v29_hardening.log_event("sub_invoice_payment_failed", user=user, mode=_mode(), success=False)
+
+
+def handle_subscription_updated(subscription: dict) -> None:
+    """``customer.subscription.updated`` — mirror Stripe's truth (status,
+    period end, cancel_at_period_end) onto the user + billing_state."""
+    user = _resolve_user(subscription)
+    if not user:
+        return
+    status = subscription.get("status")
+    cpe = subscription.get("current_period_end")
+    cape = subscription.get("cancel_at_period_end")
+    cape_arg = bool(cape) if cape is not None else None
+    try:
+        users_store.update_subscription_status(
+            user, status=status, current_period_end=cpe, cancel_at_period_end=cape_arg,
+        )
+    except ValueError:
+        # Stripe status outside our enum — sync the rest, skip the status.
+        users_store.update_subscription_status(
+            user, current_period_end=cpe, cancel_at_period_end=cape_arg,
+        )
+    bs = _SUB_STATUS_TO_BILLING_STATE.get((status or "").lower())
+    if bs is not None:
+        kwargs: dict = {"billing_state": bs}
+        if bs == "active" and cpe:
+            kwargs["renewal_ts"] = float(cpe)
+        users_store.set_billing_state(user, **kwargs)
+    v29_hardening.log_event("sub_updated", user=user, mode=_mode(), success=True)
+
+
+def handle_subscription_deleted(subscription: dict) -> None:
+    """``customer.subscription.deleted`` — terminal cancellation: mark
+    canceled, cancel membership, drop from the cohort."""
+    user = _resolve_user(subscription)
+    if not user:
+        return
+    users_store.mark_subscription_canceled(user)
+    users_store.set_billing_state(user, billing_state="cancelled")
+    doc = users_store.get_user(user) or {}
+    users_store.set_membership(
+        user, tier=doc.get("membership_tier"), price=doc.get("membership_price"),
+        status="cancelled", cancelled_ts=time.time(),
+    )
+    try:
+        membership_store.remove_member(user)
+    except Exception:  # pragma: no cover (defensive)
+        pass
+    v29_hardening.log_event("sub_deleted", user=user, mode=_mode(), success=True)
