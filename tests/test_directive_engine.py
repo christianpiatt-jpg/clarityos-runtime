@@ -138,13 +138,15 @@ def test_post_cite_grounded_after_retry():
 # ---------------------------------------------------------------------------
 # post-enforcement: stubs + inactive
 # ---------------------------------------------------------------------------
-def test_post_stub_directive_produces_no_metadata():
-    # #operator is the last inert stub at A26 (the other five handlers are real).
-    ds = de.parse_directives("#operator do it")
-    out, meta = de.apply_post_enforcement(ds, "anything at all")
-    assert out == "anything at all"
-    assert meta.to_dict() == {}
-    assert meta.retry_needed is False
+def test_base_handler_is_inert():
+    # All seven directives are real as of A27; the inert contract now lives on
+    # the base class — the template any future directive subclasses. It
+    # enforces nothing: no status, no metadata, no retry, no output rewrite.
+    r = de.BaseDirectiveHandler().evaluate("anything at all")
+    assert r.status is None
+    assert r.meta == {}
+    assert r.retry_needed is False
+    assert r.output is None
 
 
 def test_post_no_active_directives():
@@ -155,11 +157,13 @@ def test_post_no_active_directives():
     assert meta.retry_needed is False
 
 
-def test_stacked_cite_plus_stub_only_cite_reports():
-    # Pair cite with the last still-stub directive (#operator) so only cite reports.
-    ds = de.parse_directives("#cite #operator question")
+def test_stacked_real_directives_both_report():
+    # cite + structure both contribute metadata; outputs chain (cite leaves the
+    # text unchanged, structure formats it).
+    ds = de.parse_directives("#cite #structure question")
     _out, meta = de.apply_post_enforcement(ds, GROUNDED)
-    assert set(meta.to_dict()) == {"cite"}  # the stub contributes nothing
+    assert set(meta.to_dict()) == {"cite", "structure"}
+    assert meta.retry_needed is False
 
 
 # ---------------------------------------------------------------------------

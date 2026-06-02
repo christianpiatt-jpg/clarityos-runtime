@@ -15,14 +15,15 @@ nothing yet. The kernel migration (replacing A18's inline ``#cite`` block in
 ``run_thread_message``) is A28; the handlers for the other six directives are
 A22–A27.
 
-Real handlers so far: ``CiteHandler`` (A18, delegates to ``cite_mode`` and
-reproduces the grounded/incomplete/retry contract), ``StructureHandler``
-(A22, deterministic shape pass), ``PrimitivesHandler`` (A23, deterministic
-P-series extraction), ``RegressionHandler`` (A24, deterministic backward
-causal trace), ``CompareHandler`` (A25, deterministic contrastive delta) and
-``ReduceHandler`` (A26, deterministic signal compression). Only
-``OperatorHandler`` remains an inert no-op stub, so A27 is a drop-in handler
-implementation needing no engine changes.
+All seven handlers now carry real logic: ``CiteHandler`` (A18, delegates to
+``cite_mode`` and reproduces the grounded/incomplete/retry contract),
+``StructureHandler`` (A22, deterministic shape pass), ``PrimitivesHandler``
+(A23, P-series extraction), ``RegressionHandler`` (A24, backward causal trace),
+``CompareHandler`` (A25, contrastive delta), ``ReduceHandler`` (A26, signal
+compression) and ``OperatorHandler`` (A27, operator-grade synthesis). The
+engine is now feature-complete and ready for the kernel migration (A28).
+``BaseDirectiveHandler`` stays as the inert template any future directive
+subclasses.
 
 Public API:
     parse_directives(text) -> DirectiveSet
@@ -41,6 +42,7 @@ from typing import Dict, List, Optional, Tuple
 
 import cite_mode
 import compare_delta             # A25 — #compare delta analysis
+import operator_brief            # A27 — #operator synthesizer
 import primitives_extract        # A23 — #primitives extractor
 import reduce_signal             # A26 — #reduce compressor
 import regression_trace          # A24 — #regression tracer
@@ -221,10 +223,20 @@ class ReduceHandler(BaseDirectiveHandler):
         )
 
 
-# A27 replaces this stub with a real handler. It is registered now so the
-# engine already detects + routes the directive (no engine change later).
+# A27 — final synthesis. Replaces the model output with a deterministic,
+# narrative-free, decision-ready operator brief (signals / implications /
+# risks / constraints / recommended moves). Heuristic — see operator_brief.
 class OperatorHandler(BaseDirectiveHandler):
     name = "operator"
+
+    def evaluate(self, output: str, *, retry_used: bool = False) -> DirectiveResult:
+        b = operator_brief.synthesize_operator_brief(output)
+        return DirectiveResult(
+            name="operator",
+            status="operator_synthesized",
+            output=operator_brief.format_operator_brief(b),
+            meta=operator_brief.build_metadata(b),
+        )
 
 
 DIRECTIVE_HANDLERS: Dict[str, BaseDirectiveHandler] = {
