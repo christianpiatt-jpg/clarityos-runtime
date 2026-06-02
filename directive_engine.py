@@ -17,10 +17,11 @@ A22–A27.
 
 Real handlers so far: ``CiteHandler`` (A18, delegates to ``cite_mode`` and
 reproduces the grounded/incomplete/retry contract), ``StructureHandler``
-(A22, deterministic shape pass) and ``PrimitivesHandler`` (A23, deterministic
-P-series extraction). The remaining four are inert no-op stubs the engine
-already recognises and routes, so A24–A27 are drop-in handler implementations
-needing no engine changes.
+(A22, deterministic shape pass), ``PrimitivesHandler`` (A23, deterministic
+P-series extraction) and ``RegressionHandler`` (A24, deterministic backward
+causal trace). The remaining three are inert no-op stubs the engine already
+recognises and routes, so A25–A27 are drop-in handler implementations needing
+no engine changes.
 
 Public API:
     parse_directives(text) -> DirectiveSet
@@ -39,6 +40,7 @@ from typing import Dict, List, Optional, Tuple
 
 import cite_mode
 import primitives_extract        # A23 — #primitives extractor
+import regression_trace          # A24 — #regression tracer
 import structure_format          # A22 — #structure formatter
 
 # Canonical directive names, stable order.
@@ -168,12 +170,24 @@ class PrimitivesHandler(BaseDirectiveHandler):
         )
 
 
-# A24–A27 replace these stubs with real handlers. They are registered now so
-# the engine already detects + routes the directive (no engine change later).
+# A24 — backward causal regression. Replaces the model output with a
+# deterministic causal-chain trace (events -> backward chain, turning points,
+# drivers, primitive emergence). Heuristic scaffold — see regression_trace.
 class RegressionHandler(BaseDirectiveHandler):
     name = "regression"
 
+    def evaluate(self, output: str, *, retry_used: bool = False) -> DirectiveResult:
+        r = regression_trace.regress(output)
+        return DirectiveResult(
+            name="regression",
+            status="regressed",
+            output=regression_trace.format_regression(r),
+            meta=regression_trace.build_metadata(r),
+        )
 
+
+# A25–A27 replace these stubs with real handlers. They are registered now so
+# the engine already detects + routes the directive (no engine change later).
 class CompareHandler(BaseDirectiveHandler):
     name = "compare"
 

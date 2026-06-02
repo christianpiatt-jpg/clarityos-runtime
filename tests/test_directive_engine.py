@@ -139,8 +139,8 @@ def test_post_cite_grounded_after_retry():
 # post-enforcement: stubs + inactive
 # ---------------------------------------------------------------------------
 def test_post_stub_directive_produces_no_metadata():
-    # #regression is still an inert stub at A23 (#structure, #primitives real).
-    ds = de.parse_directives("#regression do it")
+    # #compare is still an inert stub at A24 (structure/primitives/regression real).
+    ds = de.parse_directives("#compare do it")
     out, meta = de.apply_post_enforcement(ds, "anything at all")
     assert out == "anything at all"
     assert meta.to_dict() == {}
@@ -156,8 +156,8 @@ def test_post_no_active_directives():
 
 
 def test_stacked_cite_plus_stub_only_cite_reports():
-    # Pair cite with a still-stub directive (#regression) so only cite reports.
-    ds = de.parse_directives("#cite #regression question")
+    # Pair cite with a still-stub directive (#compare) so only cite reports.
+    ds = de.parse_directives("#cite #compare question")
     _out, meta = de.apply_post_enforcement(ds, GROUNDED)
     assert set(meta.to_dict()) == {"cite"}  # the stub contributes nothing
 
