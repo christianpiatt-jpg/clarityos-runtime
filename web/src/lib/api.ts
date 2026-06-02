@@ -1586,11 +1586,18 @@ export interface ThreadDetail {
   messages: ThreadMessage[];
 }
 
+// A19 — #cite grounding outcome for a single turn. "grounded" = the reply
+// satisfied the cite gate (possibly after one retry); "incomplete" = still
+// ungrounded after the retry cap. Absent/null on every non-#cite turn.
+export type GroundingStatus = "grounded" | "incomplete";
+
 export interface ThreadMessageResult {
   meta: ThreadMeta;
   user_message: ThreadMessage;
   assistant_message: ThreadMessage;
   model_id?: string | null;
+  // A19 — read-only grounding outcome for THIS turn; null on non-#cite turns.
+  grounding_status?: GroundingStatus | null;
 }
 
 /** List every thread for the current user, newest-first by ``updated_at``. */

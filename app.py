@@ -11762,6 +11762,10 @@ class V47PostMessageResponse(BaseModel):
     user_message: V47ThreadDetailMessage
     assistant_message: V47ThreadDetailMessage
     model_id: Optional[str] = None
+    # A19 — #cite grounding outcome for THIS turn (additive, read-only).
+    # "grounded" / "incomplete" on a #cite turn, None otherwise. Forwarded
+    # straight from the kernel result; never persisted on the message.
+    grounding_status: Optional[str] = None
 
 
 class V47RenameThreadRequest(BaseModel):
@@ -11963,6 +11967,7 @@ def me_threads_post_message(
         user_message=_msg_to_model(out["user_message"]),
         assistant_message=_msg_to_model(out["assistant_message"]),
         model_id=out.get("model_id"),
+        grounding_status=out.get("grounding_status"),  # A19 — additive
     )
 
 

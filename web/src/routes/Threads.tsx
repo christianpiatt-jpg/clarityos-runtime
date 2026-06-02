@@ -20,6 +20,7 @@ import {
   postThreadMessage,
   renameThread,
   summarizeThread,
+  type GroundingStatus,
   type ThreadMessage,
   type ThreadMeta,
 } from "../lib/api";
@@ -34,6 +35,12 @@ import WebShell from "../components/WebShell";
 import ElinsV2View from "../components/v1/ElinsV2View/ElinsV2View";
 import EmotionalPhysicsView from "../components/v1/EmotionalPhysicsView/EmotionalPhysicsView";
 
+// A19 — view-model: a thread message plus the per-turn #cite grounding
+// outcome. grounding_status rides on the live POST response, not on the
+// stored message, so it's present only for turns sent this session and
+// absent (undefined) for messages rehydrated via getThread.
+type ChatMessage = ThreadMessage & { grounding_status?: GroundingStatus | null };
+
 // ---------- Auth subscription (mirrors Layout.tsx pattern) ----------
 function useAuth() {
   return useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
@@ -46,7 +53,7 @@ export default function Threads() {
   const [threads, setThreads] = useState<ThreadMeta[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeMeta, setActiveMeta] = useState<ThreadMeta | null>(null);
-  const [messages, setMessages] = useState<ThreadMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const [listLoading, setListLoading] = useState(true);
   const [threadLoading, setThreadLoading] = useState(false);
@@ -170,7 +177,13 @@ export default function Threads() {
     try {
       const r = await postThreadMessage(selectedId, trimmed);
       setActiveMeta(r.meta);
-      setMessages((cur) => [...cur, r.user_message, r.assistant_message]);
+      // A19 — carry the turn's grounding outcome onto the assistant
+      // message so Bubble can render the badge. null on non-#cite turns.
+      setMessages((cur) => [
+        ...cur,
+        r.user_message,
+        { ...r.assistant_message, grounding_status: r.grounding_status ?? null },
+      ]);
       setComposer("");
       setThreads((cur) => {
         const others = cur.filter((t) => t.thread_id !== r.meta.thread_id);
@@ -774,7 +787,7 @@ export default function Threads() {
 }
 
 // ---------------- Sub-components ----------------
-function Bubble({ message }: { message: ThreadMessage }) {
+function Bubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
   const wrapperStyle: React.CSSProperties = {
@@ -798,20 +811,59 @@ function Bubble({ message }: { message: ThreadMessage }) {
   return (
     <div style={wrapperStyle} data-role={message.role}>
       <div style={bubbleStyle}>{message.content}</div>
-      {isAssistant && message.model ? (
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            color: "var(--color-text-secondary)",
-            marginTop: 2,
-          }}
-          data-testid="assistant-model"
-        >
-          {message.model}
-        </span>
+      {isAssistant && (message.model || message.grounding_status) ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+          {message.model ? (
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                color: "var(--color-text-secondary)",
+              }}
+              data-testid="assistant-model"
+            >
+              {message.model}
+            </span>
+          ) : null}
+          {/* A19 — #cite grounding badge (read-only, this-turn only) */}
+          <GroundingBadge status={message.grounding_status} />
+        </div>
       ) : null}
     </div>
+  );
+}
+
+// A19 — small read-only badge surfacing the #cite grounding outcome.
+// Renders nothing for non-#cite turns (null/undefined). Colors follow the
+// A19 card: OK → #2ECC71, Incomplete → #E74C3C. (A18 emits only these two
+// states; there is no distinct "retried" status to show.)
+function GroundingBadge({ status }: { status?: GroundingStatus | null }) {
+  if (status !== "grounded" && status !== "incomplete") return null;
+  const ok = status === "grounded";
+  const color = ok ? "#2ECC71" : "#E74C3C";
+  const label = ok ? "Grounding: OK" : "Grounding: Incomplete";
+  const tip = ok
+    ? "Output passed grounding validation."
+    : "Grounding failed after retry cap.";
+  return (
+    <span
+      data-testid="grounding-badge"
+      data-grounding={status}
+      title={tip}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        color,
+        border: `1px solid ${color}`,
+        borderRadius: 3,
+        padding: "0 6px",
+        lineHeight: "16px",
+        letterSpacing: "0.04em",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </span>
   );
 }
 
