@@ -19,10 +19,10 @@ Real handlers so far: ``CiteHandler`` (A18, delegates to ``cite_mode`` and
 reproduces the grounded/incomplete/retry contract), ``StructureHandler``
 (A22, deterministic shape pass), ``PrimitivesHandler`` (A23, deterministic
 P-series extraction), ``RegressionHandler`` (A24, deterministic backward
-causal trace) and ``CompareHandler`` (A25, deterministic contrastive delta).
-The remaining two are inert no-op stubs the engine already recognises and
-routes, so A26–A27 are drop-in handler implementations needing no engine
-changes.
+causal trace), ``CompareHandler`` (A25, deterministic contrastive delta) and
+``ReduceHandler`` (A26, deterministic signal compression). Only
+``OperatorHandler`` remains an inert no-op stub, so A27 is a drop-in handler
+implementation needing no engine changes.
 
 Public API:
     parse_directives(text) -> DirectiveSet
@@ -42,6 +42,7 @@ from typing import Dict, List, Optional, Tuple
 import cite_mode
 import compare_delta             # A25 — #compare delta analysis
 import primitives_extract        # A23 — #primitives extractor
+import reduce_signal             # A26 — #reduce compressor
 import regression_trace          # A24 — #regression tracer
 import structure_format          # A22 — #structure formatter
 
@@ -204,12 +205,24 @@ class CompareHandler(BaseDirectiveHandler):
         )
 
 
-# A26–A27 replace these stubs with real handlers. They are registered now so
-# the engine already detects + routes the directive (no engine change later).
+# A26 — signal compression. Replaces the model output with a deterministic
+# reduction (core claims, supporting evidence, minimal form). Heuristic — see
+# reduce_signal.
 class ReduceHandler(BaseDirectiveHandler):
     name = "reduce"
 
+    def evaluate(self, output: str, *, retry_used: bool = False) -> DirectiveResult:
+        r = reduce_signal.reduce_text(output)
+        return DirectiveResult(
+            name="reduce",
+            status="reduced",
+            output=reduce_signal.format_reduction(r),
+            meta=reduce_signal.build_metadata(r, output),
+        )
 
+
+# A27 replaces this stub with a real handler. It is registered now so the
+# engine already detects + routes the directive (no engine change later).
 class OperatorHandler(BaseDirectiveHandler):
     name = "operator"
 
