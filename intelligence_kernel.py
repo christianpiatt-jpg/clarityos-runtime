@@ -45,8 +45,8 @@ from ELINS import (
     regional_elins,
     standard_elins,
 )
-import cite_mode                    # A17/A18 — #cite grounding validator
 import comment_generator
+import directive_engine             # A21/A28 — unified directive engine
 import elins_entity_graph
 import elins_scheduler_config
 import kernel_logging
@@ -806,52 +806,6 @@ def _apply_project_routing(
     return chosen
 
 
-# ---------------------------------------------------------------------------
-# A18 — #cite grounding gate (mode-gated, single-retry, capped)
-#
-# cite_mode (A17) is the pure validator; this is its only runtime wiring.
-# The #cite directive is a per-turn grounding constraint on a conversational
-# reply: factual claims must carry a citation, opinions must declare a basis.
-# This helper runs AFTER the model's first reply and, when grounding is
-# missing, issues exactly ONE deterministic re-query with the validator's
-# instruction appended to the prompt. There is no loop and no recursion —
-# the retry is straight-line, so the cap is provable by inspection. A reply
-# still ungrounded after the single retry is returned best-effort with
-# grounding_status "incomplete". Non-#cite turns never call this function.
-# ---------------------------------------------------------------------------
-def _apply_cite_grounding(
-    model_id: str,
-    prompt: str,
-    first_output: str,
-) -> tuple[str, str, bool]:
-    """Return ``(grounding_status, final_text, retry_used)`` for a #cite turn.
-
-    ``grounding_status`` is ``"grounded"`` when the first (or retried)
-    output satisfies ``cite_mode.validate_cite_output``, else
-    ``"incomplete"``. ``retry_used`` (A20 telemetry) is True iff the single
-    capped re-query was issued. Issues at most one extra
-    ``model_router.route_request`` — the hard retry cap.
-    """
-    first_check = cite_mode.validate_cite_output(first_output)
-    if first_check.ok:
-        return "grounded", first_output, False  # grounded first try, no retry
-
-    # Single deterministic retry: append the validator's re-query
-    # instruction to the same prompt and call exactly once more. No loop,
-    # no recursion — this is the entire retry budget.
-    retry_prompt = prompt
-    if first_check.retry_instruction:
-        retry_prompt = f"{prompt}\n\n{first_check.retry_instruction}"
-    retry_response = model_router.route_request(model_id, retry_prompt)
-    retry_output = str(retry_response.get("text") or "").strip()
-    if not retry_output:
-        # Empty retry — keep the first reply as best-effort, mark incomplete.
-        return "incomplete", first_output, True
-
-    retry_check = cite_mode.validate_cite_output(retry_output)
-    return ("grounded" if retry_check.ok else "incomplete"), retry_output, True
-
-
 def run_thread_message(
     user_id: str,
     thread_id: str,
@@ -870,13 +824,15 @@ def run_thread_message(
     match the thread's stored project_id, ``ValueError`` is raised
     so the app layer can map to 400.
 
-    A18: when ``content`` begins with a ``#cite`` directive the token is
-    stripped (consumed this turn only) and the assistant reply is checked
-    for grounding — citations for factual claims, a declared basis for
-    opinions. A missing-grounding reply triggers exactly one capped
-    re-query; the result carries ``grounding_status`` ("grounded" or
-    "incomplete"). Non-#cite turns are unaffected (``grounding_status`` is
-    None).
+    A28: when ``content`` begins with a directive run (#cite, #structure,
+    #primitives, #regression, #compare, #reduce, #operator) the tokens are
+    stripped (consumed this turn only) and routed through the unified
+    ``directive_engine``: pre-enforcement may rewrite the prompt;
+    post-enforcement may transform the reply and (for #cite) trigger one
+    capped re-query. The return dict carries ``directives`` +
+    ``directive_metadata``; ``#cite`` additionally surfaces
+    ``grounding_status`` ("grounded"/"incomplete") for A18/A19/A20
+    back-compat. Non-directive turns are unaffected.
 
     Returns::
 
@@ -899,18 +855,19 @@ def run_thread_message(
     if not text:
         raise ValueError("content must be a non-empty string after stripping")
 
-    # A18 — #cite directive. Detect + strip the leading token BEFORE we
-    # persist or build context, so it's consumed this turn only
-    # (parse_cite_directive is word-bounded + one-shot) and never stored
-    # or re-fired on a later turn. ``cite_active`` gates the grounding
-    # check after the model call; non-#cite turns are wholly untouched.
-    cite_active, cite_text = cite_mode.parse_cite_directive(text)
-    if cite_active:
-        text = cite_text.strip()
+    # A28 — unified directive engine. Detect + strip the leading directive
+    # run BEFORE we persist or build context, so directives are consumed this
+    # turn only (word-bounded + one-shot) and never stored or re-fired on a
+    # later turn. Pre-enforcement may rewrite the prompt text (no-op for all
+    # current directives). Non-directive turns are wholly untouched.
+    directives = directive_engine.parse_directives(text)
+    if directives.active:
+        text = directives.text.strip()
         if not text:
             raise ValueError(
-                "content must be a non-empty string after stripping #cite",
+                "content must be a non-empty string after stripping the directive",
             )
+        text = directive_engine.apply_pre_enforcement(directives, text)
 
     started = time.perf_counter()
 
@@ -979,16 +936,35 @@ def run_thread_message(
     response = model_router.route_request(model_id, prompt)
     assistant_text = str(response.get("text") or "").strip()
 
-    # A18 — #cite grounding gate. Only #cite turns enter here; a missing
-    # citation (factual claim) or basis (opinion) triggers exactly one
-    # capped re-query via _apply_cite_grounding. grounding_status stays
-    # None for every non-#cite turn, so the existing contract is unchanged.
+    # A28 — unified directive post-enforcement. The engine validates/transforms
+    # the reply per active directive and signals at most one capped re-query
+    # (today only #cite retries). Non-directive turns skip this entirely.
+    #   directive_metadata : per-directive results (functional payload)
+    #   retry_used         : did the single capped re-query fire? (A20 telemetry)
+    #   grounding_status   : derived from the #cite directive (A18/A19/A20
+    #                        back-compat — preserved on the return dict + log)
+    directive_metadata: dict = {}
+    retry_used = False
     grounding_status: Optional[str] = None
-    retry_used = False  # A20 — telemetry: did the single capped re-query fire?
-    if cite_active:
-        grounding_status, assistant_text, retry_used = _apply_cite_grounding(
-            model_id, prompt, assistant_text,
+    if directives.active:
+        final_output, dmeta = directive_engine.apply_post_enforcement(
+            directives, assistant_text,
         )
+        if dmeta.retry_needed:
+            retry_used = True
+            retry_prompt = prompt
+            if dmeta.retry_instruction:
+                retry_prompt = f"{prompt}\n\n{dmeta.retry_instruction}"
+            retry_response = model_router.route_request(model_id, retry_prompt)
+            retry_output = str(retry_response.get("text") or "").strip() or final_output
+            final_output, dmeta = directive_engine.apply_post_enforcement(
+                directives, retry_output, retry_used=True,
+            )
+        assistant_text = final_output
+        directive_metadata = dmeta.to_dict()
+        cite_meta = directive_metadata.get("cite")
+        if cite_meta:
+            grounding_status = cite_meta.get("status")
 
     if not assistant_text:
         # Defence-in-depth: never persist an empty assistant turn —
@@ -1106,8 +1082,13 @@ def run_thread_message(
             "user_content_len":  len(user_msg_saved.get("content") or ""),
             "assistant_content_len": len(assistant_msg_saved.get("content") or ""),
             "reasoning_mode":    reasoning_mode,  # v71 / Unit 79 — None when per-turn off
-            "grounding_status":  grounding_status,  # A18 — None unless #cite this turn
-            "retry_used":        retry_used,        # A20 — cite re-query fired this turn
+            "grounding_status":  grounding_status,  # A18/A19 — derived from #cite
+            "retry_used":        retry_used,        # A20 — capped re-query fired this turn
+            # A28 — directive NAMES only (content-free). The full
+            # directive_metadata is deliberately NOT logged: e.g. #compare's
+            # metadata carries target names (content), and telemetry stays
+            # content-free per A20/A24/A25.
+            "directives":        directives.directives,
         },
     )
 
@@ -1121,9 +1102,14 @@ def run_thread_message(
         # v72 / Unit 80 — additive. Empty list when no anomalies fired
         # or when EL/INS per-turn is off.
         "anomalies":         anomalies_emitted,
-        # A18 — additive. None unless this turn carried a #cite directive;
-        # "grounded" or "incomplete" otherwise.
+        # A18/A19 — additive. None unless this turn carried a #cite directive;
+        # "grounded"/"incomplete" otherwise. Derived from the engine's #cite
+        # metadata (the bespoke inline grounding path was retired in A28).
         "grounding_status":  grounding_status,
+        # A28 — additive. Active directive names + per-directive metadata
+        # (functional payload; [] / {} on non-directive turns).
+        "directives":        directives.directives,
+        "directive_metadata": directive_metadata,
     }
 
 
