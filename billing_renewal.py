@@ -61,6 +61,14 @@ def renew_membership(user_id: str, *, now_ts: Optional[float] = None) -> dict:
     no-op (returns ``{action: "no_op"}``)."""
     now = float(now_ts if now_ts is not None else time.time())
     doc = users_store.get_user(user_id) or {}
+
+    # C1 / A+D — Stripe Subscriptions are the canonical renewal engine. A
+    # subscription-backed member must NOT be renewed by this legacy scheduler;
+    # Stripe's invoice.* webhooks drive their lifecycle. The PaymentIntent
+    # renewal path below remains for any non-subscription members.
+    if doc.get("stripe_subscription_id"):
+        return {"user": user_id, "action": "no_op", "reason": "stripe_canonical"}
+
     state = doc.get("billing_state")
     rts = doc.get("renewal_ts")
     price = doc.get("membership_price")
