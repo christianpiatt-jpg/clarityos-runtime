@@ -18,10 +18,11 @@ A22–A27.
 Real handlers so far: ``CiteHandler`` (A18, delegates to ``cite_mode`` and
 reproduces the grounded/incomplete/retry contract), ``StructureHandler``
 (A22, deterministic shape pass), ``PrimitivesHandler`` (A23, deterministic
-P-series extraction) and ``RegressionHandler`` (A24, deterministic backward
-causal trace). The remaining three are inert no-op stubs the engine already
-recognises and routes, so A25–A27 are drop-in handler implementations needing
-no engine changes.
+P-series extraction), ``RegressionHandler`` (A24, deterministic backward
+causal trace) and ``CompareHandler`` (A25, deterministic contrastive delta).
+The remaining two are inert no-op stubs the engine already recognises and
+routes, so A26–A27 are drop-in handler implementations needing no engine
+changes.
 
 Public API:
     parse_directives(text) -> DirectiveSet
@@ -39,6 +40,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 import cite_mode
+import compare_delta             # A25 — #compare delta analysis
 import primitives_extract        # A23 — #primitives extractor
 import regression_trace          # A24 — #regression tracer
 import structure_format          # A22 — #structure formatter
@@ -186,12 +188,24 @@ class RegressionHandler(BaseDirectiveHandler):
         )
 
 
-# A25–A27 replace these stubs with real handlers. They are registered now so
-# the engine already detects + routes the directive (no engine change later).
+# A25 — contrastive delta. Replaces the model output with a deterministic
+# comparison (targets, similarities, side-bucketed differences, attribute
+# table). Heuristic scaffold + weakest semantic handler — see compare_delta.
 class CompareHandler(BaseDirectiveHandler):
     name = "compare"
 
+    def evaluate(self, output: str, *, retry_used: bool = False) -> DirectiveResult:
+        c = compare_delta.compare(output)
+        return DirectiveResult(
+            name="compare",
+            status="compared",
+            output=compare_delta.format_comparison(c),
+            meta=compare_delta.build_metadata(c),
+        )
 
+
+# A26–A27 replace these stubs with real handlers. They are registered now so
+# the engine already detects + routes the directive (no engine change later).
 class ReduceHandler(BaseDirectiveHandler):
     name = "reduce"
 
