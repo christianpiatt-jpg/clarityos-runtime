@@ -45,6 +45,7 @@ from ELINS import (
     regional_elins,
     standard_elins,
 )
+import cite_mode                    # A17/A18 — #cite grounding validator
 import comment_generator
 import elins_entity_graph
 import elins_scheduler_config
@@ -805,6 +806,51 @@ def _apply_project_routing(
     return chosen
 
 
+# ---------------------------------------------------------------------------
+# A18 — #cite grounding gate (mode-gated, single-retry, capped)
+#
+# cite_mode (A17) is the pure validator; this is its only runtime wiring.
+# The #cite directive is a per-turn grounding constraint on a conversational
+# reply: factual claims must carry a citation, opinions must declare a basis.
+# This helper runs AFTER the model's first reply and, when grounding is
+# missing, issues exactly ONE deterministic re-query with the validator's
+# instruction appended to the prompt. There is no loop and no recursion —
+# the retry is straight-line, so the cap is provable by inspection. A reply
+# still ungrounded after the single retry is returned best-effort with
+# grounding_status "incomplete". Non-#cite turns never call this function.
+# ---------------------------------------------------------------------------
+def _apply_cite_grounding(
+    model_id: str,
+    prompt: str,
+    first_output: str,
+) -> tuple[str, str]:
+    """Return ``(grounding_status, final_text)`` for a #cite turn.
+
+    ``grounding_status`` is ``"grounded"`` when the first (or retried)
+    output satisfies ``cite_mode.validate_cite_output``, else
+    ``"incomplete"``. Issues at most one extra ``model_router.route_request``
+    — the hard retry cap.
+    """
+    first_check = cite_mode.validate_cite_output(first_output)
+    if first_check.ok:
+        return "grounded", first_output
+
+    # Single deterministic retry: append the validator's re-query
+    # instruction to the same prompt and call exactly once more. No loop,
+    # no recursion — this is the entire retry budget.
+    retry_prompt = prompt
+    if first_check.retry_instruction:
+        retry_prompt = f"{prompt}\n\n{first_check.retry_instruction}"
+    retry_response = model_router.route_request(model_id, retry_prompt)
+    retry_output = str(retry_response.get("text") or "").strip()
+    if not retry_output:
+        # Empty retry — keep the first reply as best-effort, mark incomplete.
+        return "incomplete", first_output
+
+    retry_check = cite_mode.validate_cite_output(retry_output)
+    return ("grounded" if retry_check.ok else "incomplete"), retry_output
+
+
 def run_thread_message(
     user_id: str,
     thread_id: str,
@@ -822,6 +868,14 @@ def run_thread_message(
     task-default routing. If the supplied ``project_id`` doesn't
     match the thread's stored project_id, ``ValueError`` is raised
     so the app layer can map to 400.
+
+    A18: when ``content`` begins with a ``#cite`` directive the token is
+    stripped (consumed this turn only) and the assistant reply is checked
+    for grounding — citations for factual claims, a declared basis for
+    opinions. A missing-grounding reply triggers exactly one capped
+    re-query; the result carries ``grounding_status`` ("grounded" or
+    "incomplete"). Non-#cite turns are unaffected (``grounding_status`` is
+    None).
 
     Returns::
 
@@ -843,6 +897,19 @@ def run_thread_message(
     text = content.strip()
     if not text:
         raise ValueError("content must be a non-empty string after stripping")
+
+    # A18 — #cite directive. Detect + strip the leading token BEFORE we
+    # persist or build context, so it's consumed this turn only
+    # (parse_cite_directive is word-bounded + one-shot) and never stored
+    # or re-fired on a later turn. ``cite_active`` gates the grounding
+    # check after the model call; non-#cite turns are wholly untouched.
+    cite_active, cite_text = cite_mode.parse_cite_directive(text)
+    if cite_active:
+        text = cite_text.strip()
+        if not text:
+            raise ValueError(
+                "content must be a non-empty string after stripping #cite",
+            )
 
     started = time.perf_counter()
 
@@ -910,6 +977,17 @@ def run_thread_message(
 
     response = model_router.route_request(model_id, prompt)
     assistant_text = str(response.get("text") or "").strip()
+
+    # A18 — #cite grounding gate. Only #cite turns enter here; a missing
+    # citation (factual claim) or basis (opinion) triggers exactly one
+    # capped re-query via _apply_cite_grounding. grounding_status stays
+    # None for every non-#cite turn, so the existing contract is unchanged.
+    grounding_status: Optional[str] = None
+    if cite_active:
+        grounding_status, assistant_text = _apply_cite_grounding(
+            model_id, prompt, assistant_text,
+        )
+
     if not assistant_text:
         # Defence-in-depth: never persist an empty assistant turn —
         # tag explicitly so the UI can surface "no reply".
@@ -1026,6 +1104,7 @@ def run_thread_message(
             "user_content_len":  len(user_msg_saved.get("content") or ""),
             "assistant_content_len": len(assistant_msg_saved.get("content") or ""),
             "reasoning_mode":    reasoning_mode,  # v71 / Unit 79 — None when per-turn off
+            "grounding_status":  grounding_status,  # A18 — None unless #cite this turn
         },
     )
 
@@ -1039,6 +1118,9 @@ def run_thread_message(
         # v72 / Unit 80 — additive. Empty list when no anomalies fired
         # or when EL/INS per-turn is off.
         "anomalies":         anomalies_emitted,
+        # A18 — additive. None unless this turn carried a #cite directive;
+        # "grounded" or "incomplete" otherwise.
+        "grounding_status":  grounding_status,
     }
 
 
