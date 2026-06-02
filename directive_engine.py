@@ -15,10 +15,12 @@ nothing yet. The kernel migration (replacing A18's inline ``#cite`` block in
 ``run_thread_message``) is A28; the handlers for the other six directives are
 A22–A27.
 
-Today only ``CiteHandler`` carries real logic, delegating to ``cite_mode`` so
-the A18 grounded/incomplete/retry contract is reproduced exactly. The other
-six are inert no-op stubs that the engine already recognises and routes, so
-A22–A27 are drop-in handler implementations needing no engine changes.
+Real handlers so far: ``CiteHandler`` (A18, delegates to ``cite_mode`` and
+reproduces the grounded/incomplete/retry contract), ``StructureHandler``
+(A22, deterministic shape pass) and ``PrimitivesHandler`` (A23, deterministic
+P-series extraction). The remaining four are inert no-op stubs the engine
+already recognises and routes, so A24–A27 are drop-in handler implementations
+needing no engine changes.
 
 Public API:
     parse_directives(text) -> DirectiveSet
@@ -36,6 +38,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 import cite_mode
+import primitives_extract        # A23 — #primitives extractor
 import structure_format          # A22 — #structure formatter
 
 # Canonical directive names, stable order.
@@ -148,12 +151,25 @@ class StructureHandler(BaseDirectiveHandler):
         )
 
 
-# A23–A27 replace these stubs with real handlers. They are registered now so
-# the engine already detects + routes the directive (no engine change later).
+# A23 — first semantic handler. Replaces the model output with a deterministic
+# P-series primitive decomposition (entities / actions / relations / states /
+# tensions / hydronic). Heuristic scaffold, not NLP — see primitives_extract.
 class PrimitivesHandler(BaseDirectiveHandler):
     name = "primitives"
 
+    def evaluate(self, output: str, *, retry_used: bool = False) -> DirectiveResult:
+        prim = primitives_extract.extract_primitives(output)
+        formatted = primitives_extract.format_primitives(prim)
+        return DirectiveResult(
+            name="primitives",
+            status="extracted",
+            output=formatted,
+            meta=primitives_extract.build_metadata(prim),
+        )
 
+
+# A24–A27 replace these stubs with real handlers. They are registered now so
+# the engine already detects + routes the directive (no engine change later).
 class RegressionHandler(BaseDirectiveHandler):
     name = "regression"
 
