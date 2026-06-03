@@ -55,6 +55,7 @@ import FounderPisPiss from "./routes/FounderPisPiss";                         //
 import FounderCategory from "./routes/FounderCategory";                       // CATEGORY  Phase 14C: category definition + external language
 import NotFound from "./routes/NotFound";
 import CockpitV2 from "./routes/CockpitV2";   // consolidated operator cockpit (additive)
+import InviteSuccess from "./routes/InviteSuccess"; // Fix 3 — public post-Stripe invite success page
 
 export default function App() {
   return (
@@ -64,6 +65,12 @@ export default function App() {
           (renders its own login panel); bypasses Layout + RequireAuth so
           it owns the viewport. */}
       <Route path="/cockpit-v2" element={<CockpitV2 />} />
+
+      {/* Fix 3 — public post-Stripe-checkout success page for the invite flow.
+          Stripe redirects the browser here:
+            /invite/:token/success?plan=<plan>&session_id=<CHECKOUT_SESSION_ID>
+          No auth (the operator has not signed in yet); owns its viewport. */}
+      <Route path="/invite/:token/success" element={<InviteSuccess />} />
 
       {/* Surface 4 — v1 surface owns the full viewport for /threads.   */}
       {/* Bypasses Layout so its cockpit chrome (topbar/rail/footer)    */}
