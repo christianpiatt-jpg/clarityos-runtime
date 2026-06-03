@@ -109,6 +109,7 @@ import operator_state              # v39 — operator state memory + continuity
 import intelligence_kernel        # v40 — unified #c/#G/ELINS/ESO/macro kernel
 import billing_config              # v42 — Stripe mode/keys + recent events
 import founder_analytics           # v43 — founder analytics aggregator
+import monitoring_alerts           # Phase 5 — anomaly + churn alert aggregators
 import model_router                 # v44 — multi-model router
 import local_model_runtime          # v45 — on-device inference runtime
 import memory_vault                 # v46 — local encrypted KV store
@@ -10896,6 +10897,15 @@ def founder_analytics_summary(session: dict = Depends(_require_founder)):
     """
     summary = founder_analytics.get_founder_analytics_summary()
     return {"ok": True, "summary": summary}
+
+
+@app.get("/founder/alerts")
+def founder_alerts(session: dict = Depends(_require_founder)):
+    """Phase 5 — founder-only monitoring alerts: kernel anomalies (module 19)
+    + membership churn (module 20). Read-only, compute-and-surface (the repo
+    has no outbound delivery). Module 18 (webhook failures) is deferred behind
+    the active billing webhook WIP; the payload records it as such."""
+    return {"ok": True, "alerts": monitoring_alerts.get_alerts_summary()}
 
 
 # ---------- v44 — Multi-model router ----------
