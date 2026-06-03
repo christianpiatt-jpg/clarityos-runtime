@@ -1312,10 +1312,10 @@ export interface V42FounderBillingStatus {
 
 export interface V42MeBilling {
   ok: true;
-  // A-WEB-CLARITY-2: "failed" added — /me/billing surfaces it distinctly
-  // (PASS-4 FIX-P1). grace_period is intentionally absent: the endpoint
-  // collapses it into "past_due".
-  status: "none" | "active" | "past_due" | "canceled" | "failed";
+  // "failed" surfaced distinctly (PASS-4 FIX-P1). "grace_period" now surfaced
+  // distinctly too (/me/billing no longer collapses it into "past_due") —
+  // MeBillingBadge renders it amber.
+  status: "none" | "active" | "past_due" | "grace_period" | "canceled" | "failed";
   plan: string | null;
   renewal_ts: number | null;
   mode: V42StripeMode;

@@ -13126,7 +13126,9 @@ def me_billing(session: dict = Depends(require_session)):
     membership_status = view.get("status")
     if billing_state in ("active",):
         normalised = "active"
-    elif billing_state in ("past_due", "grace_period"):
+    elif billing_state == "grace_period":
+        normalised = "grace_period"
+    elif billing_state == "past_due":
         normalised = "past_due"
     elif billing_state == "cancelled" or membership_status == "cancelled":
         normalised = "canceled"

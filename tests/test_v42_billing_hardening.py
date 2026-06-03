@@ -495,6 +495,16 @@ def test_me_billing_past_due(app_module, client):
     assert body["status"] == "past_due"
 
 
+def test_me_billing_grace_period(app_module, client):
+    # grace_period now surfaces distinctly (previously collapsed to past_due).
+    user, sid = _make_user(
+        app_module, "mb_g", cohort="founder",
+        billing_state="grace_period",
+    )
+    r = client.get("/me/billing", headers=_auth(sid))
+    assert r.json()["status"] == "grace_period"
+
+
 def test_me_billing_canceled(app_module, client):
     user, sid = _make_user(
         app_module, "mb_d", cohort="founder",
