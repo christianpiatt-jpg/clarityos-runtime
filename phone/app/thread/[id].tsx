@@ -18,16 +18,30 @@ import {
 import {
   deleteThread, getThread, postThreadMessage, renameThread,
   summarizeThread,
+  type DirectiveMeta, type GroundingStatus,
   type ThreadMessage, type ThreadMeta,
 } from "../../lib/api";
 import { colors, radius, space } from "../../lib/theme";
+
+// A19/A30 — view-model: a thread message plus the per-turn directive surface
+// (cite grounding + directive_metadata). Rides on the live POST response, so
+// present only for turns sent this session; absent for rehydrated history.
+type ChatMessage = ThreadMessage & {
+  grounding_status?: GroundingStatus | null;
+  directive_metadata?: Record<string, DirectiveMeta> | null;
+};
+
+const DIRECTIVE_LABEL: Record<string, string> = {
+  structure: "Structure", primitives: "Primitives", regression: "Regression",
+  compare: "Compare", reduce: "Reduce", operator: "Operator",
+};
 
 export default function ThreadDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const navigation = useNavigation();
 
   const [meta, setMeta] = useState<ThreadMeta | null>(null);
-  const [messages, setMessages] = useState<ThreadMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -78,7 +92,15 @@ export default function ThreadDetailScreen() {
     try {
       const r = await postThreadMessage(id, text);
       setMeta(r.meta);
-      setMessages((cur) => [...cur, r.user_message, r.assistant_message]);
+      setMessages((cur) => [
+        ...cur,
+        r.user_message,
+        {
+          ...r.assistant_message,
+          grounding_status: r.grounding_status ?? null,
+          directive_metadata: r.directive_metadata ?? null,
+        },
+      ]);
       setDraft("");
       scrollToBottom();
     } catch (e: unknown) {
@@ -324,9 +346,14 @@ export default function ThreadDetailScreen() {
 }
 
 // ------------ Sub-components ------------
-function Bubble({ message }: { message: ThreadMessage }) {
+function Bubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
+  const dmeta: Record<string, DirectiveMeta> = message.directive_metadata || {};
+  const otherDirectives = isAssistant
+    ? Object.keys(dmeta).filter((k) => k !== "cite")
+    : [];
+  const showBadges = isAssistant && (!!message.grounding_status || otherDirectives.length > 0);
   return (
     <View
       style={[
@@ -345,6 +372,32 @@ function Bubble({ message }: { message: ThreadMessage }) {
       {isAssistant && message.model && (
         <Text style={styles.bubbleModel}>{message.model}</Text>
       )}
+      {/* A19/A30 — per-turn directive badges (cite grounding + others) */}
+      {showBadges ? (
+        <View style={styles.badgeRow}>
+          {message.grounding_status ? (
+            <Text
+              style={[
+                styles.badge,
+                message.grounding_status === "grounded" ? styles.badgeOk : styles.badgeBad,
+              ]}
+            >
+              {message.grounding_status === "grounded"
+                ? "Grounding: OK"
+                : "Grounding: Incomplete"}
+            </Text>
+          ) : null}
+          {otherDirectives.map((name) => {
+            const status = dmeta[name]?.status;
+            const label = DIRECTIVE_LABEL[name] ?? name;
+            return (
+              <Text key={name} style={[styles.badge, styles.badgeDirective]}>
+                {status ? `${label}: ${String(status)}` : label}
+              </Text>
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -432,6 +485,16 @@ const styles = StyleSheet.create({
     color: colors.textTertiary, fontSize: 10, fontFamily: "Menlo",
     marginTop: 2,
   },
+  // A19/A30 — directive badge row under the assistant bubble.
+  badgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 },
+  badge: {
+    fontSize: 10, fontFamily: "Menlo",
+    paddingHorizontal: 6, paddingVertical: 1,
+    borderRadius: 3, borderWidth: 1, overflow: "hidden",
+  },
+  badgeOk: { color: "#2ECC71", borderColor: "#2ECC71" },
+  badgeBad: { color: "#E74C3C", borderColor: "#E74C3C" },
+  badgeDirective: { color: colors.accent, borderColor: colors.accent },
 
   composer: {
     flexDirection: "row", alignItems: "flex-end", gap: space.s3,

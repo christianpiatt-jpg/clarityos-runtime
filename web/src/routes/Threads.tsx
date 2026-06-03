@@ -20,6 +20,7 @@ import {
   postThreadMessage,
   renameThread,
   summarizeThread,
+  type DirectiveMeta,
   type GroundingStatus,
   type ThreadMessage,
   type ThreadMeta,
@@ -35,11 +36,15 @@ import WebShell from "../components/WebShell";
 import ElinsV2View from "../components/v1/ElinsV2View/ElinsV2View";
 import EmotionalPhysicsView from "../components/v1/EmotionalPhysicsView/EmotionalPhysicsView";
 
-// A19 — view-model: a thread message plus the per-turn #cite grounding
-// outcome. grounding_status rides on the live POST response, not on the
-// stored message, so it's present only for turns sent this session and
-// absent (undefined) for messages rehydrated via getThread.
-type ChatMessage = ThreadMessage & { grounding_status?: GroundingStatus | null };
+// A19/A30 — view-model: a thread message plus the per-turn directive surface.
+// grounding_status (cite, A19) + directive_metadata (all directives, A30) ride
+// on the live POST response, not on the stored message, so they're present
+// only for turns sent this session and absent for messages rehydrated via
+// getThread.
+type ChatMessage = ThreadMessage & {
+  grounding_status?: GroundingStatus | null;
+  directive_metadata?: Record<string, DirectiveMeta> | null;
+};
 
 // ---------- Auth subscription (mirrors Layout.tsx pattern) ----------
 function useAuth() {
@@ -182,7 +187,11 @@ export default function Threads() {
       setMessages((cur) => [
         ...cur,
         r.user_message,
-        { ...r.assistant_message, grounding_status: r.grounding_status ?? null },
+        {
+          ...r.assistant_message,
+          grounding_status: r.grounding_status ?? null,
+          directive_metadata: r.directive_metadata ?? null,
+        },
       ]);
       setComposer("");
       setThreads((cur) => {
@@ -811,8 +820,10 @@ function Bubble({ message }: { message: ChatMessage }) {
   return (
     <div style={wrapperStyle} data-role={message.role}>
       <div style={bubbleStyle}>{message.content}</div>
-      {isAssistant && (message.model || message.grounding_status) ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+      {isAssistant && (message.model || message.grounding_status ||
+        (message.directive_metadata &&
+          Object.keys(message.directive_metadata).some((k) => k !== "cite"))) ? (
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 2 }}>
           {message.model ? (
             <span
               style={{
@@ -827,6 +838,18 @@ function Bubble({ message }: { message: ChatMessage }) {
           ) : null}
           {/* A19 — #cite grounding badge (read-only, this-turn only) */}
           <GroundingBadge status={message.grounding_status} />
+          {/* A30 — unified badges for the other active directives */}
+          {message.directive_metadata
+            ? Object.keys(message.directive_metadata)
+                .filter((k) => k !== "cite")
+                .map((name) => (
+                  <DirectiveBadge
+                    key={name}
+                    name={name}
+                    status={(message.directive_metadata?.[name]?.status as string | null) ?? null}
+                  />
+                ))
+            : null}
         </div>
       ) : null}
     </div>
@@ -863,6 +886,40 @@ function GroundingBadge({ status }: { status?: GroundingStatus | null }) {
       }}
     >
       {label}
+    </span>
+  );
+}
+
+// A30 — unified read-only badge for a non-cite directive (cite keeps its own
+// GroundingBadge above). Renders "<Label>: <status>" in the accent color.
+const _DIRECTIVE_LABEL: Record<string, string> = {
+  structure: "Structure",
+  primitives: "Primitives",
+  regression: "Regression",
+  compare: "Compare",
+  reduce: "Reduce",
+  operator: "Operator",
+};
+function DirectiveBadge({ name, status }: { name: string; status?: string | null }) {
+  const label = _DIRECTIVE_LABEL[name] ?? name;
+  const text = status ? `${label}: ${status}` : label;
+  return (
+    <span
+      data-testid="directive-badge"
+      data-directive={name}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        color: "var(--color-accent-cyan)",
+        border: "1px solid var(--color-accent-cyan)",
+        borderRadius: 3,
+        padding: "0 6px",
+        lineHeight: "16px",
+        letterSpacing: "0.04em",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {text}
     </span>
   );
 }

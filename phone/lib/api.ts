@@ -1147,11 +1147,22 @@ export interface ThreadDetail {
   messages: ThreadMessage[];
 }
 
+// A30 — per-directive result (status + directive-specific fields).
+export type GroundingStatus = "grounded" | "incomplete";
+export interface DirectiveMeta {
+  status?: string | null;
+  [k: string]: unknown;
+}
+
 export interface ThreadMessageResult {
   meta: ThreadMeta;
   user_message: ThreadMessage;
   assistant_message: ThreadMessage;
   model_id?: string | null;
+  // A19/A30 — read-only per-turn directive surface; null/[]/{} when none.
+  grounding_status?: GroundingStatus | null;
+  directives?: string[];
+  directive_metadata?: Record<string, DirectiveMeta> | null;
 }
 
 /** List every thread for the current user, newest-first by ``updated_at``. */

@@ -11766,6 +11766,13 @@ class V47PostMessageResponse(BaseModel):
     # "grounded" / "incomplete" on a #cite turn, None otherwise. Forwarded
     # straight from the kernel result; never persisted on the message.
     grounding_status: Optional[str] = None
+    # A30 — unified directive surface (additive, read-only). ``directives`` is
+    # the list of active directive names this turn ([] when none);
+    # ``directive_metadata`` is the per-directive result map ({} when none).
+    # Forwarded straight from the kernel result; back-compat grounding_status
+    # above is retained (it mirrors directive_metadata["cite"]["status"]).
+    directives: list[str] = []
+    directive_metadata: dict = {}
 
 
 class V47RenameThreadRequest(BaseModel):
@@ -11968,6 +11975,8 @@ def me_threads_post_message(
         assistant_message=_msg_to_model(out["assistant_message"]),
         model_id=out.get("model_id"),
         grounding_status=out.get("grounding_status"),  # A19 — additive
+        directives=out.get("directives") or [],                    # A30 — additive
+        directive_metadata=out.get("directive_metadata") or {},    # A30 — additive
     )
 
 

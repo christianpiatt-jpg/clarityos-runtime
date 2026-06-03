@@ -1591,6 +1591,15 @@ export interface ThreadDetail {
 // ungrounded after the retry cap. Absent/null on every non-#cite turn.
 export type GroundingStatus = "grounded" | "incomplete";
 
+// A30 — per-directive result. ``status`` is the directive's outcome
+// ("formatted" / "extracted" / "regressed" / "compared" / "reduced" /
+// "operator_synthesized" / cite's "grounded"|"incomplete"); other keys vary
+// per directive (counts, etc.).
+export interface DirectiveMeta {
+  status?: string | null;
+  [k: string]: unknown;
+}
+
 export interface ThreadMessageResult {
   meta: ThreadMeta;
   user_message: ThreadMessage;
@@ -1598,6 +1607,9 @@ export interface ThreadMessageResult {
   model_id?: string | null;
   // A19 — read-only grounding outcome for THIS turn; null on non-#cite turns.
   grounding_status?: GroundingStatus | null;
+  // A30 — unified directive surface; [] / {} on non-directive turns.
+  directives?: string[];
+  directive_metadata?: Record<string, DirectiveMeta> | null;
 }
 
 /** List every thread for the current user, newest-first by ``updated_at``. */
