@@ -122,6 +122,7 @@ export default function Layout() {
           <RailLink to="/library">Library</RailLink>
           <RailLink to="/timeline">Timeline</RailLink>
           <RailLink to="/plans">Plans</RailLink>
+          <RailLink to="/membership">Membership</RailLink>
           <RailLink to="/account">Account</RailLink>
         </RailSection>
         <RailSection label="CONVERSE">
@@ -140,7 +141,7 @@ export default function Layout() {
           <RailLink to="/operator/el_ins/export">EL/INS Export</RailLink>
           <RailLink to="/operator/el_ins/anomalies">EL/INS Anomalies</RailLink>
           <RailLink to="/operator/el_ins/rollup">EL/INS Roll-Up</RailLink>
-          <RailLink to="/operator/timeline">Timeline</RailLink>
+          <RailLink to="/operator/timeline">Operator Timeline</RailLink>
           <RailLink to="/org/el_ins/timeline">Org Timeline</RailLink>
         </RailSection>
         <RailSection label="BRIDGES">

@@ -74,6 +74,9 @@ export default function Account() {
         <div style={{ marginTop: 8 }}>
           <MeBillingBadge />
         </div>
+        <div style={{ marginTop: 12 }}>
+          <Link className="btn btn-sm" to="/membership">View Membership</Link>
+        </div>
       </div>
 
       <ModelPreferences />
