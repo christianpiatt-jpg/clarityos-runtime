@@ -1,6 +1,6 @@
-import { router, Stack } from "expo-router";
+import { ErrorBoundaryProps, router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { colors } from "../lib/theme";
@@ -26,6 +26,40 @@ import { getResumeOptions } from "../lib/continuity";
  * Any single step failing leaves the app usable — the screens have their
  * own retry / sign-in paths.
  */
+// Phase 6 — expo-router renders this when a route under this layout throws,
+// instead of crashing the whole app. retry() re-mounts the failed route.
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return (
+    <View
+      style={{
+        flex: 1, backgroundColor: colors.bgDeep,
+        alignItems: "center", justifyContent: "center", padding: 24,
+      }}
+    >
+      <Text style={{ color: "#ff8a8a", fontSize: 16, fontWeight: "700", marginBottom: 8 }}>
+        Something went wrong
+      </Text>
+      <Text
+        style={{
+          color: colors.textSecondary, fontSize: 13,
+          textAlign: "center", marginBottom: 16,
+        }}
+      >
+        {error.message}
+      </Text>
+      <Pressable
+        onPress={retry}
+        style={{
+          backgroundColor: colors.accent,
+          paddingHorizontal: 20, paddingVertical: 10, borderRadius: 999,
+        }}
+      >
+        <Text style={{ color: "#04121b", fontWeight: "700", fontSize: 13 }}>Try again</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
   // Backend status is exposed via a ref-style global so screens can read

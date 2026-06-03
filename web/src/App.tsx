@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import RequireAuth from "./components/RequireAuth";
 import Home from "./routes/Home";
@@ -57,6 +58,7 @@ import CockpitV2 from "./routes/CockpitV2";   // consolidated operator cockpit (
 
 export default function App() {
   return (
+    <ErrorBoundary label="Application error">
     <Routes>
       {/* CockpitV2 — consolidated operator cockpit. Additive + self-gated
           (renders its own login panel); bypasses Layout + RequireAuth so
@@ -210,5 +212,6 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
+    </ErrorBoundary>
   );
 }
