@@ -58,10 +58,28 @@ _seen_event_max: int = 5000  # FIFO eviction once exceeded
 # ---------------------------------------------------------------------------
 # Env-var resolution
 # ---------------------------------------------------------------------------
+def _clean_secret(raw: Optional[str]) -> Optional[str]:
+    """Normalise a secret read from env / Secret Manager.
+
+    Strips surrounding whitespace AND a single layer of matching wrapping
+    quotes. A quoted secret (the value stored as "whsec_..." with the quotes
+    included) is a common Secret-Manager / shell paste error that ``.strip()``
+    alone leaves intact — the quote characters then become part of the HMAC
+    key and EVERY Stripe signature check fails with a generic ``bad_signature``.
+    Returns None for empty input.
+    """
+    if raw is None:
+        return None
+    v = raw.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in ("'", '"'):
+        v = v[1:-1].strip()
+    return v or None
+
+
 def get_secret_key() -> Optional[str]:
     """Return the Stripe secret key, prioritising v42 env names."""
     for name in ("CLARITYOS_STRIPE_SECRET_KEY", "STRIPE_SECRET_KEY"):
-        v = (os.environ.get(name) or "").strip()
+        v = _clean_secret(os.environ.get(name))
         if v:
             return v
     return None
@@ -69,7 +87,7 @@ def get_secret_key() -> Optional[str]:
 
 def get_webhook_secret() -> Optional[str]:
     for name in ("CLARITYOS_STRIPE_WEBHOOK_SECRET", "STRIPE_WEBHOOK_SECRET"):
-        v = (os.environ.get(name) or "").strip()
+        v = _clean_secret(os.environ.get(name))
         if v:
             return v
     return None
