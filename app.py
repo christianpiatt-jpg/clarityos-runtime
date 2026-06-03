@@ -1373,6 +1373,7 @@ async def billing_webhook(request: Request):
                 ),
             )
         if not sig:
+            billing_config.record_webhook_failure("missing_signature")  # module 18
             return JSONResponse(
                 status_code=400,
                 content=error_response(
@@ -1384,6 +1385,7 @@ async def billing_webhook(request: Request):
         except billing.BillingNotConfigured as e:
             return JSONResponse(status_code=503, content=error_response("billing_not_configured", str(e)))
         if event is None:
+            billing_config.record_webhook_failure("bad_signature")  # module 18
             return JSONResponse(
                 status_code=400,
                 content=error_response("bad_signature", "Stripe webhook signature did not verify"),

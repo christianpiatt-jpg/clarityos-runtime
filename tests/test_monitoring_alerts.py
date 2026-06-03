@@ -144,15 +144,19 @@ def test_churn_empty_is_green(reset_stores):
 # ---------------------------------------------------------------------------
 # combined summary + deferred module 18
 # ---------------------------------------------------------------------------
-def test_summary_shape_and_deferred_webhook(reset_stores):
+def test_summary_shape_and_live_webhook(reset_stores):
     import monitoring_alerts as ma
+    import billing_config
     from el_ins import anomaly_store
     anomaly_store._reset_for_tests()
+    billing_config._reset_for_tests()
     s = ma.get_alerts_summary(now_ts=1_000_000.0)
     assert set(s) >= {"overall_level", "kernel_anomalies", "membership_churn",
                       "stripe_webhook_failures", "version"}
     assert s["overall_level"] in ("green", "amber", "red")
-    assert s["stripe_webhook_failures"]["status"] == "deferred"
+    wf = s["stripe_webhook_failures"]
+    assert wf["total"] == 0 and wf["level"] == "green"   # module 18 — live, not deferred
+    assert "status" not in wf
 
 
 # ---------------------------------------------------------------------------
@@ -165,10 +169,73 @@ def test_founder_alerts_endpoint_ok(client):
     body = resp.json()
     assert body["ok"] is True
     assert "overall_level" in body["alerts"]
-    assert body["alerts"]["stripe_webhook_failures"]["status"] == "deferred"
+    assert "total" in body["alerts"]["stripe_webhook_failures"]  # module 18 — live
 
 
 def test_founder_alerts_endpoint_requires_founder(client):
     _u, sid = _make_user("member1", cohort="member")
     resp = client.get("/founder/alerts", headers=_auth(sid))
     assert resp.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# module 18 — stripe_webhook_failure_alerts
+# ---------------------------------------------------------------------------
+def test_webhook_failure_aggregation_and_window(reset_stores):
+    import monitoring_alerts as ma
+    import billing_config
+    billing_config._reset_for_tests()
+    now = 1_000_000.0
+    billing_config.record_webhook_failure("bad_signature", now)
+    billing_config.record_webhook_failure("bad_signature", now)
+    billing_config.record_webhook_failure("missing_signature", now)
+    billing_config.record_webhook_failure("bad_signature", now - 48 * 3600)  # old
+    out = ma.stripe_webhook_failure_alerts(now_ts=now, window_hours=24)
+    assert out["total"] == 3                                  # old excluded
+    assert out["by_reason"] == {"bad_signature": 2, "missing_signature": 1}
+    assert out["level"] == "amber"                           # >0 but <5
+
+
+def test_webhook_failure_red_at_sustained(reset_stores):
+    import monitoring_alerts as ma
+    import billing_config
+    billing_config._reset_for_tests()
+    now = 1_000_000.0
+    for _ in range(5):
+        billing_config.record_webhook_failure("bad_signature", now)
+    out = ma.stripe_webhook_failure_alerts(now_ts=now)
+    assert out["total"] == 5 and out["level"] == "red"
+
+
+def test_webhook_failure_empty_is_green(reset_stores):
+    import monitoring_alerts as ma
+    import billing_config
+    billing_config._reset_for_tests()
+    out = ma.stripe_webhook_failure_alerts(now_ts=1_000_000.0)
+    assert out["total"] == 0 and out["level"] == "green"
+
+
+def test_webhook_failure_content_free(reset_stores):
+    import json
+    import monitoring_alerts as ma
+    import billing_config
+    billing_config._reset_for_tests()
+    billing_config.record_webhook_failure("bad_signature", 1_000_000.0)
+    blob = json.dumps(ma.stripe_webhook_failure_alerts(now_ts=1_000_000.0))
+    assert "whsec" not in blob and "secret" not in blob       # reason codes only
+
+
+def test_webhook_handler_records_failure(client, monkeypatch):
+    # Integration: stripe mode + webhook secret configured, POST with no
+    # Stripe-Signature header -> 400 missing_signature AND records it.
+    import billing_config
+    billing_config._reset_for_tests()
+    monkeypatch.setenv("CLARITYOS_BILLING_MODE", "stripe")
+    # is_webhook_configured() requires BOTH a secret key and a webhook secret.
+    monkeypatch.setenv("CLARITYOS_STRIPE_SECRET_KEY", "sk_test_dummy")
+    monkeypatch.setenv("CLARITYOS_STRIPE_WEBHOOK_SECRET", "whsec_testsecret")
+    resp = client.post("/billing/webhook", json={"type": "x"})
+    assert resp.status_code == 400
+    stats = billing_config.webhook_failure_stats()
+    assert stats["total"] >= 1
+    assert "missing_signature" in stats["by_reason"]

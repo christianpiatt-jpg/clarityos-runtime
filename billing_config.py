@@ -54,6 +54,10 @@ _recent_events: deque = deque(maxlen=_RECENT_EVENTS_MAX)
 _seen_event_ids: set = set()
 _seen_event_max: int = 5000  # FIFO eviction once exceeded
 
+# Module 18 — webhook-failure ring buffer (content-free: reason code + ts only).
+_WEBHOOK_FAILURES_MAX: int = 200
+_webhook_failures: deque = deque(maxlen=_WEBHOOK_FAILURES_MAX)
+
 
 # ---------------------------------------------------------------------------
 # Env-var resolution
@@ -168,6 +172,39 @@ def mark_event_seen(event_id: Optional[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Module 18 — webhook failure triage signal (queryable, content-free)
+# ---------------------------------------------------------------------------
+def record_webhook_failure(reason: str, now_ts: Optional[float] = None) -> None:
+    """Record a rejected Stripe webhook for the founder alerts surface. Stores
+    ONLY a short reason code + timestamp — never the secret or the payload."""
+    _webhook_failures.appendleft({
+        "ts": float(now_ts if now_ts is not None else time.time()),
+        "reason": str(reason or "unknown"),
+    })
+
+
+def webhook_failure_stats(
+    window_s: float = 86400.0, now_ts: Optional[float] = None,
+) -> dict:
+    """Aggregate webhook failures within ``window_s``: total + by_reason + the
+    most-recent failure ts. Counts / reason-codes only."""
+    now = float(now_ts if now_ts is not None else time.time())
+    cutoff = now - float(window_s)
+    in_window = [
+        f for f in _webhook_failures if float(f.get("ts") or 0.0) >= cutoff
+    ]
+    by_reason: dict = {}
+    for f in in_window:
+        r = str(f.get("reason") or "unknown")
+        by_reason[r] = by_reason.get(r, 0) + 1
+    return {
+        "total": len(in_window),
+        "by_reason": by_reason,
+        "last_ts": (_webhook_failures[0]["ts"] if _webhook_failures else None),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Recent events (founder console surface)
 # ---------------------------------------------------------------------------
 def record_billing_event(
@@ -254,3 +291,4 @@ def _coerce_meta_value(v: Any) -> Any:
 def _reset_for_tests() -> None:
     _recent_events.clear()
     _seen_event_ids.clear()
+    _webhook_failures.clear()
