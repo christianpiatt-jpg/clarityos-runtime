@@ -7,6 +7,22 @@ import ModelPreferences from "../components/settings/ModelPreferences";
 import LocalModelPanel from "../components/settings/LocalModelPanel";
 import MemoryVaultPanel from "../components/settings/MemoryVaultPanel";
 
+// A-WEB-CLARITY-3 §2 — presentation-only friendly names (UI mapping; no fetch,
+// no backend). Maps the app's REAL categoricals: cohort (the meaningful one —
+// Founding 500) and tier (currently only "free"). operator_id is a unique
+// identifier, not a categorical, so it is shown raw — no table applies.
+const COHORT_NAMES: Record<string, string> = {
+  founder: "Founding 500",
+  founder_exception: "Founding 500 (exception)",
+};
+const TIER_NAMES: Record<string, string> = {
+  free: "Free Plan",
+};
+function friendly(map: Record<string, string>, raw: string | null | undefined): string {
+  if (!raw) return "—";
+  return map[raw] ?? `${raw} (raw)`;
+}
+
 export default function Account() {
   const [data, setData] = useState<MeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +66,11 @@ export default function Account() {
             <div className="k">user</div>
             <div className="v">{data?.user || cached?.user || "—"}</div>
             <div className="k">cohort</div>
-            <div className="v">{data?.cohort || cached?.cohort || "—"}</div>
+            <div className="v">{friendly(COHORT_NAMES, data?.cohort || cached?.cohort)}</div>
             <div className="k">operator id</div>
             <div className="v">{data?.operator_id || cached?.operator_id || "—"}</div>
             <div className="k">tier</div>
-            <div className="v">{data?.tier || cached?.tier || "—"}</div>
+            <div className="v">{friendly(TIER_NAMES, data?.tier || cached?.tier)}</div>
             <div className="k">billing expires</div>
             <div className="v">
               {data?.billing_expires_at

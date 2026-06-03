@@ -135,14 +135,16 @@ export default function Layout() {
           <RailLink to="/model-preferences">Model</RailLink>
           <RailLink to="/provider-health">Provider Health</RailLink>
           <RailLink to="/operator/providers">Providers</RailLink>
+          <RailLink to="/operator/timeline">Operator Timeline</RailLink>
+          <RailLink to="/org/el_ins/timeline">Org Timeline</RailLink>
+        </RailSection>
+        <RailSection label="EXECUTION LAYER">
           <RailLink to="/operator/el_ins">EL/INS</RailLink>
           <RailLink to="/operator/el_ins/macro">EL/INS Macro</RailLink>
           <RailLink to="/operator/el_ins/dashboard">EL/INS Dashboard</RailLink>
           <RailLink to="/operator/el_ins/export">EL/INS Export</RailLink>
           <RailLink to="/operator/el_ins/anomalies">EL/INS Anomalies</RailLink>
           <RailLink to="/operator/el_ins/rollup">EL/INS Roll-Up</RailLink>
-          <RailLink to="/operator/timeline">Operator Timeline</RailLink>
-          <RailLink to="/org/el_ins/timeline">Org Timeline</RailLink>
         </RailSection>
         <RailSection label="BRIDGES">
           <RailLink to="/iframe">Iframe</RailLink>
