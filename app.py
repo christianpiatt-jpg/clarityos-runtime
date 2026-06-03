@@ -63,13 +63,14 @@ from typing import Any, Literal, Optional
 
 import bcrypt
 import hmac
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 import users_store
 import sessions_store
+import auth_magiclink            # magic-link auth (/auth/enter, /auth/verify)
 import invites_store
 import tokens as invite_tokens
 import billing
@@ -949,6 +950,74 @@ def register(req: RegisterRequest, request: Request):
         "expires_in": SESSION_TTL_SECONDS,
         "user": username,
     }
+
+
+# ===========================================================================
+# Magic-link authentication (clarity.pro-mediations.com)
+#
+# The WordPress shell at pro-mediations.com/enter/ POSTs {email, source, next}
+# to /auth/enter (form-encoded). All token issuance, verification, session
+# creation, and redirect routing live in auth_magiclink.py — WordPress runs no
+# auth logic. /auth/enter is enumeration-safe; /auth/verify exchanges a
+# one-time, short-lived token for a session cookie + an internal redirect.
+# ===========================================================================
+def _client_ip(request: Request) -> str:
+    """Best-effort client IP. Cloud Run sits behind a proxy that sets
+    X-Forwarded-For (the client is the first entry); fall back to the
+    socket peer for local / direct calls."""
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else ""
+
+
+@app.post("/auth/enter")
+async def auth_enter(
+    request: Request,
+    email: str = Form(...),
+    source: str = Form("wp-shell"),
+    next: str = Form("/app"),
+):
+    """Request a magic link. Returns a generic success for any syntactically
+    valid email (no account-existence signal, no throttle signal); 400 only
+    on a malformed address."""
+    ip = _client_ip(request)
+    ua = request.headers.get("user-agent", "")
+    result = auth_magiclink.request_magic_link(email, source, next, ip, ua)
+    if result.get("status") == "invalid_email":
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"status": "error", "message": "Enter a valid email address."},
+        )
+    return {"status": "ok"}
+
+
+@app.get("/auth/verify")
+async def auth_verify(request: Request, token: str = Query(default="")):
+    """Verify a one-time token. On success: set an HttpOnly session cookie and
+    303-redirect to an allowlisted internal path. On failure: a generic
+    'link no longer valid' page (never reveals which check failed)."""
+    ip = _client_ip(request)
+    ua = request.headers.get("user-agent", "")
+    result = auth_magiclink.verify_magic_link(token, ip, ua)
+    if result.get("status") != "ok":
+        return HTMLResponse(
+            content=auth_magiclink.invalid_link_page(),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    resp = RedirectResponse(
+        url=result["redirect"], status_code=status.HTTP_303_SEE_OTHER
+    )
+    resp.set_cookie(
+        key="clarityos_session",
+        value=result["session_id"],
+        max_age=result["session_max_age"],
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    return resp
 
 
 # ===========================================================================
@@ -16000,6 +16069,8 @@ def root():
             "POST /login":    "auth (public)",
             "POST /register": "create new user, auto-login (public)",
             "GET  /me":       "current session info (auth)",
+            "POST /auth/enter":  "magic-link request (public; enumeration-safe)",
+            "GET  /auth/verify": "magic-link verify -> session cookie + redirect (public)",
             "GET  /config":   "runtime configuration (auth)",
             "POST /markov":   "Markov engine (auth)",
             "POST /galileo":  "Galileo clarity cycle (auth)",

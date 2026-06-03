@@ -121,6 +121,15 @@ from phase8_propagation import (
 )
 from phase8_stability import compute_causal_stability
 from phase8_structures import chain_to_dict, graph_to_dict
+from phase9_influence import propagate_action_influence
+# Phase 10 (behavioral forecasting) + Phase 11 (recommendations) — the engines
+# were complete + tested but never surfaced; this endpoint now emits them.
+from phase10_forecast import compute_behavioral_forecast
+from phase10_deltas import compute_behavioral_deltas
+from phase10_stability import compute_behavioral_stability
+from phase10_narrative import compute_behavioral_narrative
+from phase11_recommendations import compute_action_recommendations
+from phase11_narrative import compute_recommendation_narrative
 
 # Same operator-identity seed the Phase 6 console wiring uses.
 OPERATOR_ID = "clarityos-operator"
@@ -182,6 +191,20 @@ def _causal_state(records) -> dict:
         "motifs": motifs,
         "chains": chains,
     }
+
+
+def _action_delta_window(actions) -> float:
+    """Deterministic delta window for the Phase 10.1 behavioral deltas: half the
+    action time-span, so the current and previous trailing windows (anchored at
+    the latest action) split the stream into equal halves. Falls back to 1.0
+    when there are fewer than two distinct timestamps — every delta is then
+    empty/neutral anyway. Pure: action timestamps are the only temporal input
+    (no wall-clock)."""
+    times = sorted({float(a.timestamp) for a in (actions or [])})
+    if len(times) < 2:
+        return 1.0
+    span = times[-1] - times[0]
+    return span / 2.0 if span > 0 else 1.0
 
 
 @router.get("/telemetry")
@@ -265,19 +288,60 @@ def operator_telemetry() -> dict:
     # graph so the action-free `causal_*` fields above stay unchanged; with no
     # stored actions every motif set is empty.
     actions = get_action_continuity().get("actions", [])
+    influence_records: list = []
     if actions:
         behavioral_graph = build_phase7_graph(records, analytics, alerts, causal_factors)
+        influence_continuity: dict = {"influence": []}
         for event in sorted(actions, key=lambda e: (e.timestamp, e.id)):
             action_node = action_event_to_causal_node(event)
             integrate_action_node(action_node, behavioral_graph)
             link_action_to_variables(action_node, behavioral_graph)
+            # Phase 9.3 — single-hop action->variable influence records (the
+            # stream the Phase 10.1 influence delta consumes).
+            propagate_action_influence(action_node, behavioral_graph, influence_continuity)
+        influence_records = influence_continuity["influence"]
         behavioral_influence = propagate_influence(behavioral_graph)
         behavioral_centrality = compute_node_centrality(behavioral_graph, behavioral_influence)
         behavioral_motifs = analyze_behavioral_motifs(
             actions, behavioral_graph, behavioral_influence, behavioral_centrality,
         )
     else:
+        # No actions: reuse the action-free causal graph/influence/centrality so
+        # the Phase 10/11 engines run on a neutral, empty action stream.
+        behavioral_graph = graph
+        behavioral_influence = influence
+        behavioral_centrality = centrality
         behavioral_motifs = analyze_behavioral_motifs([], graph, influence, centrality)
+
+    # Phase 10 — behavioral forecasting, surfaced as the 10.4 `behavioral_forecast`
+    # envelope {forecast (10.0), stability (10.2), narrative (10.3)}. The 10.1
+    # deltas feed stability + narrative + the Phase 11 recommendations below.
+    behavioral_forecast_obj = compute_behavioral_forecast(
+        actions, behavioral_motifs, behavioral_graph, behavioral_influence
+    )
+    behavioral_deltas = compute_behavioral_deltas(
+        actions, influence_records, behavioral_centrality, _action_delta_window(actions)
+    )
+    behavioral_stability = compute_behavioral_stability(
+        behavioral_deltas, behavioral_motifs, behavioral_forecast_obj
+    )
+    behavioral_narrative = compute_behavioral_narrative(
+        behavioral_deltas, behavioral_motifs, behavioral_forecast_obj, behavioral_stability
+    )
+    behavioral_forecast = {
+        "forecast": behavioral_forecast_obj,
+        "stability": behavioral_stability,
+        "narrative": behavioral_narrative,
+    }
+    # Phase 11 — action recommendations (11.0) + recommendation narrative (11.1),
+    # surfaced as the 11.2 `recommendation_narrative` object (it embeds the
+    # recommendations, the six driver buckets, and the stability context).
+    recommendations = compute_action_recommendations(
+        behavioral_deltas, behavioral_motifs, behavioral_stability, behavioral_forecast_obj
+    )
+    recommendation_narrative = compute_recommendation_narrative(
+        recommendations, behavioral_deltas, behavioral_motifs, behavioral_stability
+    )
     return {
         "history": history,
         "latest": latest,
@@ -297,6 +361,8 @@ def operator_telemetry() -> dict:
         "causal_narrative": causal_narrative,
         "unified_narrative": unified_narrative,
         "behavioral_motifs": behavioral_motifs,
+        "behavioral_forecast": behavioral_forecast,
+        "recommendation_narrative": recommendation_narrative,
     }
 
 

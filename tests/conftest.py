@@ -125,6 +125,7 @@ def reset_stores():
     just ``def test_x(reset_stores): ...`` and rely on a clean slate."""
     import users_store
     import sessions_store
+    import auth_magiclink
     import vault_store
     import library_store
     import timeline_store
@@ -149,7 +150,7 @@ def reset_stores():
     # feeds between cases.
     from ELINS import ingestion_bus as _ib
     for mod in (
-        users_store, sessions_store, vault_store, library_store, timeline_store,
+        users_store, sessions_store, auth_magiclink, vault_store, library_store, timeline_store,
         usage_store, elins_distribution_store, mesh_metadata_store,
         envelopes_store, markov_states_store, dewey_neighborhoods_store,
         dewey_memberships_store, membership_store, waitlist_store,
