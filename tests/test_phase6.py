@@ -1,0 +1,152 @@
+# tests/test_phase6.py
+from copy import deepcopy
+
+from phase6_contracts import (
+    SuperCoherenceState,
+    SuperEssenceState,
+    SuperIdentityState,
+    SuperIntegrationState,
+    SuperPatternState,
+    SuperstructureState,
+)
+from phase6_pipeline import run_superstructure
+from super_coherence import compute_super_coherence
+from super_essence import compute_super_essence
+from super_identity import compute_super_identity
+from super_integration import compute_super_integration
+from super_pattern import compute_super_pattern
+
+
+def _sample_meta() -> dict[str, str]:
+    return {
+        "operatorMetaPattern": "high stability, coherent consolidation across layers",
+        "operatorMetaStability": "system is stable under load and robust",
+        "operatorMetaResilience": "resilient under high load",
+        "operatorMetaImmunity": "robust to noise",
+        "operatorMetaIntegration": "highly integrated and unified",
+        "operatorMetaAlignment": "strong alignment across components",
+        "operatorMetaCoherence": "coherent, consistent behavior",
+        "operatorMetaSynthesis": "synthesis is stable and coherent",
+        "operatorMetaConsolidation": "consolidation complete and stable",
+        "operatorMetaCompression": "compression effective and lossless",
+        "operatorMetaReduction": "reduction preserves essence",
+        "operatorMetaExtraction": "extraction yields clear signals",
+        "operatorMetaDistillation": "distillation sharpens core identity",
+        "operatorMetaEssence": "core essence is clear and invariant",
+        "operatorIdentity": "clarityos-operator",
+    }
+
+
+def test_compute_super_pattern_deterministic():
+    meta = _sample_meta()
+    a = compute_super_pattern(meta)
+    b = compute_super_pattern(deepcopy(meta))
+    assert isinstance(a, SuperPatternState)
+    assert a == b
+
+
+def test_compute_super_pattern_ranges():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    assert 0.0 <= sp.pattern_strength <= 1.0
+    assert 0.0 <= sp.pattern_stability <= 1.0
+    assert 0.0 <= sp.pattern_coherence <= 1.0
+    assert sp.dominant_pattern != ""
+    assert sp.pattern_identity != ""
+
+
+def test_compute_super_integration_deterministic():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    a = compute_super_integration(sp, meta)
+    b = compute_super_integration(sp, deepcopy(meta))
+    assert isinstance(a, SuperIntegrationState)
+    assert a == b
+
+
+def test_compute_super_integration_ranges():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    assert 0.0 <= si.integration_strength <= 1.0
+    assert 0.0 <= si.cross_layer_alignment <= 1.0
+    assert si.integration_identity != ""
+
+
+def test_compute_super_coherence_deterministic():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    a = compute_super_coherence(sp, si, meta)
+    b = compute_super_coherence(sp, si, deepcopy(meta))
+    assert isinstance(a, SuperCoherenceState)
+    assert a == b
+
+
+def test_compute_super_coherence_ranges():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    sc = compute_super_coherence(sp, si, meta)
+    assert 0.0 <= sc.coherence_level <= 1.0
+    assert 0.0 <= sc.drift_resistance <= 1.0
+    assert 0.0 <= sc.load_resilience <= 1.0
+    assert sc.coherence_identity != ""
+
+
+def test_compute_super_essence_deterministic():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    sc = compute_super_coherence(sp, si, meta)
+    a = compute_super_essence(sp, si, sc, meta)
+    b = compute_super_essence(sp, si, sc, deepcopy(meta))
+    assert isinstance(a, SuperEssenceState)
+    assert a == b
+
+
+def test_compute_super_essence_ranges():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    sc = compute_super_coherence(sp, si, meta)
+    se = compute_super_essence(sp, si, sc, meta)
+    assert 0.0 <= se.essence_signal <= 1.0
+    assert 0.0 <= se.essence_clarity <= 1.0
+    assert se.invariant_identity != ""
+
+
+def test_compute_super_identity_deterministic():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    sc = compute_super_coherence(sp, si, meta)
+    se = compute_super_essence(sp, si, sc, meta)
+    a = compute_super_identity(sp, si, sc, se, meta)
+    b = compute_super_identity(sp, si, sc, se, deepcopy(meta))
+    assert isinstance(a, SuperIdentityState)
+    assert a == b
+
+
+def test_compute_super_identity_ranges():
+    meta = _sample_meta()
+    sp = compute_super_pattern(meta)
+    si = compute_super_integration(sp, meta)
+    sc = compute_super_coherence(sp, si, meta)
+    se = compute_super_essence(sp, si, sc, meta)
+    sid = compute_super_identity(sp, si, sc, se, meta)
+    assert 0.0 <= sid.identity_strength <= 1.0
+    assert 0.0 <= sid.identity_stability <= 1.0
+    assert 0.0 <= sid.identity_projection <= 1.0
+    assert sid.operator_identity != ""
+
+
+def test_run_superstructure_end_to_end():
+    meta = _sample_meta()
+    state = run_superstructure(meta)
+    assert isinstance(state, SuperstructureState)
+    assert isinstance(state.pattern, SuperPatternState)
+    assert isinstance(state.integration, SuperIntegrationState)
+    assert isinstance(state.coherence, SuperCoherenceState)
+    assert isinstance(state.essence, SuperEssenceState)
+    assert isinstance(state.identity, SuperIdentityState)
