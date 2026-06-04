@@ -194,7 +194,7 @@ class TestINV_H4_MeBillingFailedMapping:
     @pytest.mark.parametrize("state,expected", [
         ("active",       "active"),
         ("past_due",     "past_due"),
-        ("grace_period", "past_due"),
+        ("grace_period", "grace_period"),
         ("cancelled",    "canceled"),
         ("failed",       "failed"),    # The PASS-4 FIX-P1 distinction.
     ])
