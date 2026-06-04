@@ -1,0 +1,550 @@
+diff --git a/harmonizer.py b/harmonizer.py
+new file mode 100644
+index 0000000..cf07a95
+--- /dev/null
++++ b/harmonizer.py
+@@ -0,0 +1,185 @@
++"""Harmonizer — deterministic cross-domain merge of orientation contracts.
++
++Every function in this module is PURE and DETERMINISTIC:
++  * no I/O, no logging, no network
++  * no randomness
++  * no wall-clock access (``build_snapshot`` takes the timestamp as an
++    argument; nothing here calls ``datetime.now()`` / ``utcnow()``)
++  * imports only the orientation contracts (Step-1 module) + stdlib typing
++
++Merge rules (one per domain):
++  * pressure       — confidence-weighted average
++  * strain         — max-dominant (largest |magnitude| wins)
++  * individual     — last-known (latest timestamp wins)
++  * org            — coherence-weighted average
++  * hydraulic      — time-sorted (latest timestamp wins)
++  * multi-agent    — adjacency union (deterministically sorted)
++
++Determinism note: dict/set iteration order is not part of any merge result —
++``merge_multi_agent_states`` sorts both agents and their neighbour lists, so
++identical inputs always yield byte-identical output regardless of insertion
++order.
++"""
++from __future__ import annotations
++
++from datetime import datetime
++from typing import Any
++
++from orientation_contracts import (
++    PressureField,
++    StrainVector,
++    IndividualState,
++    OrgState,
++    HydraulicState,
++    MultiAgentState,
++    UnifiedSnapshot,
++)
++
++
++# ------------------------------------------------------------
++# PRESSURE FIELD MERGE — confidence-weighted average
++# ------------------------------------------------------------
++
++def merge_pressure_fields(fields: list[PressureField]) -> PressureField:
++    if not fields:
++        return PressureField.zero()
++
++    total_weight = sum(f.confidence for f in fields)
++    if total_weight == 0:
++        return PressureField.zero()
++
++    weighted_value = sum(f.value * f.confidence for f in fields) / total_weight
++    sources = [s for f in fields for s in f.sources]
++
++    return PressureField(
++        value=weighted_value,
++        confidence=min(1.0, total_weight / len(fields)),
++        sources=sources,
++    )
++
++
++# ------------------------------------------------------------
++# STRAIN VECTOR MERGE — max-dominant
++# ------------------------------------------------------------
++
++def merge_strain_vectors(vectors: list[StrainVector]) -> StrainVector:
++    if not vectors:
++        return StrainVector.zero()
++
++    # Largest absolute magnitude wins; ties resolve to the first such vector
++    # in input order, so the result is deterministic for a given input list.
++    dominant = max(vectors, key=lambda v: abs(v.magnitude))
++
++    return StrainVector(
++        magnitude=dominant.magnitude,
++        direction=dominant.direction,
++        source=dominant.source,
++    )
++
++
++# ------------------------------------------------------------
++# INDIVIDUAL STATE MERGE — last-known (latest timestamp)
++# ------------------------------------------------------------
++
++def merge_individual_states(states: list[IndividualState]) -> IndividualState:
++    if not states:
++        return IndividualState.zero()
++
++    return max(states, key=lambda s: s.timestamp)
++
++
++# ------------------------------------------------------------
++# ORG STATE MERGE — coherence-weighted average
++# ------------------------------------------------------------
++
++def merge_org_states(states: list[OrgState]) -> OrgState:
++    if not states:
++        return OrgState.zero()
++
++    total_weight = sum(s.coherence for s in states)
++    if total_weight == 0:
++        return OrgState.zero()
++
++    weighted_stability = sum(s.stability * s.coherence for s in states) / total_weight
++    sources = [src for s in states for src in s.sources]
++
++    return OrgState(
++        stability=weighted_stability,
++        coherence=min(1.0, total_weight / len(states)),
++        sources=sources,
++    )
++
++
++# ------------------------------------------------------------
++# HYDRAULIC STATE MERGE — time-sorted (latest timestamp)
++# ------------------------------------------------------------
++
++def merge_hydraulic_states(states: list[HydraulicState]) -> HydraulicState:
++    if not states:
++        return HydraulicState.zero()
++
++    return max(states, key=lambda s: s.timestamp)
++
++
++# ------------------------------------------------------------
++# MULTI-AGENT STATE MERGE — adjacency union (sorted, deterministic)
++# ------------------------------------------------------------
++
++def merge_multi_agent_states(states: list[MultiAgentState]) -> MultiAgentState:
++    if not states:
++        return MultiAgentState.zero()
++
++    merged: dict[str, set[str]] = {}
++    for s in states:
++        for agent, neighbors in s.graph.items():
++            merged.setdefault(agent, set()).update(neighbors)
++
++    # Sort agents and neighbour lists so the output is independent of set /
++    # dict iteration order — required for full determinism.
++    graph = {agent: sorted(merged[agent]) for agent in sorted(merged)}
++
++    return MultiAgentState(graph=graph)
++
++
++# ------------------------------------------------------------
++# SNAPSHOT BUILDER — deterministic merge of all domains
++# ------------------------------------------------------------
++
++def build_snapshot(
++    inputs: dict[str, Any],
++    timestamp: datetime,
++) -> UnifiedSnapshot:
++    """Harmonize all six domains into a single snapshot.
++
++    ``inputs`` keys (each maps to a list; missing keys default to empty):
++        "pressure":   list[PressureField]
++        "strain":     list[StrainVector]
++        "individual": list[IndividualState]
++        "org":        list[OrgState]
++        "hydraulic":  list[HydraulicState]
++        "multi":      list[MultiAgentState]
++
++    ``timestamp`` is used exactly as provided — this function never reads the
++    wall clock. Same inputs + same timestamp -> identical output.
++    """
++    pressure = merge_pressure_fields(inputs.get("pressure", []))
++    strain = merge_strain_vectors(inputs.get("strain", []))
++    individual = merge_individual_states(inputs.get("individual", []))
++    org = merge_org_states(inputs.get("org", []))
++    hydraulic = merge_hydraulic_states(inputs.get("hydraulic", []))
++    multi = merge_multi_agent_states(inputs.get("multi", []))
++
++    return UnifiedSnapshot(
++        timestamp=timestamp,
++        pressure=pressure,
++        strain=strain,
++        individual=individual,
++        org=org,
++        hydraulic=hydraulic,
++        multi=multi,
++        metadata={
++            "pressure_sources": pressure.sources,
++            "org_sources": org.sources,
++            "degraded": False,
++        },
++    )
+diff --git a/orientation_contracts.py b/orientation_contracts.py
+new file mode 100644
+index 0000000..e756d10
+--- /dev/null
++++ b/orientation_contracts.py
+@@ -0,0 +1,120 @@
++"""Orientation-domain contracts for the Harmonizer.
++
++Pure data definitions — no I/O, no clock access, no external dependencies.
++Every type carries a deterministic ``zero()`` constructor returning a valid
++zero-value instance. ``zero()`` never reads the wall clock: zero-valued
++timestamps use the fixed ``datetime.min`` sentinel so the factory stays
++referentially transparent.
++
++These dataclasses are the *only* contract types the harmonizer imports;
++the harmonizer introduces no other package dependencies.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass, field
++from datetime import datetime
++from typing import Any
++
++# Deterministic sentinel for zero-valued timestamps. A class constant, not a
++# clock read — keeps every ``zero()`` factory pure and reproducible.
++_ZERO_TS: datetime = datetime.min
++
++
++@dataclass
++class PressureField:
++    """A scalar pressure reading with a source-confidence weight.
++
++    ``sources`` is a list so a merged field can carry the provenance of every
++    contributing reading; a single raw reading carries a one-element list.
++    """
++
++    value: float
++    confidence: float
++    sources: list[str] = field(default_factory=list)
++
++    @classmethod
++    def zero(cls) -> "PressureField":
++        return cls(value=0.0, confidence=0.0, sources=[])
++
++
++@dataclass
++class StrainVector:
++    """A directed strain magnitude attributed to a single dominant source."""
++
++    magnitude: float
++    direction: float
++    source: str = ""
++
++    @classmethod
++    def zero(cls) -> "StrainVector":
++        return cls(magnitude=0.0, direction=0.0, source="")
++
++
++@dataclass
++class IndividualState:
++    """Point-in-time individual operator state. ``timestamp`` orders the
++    last-known-state merge."""
++
++    timestamp: datetime
++    stability: float
++    load: float
++
++    @classmethod
++    def zero(cls) -> "IndividualState":
++        return cls(timestamp=_ZERO_TS, stability=0.0, load=0.0)
++
++
++@dataclass
++class OrgState:
++    """Organisation-level state with a coherence weight used by the
++    coherence-weighted merge. ``sources`` carries contributing provenance."""
++
++    stability: float
++    coherence: float
++    sources: list[str] = field(default_factory=list)
++
++    @classmethod
++    def zero(cls) -> "OrgState":
++        return cls(stability=0.0, coherence=0.0, sources=[])
++
++
++@dataclass
++class HydraulicState:
++    """Point-in-time hydraulic state. ``timestamp`` orders the time-sorted
++    (latest-wins) merge."""
++
++    timestamp: datetime
++    pressure: float
++    flow: float
++    resistance: float
++
++    @classmethod
++    def zero(cls) -> "HydraulicState":
++        return cls(timestamp=_ZERO_TS, pressure=0.0, flow=0.0, resistance=0.0)
++
++
++@dataclass
++class MultiAgentState:
++    """Directed adjacency graph: agent -> list of neighbour agent ids."""
++
++    graph: dict[str, list[str]] = field(default_factory=dict)
++
++    @classmethod
++    def zero(cls) -> "MultiAgentState":
++        return cls(graph={})
++
++
++@dataclass
++class UnifiedSnapshot:
++    """The harmonized cross-domain snapshot. ``timestamp`` is supplied by the
++    caller (never read from the clock) so a snapshot is fully reproducible
++    from its inputs."""
++
++    timestamp: datetime
++    pressure: PressureField
++    strain: StrainVector
++    individual: IndividualState
++    org: OrgState
++    hydraulic: HydraulicState
++    multi: MultiAgentState
++    metadata: dict[str, Any] = field(default_factory=dict)
+diff --git a/tests/test_harmonizer.py b/tests/test_harmonizer.py
+new file mode 100644
+index 0000000..c073e10
+--- /dev/null
++++ b/tests/test_harmonizer.py
+@@ -0,0 +1,227 @@
++"""Tests for the orientation Harmonizer (root modules harmonizer +
++orientation_contracts).
++
++Covers each merge rule's semantics, determinism (same inputs -> identical
++output across repeated calls), and the clock-free snapshot builder (a fixed
++timestamp argument is used verbatim — no wall-clock access).
++"""
++from __future__ import annotations
++
++from datetime import datetime
++
++from orientation_contracts import (
++    PressureField,
++    StrainVector,
++    IndividualState,
++    OrgState,
++    HydraulicState,
++    MultiAgentState,
++    UnifiedSnapshot,
++)
++from harmonizer import (
++    merge_pressure_fields,
++    merge_strain_vectors,
++    merge_individual_states,
++    merge_org_states,
++    merge_hydraulic_states,
++    merge_multi_agent_states,
++    build_snapshot,
++)
++
++# A fixed timestamp — never the wall clock — so snapshot output is reproducible.
++FIXED_TS = datetime(2026, 5, 29, 12, 0, 0)
++
++
++# ------------------------------------------------------------
++# PRESSURE — confidence-weighted average
++# ------------------------------------------------------------
++
++def test_merge_pressure_fields_weighted_average():
++    fields = [
++        PressureField(value=10.0, confidence=1.0, sources=["a"]),
++        PressureField(value=20.0, confidence=3.0, sources=["b"]),
++    ]
++    out = merge_pressure_fields(fields)
++    # (10*1 + 20*3) / (1+3) = 70/4 = 17.5
++    assert out.value == 17.5
++    assert out.confidence == 1.0  # min(1.0, total_weight/len) = min(1.0, 4/2)
++    assert out.sources == ["a", "b"]
++    # Deterministic: identical inputs -> identical output.
++    assert merge_pressure_fields(fields) == out
++
++
++def test_merge_pressure_fields_empty_and_zero_weight():
++    assert merge_pressure_fields([]) == PressureField.zero()
++    zeros = [PressureField(value=9.0, confidence=0.0, sources=["x"])]
++    assert merge_pressure_fields(zeros) == PressureField.zero()
++
++
++# ------------------------------------------------------------
++# STRAIN — max-dominant (largest |magnitude|)
++# ------------------------------------------------------------
++
++def test_merge_strain_vectors_max_dominant():
++    vectors = [
++        StrainVector(magnitude=2.0, direction=0.1, source="x"),
++        StrainVector(magnitude=-5.0, direction=0.9, source="y"),
++        StrainVector(magnitude=3.0, direction=0.2, source="z"),
++    ]
++    out = merge_strain_vectors(vectors)
++    # |-5.0| is the largest magnitude.
++    assert out.magnitude == -5.0
++    assert out.direction == 0.9
++    assert out.source == "y"
++    assert merge_strain_vectors(vectors) == out
++
++
++def test_merge_strain_vectors_empty():
++    assert merge_strain_vectors([]) == StrainVector.zero()
++
++
++# ------------------------------------------------------------
++# INDIVIDUAL — last-known (latest timestamp)
++# ------------------------------------------------------------
++
++def test_merge_individual_states_last_known():
++    early = IndividualState(timestamp=datetime(2026, 1, 1), stability=0.2, load=0.9)
++    mid = IndividualState(timestamp=datetime(2026, 3, 1), stability=0.5, load=0.5)
++    late = IndividualState(timestamp=datetime(2026, 6, 1), stability=0.8, load=0.1)
++    # Unsorted input — latest timestamp must win regardless of order.
++    out = merge_individual_states([mid, late, early])
++    assert out == late
++    assert out.stability == 0.8
++
++
++def test_merge_individual_states_empty():
++    assert merge_individual_states([]) == IndividualState.zero()
++
++
++# ------------------------------------------------------------
++# ORG — coherence-weighted average
++# ------------------------------------------------------------
++
++def test_merge_org_states_coherence_weighted():
++    states = [
++        OrgState(stability=1.0, coherence=1.0, sources=["o1"]),
++        OrgState(stability=0.0, coherence=1.0, sources=["o2"]),
++    ]
++    out = merge_org_states(states)
++    # (1*1 + 0*1) / (1+1) = 0.5
++    assert out.stability == 0.5
++    assert out.coherence == 1.0  # min(1.0, 2/2)
++    assert out.sources == ["o1", "o2"]
++    assert merge_org_states(states) == out
++
++
++def test_merge_org_states_empty_and_zero_coherence():
++    assert merge_org_states([]) == OrgState.zero()
++    zeros = [OrgState(stability=0.7, coherence=0.0, sources=["o"])]
++    assert merge_org_states(zeros) == OrgState.zero()
++
++
++# ------------------------------------------------------------
++# HYDRAULIC — time-sorted (latest timestamp)
++# ------------------------------------------------------------
++
++def test_merge_hydraulic_states_time_sorted():
++    a = HydraulicState(timestamp=datetime(2026, 1, 1), pressure=1.0, flow=1.0, resistance=1.0)
++    b = HydraulicState(timestamp=datetime(2026, 9, 9), pressure=2.0, flow=2.0, resistance=2.0)
++    out = merge_hydraulic_states([a, b])
++    assert out == b
++    assert merge_hydraulic_states([b, a]) == b  # order-independent
++
++
++def test_merge_hydraulic_states_empty():
++    assert merge_hydraulic_states([]) == HydraulicState.zero()
++
++
++# ------------------------------------------------------------
++# MULTI-AGENT — adjacency union (sorted, deterministic)
++# ------------------------------------------------------------
++
++def test_merge_multi_agent_states_adjacency_union():
++    states = [
++        MultiAgentState(graph={"a": ["b", "c"]}),
++        MultiAgentState(graph={"a": ["c", "d"], "b": ["a"]}),
++    ]
++    out = merge_multi_agent_states(states)
++    assert out.graph == {"a": ["b", "c", "d"], "b": ["a"]}
++
++
++def test_merge_multi_agent_states_is_order_independent():
++    s1 = MultiAgentState(graph={"a": ["c", "b"]})
++    s2 = MultiAgentState(graph={"a": ["b"], "z": ["y", "x"]})
++    forward = merge_multi_agent_states([s1, s2])
++    reverse = merge_multi_agent_states([s2, s1])
++    # Sorted union -> identical output regardless of input / neighbour order.
++    assert forward == reverse
++    assert forward.graph == {"a": ["b", "c"], "z": ["x", "y"]}
++
++
++def test_merge_multi_agent_states_empty():
++    assert merge_multi_agent_states([]) == MultiAgentState.zero()
++
++
++# ------------------------------------------------------------
++# SNAPSHOT BUILDER — deterministic, clock-free
++# ------------------------------------------------------------
++
++def _sample_inputs() -> dict:
++    return {
++        "pressure": [
++            PressureField(value=10.0, confidence=1.0, sources=["p1"]),
++            PressureField(value=20.0, confidence=3.0, sources=["p2"]),
++        ],
++        "strain": [StrainVector(magnitude=4.0, direction=0.3, source="s1")],
++        "individual": [
++            IndividualState(timestamp=datetime(2026, 2, 2), stability=0.6, load=0.4),
++        ],
++        "org": [OrgState(stability=0.9, coherence=2.0, sources=["o1"])],
++        "hydraulic": [
++            HydraulicState(timestamp=datetime(2026, 4, 4), pressure=1.5, flow=0.5, resistance=0.2),
++        ],
++        "multi": [MultiAgentState(graph={"a": ["b"]})],
++    }
++
++
++def test_build_snapshot_uses_provided_timestamp():
++    snap = build_snapshot(_sample_inputs(), FIXED_TS)
++    # The builder must use the argument verbatim — never the wall clock.
++    assert snap.timestamp == FIXED_TS
++
++
++def test_build_snapshot_is_deterministic():
++    inputs = _sample_inputs()
++    first = build_snapshot(inputs, FIXED_TS)
++    second = build_snapshot(_sample_inputs(), FIXED_TS)
++    # Same inputs + same timestamp -> identical output. (If the builder read
++    # the clock, repeated calls would diverge on `timestamp`.)
++    assert first == second
++
++
++def test_build_snapshot_field_types_and_metadata():
++    snap = build_snapshot(_sample_inputs(), FIXED_TS)
++    assert isinstance(snap, UnifiedSnapshot)
++    assert isinstance(snap.pressure, PressureField)
++    assert isinstance(snap.strain, StrainVector)
++    assert isinstance(snap.individual, IndividualState)
++    assert isinstance(snap.org, OrgState)
++    assert isinstance(snap.hydraulic, HydraulicState)
++    assert isinstance(snap.multi, MultiAgentState)
++    # Merged values flow through.
++    assert snap.pressure.value == 17.5
++    assert snap.metadata["pressure_sources"] == ["p1", "p2"]
++    assert snap.metadata["org_sources"] == ["o1"]
++    assert snap.metadata["degraded"] is False
++
++
++def test_build_snapshot_empty_inputs_yield_zero_values():
++    snap = build_snapshot({}, FIXED_TS)
++    assert snap.timestamp == FIXED_TS
++    assert snap.pressure == PressureField.zero()
++    assert snap.strain == StrainVector.zero()
++    assert snap.individual == IndividualState.zero()
++    assert snap.org == OrgState.zero()
++    assert snap.hydraulic == HydraulicState.zero()
++    assert snap.multi == MultiAgentState.zero()
++    assert snap.metadata["degraded"] is False

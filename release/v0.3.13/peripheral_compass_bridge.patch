@@ -1,0 +1,346 @@
+diff --git a/compass_elins_bridge.py b/compass_elins_bridge.py
+new file mode 100644
+index 0000000..125049e
+--- /dev/null
++++ b/compass_elins_bridge.py
+@@ -0,0 +1,196 @@
++"""
++compass_elins_bridge.py — bidirectional mapping between the ELINS field model
++and the Compass operator model.
++
++ELINS describes the *field* (global tension, drift, narrative opacity, operator
++alignment, sector multipliers, operator exposures). The Compass describes the
++*operator's posture* on six axes (pressure, timing, visibility, position,
++leverage, vulnerability). This module is the deterministic, pure translation
++layer between the two:
++
++    ELINS field state              --ingest_elins_state-->   CompassState
++    CompassState + Compass verdict --export_operator_state--> OperatorVector
++
++Everything here is pure and deterministic: the same input always yields the
++same output — no I/O, no clocks, no randomness. That keeps the bridge testable
++and safe to call from any layer (kernel, operator console, scheduler).
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass
++
++# Count at which a list-of-signals axis (sector multipliers / operator
++# exposures) saturates to a full 1.0 on its Compass axis. Module-level and
++# documented so the mapping is auditable and the tests can mirror it instead
++# of hard-coding a magic number.
++LEVERAGE_SATURATION: float = 5.0
++VULNERABILITY_SATURATION: float = 5.0
++
++
++# ---------------------------------------------------------------------------
++# Value objects
++# ---------------------------------------------------------------------------
++@dataclass
++class CompassState:
++    """The operator's posture on the six Compass axes.
++
++    The ingest mapping guarantees every axis lands in [0.0, 1.0];
++    hand-constructed states are not range-enforced (callers may build
++    extreme states deliberately — see coupling clamping)."""
++
++    pressure: float
++    timing: float
++    visibility: float
++    position: float
++    leverage: float
++    vulnerability: float
++
++
++@dataclass
++class OperatorVector:
++    """The operator state ELINS consumes back: the Compass net/risk verdict
++    plus the four field-relevant axes ELINS re-ingests (timing and position
++    are Compass-internal and deliberately not exported)."""
++
++    operator_net: float
++    operator_risk: str
++    pressure: float
++    visibility: float
++    leverage: float
++    vulnerability: float
++
++
++# ---------------------------------------------------------------------------
++# Pure helpers
++# ---------------------------------------------------------------------------
++def scale(value: float) -> float:
++    """Clamp an axis signal into the canonical [0.0, 1.0] range.
++
++    Negative, non-finite (NaN), and non-numeric inputs saturate to 0.0;
++    values above 1.0 saturate to 1.0. Pure and total — never raises."""
++    try:
++        v = float(value)
++    except (TypeError, ValueError):
++        return 0.0
++    if v != v:  # NaN
++        return 0.0
++    if v < 0.0:
++        return 0.0
++    if v > 1.0:
++        return 1.0
++    return v
++
++
++def derive_unknowns(opacity: float) -> float:
++    """Fraction of the field that is opaque / unknown, in [0.0, 1.0].
++
++    Narrative opacity maps directly to unknown mass: higher opacity means more
++    of the field is hidden. Visibility is its complement (1 - unknowns)."""
++    return scale(opacity)
++
++
++def _clamp(value: float, lo: float, hi: float) -> float:
++    """Clamp ``value`` into the inclusive [lo, hi] range."""
++    if value < lo:
++        return lo
++    if value > hi:
++        return hi
++    return value
++
++
++# ---------------------------------------------------------------------------
++# Bridge
++# ---------------------------------------------------------------------------
++class CompassELINSBridge:
++    """Deterministic, stateless translator between ELINS and the Compass."""
++
++    def ingest_elins_state(self, elins_state: dict) -> CompassState:
++        """
++        Map ELINS field metrics -> Compass axes.
++
++        Required ELINS fields:
++          global_tension: float
++          drift_windows: list[{start, end, magnitude}]
++          narrative_opacity: float
++          operator_alignment_score: float
++          sector_multipliers: list[str]
++          operator_exposures: list[str]
++
++        Missing fields degrade to neutral (0.0 / empty) rather than raising, so
++        a partial field state still produces a well-formed CompassState.
++        """
++        global_tension = elins_state.get("global_tension", 0.0)
++        drift_windows = elins_state.get("drift_windows") or []
++        narrative_opacity = elins_state.get("narrative_opacity", 0.0)
++        operator_alignment_score = elins_state.get("operator_alignment_score", 0.0)
++        sector_multipliers = elins_state.get("sector_multipliers") or []
++        operator_exposures = elins_state.get("operator_exposures") or []
++
++        # pressure   — global field tension bears directly on the operator.
++        pressure = scale(global_tension)
++
++        # timing     — the strongest drift window sets the clock; no drift
++        #              windows means no time pressure.
++        magnitudes = [
++            scale(w.get("magnitude", 0.0))
++            for w in drift_windows
++            if isinstance(w, dict)
++        ]
++        timing = max(magnitudes) if magnitudes else 0.0
++
++        # visibility — the complement of narrative opacity (unknown mass).
++        visibility = scale(1.0 - derive_unknowns(narrative_opacity))
++
++        # position   — how well the operator is aligned with the field.
++        position = scale(operator_alignment_score)
++
++        # leverage   — count of sector multipliers, saturating at the cap.
++        leverage = scale(len(sector_multipliers) / LEVERAGE_SATURATION)
++
++        # vulnerability — count of operator exposures, saturating at the cap.
++        vulnerability = scale(len(operator_exposures) / VULNERABILITY_SATURATION)
++
++        return CompassState(
++            pressure=pressure,
++            timing=timing,
++            visibility=visibility,
++            position=position,
++            leverage=leverage,
++            vulnerability=vulnerability,
++        )
++
++    def export_operator_state(
++        self, compass_state: CompassState, analysis: dict
++    ) -> OperatorVector:
++        """
++        Map Compass axes + Compass analysis -> operator vector for ELINS.
++
++        ``analysis`` contains:
++          net_score: float
++          risk_level: str
++
++        The four field-relevant axes pass through unchanged; the net/risk
++        verdict comes from the Compass analysis. Missing analysis keys degrade
++        to a neutral net (0.0) and an "unknown" risk label.
++        """
++        return OperatorVector(
++            operator_net=float(analysis.get("net_score", 0.0)),
++            operator_risk=str(analysis.get("risk_level", "unknown")),
++            pressure=compass_state.pressure,
++            visibility=compass_state.visibility,
++            leverage=compass_state.leverage,
++            vulnerability=compass_state.vulnerability,
++        )
++
++    def compute_operator_coupling(self, compass_state: CompassState) -> float:
++        """
++        coupling = (visibility + leverage) / (pressure + vulnerability + 1)
++        Clamped to [0.1, 2.0].
++
++        High when the operator can see and act (visibility + leverage) while the
++        field isn't bearing down (low pressure + vulnerability); low otherwise.
++        The +1 keeps the denominator well-conditioned even at zero load.
++        """
++        numerator = compass_state.visibility + compass_state.leverage
++        denominator = compass_state.pressure + compass_state.vulnerability + 1.0
++        return _clamp(numerator / denominator, 0.1, 2.0)
+diff --git a/tests/test_compass_elins_bridge.py b/tests/test_compass_elins_bridge.py
+new file mode 100644
+index 0000000..189ccda
+--- /dev/null
++++ b/tests/test_compass_elins_bridge.py
+@@ -0,0 +1,138 @@
++"""Unit tests for compass_elins_bridge — the pure ELINS<->Compass translator.
++
++Self-contained: no fixtures, no I/O. The repo-root conftest already puts the
++project root on sys.path, so the bare ``import compass_elins_bridge`` resolves.
++"""
++from __future__ import annotations
++
++import pytest
++
++from compass_elins_bridge import (
++    CompassELINSBridge,
++    CompassState,
++    OperatorVector,
++    LEVERAGE_SATURATION,
++    VULNERABILITY_SATURATION,
++    scale,
++    derive_unknowns,
++)
++
++
++def _sample_elins_state() -> dict:
++    return {
++        "global_tension": 0.8,
++        "drift_windows": [
++            {"start": 0, "end": 10, "magnitude": 0.3},
++            {"start": 10, "end": 20, "magnitude": 0.6},
++        ],
++        "narrative_opacity": 0.25,
++        "operator_alignment_score": 0.7,
++        "sector_multipliers": ["tech", "markets", "energy"],
++        "operator_exposures": ["litigation", "regulatory"],
++    }
++
++
++def test_ingest_elins_state_mapping():
++    bridge = CompassELINSBridge()
++    state = bridge.ingest_elins_state(_sample_elins_state())
++
++    assert isinstance(state, CompassState)
++    # pressure    <- global_tension
++    assert state.pressure == pytest.approx(0.8)
++    # timing      <- strongest drift magnitude (max of 0.3, 0.6)
++    assert state.timing == pytest.approx(0.6)
++    # visibility  <- 1 - narrative_opacity (1 - 0.25)
++    assert state.visibility == pytest.approx(0.75)
++    # position    <- operator_alignment_score
++    assert state.position == pytest.approx(0.7)
++    # leverage    <- 3 sector multipliers / saturation
++    assert state.leverage == pytest.approx(3 / LEVERAGE_SATURATION)
++    # vulnerability <- 2 operator exposures / saturation
++    assert state.vulnerability == pytest.approx(2 / VULNERABILITY_SATURATION)
++
++
++def test_ingest_clamps_and_handles_missing_fields():
++    # Bonus coverage: out-of-range input clamps, missing fields go neutral,
++    # and every axis still lands inside [0.0, 1.0].
++    bridge = CompassELINSBridge()
++    state = bridge.ingest_elins_state({"global_tension": 5.0})
++
++    assert state.pressure == 1.0       # 5.0 clamped to the ceiling
++    assert state.timing == 0.0         # no drift windows
++    assert state.visibility == 1.0     # opacity defaults to 0 -> fully visible
++    assert state.position == 0.0
++    assert state.leverage == 0.0
++    assert state.vulnerability == 0.0
++    for axis in vars(state).values():
++        assert 0.0 <= axis <= 1.0
++
++
++def test_export_operator_state():
++    bridge = CompassELINSBridge()
++    cs = CompassState(
++        pressure=0.5, timing=0.4, visibility=0.7,
++        position=0.6, leverage=0.3, vulnerability=0.2,
++    )
++    analysis = {"net_score": 1.23, "risk_level": "elevated"}
++    vector = bridge.export_operator_state(cs, analysis)
++
++    assert isinstance(vector, OperatorVector)
++    # verdict comes from the analysis
++    assert vector.operator_net == pytest.approx(1.23)
++    assert vector.operator_risk == "elevated"
++    # field-relevant axes pass through unchanged
++    assert vector.pressure == pytest.approx(0.5)
++    assert vector.visibility == pytest.approx(0.7)
++    assert vector.leverage == pytest.approx(0.3)
++    assert vector.vulnerability == pytest.approx(0.2)
++    # timing/position are Compass-internal and not part of the operator vector
++    assert not hasattr(vector, "timing")
++    assert not hasattr(vector, "position")
++
++
++def test_compute_operator_coupling_bounds():
++    bridge = CompassELINSBridge()
++
++    # Far above the ceiling -> clamps to 2.0
++    high = CompassState(
++        pressure=0.0, timing=0.0, visibility=10.0,
++        position=0.0, leverage=10.0, vulnerability=0.0,
++    )
++    assert bridge.compute_operator_coupling(high) == 2.0
++
++    # Far below the floor -> clamps to 0.1
++    low = CompassState(
++        pressure=100.0, timing=0.0, visibility=0.0,
++        position=0.0, leverage=0.0, vulnerability=100.0,
++    )
++    assert bridge.compute_operator_coupling(low) == 0.1
++
++    # In-range -> exact formula, no clamping:
++    # (0.5 + 0.5) / (0.5 + 0.5 + 1) = 1.0 / 2.0 = 0.5
++    mid = CompassState(
++        pressure=0.5, timing=0.0, visibility=0.5,
++        position=0.0, leverage=0.5, vulnerability=0.5,
++    )
++    assert bridge.compute_operator_coupling(mid) == pytest.approx(0.5)
++
++    # The result is always inside the documented envelope.
++    for cs in (high, low, mid):
++        coupling = bridge.compute_operator_coupling(cs)
++        assert 0.1 <= coupling <= 2.0
++
++
++def test_determinism_same_input_same_output():
++    bridge = CompassELINSBridge()
++    elins_state = _sample_elins_state()
++    analysis = {"net_score": 0.9, "risk_level": "moderate"}
++
++    s1 = bridge.ingest_elins_state(elins_state)
++    s2 = bridge.ingest_elins_state(elins_state)
++    assert s1 == s2  # dataclass structural equality
++
++    assert bridge.compute_operator_coupling(s1) == bridge.compute_operator_coupling(s2)
++    assert bridge.export_operator_state(s1, analysis) == bridge.export_operator_state(s2, analysis)
++
++    # The pure helpers are deterministic too.
++    assert scale(0.42) == scale(0.42)
++    assert derive_unknowns(0.3) == derive_unknowns(0.3)

@@ -1,0 +1,29 @@
+diff --git a/BUILD_VERSION b/BUILD_VERSION
+index ad6b48c..48d6bbd 100644
+--- a/BUILD_VERSION
++++ b/BUILD_VERSION
+@@ -1 +1 @@
+-20260517173728
++20260527222355
+diff --git a/app.py b/app.py
+index b50eadf..198ac89 100644
+--- a/app.py
++++ b/app.py
+@@ -15973,7 +15973,7 @@ def elins_regression_diff(
+ # ===========================================================================
+ @app.get("/health")
+ def health():
+-    return {"ok": True, "status": "healthy", "version": "4.23"}
++    return {"ok": True, "status": "healthy", "version": "4.24"}
+ 
+ 
+ @app.get("/")
+@@ -15981,7 +15981,7 @@ def root():
+     return {
+         "ok": True,
+         "service": "ClarityOS Cloud",
+-        "version": "4.23",
++        "version": "4.24",
+         "auth": "POST /login then send X-Session-ID header",
+         "endpoints": {
+             "POST /login":    "auth (public)",
