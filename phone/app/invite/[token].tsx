@@ -134,6 +134,10 @@ export default function InviteScreen() {
     }
   }
 
+  // Computed against the wider Phase union so the `"meta" in phase`
+  // narrowing in the JSX below doesn't make this comparison statically false.
+  const isSubmitting = phase.kind === "submitting";
+
   return (
     <KeyboardAvoidingView
       style={styles.root}
@@ -174,7 +178,7 @@ export default function InviteScreen() {
             password={password}
             plan={plan}
             error={error}
-            busy={phase.kind === "submitting"}
+            busy={isSubmitting}
             onUsernameChange={setUsername}
             onPasswordChange={setPassword}
             onPlanChange={setPlan}
