@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-const DEFAULT_API_BASE = "https://clarityos-api-v0-2-736968277491.us-central1.run.app";
+const DEFAULT_API_BASE = "https://clarity-engine-736968277491.us-central1.run.app";
 
 function resolveBase(): string {
   try {
