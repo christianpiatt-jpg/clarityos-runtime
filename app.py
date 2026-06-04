@@ -215,6 +215,19 @@ except ImportError:
     pass
 # ----- /ACCEPTANCE -----
 
+# ----- Phase 7 (Card 7.2A) — operator telemetry read endpoint -----
+# Exposes GET /operator/telemetry (read-only) so the Operator Console
+# surfaces can render the durable Phase 7 drift/trust telemetry (Card 7.1).
+# Self-contained router in phase7_endpoint.py — imports only the flat-root
+# phase7_* modules, no runtime-spine/vault contact. Same try/except mount
+# pattern as the routers above.
+try:
+    from phase7_endpoint import router as phase7_telemetry_router  # noqa: E402
+    app.include_router(phase7_telemetry_router)
+except ImportError:
+    pass
+# ----- /Phase 7 -----
+
 # ----- v60 / Unit 41 — HTTP runtime surface -----
 # Exposes POST /operator/session/start and /step, wrapping the Unit 40
 # session_loop façade. No persistence — clients own session_state. Same

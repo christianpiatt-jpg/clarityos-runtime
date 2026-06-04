@@ -17,6 +17,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 os.environ.setdefault("CLARITYOS_BACKEND", "memory")
+# Phase 7 telemetry (phase7_storage) selects its in-memory backend when
+# TESTING=1, mirroring Phase 7.0's ephemeral store so the suite never writes
+# durable JSONL into data/telemetry/. TESTING is unused elsewhere in the repo.
+os.environ.setdefault("TESTING", "1")
 os.environ.setdefault("CLARITYOS_ADMIN_USER", "admin")
 os.environ.setdefault("CLARITYOS_ADMIN_PASSWORD", "test_admin_password_123")
 # v31 — billing test defaults. Mock mode + auto-confirm keeps the v30
