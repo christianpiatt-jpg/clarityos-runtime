@@ -72,7 +72,9 @@ class TestStartChain:
             "chain_id", "created_at", "closed_at",
             "title", "notes", "layers", "tags",
             "archived",   # v81 — visibility flag, defaults to False
+            "seq",        # v77.1 — monotonic creation tiebreak
         }
+        assert isinstance(c["seq"], int) and c["seq"] > 0
         assert c["title"] == "Production deploy stalled"
         assert c["notes"] is None
         assert c["layers"] == []
@@ -358,6 +360,21 @@ class TestStore:
         c = ps.start_chain("third")
         ids = [x["chain_id"] for x in ps.list_chains()]
         assert ids == [c["chain_id"], b["chain_id"], a["chain_id"]]
+
+    def test_list_newest_first_under_clock_collision(self, monkeypatch):
+        """Ordering must not depend on coarse-clock luck: pin ``_now_ms``
+        so every chain shares one ``created_at`` and prove the monotonic
+        ``seq`` tiebreak (not the random UUID) drives newest-first."""
+        import problem_solver.regression_first as rf
+        monkeypatch.setattr(rf, "_now_ms", lambda: 1_700_000_000_000)
+        chains = [ps.start_chain(f"c{i}") for i in range(5)]
+        listed = ps.list_chains()
+        assert [x["chain_id"] for x in listed] == [
+            c["chain_id"] for c in reversed(chains)
+        ]
+        assert {x["created_at"] for x in listed} == {1_700_000_000_000}
+        # seq is strictly increasing in creation order.
+        assert [c["seq"] for c in chains] == sorted(c["seq"] for c in chains)
 
     def test_list_includes_closed_chains(self):
         a = ps.start_chain("open")

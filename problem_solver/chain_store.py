@@ -5,16 +5,18 @@ Defines the storage interface the kernel calls into. Two
 implementations ship:
 
     ``InMemoryRegressionChainStore``  (default, used by kernel tests)
-        Process-local dict. Carries a strictly-monotonic insertion
-        seq so same-millisecond ``start_chain`` calls sort
-        deterministically newest-first.
+        Process-local dict. Orders by the persisted per-chain ``seq``
+        stamped by ``start_chain``; keeps a strictly-monotonic internal
+        insertion seq as a fallback so same-millisecond ``start_chain``
+        calls sort deterministically newest-first.
 
     ``VaultBackedRegressionChainStore(user_id)``  (endpoint side)
         Reads + writes through ``memory_vault`` under the
         ``regression_chains`` namespace. User-scoped at construction —
         cross-user access is impossible because the underlying vault
-        is partitioned per-user. Ties sort by ``(created_at, chain_id)
-        DESC`` since the vault has no insertion counter.
+        is partitioned per-user. Sorts by ``(created_at, seq, chain_id)
+        DESC`` using the monotonic ``seq`` that ``start_chain`` persists
+        onto each chain (the vault keeps no in-process counter).
 
 The kernel takes ``store=None`` everywhere; when omitted it uses the
 module-level default in-memory store. Endpoint handlers pass a
@@ -50,12 +52,22 @@ def _vault_key(chain_id: str) -> str:
 
 
 def _coerce_chain_defaults(chain: dict) -> dict:
-    """V81 backward-compat: pre-V81 chains in the vault don't carry
-    the ``archived`` field. Default it to ``False`` on read so the
-    rest of the system sees a uniform shape without forcing a
-    migration sweep. Pure — does not mutate the underlying object."""
+    """Backward-compat defaults applied on read so the rest of the
+    system sees a uniform shape without forcing a migration sweep.
+    Pure — does not mutate the underlying object.
+
+      * ``archived`` (V81): pre-V81 chains predate the visibility flag.
+      * ``seq`` (V77.1): pre-seq chains predate the monotonic creation
+        counter; default ``0`` so they sort oldest under the
+        ``(created_at, seq, chain_id)`` ordering.
+    """
+    missing: dict = {}
     if "archived" not in chain:
-        chain = {**chain, "archived": False}
+        missing["archived"] = False
+    if "seq" not in chain:
+        missing["seq"] = 0
+    if missing:
+        chain = {**chain, **missing}
     return chain
 
 
@@ -85,9 +97,11 @@ class InMemoryRegressionChainStore:
       * Kernel-only tests that don't bind a user.
       * Standalone callers (e.g. notebooks) that don't want the vault.
 
-    Carries a strictly-monotonic insertion seq for stable
-    newest-first ordering even when two ``save`` calls land in the
-    same millisecond.
+    Orders by the persisted per-chain ``seq`` (stamped by
+    ``start_chain``); a strictly-monotonic internal insertion seq is
+    kept as a fallback for chains saved without one, so newest-first
+    ordering stays stable even when two ``save`` calls land in the same
+    millisecond.
     """
 
     __slots__ = ("_chains", "_seq", "_seq_counter")
@@ -112,11 +126,16 @@ class InMemoryRegressionChainStore:
         self._seq.pop(chain_id, None)
 
     def list_all(self) -> list[dict]:
+        # Order by the persisted ``seq`` (stamped by start_chain) so this
+        # backend agrees with the vault store. ``self._seq`` stays as a
+        # fallback for any chain saved without one (e.g. a hand-built dict
+        # in a test); ``chain_id`` is the final deterministic tiebreak.
         return sorted(
             self._chains.values(),
             key=lambda c: (
                 c["created_at"],
-                self._seq.get(c["chain_id"], 0),
+                c.get("seq", self._seq.get(c["chain_id"], 0)),
+                c["chain_id"],
             ),
             reverse=True,
         )
@@ -143,12 +162,14 @@ class VaultBackedRegressionChainStore:
     chain-only. Both namespaces are registered in
     ``memory_vault.ALLOWED_NAMESPACES``.
 
-    Ordering: ``(created_at, chain_id) DESC``. The vault has no
-    insertion counter that survives restarts, so ms-collisions
-    resolve lexicographically by UUID. Callers that need strict
-    insertion order across same-ms creates can sleep 1ms between
-    ``save`` calls (the in-memory store keeps the V76 seq behavior
-    for the kernel-test path).
+    Ordering: ``(created_at, seq, chain_id) DESC``. The vault keeps no
+    in-process insertion counter (the store is reconstructed per
+    request), so ordering rides on the monotonic ``seq`` that
+    ``start_chain`` persists onto each chain — this resolves the common
+    case of several chains sharing one coarse ms ``created_at`` (e.g.
+    rapid back-to-back creates on Windows). ``chain_id`` is a final
+    deterministic tiebreak; legacy pre-seq chains default to ``seq=0``
+    via ``_coerce_chain_defaults``.
     """
 
     __slots__ = ("user_id",)
@@ -192,7 +213,11 @@ class VaultBackedRegressionChainStore:
             if isinstance(value, dict) and "chain_id" in value:
                 chains.append(_coerce_chain_defaults(value))
         chains.sort(
-            key=lambda c: (c.get("created_at", 0), c.get("chain_id", "")),
+            key=lambda c: (
+                c.get("created_at", 0),
+                c.get("seq", 0),
+                c.get("chain_id", ""),
+            ),
             reverse=True,
         )
         return chains
