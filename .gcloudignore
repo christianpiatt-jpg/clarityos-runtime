@@ -35,3 +35,15 @@ surface_v1_harness/
 Gemini API Key.txt
 foundercode_openai_apikey.txt
 sa.json
+
+# Local snapshots, rollback artifacts, virtualenv, and archived bundles —
+# not runtime (engine = root .py + ELINS/, kept per line 1). Trims the
+# Cloud Build upload context from ~390 MB to ~15 MB.
+.venv/
+wordpress_shells/
+release/
+lb_snapshot_*/
+*.zip
+bucket-before-*.txt
+phase5a_*.txt
+phase5a_*.yaml
