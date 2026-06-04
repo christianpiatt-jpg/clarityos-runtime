@@ -68,6 +68,9 @@ gcp-key*.json
 elins_run_*.json
 elins_macro_*.json
 
+# Phase 7 telemetry — durable JSONL continuity log (runtime output, not source).
+data/telemetry/
+
 # ---------------------------------------------------------------------------
 # Editor + OS scratch
 # ---------------------------------------------------------------------------
@@ -122,3 +125,11 @@ gcr-image-cache/
 # Anything an operator explicitly stashes under a local/ directory.
 local/
 scratch/
+
+# ---------------------------------------------------------------------------
+# Per-developer local config / runtime artifacts (not shared source)
+# ---------------------------------------------------------------------------
+.claude/settings.local.json
+.claude/launch.json
+.claude/*.lock
+BUILD_VERSION
