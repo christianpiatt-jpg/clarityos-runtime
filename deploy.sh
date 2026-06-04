@@ -10,7 +10,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 SERVICE="clarity-engine"
-REGION="us-east4"
+REGION="us-central1"
+PROJECT="founding-os"
 
 BUILD_TAG="$(date -u +%Y%m%d%H%M%S)"
 echo "$BUILD_TAG" > BUILD_VERSION
@@ -27,6 +28,7 @@ EOF
 
 gcloud run deploy "$SERVICE" \
     --source . \
+    --project "$PROJECT" \
     --region "$REGION" \
     --platform managed \
     --allow-unauthenticated \

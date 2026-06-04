@@ -20,7 +20,8 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 set SERVICE=clarity-engine
-set REGION=us-east4
+set REGION=us-central1
+set PROJECT=founding-os
 
 REM Build a yyyymmddHHMMSS UTC stamp via PowerShell (works on every
 REM modern Windows without needing wmic, which is being deprecated).
@@ -45,6 +46,7 @@ echo.
 
 gcloud run deploy %SERVICE% ^
     --source . ^
+    --project %PROJECT% ^
     --region %REGION% ^
     --platform managed ^
     --allow-unauthenticated ^
