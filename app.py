@@ -16055,7 +16055,7 @@ def elins_regression_diff(
 # ===========================================================================
 @app.get("/health")
 def health():
-    return {"ok": True, "status": "healthy", "version": "4.23"}
+    return {"ok": True, "status": "healthy", "version": "4.24"}
 
 
 @app.get("/")
@@ -16063,7 +16063,7 @@ def root():
     return {
         "ok": True,
         "service": "ClarityOS Cloud",
-        "version": "4.23",
+        "version": "4.24",
         "auth": "POST /login then send X-Session-ID header",
         "endpoints": {
             "POST /login":    "auth (public)",
