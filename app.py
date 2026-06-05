@@ -16055,7 +16055,13 @@ def elins_regression_diff(
 # ===========================================================================
 @app.get("/health")
 def health():
-    return {"ok": True, "status": "healthy", "version": "4.24"}
+    return {
+        "ok": True,
+        "status": "healthy",
+        "version": "4.24",
+        "branch": os.getenv("BRANCH", "unknown"),
+        "commit_sha": os.getenv("COMMIT_SHA", "unknown"),
+    }
 
 
 @app.get("/")
