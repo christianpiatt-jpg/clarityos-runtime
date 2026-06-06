@@ -220,15 +220,16 @@ class TestMeBillingStatusMapping:
         r = client.get("/me/billing", headers=_auth(sid))
         assert r.json()["status"] == "past_due"
 
-    def test_existing_grace_period_maps_to_past_due(self, app_module, client):
-        """grace_period is collapsed into past_due on the public
-        surface (existing v42 behaviour). FIX-P1 must not change that."""
+    def test_existing_grace_period_maps_to_grace_period(self, app_module, client):
+        """grace_period surfaces distinctly on the public surface as of
+        88cd5b4 (previously collapsed into past_due); the FIX-P1 hardening
+        is otherwise unchanged."""
         user, sid = _make_user(
             app_module, "p1_status_grace", cohort="founder",
             billing_state="grace_period",
         )
         r = client.get("/me/billing", headers=_auth(sid))
-        assert r.json()["status"] == "past_due"
+        assert r.json()["status"] == "grace_period"
 
     def test_existing_cancelled_mapping_unchanged(self, app_module, client):
         user, sid = _make_user(

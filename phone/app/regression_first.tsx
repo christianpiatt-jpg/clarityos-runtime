@@ -161,41 +161,41 @@ function Row({ k, v }: { k: string; v: string }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: space.md, paddingBottom: space.xxl, gap: space.md },
+  scroll: { flex: 1, backgroundColor: colors.bgDeep },
+  container: { padding: space.s4, paddingBottom: space.s8, gap: space.s4 },
   h1: { color: colors.textPrimary, fontSize: 22, fontWeight: "600" },
   subhead: { color: colors.textTertiary, fontSize: 12 },
   h2: {
     color: colors.textPrimary, fontSize: 16, fontWeight: "600",
-    marginBottom: space.sm,
+    marginBottom: space.s2,
   },
   card: {
-    backgroundColor: colors.surface, borderRadius: radius.md,
-    padding: space.md, gap: space.sm,
+    backgroundColor: colors.bgSurface, borderRadius: radius.md,
+    padding: space.s4, gap: space.s2,
   },
   label: { color: colors.textSecondary, fontSize: 12 },
   input: {
-    backgroundColor: colors.bg, color: colors.textPrimary,
-    borderRadius: radius.sm, padding: space.sm, fontSize: 13,
+    backgroundColor: colors.bgDeep, color: colors.textPrimary,
+    borderRadius: radius.sm, padding: space.s2, fontSize: 13,
   },
   code: { fontFamily: "Menlo" },
   cta: {
     backgroundColor: colors.accent, borderRadius: radius.sm,
-    paddingVertical: space.sm, alignItems: "center",
+    paddingVertical: space.s2, alignItems: "center",
   },
   ctaLabel: { color: "#04121b", fontWeight: "600" },
   ctaSecondary: {
     backgroundColor: colors.bgElevated, borderRadius: radius.sm,
-    paddingVertical: space.sm, alignItems: "center", marginTop: space.sm,
+    paddingVertical: space.s2, alignItems: "center", marginTop: space.s2,
   },
   ctaSecondaryLabel: { color: colors.textPrimary, fontWeight: "500" },
   disabled: { opacity: 0.5 },
   errorBox: {
     backgroundColor: "rgba(255,69,58,0.15)",
-    borderRadius: radius.sm, padding: space.sm,
+    borderRadius: radius.sm, padding: space.s2,
   },
   errorText: { color: "#ff4538", fontSize: 12 },
-  row: { flexDirection: "row", alignItems: "flex-start", gap: space.sm },
+  row: { flexDirection: "row", alignItems: "flex-start", gap: space.s2 },
   k: { color: colors.textSecondary, fontSize: 12, minWidth: 110 },
   v: { color: colors.textPrimary, fontSize: 13, flex: 1 },
 });

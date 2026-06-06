@@ -39,7 +39,11 @@ Environment variables
   CLARITYOS_BACKEND            "memory" (default) or "firestore"
   CLARITYOS_CORS_ORIGINS       comma-separated allowed origins; default
                                "https://pro-mediations.com,
-                                https://www.pro-mediations.com"
+                                https://www.pro-mediations.com,
+                                https://clarity.pro-mediations.com,
+                                https://pocket.clarityos.dev,
+                                http://localhost:5174,
+                                https://clarityos-pocket-v0-3-736968277491.us-central1.run.app"
   CLARITYOS_ADMIN_USER         default "admin"
   CLARITYOS_ADMIN_PASSWORD     if unset, a random one is generated and
                                printed once on startup (bootstrap only)
@@ -55,16 +59,18 @@ import secrets
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import bcrypt
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, status
+import hmac
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 import users_store
 import sessions_store
+import auth_magiclink            # magic-link auth (/auth/enter, /auth/verify)
 import invites_store
 import tokens as invite_tokens
 import billing
@@ -86,6 +92,7 @@ import membership_store            # v30 — cohort cap, waitlist, transactions
 import membership_billing          # v30 — charge / record_transaction
 import billing_intents             # v31 — PaymentIntent + webhook handler
 import billing_renewal             # v31 — daily renewal scheduler
+import billing_subscriptions        # C1 / A+D — Stripe Subscriptions (canonical)
 import waitlist_store              # v32 — public waitlist pipeline
 import comment_generator           # v33 — MRCG v1.0 (#cmt)
 import dm_store                    # v33 — manual DM tracking
@@ -103,6 +110,7 @@ import operator_state              # v39 — operator state memory + continuity
 import intelligence_kernel        # v40 — unified #c/#G/ELINS/ESO/macro kernel
 import billing_config              # v42 — Stripe mode/keys + recent events
 import founder_analytics           # v43 — founder analytics aggregator
+import monitoring_alerts           # Phase 5 — anomaly + churn alert aggregators
 import model_router                 # v44 — multi-model router
 import local_model_runtime          # v45 — on-device inference runtime
 import memory_vault                 # v46 — local encrypted KV store
@@ -147,6 +155,11 @@ _user_ref = _privacy.user_ref
 # App + config
 # ===========================================================================
 app = FastAPI(title="ClarityOS Cloud", version="2.4")
+
+# v0.3.11 / Card 16 — engine boot timestamp, used by /operator/state to
+# report uptime. Set once at module load; immutable for the life of the
+# revision.
+_ENGINE_START_TIME = time.time()
 
 # ----- ACCEPTANCE: harness dashboard router (additive, no existing routes touched) -----
 # Mounts /founder/acceptance/* endpoints used by the acceptance harness
@@ -201,6 +214,19 @@ try:
 except ImportError:
     pass
 # ----- /ACCEPTANCE -----
+
+# ----- Phase 7 (Card 7.2A) — operator telemetry read endpoint -----
+# Exposes GET /operator/telemetry (read-only) so the Operator Console
+# surfaces can render the durable Phase 7 drift/trust telemetry (Card 7.1).
+# Self-contained router in phase7_endpoint.py — imports only the flat-root
+# phase7_* modules, no runtime-spine/vault contact. Same try/except mount
+# pattern as the routers above.
+try:
+    from phase7_endpoint import router as phase7_telemetry_router  # noqa: E402
+    app.include_router(phase7_telemetry_router)
+except ImportError:
+    pass
+# ----- /Phase 7 -----
 
 # ----- v60 / Unit 41 — HTTP runtime surface -----
 # Exposes POST /operator/session/start and /step, wrapping the Unit 40
@@ -296,7 +322,32 @@ THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60
 # call the API from any origin not on this list. Empty entries are dropped
 # so a stray comma in the env var doesn't accidentally permit "" (== same-
 # origin), and trailing whitespace is stripped.
-_CORS_DEFAULT = "https://pro-mediations.com,https://www.pro-mediations.com"
+#
+# Defaults (in order):
+#   * https://pro-mediations.com                      — WordPress front-end (apex)
+#   * https://www.pro-mediations.com                  — WordPress front-end (www)
+#   * https://clarity.pro-mediations.com              — Clarity subdomain front-end
+#   * https://pocket.clarityos.dev                    — Pocket SPA prod (custom domain, planned)
+#   * http://localhost:5174                           — Pocket SPA dev (Vite dev server)
+#   * https://clarityos-pocket-v0-3-…run.app          — Pocket SPA Cloud Run URL (used until
+#                                                       pocket.clarityos.dev domain mapping lands)
+#
+# The cockpit Node v0.2 surface at cockpit.pro-mediations.com is server-
+# rendered (no browser-side XHR to this API) so it deliberately does NOT
+# need a CORS allow entry.
+#
+# Production deploys override this default via the
+# ``CLARITYOS_CORS_ORIGINS`` env var on the Cloud Run service; keep
+# the two lists in sync so a future "remove the env var" never silently
+# drops a real prod origin.
+_CORS_DEFAULT = ",".join([
+    "https://pro-mediations.com",
+    "https://www.pro-mediations.com",
+    "https://clarity.pro-mediations.com",
+    "https://pocket.clarityos.dev",
+    "http://localhost:5174",
+    "https://clarityos-pocket-v0-3-736968277491.us-central1.run.app",
+])
 CORS_ORIGINS = [
     o.strip()
     for o in os.environ.get("CLARITYOS_CORS_ORIGINS", _CORS_DEFAULT).split(",")
@@ -527,6 +578,57 @@ def require_session(x_session_id: Optional[str] = Header(default=None)) -> dict:
     return {"session_id": x_session_id, "user": session["user"], "cohort": cohort}
 
 
+# ---------------------------------------------------------------------------
+# Card 16 — operator-token auth (privileged path)
+# ---------------------------------------------------------------------------
+def _is_operator_token(request: Request) -> bool:
+    """Return True iff the request carries a valid Operator token.
+
+    The token is expected in the ``Authorization`` header in the form:
+
+        Authorization: Operator <token>
+
+    The expected value comes from the ``CLARITYOS_OPERATOR_TOKEN`` env
+    var (mounted from Secret Manager in production). When the env var
+    is unset OR empty, no token can be valid — every operator-only
+    surface stays locked. Comparison is constant-time
+    (``hmac.compare_digest``) so the response time doesn't leak any
+    information about partial-match length.
+    """
+    expected = (os.environ.get("CLARITYOS_OPERATOR_TOKEN") or "").strip()
+    if not expected:
+        return False
+    auth = request.headers.get("authorization") or ""
+    # Case-insensitive scheme match; preserve whatever spacing the
+    # client used between scheme and token.
+    scheme, _, presented = auth.partition(" ")
+    if scheme.lower() != "operator":
+        return False
+    presented = presented.strip()
+    if not presented:
+        return False
+    return hmac.compare_digest(presented, expected)
+
+
+def require_operator_token(request: Request) -> dict:
+    """FastAPI dependency for operator-only endpoints.
+
+    Rejects with 401 unless the request carries a valid Operator
+    token. Returns a small dict so endpoints can log who hit them
+    (``operator=True`` is the only identity available — the token
+    has no user_id binding by design)."""
+    if not _is_operator_token(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=error_response(
+                "operator_token_required",
+                "This endpoint requires a valid Operator token in the "
+                "Authorization header.",
+            ),
+        )
+    return {"operator": True}
+
+
 # ===========================================================================
 # GCS library access
 # ===========================================================================
@@ -710,8 +812,47 @@ class EngineRequest(BaseModel):
 # ===========================================================================
 # Auth routes
 # ===========================================================================
+def _auth_rate_limit_enabled() -> bool:
+    """Brute-force throttle on /login + /register. Enforced in production;
+    the test suite disables it (conftest sets CLARITYOS_DISABLE_AUTH_RATE_LIMIT=1)
+    so cumulative auth calls across tests don't drain a shared per-IP bucket.
+    Read at call time so a test can toggle it via monkeypatch."""
+    return os.environ.get("CLARITYOS_DISABLE_AUTH_RATE_LIMIT", "0") != "1"
+
+
+def _throttle_auth(
+    request: Request, route: str, *, capacity: int, window_s: float
+) -> None:
+    """IP-keyed token-bucket guard for the unauthenticated auth endpoints.
+    Raises 429 (standard envelope) when the per-IP bucket is empty. The
+    bucket refills continuously, so a throttled client recovers on its own —
+    no admin unlock, no account lockout. No-op when disabled (tests).
+
+    Reuses the same ``v29_hardening`` limiter + ``_client_ip`` first-hop
+    extraction that ``/waitlist/join`` uses, and enforces unconditionally
+    (not gated by CLARITYOS_RATE_LIMIT_ENFORCE) because login brute force is
+    a hard boundary, not a soft observe-only limit."""
+    if not _auth_rate_limit_enabled():
+        return
+    ip = _client_ip(request)
+    if not v29_hardening.check_rate_limit(
+        f"ip:{ip}", route, capacity=capacity, window_s=window_s,
+    ):
+        v29_hardening.log_event(
+            "auth_rate_limited", route=route, success=False, ip=ip[:24],
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=error_response(
+                "rate_limited",
+                "Too many attempts; please wait a minute and try again",
+            ),
+        )
+
+
 @app.post("/login")
-def login(req: LoginRequest):
+def login(req: LoginRequest, request: Request):
+    _throttle_auth(request, "/login", capacity=5, window_s=900.0)
     user = users_store.get_user(req.username)
     if not user or not bcrypt.checkpw(
         req.password.encode("utf-8"), user["password_hash"]
@@ -740,7 +881,7 @@ def login(req: LoginRequest):
 
 
 @app.post("/register")
-def register(req: RegisterRequest):
+def register(req: RegisterRequest, request: Request):
     """
     Create a new user and auto-login.
 
@@ -751,6 +892,7 @@ def register(req: RegisterRequest):
     use /invite/{token}/redeem (founder_exception) or
     /invite/{token}/finalize (terrace_1) instead.
     """
+    _throttle_auth(request, "/register", capacity=3, window_s=3600.0)
     if INVITE_ONLY:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -808,6 +950,74 @@ def register(req: RegisterRequest):
         "expires_in": SESSION_TTL_SECONDS,
         "user": username,
     }
+
+
+# ===========================================================================
+# Magic-link authentication (clarity.pro-mediations.com)
+#
+# The WordPress shell at pro-mediations.com/enter/ POSTs {email, source, next}
+# to /auth/enter (form-encoded). All token issuance, verification, session
+# creation, and redirect routing live in auth_magiclink.py — WordPress runs no
+# auth logic. /auth/enter is enumeration-safe; /auth/verify exchanges a
+# one-time, short-lived token for a session cookie + an internal redirect.
+# ===========================================================================
+def _client_ip(request: Request) -> str:
+    """Best-effort client IP. Cloud Run sits behind a proxy that sets
+    X-Forwarded-For (the client is the first entry); fall back to the
+    socket peer for local / direct calls."""
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else ""
+
+
+@app.post("/auth/enter")
+async def auth_enter(
+    request: Request,
+    email: str = Form(...),
+    source: str = Form("wp-shell"),
+    next: str = Form("/app"),
+):
+    """Request a magic link. Returns a generic success for any syntactically
+    valid email (no account-existence signal, no throttle signal); 400 only
+    on a malformed address."""
+    ip = _client_ip(request)
+    ua = request.headers.get("user-agent", "")
+    result = auth_magiclink.request_magic_link(email, source, next, ip, ua)
+    if result.get("status") == "invalid_email":
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"status": "error", "message": "Enter a valid email address."},
+        )
+    return {"status": "ok"}
+
+
+@app.get("/auth/verify")
+async def auth_verify(request: Request, token: str = Query(default="")):
+    """Verify a one-time token. On success: set an HttpOnly session cookie and
+    303-redirect to an allowlisted internal path. On failure: a generic
+    'link no longer valid' page (never reveals which check failed)."""
+    ip = _client_ip(request)
+    ua = request.headers.get("user-agent", "")
+    result = auth_magiclink.verify_magic_link(token, ip, ua)
+    if result.get("status") != "ok":
+        return HTMLResponse(
+            content=auth_magiclink.invalid_link_page(),
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    resp = RedirectResponse(
+        url=result["redirect"], status_code=status.HTTP_303_SEE_OTHER
+    )
+    resp.set_cookie(
+        key="clarityos_session",
+        value=result["session_id"],
+        max_age=result["session_max_age"],
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    return resp
 
 
 # ===========================================================================
@@ -1245,6 +1455,7 @@ async def billing_webhook(request: Request):
                 ),
             )
         if not sig:
+            billing_config.record_webhook_failure("missing_signature")  # module 18
             return JSONResponse(
                 status_code=400,
                 content=error_response(
@@ -1256,6 +1467,7 @@ async def billing_webhook(request: Request):
         except billing.BillingNotConfigured as e:
             return JSONResponse(status_code=503, content=error_response("billing_not_configured", str(e)))
         if event is None:
+            billing_config.record_webhook_failure("bad_signature")  # module 18
             return JSONResponse(
                 status_code=400,
                 content=error_response("bad_signature", "Stripe webhook signature did not verify"),
@@ -1320,7 +1532,22 @@ async def billing_webhook(request: Request):
             pass
         return {"ok": True}
 
-    # v42 — subscription / checkout lifecycle handlers.
+    # C1 / A+D — Stripe Subscription lifecycle (canonical billing for new
+    # signups). Additive + idempotent: these sync the new subscription fields
+    # (and mirror billing_state / membership) for subscription members. They
+    # run alongside the v42 _handle_subscription_event below; each no-ops when
+    # the Stripe customer doesn't resolve to a user, so existing flows (and
+    # the v42 tests, which resolve by metadata) are untouched.
+    if etype in ("invoice.paid", "invoice.payment_succeeded"):
+        billing_subscriptions.handle_invoice_paid(obj)
+    elif etype == "invoice.payment_failed":
+        billing_subscriptions.handle_invoice_payment_failed(obj)
+    elif etype == "customer.subscription.updated":
+        billing_subscriptions.handle_subscription_updated(obj)
+    elif etype == "customer.subscription.deleted":
+        billing_subscriptions.handle_subscription_deleted(obj)
+
+    # v42 — subscription / checkout lifecycle handlers (billing_state mirror).
     _handle_subscription_event(etype, obj)
     return {"ok": True}
 
@@ -1462,18 +1689,54 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
 # Public routes (account + system)
 # ===========================================================================
 @app.get("/me")
-def me(session: dict = Depends(require_session)):
+def me(request: Request, session: dict = Depends(require_session)):
     logger.info(
         "me user=%s session=%s",
         _user_ref(session["user"]), _session_ref(session["session_id"]),
     )
     user_doc = users_store.get_user(session["user"]) or {}
     cohort = user_doc.get("cohort")
+
+    # Card 18 — operator identity model:
+    #   Operator identity is cohort-derived (durable) and token-override
+    #   (request-scoped).
+    #   - Cohort membership determines baseline operator identity.
+    #   - Operator token elevates the *request* for privileged endpoints.
+    #   This preserves identity semantics while keeping capability checks
+    #   isolated.
+    #
+    # ``FOUNDER_LIKE_COHORTS`` (= {"founder", "founder_exception"}) is the
+    # same set used by other cohort-derived privilege gates in this file
+    # (invite redemption, quota resolution) so the boundary stays
+    # consistent across the engine. Token-bearing requests are operator
+    # regardless of cohort — that path is unchanged from Card 16.
+    operator = _is_operator_token(request) or (cohort in FOUNDER_LIKE_COHORTS)
+
+    # Card 16 — vault_ready: non-throwing probe so a misconfigured
+    # vault never causes /me to 500. (This is what bit us in Card 15.)
+    vault_ready = memory_vault.is_ready(session["user"])
+
+    # Card 16 — cache the intelligence_kernel view so a single call
+    # supplies all three downstream fields, AND tolerate failures so
+    # a broken kernel can't 500 /me. /me used to invoke this three
+    # times (line-by-line) which both inflated cost and tripled the
+    # vault-failure blast radius.
+    kernel_view: dict = {}
+    try:
+        kernel_view = intelligence_kernel.kernel_view_for_user(session["user"])
+    except Exception as e:
+        logger.warning(
+            "kernel_view_for_user failed user=%s err=%s",
+            _user_ref(session["user"]), e,
+        )
+
     return {
         "ok": True,
         "user": session["user"],
         "session_id": session["session_id"],
         "cohort": cohort,
+        "operator": operator,
+        "vault_ready": vault_ready,
         "operator_id": user_doc.get("operator_id"),
         "tier": user_doc.get("tier", "free"),
         "billing_expires_at": user_doc.get("billing_expires_at"),
@@ -1533,9 +1796,80 @@ def me(session: dict = Depends(require_session)):
         # /me/operator_state. v41 adds top-level shortcuts so older
         # clients can read external_signal_mode + eso_source without
         # walking the kernel block.
-        "intelligence_kernel": intelligence_kernel.kernel_view_for_user(session["user"]),
-        "external_signal_mode": intelligence_kernel.kernel_view_for_user(session["user"])["external_signal_mode"],
-        "eso_source": intelligence_kernel.kernel_view_for_user(session["user"])["eso_source"],
+        "intelligence_kernel": kernel_view,
+        "external_signal_mode": kernel_view.get("external_signal_mode"),
+        "eso_source": kernel_view.get("eso_source"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Card 16 — operator-only diagnostic endpoint
+# ---------------------------------------------------------------------------
+@app.get("/operator/state")
+def operator_state_diagnostic(_: dict = Depends(require_operator_token)):
+    """Operator-only diagnostic view of the engine.
+
+    Card 16.1: renamed from ``operator_state`` to ``operator_state_diagnostic``
+    so this view function no longer shadows the module-level
+    ``import operator_state`` (line 107). The URL stays ``/operator/state``;
+    the response shape is unchanged. The rename unblocks five callsites
+    that read ``operator_state.get_operator_state(...)`` /
+    ``set_preferred_model(...)`` later in the file, plus the new Card 19
+    ``/model/route`` adapter.
+
+    Auth: ``Authorization: Operator <token>`` (validated against
+    ``CLARITYOS_OPERATOR_TOKEN``). No user session required — this is
+    the privileged "root shell" surface and is intentionally not
+    user-scoped.
+
+    Returns:
+      engine_revision   K_REVISION env (set by Cloud Run) or
+                        BUILD_VERSION file content
+      vault_status      "ready" or "not_configured"
+      active_sessions   count of live sessions in sessions_store
+      uptime_seconds    int seconds since module load
+      cors_origins      live CORS allow-list (same as /config)
+      backend           backend mode ("memory" / "firestore")
+      version           api version
+    """
+    # engine_revision — prefer K_REVISION (auto-set by Cloud Run);
+    # fall back to BUILD_VERSION file (read once on each call —
+    # tolerant of missing files).
+    engine_revision = os.environ.get("K_REVISION") or ""
+    if not engine_revision:
+        bv_path = os.environ.get("BUILD_VERSION_FILE", "BUILD_VERSION")
+        try:
+            with open(bv_path, "r", encoding="utf-8") as f:
+                engine_revision = f.read().strip()
+        except Exception:
+            engine_revision = "(unknown)"
+
+    # vault_status — non-throwing probe.
+    vault_status = "ready" if memory_vault.is_ready() else "not_configured"
+
+    # active_sessions — defensive count. sessions_store backends
+    # vary (memory vs firestore); a count() method may or may not
+    # exist. Try the most common shapes; fall back to "unknown".
+    active_sessions: int | str = "unknown"
+    try:
+        if hasattr(sessions_store, "count_sessions"):
+            active_sessions = int(sessions_store.count_sessions())
+        elif hasattr(sessions_store, "list_session_ids"):
+            active_sessions = len(list(sessions_store.list_session_ids()))
+    except Exception:
+        active_sessions = "unknown"
+
+    uptime_seconds = int(time.time() - _ENGINE_START_TIME)
+
+    return {
+        "ok": True,
+        "engine_revision": engine_revision,
+        "vault_status": vault_status,
+        "active_sessions": active_sessions,
+        "uptime_seconds": uptime_seconds,
+        "cors_origins": CORS_ORIGINS,
+        "backend": BACKEND,
+        "version": "2.4",
     }
 
 
@@ -9141,6 +9475,77 @@ def membership_cancel(session: dict = Depends(require_session)):
 
 
 # ===========================================================================
+# C1 / A+D — Stripe Subscription endpoints (canonical billing for new signups)
+# ===========================================================================
+class SubscriptionStartRequest(BaseModel):
+    price_id: Optional[str] = None
+
+
+class SubscriptionCancelRequest(BaseModel):
+    mode: str = "period_end"   # "immediate" | "period_end"
+
+
+@app.post("/billing/subscription/start")
+def subscription_start(req: SubscriptionStartRequest, session: dict = Depends(require_session)):
+    """Start a Stripe Subscription for the authed user. Returns the
+    ``client_secret`` for on-session SCA (client confirms via Stripe.js);
+    the member is activated by the ``invoice.paid`` webhook."""
+    user = session["user"]
+    cohort = session.get("cohort")
+    if not v29_hardening.feature_enabled("founder_tier_enabled", user=user, cohort=cohort):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("feature_disabled", "Founding tier is not enabled for your account"),
+            status_code=403,
+        )
+    v29_hardening.enforce_rate_limit(user, "/billing/subscription/start")
+    price_id = (
+        req.price_id
+        or os.environ.get("CLARITYOS_STRIPE_PRICE_FOUNDING")
+        or "price_founding_mock"
+    ).strip()
+    try:
+        out = billing_subscriptions.create_membership_subscription(user, price_id)
+    except billing_subscriptions.SubscriptionError as e:
+        raise HTTPException(status_code=402, detail=error_response(e.code, e.message))
+    v29_hardening.log_event(
+        "subscription_start", user=user, route="/billing/subscription/start",
+        success=True, subscription_id=out["subscription_id"], status=out.get("status"),
+    )
+    return {"ok": True, **out}
+
+
+@app.post("/billing/subscription/cancel")
+def subscription_cancel(req: SubscriptionCancelRequest, session: dict = Depends(require_session)):
+    """Cancel the authed user's subscription. ``mode`` = ``immediate`` |
+    ``period_end`` (default)."""
+    user = session["user"]
+    cohort = session.get("cohort")
+    if not v29_hardening.feature_enabled("membership_ui_enabled", user=user, cohort=cohort):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("feature_disabled", "Membership UI is not enabled for your account"),
+            status_code=403,
+        )
+    v29_hardening.enforce_rate_limit(user, "/billing/subscription/cancel")
+    mode = (req.mode or "period_end").strip().lower()
+    if mode not in ("immediate", "period_end"):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_mode", "mode must be 'immediate' or 'period_end'"),
+        )
+    try:
+        if mode == "immediate":
+            billing_subscriptions.cancel_subscription_immediately(user)
+        else:
+            billing_subscriptions.cancel_subscription_at_period_end(user)
+    except billing_subscriptions.SubscriptionError as e:
+        raise HTTPException(status_code=402, detail=error_response(e.code, e.message))
+    v29_hardening.log_event(
+        "subscription_cancel", user=user, route="/billing/subscription/cancel",
+        success=True, mode=mode,
+    )
+    return {"ok": True, "mode": mode, "state": _membership_view(user)}
+
+
+# ===========================================================================
 # v74 / Unit 84 — Founding 500 Subscription Gate confirmation
 # ===========================================================================
 # Distinct from /membership/activate:
@@ -10578,6 +10983,15 @@ def founder_analytics_summary(session: dict = Depends(_require_founder)):
     return {"ok": True, "summary": summary}
 
 
+@app.get("/founder/alerts")
+def founder_alerts(session: dict = Depends(_require_founder)):
+    """Phase 5 — founder-only monitoring alerts: kernel anomalies (module 19)
+    + membership churn (module 20). Read-only, compute-and-surface (the repo
+    has no outbound delivery). Module 18 (webhook failures) is deferred behind
+    the active billing webhook WIP; the payload records it as such."""
+    return {"ok": True, "alerts": monitoring_alerts.get_alerts_summary()}
+
+
 # ---------- v44 — Multi-model router ----------
 class V44ModelPreferenceRequest(BaseModel):
     preferred_model: Optional[str] = None
@@ -10640,6 +11054,339 @@ def founder_models_override(
         "default_model": chosen,
         "router": model_router.get_router_status(),
     }
+
+
+# ---------- Card 19 — /model/route compatibility adapter ----------
+# Thin HTTP wrapper over model_router.select_model() so PHONE / WEB
+# clients can resolve a model_id without speaking the kernel's
+# internal vocabulary. Adapter-derived reason is computed here
+# (router still returns only a string); model_router.py is unchanged.
+class ModelRouteRequest(BaseModel):
+    intent: str
+    context: Optional[dict] = None        # accepted, unused (forward-compat)
+    override: Optional[str] = None        # explicit model_id override
+
+
+def _derive_route_reason(
+    user: str,
+    task: str,
+    override: Optional[str],
+    model_id: str,
+) -> str:
+    """Mirror model_router.select_model's precedence so callers can see
+    which rule won. Order matches select_model: override > founder
+    default > user preferred_model > task default."""
+    if override:
+        return "override"
+    founder = model_router.get_founder_default_model()
+    if founder and founder == model_id:
+        return "founder_default"
+    try:
+        state = operator_state.get_operator_state(user) or {}
+        pref = state.get("preferred_model")
+        if pref and pref == model_id:
+            return "user_preference"
+    except Exception:  # pragma: no cover (defensive)
+        pass
+    if model_router.TASK_DEFAULTS.get(task) == model_id:
+        return "task_default"
+    return "fallback"
+
+
+@app.post("/model/route")
+def model_route(
+    req: ModelRouteRequest,
+    request: Request,
+    session: dict = Depends(require_session),
+):
+    """Compatibility wrapper for ``model_router.select_model``.
+
+    PHONE and WEB clients call this to resolve which model_id to use
+    for a given intent. The adapter accepts a friendly ``intent`` and
+    optional ``override``; the response carries the resolved model_id,
+    an adapter-derived reason, and the operator flag (Card 18 rule:
+    operator token OR cohort in FOUNDER_LIKE_COHORTS).
+    """
+    user = session["user"]
+    cohort = session.get("cohort")
+    operator = _is_operator_token(request) or (cohort in FOUNDER_LIKE_COHORTS)
+
+    try:
+        model_id = model_router.select_model(
+            user,
+            task=req.intent,
+            override=req.override,
+        )
+    except ValueError as e:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_input", str(e))
+        )
+
+    reason = _derive_route_reason(
+        user=user,
+        task=req.intent,
+        override=req.override,
+        model_id=model_id,
+    )
+
+    return {
+        "ok": True,
+        "model": model_id,
+        "reason": reason,
+        "operator": operator,
+    }
+
+
+# ---------- Card 19.5 — /model/complete completion adapter ----------
+# Thin wrapper over the existing model_router.route_request — that
+# function already handles real provider dispatch (OpenAI / Anthropic
+# / Gemini / xAI / local) with env-key-gated mock fallback and
+# per-provider timeouts. Re-implementing it here would silently fork
+# the dispatch path; the adapter just plumbs the HTTP shape.
+#
+# Cost guardrail: every call here is a paid LLM round-trip when
+# provider keys are configured, so the route is per-user rate-limited
+# via v29_hardening. Enforcement requires CLARITYOS_RATE_LIMIT_ENFORCE=1
+# in production; without it, breaches are logged but not rejected.
+class ModelCompleteRequest(BaseModel):
+    model: str
+    prompt: str
+
+
+@app.post("/model/complete")
+def model_complete(
+    req: ModelCompleteRequest,
+    session: dict = Depends(require_session),
+):
+    """Card 19.5: real-text-generation completion adapter.
+
+    Forwards ``(model, prompt)`` to ``model_router.route_request`` and
+    returns ``{ok, model, text, elapsed_ms, mock, provider}``. ``mock``
+    is true when the provider's env key is unset and the router
+    fell back to its deterministic stub — clients can treat that as
+    "no real generation happened" without parsing text shape.
+    """
+    user = session["user"]
+    v29_hardening.enforce_rate_limit(
+        user, "/model/complete",
+        capacity=10, window_s=60.0,
+    )
+    started = time.time()
+    try:
+        result = model_router.route_request(req.model, req.prompt)
+    except ValueError as e:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_input", str(e))
+        )
+    elapsed_ms = int((time.time() - started) * 1000)
+    return {
+        "ok": True,
+        "model": result["model_id"],
+        "text": result["text"],
+        "elapsed_ms": elapsed_ms,
+        "mock": bool(result.get("mock", False)),
+        "provider": result.get("provider"),
+    }
+
+
+# ---------- Engine V1 — canonical /engine/v1/run contract (Phase-1) ----------
+# Source-of-truth Pydantic models for the new umbrella engine endpoint.
+# WEB / PHONE / DESKTOP hand-mirror these shapes in their own lib/api.ts
+# files (per the established no-cross-tree-sharing rule); FastAPI's
+# /openapi.json keeps the wire definition canonical.
+#
+# Phase-1 covers: primitives, overlays, primary regression, projection,
+# diagnostics. Phase-2 (validation) and Phase-3 (cross_regression,
+# backtest) are reserved as Optional fields with empty placeholder
+# models so clients can begin integrating today without churn later.
+import engine_v1                          # Card "Engine V1 Contract — Phase 1"
+
+EnginePrimitiveTypeLiteral = Literal[
+    "entity", "attitude", "relationship", "event", "signal", "temperature",
+]
+EngineFlowRegimeLiteral = Literal["laminar", "transitional", "turbulent"]
+
+
+class EngineHydraulicState(BaseModel):
+    pressure:   float
+    gradient:   float
+    flow:       float
+    resistance: float
+    timestamp:  str
+
+
+class EnginePrimitiveMetadata(BaseModel):
+    primitive_id:   str
+    primitive_type: EnginePrimitiveTypeLiteral
+    timestamp:      str
+    version:        str
+    domain:         str
+    source:         str
+    parent_id:      Optional[str] = None
+    # Card 20 cherry-pick: lineage + dependency graph fields.
+    ancestors:      list[str] = []
+    depends_on:     list[str] = []
+    influences:     list[str] = []
+    confidence:     float
+    completeness:   float
+    reliability:    float
+
+
+class EnginePrimitive(BaseModel):
+    metadata:        EnginePrimitiveMetadata
+    content:         dict
+    hydraulic_state: EngineHydraulicState
+    # Card 20 cherry-pick: self-referential lineage. Phase-1 emits
+    # both as None / [] because there's no archive yet — the wire
+    # shape is locked early so Phase-2 (when the archive lands) only
+    # changes values, not field names.
+    origin_state:       Optional["EnginePrimitive"] = None
+    historical_states:  list["EnginePrimitive"] = []
+
+
+class EngineOverlayResult(BaseModel):
+    primitive_id:     str
+    reynolds_number:  float
+    flow_regime:      EngineFlowRegimeLiteral
+    stability:        float
+    in_critical_zone: bool
+    distance_to_fold: float
+    resilience:       float
+    # Card 20 cherry-pick: Godhard-curve fields. curve_position is the
+    # normalised position on the S-curve; on_upper_branch is the
+    # hysteresis branch indicator; sensitivity is the local slope
+    # (peaks inside the critical zone); hysteresis is the configured
+    # loop width.
+    curve_position:   float
+    on_upper_branch:  bool
+    sensitivity:      float
+    hysteresis:       float
+
+
+class EngineRegimeChange(BaseModel):
+    day:    int
+    regime: EngineFlowRegimeLiteral
+
+
+class EngineRegressionResult(BaseModel):
+    primitive_id:           str
+    current_state:          EnginePrimitive
+    origin_state:           EnginePrimitive
+    path:                   list[EnginePrimitive]
+    reconstruction_error:   float
+    path_confidence:        float
+    deviation_from_origin:  float
+    historical_similarity:  float
+    attitude_match_score:   float
+
+
+class EngineProjectionResult(BaseModel):
+    primitive_id:        str
+    source_state:        EnginePrimitive
+    projected_state:     EnginePrimitive
+    projection_days:     int
+    confidence:          float
+    uncertainty:         float
+    pressure_trajectory: list[float]
+    flow_trajectory:     list[float]
+    regime_changes:      list[EngineRegimeChange]
+
+
+class EngineDiagnostics(BaseModel):
+    observation_id:     str
+    observer_notes:     str
+    confidence_level:   float
+    validation_status:  str
+    early_warnings:     dict
+    errors:             list[str]
+    # Card 20 cherry-pick: applied-interventions trace (free-form for
+    # Phase-1; structured by a later card once intervention recipes
+    # land).
+    interventions:      list[str] = []
+
+
+# Reserved Phase-2 / Phase-3 placeholders. Empty by design — extending
+# them is a contract-level decision; clients must treat the parent
+# fields as optional and tolerate added keys.
+class EngineValidationResult(BaseModel):
+    """Phase-2 placeholder (dual-pass validation envelope)."""
+    model_config = ConfigDict(extra="allow")
+
+
+class EngineCrossRegressionResult(BaseModel):
+    """Phase-3 placeholder (cross-primitive regression envelope)."""
+    model_config = ConfigDict(extra="allow")
+
+
+class EngineBacktestResult(BaseModel):
+    """Phase-3 placeholder (historical backtest envelope)."""
+    model_config = ConfigDict(extra="allow")
+
+
+class EngineResponseV1(BaseModel):
+    ok:               Literal[True] = True
+    primitives:       list[EnginePrimitive]
+    overlays:         list[EngineOverlayResult]
+    regression:       Optional[EngineRegressionResult] = None
+    projection:       Optional[EngineProjectionResult] = None
+    diagnostics:      EngineDiagnostics
+    # Reserved — populated by future cards. Default None so existing
+    # consumers can ignore them safely.
+    validation:        Optional[EngineValidationResult]      = None
+    cross_regression:  Optional[EngineCrossRegressionResult] = None
+    backtest:          Optional[EngineBacktestResult]        = None
+
+
+class EnginePrimitiveInput(BaseModel):
+    primitive_id:   Optional[str] = None
+    primitive_type: Optional[EnginePrimitiveTypeLiteral] = "signal"
+    domain:         Optional[str] = "general"
+    source:         Optional[str] = ""
+    content:        Optional[dict] = None
+    pressure:       float
+    flow:           float
+    resistance:     float
+    gradient:       Optional[float] = 0.0
+
+
+class EngineRunRequest(BaseModel):
+    primitives:      list[EnginePrimitiveInput]
+    projection_days: int = 30
+
+
+# Resolve the self-reference on EnginePrimitive.origin_state /
+# historical_states (Pydantic v2 forward-ref pattern).
+EnginePrimitive.model_rebuild()
+
+
+@app.post("/engine/v1/run", response_model=EngineResponseV1)
+def engine_v1_run(
+    req: EngineRunRequest,
+    session: dict = Depends(require_session),
+):
+    """Umbrella Phase-1 engine endpoint.
+
+    Computes per-primitive overlays, runs a primary synthetic-origin
+    regression on the first primitive, and projects it forward.
+    Diagnostics summarise the batch. All math is deterministic and
+    documented in ``engine_v1.py``.
+    """
+    user = session["user"]
+    v29_hardening.enforce_rate_limit(
+        user, "/engine/v1/run",
+        capacity=30, window_s=60.0,
+    )
+    try:
+        payload = engine_v1.run(
+            [p.model_dump() for p in req.primitives],
+            projection_days=req.projection_days,
+        )
+    except ValueError as e:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError("bad_input", str(e))
+        )
+    # Validate on the way out so the wire contract is enforced.
+    return EngineResponseV1.model_validate(payload)
 
 
 # ---------- v45 — Local model runtime (on-device inference) ----------
@@ -11109,6 +11856,17 @@ class V47PostMessageResponse(BaseModel):
     user_message: V47ThreadDetailMessage
     assistant_message: V47ThreadDetailMessage
     model_id: Optional[str] = None
+    # A19 — #cite grounding outcome for THIS turn (additive, read-only).
+    # "grounded" / "incomplete" on a #cite turn, None otherwise. Forwarded
+    # straight from the kernel result; never persisted on the message.
+    grounding_status: Optional[str] = None
+    # A30 — unified directive surface (additive, read-only). ``directives`` is
+    # the list of active directive names this turn ([] when none);
+    # ``directive_metadata`` is the per-directive result map ({} when none).
+    # Forwarded straight from the kernel result; back-compat grounding_status
+    # above is retained (it mirrors directive_metadata["cite"]["status"]).
+    directives: list[str] = []
+    directive_metadata: dict = {}
 
 
 class V47RenameThreadRequest(BaseModel):
@@ -11310,6 +12068,9 @@ def me_threads_post_message(
         user_message=_msg_to_model(out["user_message"]),
         assistant_message=_msg_to_model(out["assistant_message"]),
         model_id=out.get("model_id"),
+        grounding_status=out.get("grounding_status"),  # A19 — additive
+        directives=out.get("directives") or [],                    # A30 — additive
+        directive_metadata=out.get("directive_metadata") or {},    # A30 — additive
     )
 
 
@@ -12449,7 +13210,9 @@ def me_billing(session: dict = Depends(require_session)):
     membership_status = view.get("status")
     if billing_state in ("active",):
         normalised = "active"
-    elif billing_state in ("past_due", "grace_period"):
+    elif billing_state == "grace_period":
+        normalised = "grace_period"
+    elif billing_state == "past_due":
         normalised = "past_due"
     elif billing_state == "cancelled" or membership_status == "cancelled":
         normalised = "canceled"
@@ -15292,7 +16055,13 @@ def elins_regression_diff(
 # ===========================================================================
 @app.get("/health")
 def health():
-    return {"ok": True, "status": "healthy", "version": "4.23"}
+    return {
+        "ok": True,
+        "status": "healthy",
+        "version": "4.24",
+        "branch": os.getenv("BRANCH", "unknown"),
+        "commit_sha": os.getenv("COMMIT_SHA", "unknown"),
+    }
 
 
 @app.get("/")
@@ -15300,12 +16069,14 @@ def root():
     return {
         "ok": True,
         "service": "ClarityOS Cloud",
-        "version": "4.23",
+        "version": "4.24",
         "auth": "POST /login then send X-Session-ID header",
         "endpoints": {
             "POST /login":    "auth (public)",
             "POST /register": "create new user, auto-login (public)",
             "GET  /me":       "current session info (auth)",
+            "POST /auth/enter":  "magic-link request (public; enumeration-safe)",
+            "GET  /auth/verify": "magic-link verify -> session cookie + redirect (public)",
             "GET  /config":   "runtime configuration (auth)",
             "POST /markov":   "Markov engine (auth)",
             "POST /galileo":  "Galileo clarity cycle (auth)",

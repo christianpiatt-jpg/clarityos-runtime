@@ -190,6 +190,35 @@ class TestHappyPath:
         # Newest first → reverse insertion order.
         assert listed == list(reversed(ids))
 
+    def test_list_newest_first_under_clock_collision(self, client, monkeypatch):
+        """Regression guard for the v76 list-ordering flake. Pin the
+        kernel clock so every chain is created with an identical coarse
+        ``created_at`` — the same-millisecond condition that surfaced
+        intermittently on Windows (``time.time()`` ~15ms resolution).
+        Newest-first must still hold via the persisted monotonic ``seq``
+        tiebreak rather than the random UUID ``chain_id``. Before the
+        v77.1 fix this failed deterministically under a pinned clock.
+        """
+        import problem_solver.regression_first as rf
+        monkeypatch.setattr(rf, "_now_ms", lambda: 1_700_000_000_000)
+        _, sid = _make_user("alice")
+        ids = []
+        for n in range(5):
+            r = client.post(
+                "/me/regression_first/start",
+                json={"title": f"chain {n}"},
+                headers=_auth(sid),
+            )
+            assert r.status_code == 200, r.text
+            ids.append(r.json()["chain_id"])
+        r = client.get("/me/regression_first", headers=_auth(sid))
+        assert r.status_code == 200
+        chains = r.json()["chains"]
+        assert [c["chain_id"] for c in chains] == list(reversed(ids))
+        # Confirm the collision really happened (all share created_at),
+        # so the assertion above is exercising the seq tiebreak.
+        assert {c["created_at"] for c in chains} == {1_700_000_000_000}
+
 
 # ===========================================================================
 # B. Session enforcement

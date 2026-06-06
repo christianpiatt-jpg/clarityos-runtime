@@ -1,9 +1,11 @@
 import { Route, Routes } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import RequireAuth from "./components/RequireAuth";
 import Home from "./routes/Home";
 import Login from "./routes/Login";
 import Operator from "./routes/Operator";
+import OperatorConsole from "./routes/OperatorConsole"; // Card 40 — Engine V1 operator console (Phase-1)
 import Sessions from "./routes/Sessions";
 import Continuity from "./routes/Continuity";
 import Markov from "./routes/Markov";
@@ -56,6 +58,7 @@ import CockpitV2 from "./routes/CockpitV2";   // consolidated operator cockpit (
 
 export default function App() {
   return (
+    <ErrorBoundary label="Application error">
     <Routes>
       {/* CockpitV2 — consolidated operator cockpit. Additive + self-gated
           (renders its own login panel); bypasses Layout + RequireAuth so
@@ -86,6 +89,8 @@ export default function App() {
         {/* Authenticated */}
         <Route element={<RequireAuth />}>
           <Route path="/operator" element={<Operator />} />
+          {/* Card 40 — Engine V1 Operator Console (Phase-1 diagnostic panel). */}
+          <Route path="/operator/console" element={<OperatorConsole />} />
           <Route path="/markov" element={<Markov />} />
           <Route path="/account" element={<Account />} />
           {/* bridges — external iframe surface. Layout-wrapped so the
@@ -207,5 +212,6 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
+    </ErrorBoundary>
   );
 }

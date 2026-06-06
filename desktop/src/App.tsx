@@ -21,6 +21,7 @@ import OperatorElinsRollupShell from "./OperatorElinsRollupShell";
 import OperatorTimelineShell from "./OperatorTimelineShell";
 import OrgTimelineShell from "./OrgTimelineShell";
 import RegressionFirstShell from "./RegressionFirstShell";
+import OperatorConsoleShell from "./OperatorConsoleShell"; // Card 40 — Engine V1 operator console
 
 type AuthState =
   | { kind: "probing" }
@@ -58,7 +59,8 @@ type View =
   | "el-ins-rollup"
   | "timeline"
   | "org-timeline"
-  | "regression-first";
+  | "regression-first"
+  | "operator-console";  // Card 40 — Engine V1 operator console (Phase-1)
 
 export default function App() {
   const [auth, setAuth] = useState<AuthState>(
@@ -126,6 +128,7 @@ export default function App() {
     else if (label === "Timeline") setView("timeline");
     else if (label === "Org Timeline") setView("org-timeline");
     else if (label === "Regression First") setView("regression-first");
+    else if (label === "Operator Console") setView("operator-console");
     // Other NavItem labels are static for now (B1 spec).
   };
   const signOut = () => setAuth({ kind: "signed_out" });
@@ -277,6 +280,15 @@ export default function App() {
   if (view === "regression-first") {
     return (
       <RegressionFirstShell
+        onSignOut={signOut}
+        onNavigate={handleNavigate}
+      />
+    );
+  }
+
+  if (view === "operator-console") {
+    return (
+      <OperatorConsoleShell
         onSignOut={signOut}
         onNavigate={handleNavigate}
       />

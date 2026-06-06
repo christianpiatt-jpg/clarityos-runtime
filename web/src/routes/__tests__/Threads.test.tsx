@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
 import type {
+  GroundingStatus,
   ThreadDetail,
   ThreadMessageResult,
   ThreadMeta,
@@ -377,5 +378,141 @@ describe("Threads route", () => {
     expect(
       await screen.findByTestId("thread-list-summary"),
     ).toHaveTextContent("we kicked off the project");
+  });
+
+  // -------------------------------------------------------------------------
+  // A19 — #cite grounding badge (read-only, per-turn)
+  // -------------------------------------------------------------------------
+  async function sendCiteTurn(grounding_status: GroundingStatus | null) {
+    const meta = makeMeta({
+      thread_id: "thr_cite",
+      title: "Cite chat",
+      message_count: 0,
+    });
+    const reply: ThreadMessageResult = {
+      meta: { ...meta, message_count: 2, updated_at: meta.updated_at + 1000 },
+      user_message: { role: "user", content: "#cite who?", ts_ms: 100, model: null },
+      assistant_message: {
+        role: "assistant",
+        content: "According to the report, the answer is given.",
+        ts_ms: 101,
+        model: "anthropic:claude-3.7",
+      },
+      model_id: "anthropic:claude-3.7",
+      grounding_status,
+    };
+    mockListThreads.mockResolvedValue([meta]);
+    mockGetThread.mockResolvedValue(makeDetail(meta, []));
+    mockPostThreadMessage.mockResolvedValue(reply);
+
+    const user = userEvent.setup();
+    render(<MemoryRouter><Threads /></MemoryRouter>);
+    await screen.findByText("Cite chat");
+    await user.click(screen.getByRole("button", { name: /Open thread Cite chat/i }));
+    const composer = await screen.findByLabelText("Compose message");
+    await user.type(composer, "#cite who?");
+    await user.click(screen.getByRole("button", { name: /^SEND$/ }));
+  }
+
+  test("A19: grounded reply shows a 'Grounding: OK' badge", async () => {
+    await sendCiteTurn("grounded");
+    const badge = await screen.findByTestId("grounding-badge");
+    expect(badge).toHaveTextContent(/Grounding: OK/i);
+    expect(badge).toHaveAttribute("data-grounding", "grounded");
+  });
+
+  test("A19: incomplete reply shows a 'Grounding: Incomplete' badge", async () => {
+    await sendCiteTurn("incomplete");
+    const badge = await screen.findByTestId("grounding-badge");
+    expect(badge).toHaveTextContent(/Grounding: Incomplete/i);
+    expect(badge).toHaveAttribute("data-grounding", "incomplete");
+  });
+
+  test("A19: non-#cite reply (null grounding_status) renders no badge", async () => {
+    await sendCiteTurn(null);
+    // The assistant reply itself renders…
+    expect(
+      await screen.findByText("According to the report, the answer is given."),
+    ).toBeInTheDocument();
+    // …but there is no grounding badge.
+    expect(screen.queryByTestId("grounding-badge")).toBeNull();
+  });
+
+  test("A19: badge sits alongside the model footer, not replacing it", async () => {
+    await sendCiteTurn("grounded");
+    expect(await screen.findByTestId("assistant-model")).toHaveTextContent(
+      "anthropic:claude-3.7",
+    );
+    expect(screen.getByTestId("grounding-badge")).toBeInTheDocument();
+  });
+
+  // -------------------------------------------------------------------------
+  // A30 — unified directive badges (read-only, per-turn)
+  // -------------------------------------------------------------------------
+  async function sendDirectiveTurn(extra: Partial<ThreadMessageResult>) {
+    const meta = makeMeta({ thread_id: "thr_dir", title: "Dir chat", message_count: 0 });
+    const reply: ThreadMessageResult = {
+      meta: { ...meta, message_count: 2, updated_at: meta.updated_at + 1000 },
+      user_message: { role: "user", content: "#structure go", ts_ms: 100, model: null },
+      assistant_message: {
+        role: "assistant", content: "- a\n- b", ts_ms: 101, model: "anthropic:claude-3.7",
+      },
+      model_id: "anthropic:claude-3.7",
+      ...extra,
+    };
+    mockListThreads.mockResolvedValue([meta]);
+    mockGetThread.mockResolvedValue(makeDetail(meta, []));
+    mockPostThreadMessage.mockResolvedValue(reply);
+
+    const user = userEvent.setup();
+    render(<MemoryRouter><Threads /></MemoryRouter>);
+    await screen.findByText("Dir chat");
+    await user.click(screen.getByRole("button", { name: /Open thread Dir chat/i }));
+    const composer = await screen.findByLabelText("Compose message");
+    await user.type(composer, "#structure go");
+    await user.click(screen.getByRole("button", { name: /^SEND$/ }));
+  }
+
+  test("A30: a non-cite directive renders a directive badge", async () => {
+    await sendDirectiveTurn({
+      directives: ["structure"],
+      directive_metadata: { structure: { status: "formatted", changed: true } },
+    });
+    const badge = await screen.findByTestId("directive-badge");
+    expect(badge).toHaveTextContent(/Structure: formatted/i);
+    expect(badge).toHaveAttribute("data-directive", "structure");
+  });
+
+  test("A30: cite keeps the grounding badge and is NOT double-rendered", async () => {
+    await sendDirectiveTurn({
+      grounding_status: "grounded",
+      directives: ["cite"],
+      directive_metadata: { cite: { status: "grounded", retry_used: false } },
+    });
+    expect(await screen.findByTestId("grounding-badge")).toBeInTheDocument();
+    // cite is excluded from the generic directive badges (no duplicate).
+    expect(screen.queryByTestId("directive-badge")).toBeNull();
+  });
+
+  test("A30: stacked cite + structure render both badge kinds", async () => {
+    await sendDirectiveTurn({
+      grounding_status: "grounded",
+      directives: ["cite", "structure"],
+      directive_metadata: {
+        cite: { status: "grounded", retry_used: false },
+        structure: { status: "formatted", changed: true },
+      },
+    });
+    expect(await screen.findByTestId("grounding-badge")).toBeInTheDocument();
+    expect(await screen.findByTestId("directive-badge")).toHaveAttribute(
+      "data-directive", "structure",
+    );
+  });
+
+  test("A30: no directives -> no directive badges (model footer still shows)", async () => {
+    await sendDirectiveTurn({ directives: [], directive_metadata: {} });
+    expect(await screen.findByTestId("assistant-model")).toBeInTheDocument();
+    expect(screen.queryByTestId("directive-badge")).toBeNull();
+    expect(screen.queryByTestId("grounding-badge")).toBeNull();
   });
 });

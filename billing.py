@@ -140,5 +140,16 @@ def verify_webhook(payload: bytes, sig_header: str) -> Optional[dict]:
     try:
         return stripe.Webhook.construct_event(payload, sig_header, secret)
     except Exception as e:
-        logger.warning("stripe webhook signature verification failed: %s", e)
+        # Log a NON-sensitive fingerprint so a live bad_signature can be triaged
+        # without exposing the secret or payload. A wrong/quoted secret shows up
+        # as an off secret_prefix/secret_len or a secret_fp that differs from the
+        # endpoint's expected fingerprint; an empty payload or missing sig points
+        # at a body/middleware problem instead (not the case for this handler).
+        import hashlib
+        secret_fp = hashlib.sha256(secret.encode("utf-8")).hexdigest()[:9] if secret else "none"
+        logger.warning(
+            "stripe webhook signature verification failed: %s "
+            "(payload_len=%d sig_present=%s secret_len=%d secret_prefix=%r secret_fp=%s)",
+            e, len(payload or b""), bool(sig_header), len(secret), secret[:6], secret_fp,
+        )
         return None

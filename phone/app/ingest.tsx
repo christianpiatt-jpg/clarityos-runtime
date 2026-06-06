@@ -23,12 +23,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { colors, geometry, spacing, typography } from "../lib/designSystem";
-import { routeModelRequest, type ModelId } from "../lib/modelRouter";
+import { probeModelSelection, routeModelRequest } from "../lib/modelRouter";
 import { runLangbridg } from "../lib/langbridg";
 import { transform } from "../lib/clarity";
 import { clarityPayloadFrom, saveNote, type VaultClarityPayload } from "../lib/vault";
 
-const DEFAULT_MODEL: ModelId = "copilot";
+// `as const`: literal "copilot" satisfies both ModelId and ProviderId.
+const DEFAULT_MODEL = "copilot" as const;
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 const DAY_MS = 86_400_000;
 
@@ -158,6 +159,13 @@ export default function IngestScreen() {
       .sort((a, b) => b.timestamp - a.timestamp);
     const inWindow = entries.filter((e) => e.timestamp >= cutoff);
     setSkippedOld(entries.length - inWindow.length);
+
+    // Card 19.2: fire-and-forget probe ONCE per ingest run (not per
+    // entry) so a 90-day window doesn't generate 100+ probe calls.
+    // Intent is the operation bucket ("ELINS"), not the raw note text.
+    void probeModelSelection("ELINS").then((sel) => {
+      if (sel) console.log("[card19.2] ingest model selection:", sel);
+    });
 
     // 5. Pipeline (in reverse-chronological order)
     const out: ProcessedEntry[] = [];

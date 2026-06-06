@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -27,6 +28,16 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       sourcemap: true,
       emptyOutDir: true,
+    },
+    // Card 8.5a — vitest harness, mirroring the web client. Tests run in
+    // jsdom so the console's mount-time fetch + React state work the same
+    // way they do in the renderer. Component tests live in src/**/*.test.tsx.
+    test: {
+      environment: "jsdom",
+      globals: true,
+      setupFiles: ["./src/setupTests.ts"],
+      include: ["src/**/*.test.{ts,tsx}"],
+      css: false,
     },
   };
 });

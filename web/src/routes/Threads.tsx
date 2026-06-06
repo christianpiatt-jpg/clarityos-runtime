@@ -20,6 +20,8 @@ import {
   postThreadMessage,
   renameThread,
   summarizeThread,
+  type DirectiveMeta,
+  type GroundingStatus,
   type ThreadMessage,
   type ThreadMeta,
 } from "../lib/api";
@@ -34,6 +36,16 @@ import WebShell from "../components/WebShell";
 import ElinsV2View from "../components/v1/ElinsV2View/ElinsV2View";
 import EmotionalPhysicsView from "../components/v1/EmotionalPhysicsView/EmotionalPhysicsView";
 
+// A19/A30 — view-model: a thread message plus the per-turn directive surface.
+// grounding_status (cite, A19) + directive_metadata (all directives, A30) ride
+// on the live POST response, not on the stored message, so they're present
+// only for turns sent this session and absent for messages rehydrated via
+// getThread.
+type ChatMessage = ThreadMessage & {
+  grounding_status?: GroundingStatus | null;
+  directive_metadata?: Record<string, DirectiveMeta> | null;
+};
+
 // ---------- Auth subscription (mirrors Layout.tsx pattern) ----------
 function useAuth() {
   return useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
@@ -46,7 +58,7 @@ export default function Threads() {
   const [threads, setThreads] = useState<ThreadMeta[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeMeta, setActiveMeta] = useState<ThreadMeta | null>(null);
-  const [messages, setMessages] = useState<ThreadMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const [listLoading, setListLoading] = useState(true);
   const [threadLoading, setThreadLoading] = useState(false);
@@ -170,7 +182,17 @@ export default function Threads() {
     try {
       const r = await postThreadMessage(selectedId, trimmed);
       setActiveMeta(r.meta);
-      setMessages((cur) => [...cur, r.user_message, r.assistant_message]);
+      // A19 — carry the turn's grounding outcome onto the assistant
+      // message so Bubble can render the badge. null on non-#cite turns.
+      setMessages((cur) => [
+        ...cur,
+        r.user_message,
+        {
+          ...r.assistant_message,
+          grounding_status: r.grounding_status ?? null,
+          directive_metadata: r.directive_metadata ?? null,
+        },
+      ]);
       setComposer("");
       setThreads((cur) => {
         const others = cur.filter((t) => t.thread_id !== r.meta.thread_id);
@@ -774,7 +796,7 @@ export default function Threads() {
 }
 
 // ---------------- Sub-components ----------------
-function Bubble({ message }: { message: ThreadMessage }) {
+function Bubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
   const wrapperStyle: React.CSSProperties = {
@@ -798,20 +820,107 @@ function Bubble({ message }: { message: ThreadMessage }) {
   return (
     <div style={wrapperStyle} data-role={message.role}>
       <div style={bubbleStyle}>{message.content}</div>
-      {isAssistant && message.model ? (
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            color: "var(--color-text-secondary)",
-            marginTop: 2,
-          }}
-          data-testid="assistant-model"
-        >
-          {message.model}
-        </span>
+      {isAssistant && (message.model || message.grounding_status ||
+        (message.directive_metadata &&
+          Object.keys(message.directive_metadata).some((k) => k !== "cite"))) ? (
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 2 }}>
+          {message.model ? (
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                color: "var(--color-text-secondary)",
+              }}
+              data-testid="assistant-model"
+            >
+              {message.model}
+            </span>
+          ) : null}
+          {/* A19 — #cite grounding badge (read-only, this-turn only) */}
+          <GroundingBadge status={message.grounding_status} />
+          {/* A30 — unified badges for the other active directives */}
+          {message.directive_metadata
+            ? Object.keys(message.directive_metadata)
+                .filter((k) => k !== "cite")
+                .map((name) => (
+                  <DirectiveBadge
+                    key={name}
+                    name={name}
+                    status={(message.directive_metadata?.[name]?.status as string | null) ?? null}
+                  />
+                ))
+            : null}
+        </div>
       ) : null}
     </div>
+  );
+}
+
+// A19 — small read-only badge surfacing the #cite grounding outcome.
+// Renders nothing for non-#cite turns (null/undefined). Colors follow the
+// A19 card: OK → #2ECC71, Incomplete → #E74C3C. (A18 emits only these two
+// states; there is no distinct "retried" status to show.)
+function GroundingBadge({ status }: { status?: GroundingStatus | null }) {
+  if (status !== "grounded" && status !== "incomplete") return null;
+  const ok = status === "grounded";
+  const color = ok ? "#2ECC71" : "#E74C3C";
+  const label = ok ? "Grounding: OK" : "Grounding: Incomplete";
+  const tip = ok
+    ? "Output passed grounding validation."
+    : "Grounding failed after retry cap.";
+  return (
+    <span
+      data-testid="grounding-badge"
+      data-grounding={status}
+      title={tip}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        color,
+        border: `1px solid ${color}`,
+        borderRadius: 3,
+        padding: "0 6px",
+        lineHeight: "16px",
+        letterSpacing: "0.04em",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+// A30 — unified read-only badge for a non-cite directive (cite keeps its own
+// GroundingBadge above). Renders "<Label>: <status>" in the accent color.
+const _DIRECTIVE_LABEL: Record<string, string> = {
+  structure: "Structure",
+  primitives: "Primitives",
+  regression: "Regression",
+  compare: "Compare",
+  reduce: "Reduce",
+  operator: "Operator",
+};
+function DirectiveBadge({ name, status }: { name: string; status?: string | null }) {
+  const label = _DIRECTIVE_LABEL[name] ?? name;
+  const text = status ? `${label}: ${status}` : label;
+  return (
+    <span
+      data-testid="directive-badge"
+      data-directive={name}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        color: "var(--color-accent-cyan)",
+        border: "1px solid var(--color-accent-cyan)",
+        borderRadius: 3,
+        padding: "0 6px",
+        lineHeight: "16px",
+        letterSpacing: "0.04em",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {text}
+    </span>
   );
 }
 

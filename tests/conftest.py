@@ -17,6 +17,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 os.environ.setdefault("CLARITYOS_BACKEND", "memory")
+# Phase 7 telemetry (phase7_storage) selects its in-memory backend when
+# TESTING=1, mirroring Phase 7.0's ephemeral store so the suite never writes
+# durable JSONL into data/telemetry/. TESTING is unused elsewhere in the repo.
+os.environ.setdefault("TESTING", "1")
 os.environ.setdefault("CLARITYOS_ADMIN_USER", "admin")
 os.environ.setdefault("CLARITYOS_ADMIN_PASSWORD", "test_admin_password_123")
 # v31 — billing test defaults. Mock mode + auto-confirm keeps the v30
@@ -31,6 +35,12 @@ os.environ.setdefault("CLARITYOS_LOG_LEVEL", "WARNING")
 # daemon thread on every import. Tests drive _run_macro_elins_once
 # directly when they need to exercise the pipeline.
 os.environ.setdefault("CLARITYOS_DISABLE_MACRO_SCHEDULER", "1")
+# Auth brute-force throttle (app._throttle_auth) is enforced in production
+# but disabled for the suite: every test shares one ASGI client IP, so
+# cumulative /login + /register calls would otherwise drain a per-IP token
+# bucket and spuriously 429 unrelated tests. test_auth_rate_limit.py
+# re-enables it via monkeypatch to exercise the enforced path.
+os.environ.setdefault("CLARITYOS_DISABLE_AUTH_RATE_LIMIT", "1")
 # memory_vault no longer has a built-in default secret — _secret() raises
 # if CLARITYOS_VAULT_SECRET is unset. Production mounts it from Google
 # Secret Manager; the test harness pins a fixed throwaway value so every
@@ -115,6 +125,7 @@ def reset_stores():
     just ``def test_x(reset_stores): ...`` and rely on a clean slate."""
     import users_store
     import sessions_store
+    import auth_magiclink
     import vault_store
     import library_store
     import timeline_store
@@ -139,7 +150,7 @@ def reset_stores():
     # feeds between cases.
     from ELINS import ingestion_bus as _ib
     for mod in (
-        users_store, sessions_store, vault_store, library_store, timeline_store,
+        users_store, sessions_store, auth_magiclink, vault_store, library_store, timeline_store,
         usage_store, elins_distribution_store, mesh_metadata_store,
         envelopes_store, markov_states_store, dewey_neighborhoods_store,
         dewey_memberships_store, membership_store, waitlist_store,

@@ -46,6 +46,7 @@ from ELINS import (
     standard_elins,
 )
 import comment_generator
+import directive_engine             # A21/A28 — unified directive engine
 import elins_entity_graph
 import elins_scheduler_config
 import kernel_logging
@@ -823,6 +824,16 @@ def run_thread_message(
     match the thread's stored project_id, ``ValueError`` is raised
     so the app layer can map to 400.
 
+    A28: when ``content`` begins with a directive run (#cite, #structure,
+    #primitives, #regression, #compare, #reduce, #operator) the tokens are
+    stripped (consumed this turn only) and routed through the unified
+    ``directive_engine``: pre-enforcement may rewrite the prompt;
+    post-enforcement may transform the reply and (for #cite) trigger one
+    capped re-query. The return dict carries ``directives`` +
+    ``directive_metadata``; ``#cite`` additionally surfaces
+    ``grounding_status`` ("grounded"/"incomplete") for A18/A19/A20
+    back-compat. Non-directive turns are unaffected.
+
     Returns::
 
         {
@@ -843,6 +854,20 @@ def run_thread_message(
     text = content.strip()
     if not text:
         raise ValueError("content must be a non-empty string after stripping")
+
+    # A28 — unified directive engine. Detect + strip the leading directive
+    # run BEFORE we persist or build context, so directives are consumed this
+    # turn only (word-bounded + one-shot) and never stored or re-fired on a
+    # later turn. Pre-enforcement may rewrite the prompt text (no-op for all
+    # current directives). Non-directive turns are wholly untouched.
+    directives = directive_engine.parse_directives(text)
+    if directives.active:
+        text = directives.text.strip()
+        if not text:
+            raise ValueError(
+                "content must be a non-empty string after stripping the directive",
+            )
+        text = directive_engine.apply_pre_enforcement(directives, text)
 
     started = time.perf_counter()
 
@@ -910,6 +935,37 @@ def run_thread_message(
 
     response = model_router.route_request(model_id, prompt)
     assistant_text = str(response.get("text") or "").strip()
+
+    # A28 — unified directive post-enforcement. The engine validates/transforms
+    # the reply per active directive and signals at most one capped re-query
+    # (today only #cite retries). Non-directive turns skip this entirely.
+    #   directive_metadata : per-directive results (functional payload)
+    #   retry_used         : did the single capped re-query fire? (A20 telemetry)
+    #   grounding_status   : derived from the #cite directive (A18/A19/A20
+    #                        back-compat — preserved on the return dict + log)
+    directive_metadata: dict = {}
+    retry_used = False
+    grounding_status: Optional[str] = None
+    if directives.active:
+        final_output, dmeta = directive_engine.apply_post_enforcement(
+            directives, assistant_text,
+        )
+        if dmeta.retry_needed:
+            retry_used = True
+            retry_prompt = prompt
+            if dmeta.retry_instruction:
+                retry_prompt = f"{prompt}\n\n{dmeta.retry_instruction}"
+            retry_response = model_router.route_request(model_id, retry_prompt)
+            retry_output = str(retry_response.get("text") or "").strip() or final_output
+            final_output, dmeta = directive_engine.apply_post_enforcement(
+                directives, retry_output, retry_used=True,
+            )
+        assistant_text = final_output
+        directive_metadata = dmeta.to_dict()
+        cite_meta = directive_metadata.get("cite")
+        if cite_meta:
+            grounding_status = cite_meta.get("status")
+
     if not assistant_text:
         # Defence-in-depth: never persist an empty assistant turn —
         # tag explicitly so the UI can surface "no reply".
@@ -1026,6 +1082,13 @@ def run_thread_message(
             "user_content_len":  len(user_msg_saved.get("content") or ""),
             "assistant_content_len": len(assistant_msg_saved.get("content") or ""),
             "reasoning_mode":    reasoning_mode,  # v71 / Unit 79 — None when per-turn off
+            "grounding_status":  grounding_status,  # A18/A19 — derived from #cite
+            "retry_used":        retry_used,        # A20 — capped re-query fired this turn
+            # A28 — directive NAMES only (content-free). The full
+            # directive_metadata is deliberately NOT logged: e.g. #compare's
+            # metadata carries target names (content), and telemetry stays
+            # content-free per A20/A24/A25.
+            "directives":        directives.directives,
         },
     )
 
@@ -1039,6 +1102,14 @@ def run_thread_message(
         # v72 / Unit 80 — additive. Empty list when no anomalies fired
         # or when EL/INS per-turn is off.
         "anomalies":         anomalies_emitted,
+        # A18/A19 — additive. None unless this turn carried a #cite directive;
+        # "grounded"/"incomplete" otherwise. Derived from the engine's #cite
+        # metadata (the bespoke inline grounding path was retired in A28).
+        "grounding_status":  grounding_status,
+        # A28 — additive. Active directive names + per-directive metadata
+        # (functional payload; [] / {} on non-directive turns).
+        "directives":        directives.directives,
+        "directive_metadata": directive_metadata,
     }
 
 

@@ -831,3 +831,33 @@ def _reset_for_tests() -> None:
         # each test that toggles CLARITYOS_VAULT_PLAINTEXT can observe
         # the warning emission contract from a clean baseline.
         _PLAINTEXT_WARNING_EMITTED = False
+
+
+# ---------------------------------------------------------------------------
+# Readiness probe (v0.3.11 — Card 16)
+# ---------------------------------------------------------------------------
+def is_ready(user_id: str | None = None) -> bool:
+    """Cheap, non-throwing readiness check for the memory vault.
+
+    Returns ``True`` when the vault subsystem is configured well enough
+    to derive a per-user key (i.e. ``CLARITYOS_VAULT_SECRET`` is set
+    and the PBKDF2 derivation succeeds). Returns ``False`` otherwise —
+    never raises.
+
+    Callers (notably ``/me`` in app.py) use this to surface a
+    ``vault_ready`` boolean to the client instead of letting a
+    ``RuntimeError`` bubble all the way up to a FastAPI 500.
+
+    If ``user_id`` is provided, the full key derivation is exercised
+    (which validates both the master secret AND the user-id shape).
+    If ``user_id`` is None, only the master-secret presence is
+    checked (cheaper; useful for global readiness probes).
+    """
+    try:
+        if user_id is None:
+            _secret()
+        else:
+            _derive_key(user_id)
+        return True
+    except Exception:
+        return False

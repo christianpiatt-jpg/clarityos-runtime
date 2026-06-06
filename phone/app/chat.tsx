@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, Stack } from "expo-router";
 import ModelSelector, { Model } from "../components/ModelSelector";
 import { colors, geometry, spacing, typography } from "../lib/designSystem";
-import { routeModelRequest, type ModelId } from "../lib/modelRouter";
+import { probeCompleteText, probeModelSelection, routeModelRequest, type ModelId } from "../lib/modelRouter";
 import { runLangbridg, type ClarityObject } from "../lib/langbridg";
 import { transform } from "../lib/clarity";
 import { clearInterrupted, markInterrupted } from "../lib/continuity";
@@ -85,6 +85,33 @@ export default function ChatScreen() {
     await markInterrupted(id);
 
     try {
+      // Card 19.2: fire-and-forget probe of the real backend model
+      // router. Intent is the operation bucket ("thread"), not the raw
+      // user text — keeps user content out of the intent string and
+      // resolves to a meaningful task bucket server-side.
+      //
+      // Card 19.5: hybrid mode — when the probe resolves, also
+      // fire-and-forget a real /model/complete call against the
+      // canonical model the backend chose. The mock completion below
+      // still drives the UI; the real completion is observability
+      // only. We log shape (mock flag, elapsed, text length) — never
+      // raw text — so neither user input nor model output lands in
+      // logs.
+      void probeModelSelection("thread").then((sel) => {
+        if (!sel) return;
+        console.log("[card19.2] chat model selection:", sel);
+        void probeCompleteText(sel.model, text).then((real) => {
+          if (real) {
+            console.log("[card19.5] chat real completion:", {
+              model: real.model,
+              provider: real.provider,
+              mock: real.mock,
+              elapsed_ms: real.elapsed_ms,
+              text_len: real.text.length,
+            });
+          }
+        });
+      });
       const r = await routeModelRequest(toModelId(engineUsed), text);
       if (!r.ok) throw new Error(`${r.code}: ${r.error}`);
       const clarity = await runLangbridg(r.raw);

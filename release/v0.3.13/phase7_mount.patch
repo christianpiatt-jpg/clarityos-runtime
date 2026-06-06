@@ -1,0 +1,39 @@
+diff --git a/app.py b/app.py
+index b50eadf..6adf084 100644
+--- a/app.py
++++ b/app.py
+@@ -214,6 +215,19 @@ except ImportError:
+     pass
+ # ----- /ACCEPTANCE -----
+ 
++# ----- Phase 7 (Card 7.2A) — operator telemetry read endpoint -----
++# Exposes GET /operator/telemetry (read-only) so the Operator Console
++# surfaces can render the durable Phase 7 drift/trust telemetry (Card 7.1).
++# Self-contained router in phase7_endpoint.py — imports only the flat-root
++# phase7_* modules, no runtime-spine/vault contact. Same try/except mount
++# pattern as the routers above.
++try:
++    from phase7_endpoint import router as phase7_telemetry_router  # noqa: E402
++    app.include_router(phase7_telemetry_router)
++except ImportError:
++    pass
++# ----- /Phase 7 -----
++
+ # ----- v60 / Unit 41 — HTTP runtime surface -----
+ # Exposes POST /operator/session/start and /step, wrapping the Unit 40
+ # session_loop façade. No persistence — clients own session_state. Same
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 29479a1..b4f4600 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -17,6 +17,10 @@ if str(REPO_ROOT) not in sys.path:
+     sys.path.insert(0, str(REPO_ROOT))
+ 
+ os.environ.setdefault("CLARITYOS_BACKEND", "memory")
++# Phase 7 telemetry (phase7_storage) selects its in-memory backend when
++# TESTING=1, mirroring Phase 7.0's ephemeral store so the suite never writes
++# durable JSONL into data/telemetry/. TESTING is unused elsewhere in the repo.
++os.environ.setdefault("TESTING", "1")
+ os.environ.setdefault("CLARITYOS_ADMIN_USER", "admin")
+ os.environ.setdefault("CLARITYOS_ADMIN_PASSWORD", "test_admin_password_123")
+ # v31 — billing test defaults. Mock mode + auto-confirm keeps the v30

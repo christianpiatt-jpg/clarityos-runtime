@@ -47,10 +47,14 @@ export default function MeBillingBadge() {
 
 function StatusPill({ status }: { status: V42MeBilling["status"] }) {
   const palette: Record<string, [string, string]> = {
-    active:    ["#15803d", "#fff"],
-    past_due:  ["#b45309", "#fff"],
-    canceled:  ["#6b7280", "#fff"],
-    none:      ["#374151", "#fff"],
+    active:       ["#15803d", "#fff"],   // green
+    past_due:     ["#b45309", "#fff"],   // amber
+    grace_period: ["#b45309", "#fff"],   // amber (defensive — /me/billing currently
+                                         // collapses grace_period into past_due, so
+                                         // this only renders if that changes upstream)
+    canceled:     ["#6b7280", "#fff"],   // gray
+    failed:       ["#dc2626", "#fff"],   // red — A-WEB-CLARITY-2 (backend surfaces "failed")
+    none:         ["#374151", "#fff"],
   };
   const [bg, fg] = palette[status] || palette.none;
   return (

@@ -10,9 +10,12 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 SERVICE="clarity-engine"
-REGION="us-east4"
+REGION="us-central1"
+PROJECT="founding-os"
 
 BUILD_TAG="$(date -u +%Y%m%d%H%M%S)"
+COMMIT_SHA="$(git rev-parse HEAD)"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 echo "$BUILD_TAG" > BUILD_VERSION
 
 cat <<EOF
@@ -27,9 +30,11 @@ EOF
 
 gcloud run deploy "$SERVICE" \
     --source . \
+    --project "$PROJECT" \
     --region "$REGION" \
     --platform managed \
     --allow-unauthenticated \
+    --set-env-vars "BUILD_TAG=$BUILD_TAG,COMMIT_SHA=$COMMIT_SHA,BRANCH=$BRANCH" \
     --port 8080
 
 cat <<EOF

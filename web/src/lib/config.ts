@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-const DEFAULT_API_BASE = "https://clarity-engine-PLACEHOLDER.run.app";
+const DEFAULT_API_BASE = import.meta.env.VITE_API_BASE ?? "/api";
 
 function resolveBase(): string {
   try {

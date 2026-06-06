@@ -2,6 +2,132 @@
 // text. v1 runs in STUB mode: no network, no API keys, deterministic
 // mock replies. Real implementations slot into the per-model functions
 // without changing the public contract.
+//
+// Card 19.1: ``selectModel`` (below) is an additive wrapper over the
+// new backend /model/route endpoint. It returns a *selection* result
+// (which model_id + why), not a completion. The mock completion path
+// (``routeModelRequest``, ``sendTo*``, ``RouterResult``) is preserved
+// because chat.tsx + ingest.tsx still depend on ``r.raw`` for their
+// langbridg pipeline. The two surfaces will be reconciled in a later
+// card once a real backend completion endpoint exists.
+
+import { request } from "./api";
+import { CLOUD_ROUTES } from "./cloud/config";
+
+export interface ModelSelectionResult {
+  model: string;
+  reason: string;
+  operator: boolean;
+}
+
+interface ModelRouteResponse extends ModelSelectionResult {
+  ok: true;
+}
+
+/**
+ * Call the backend /model/route adapter (Card 19) to resolve which
+ * model_id to use for a given intent. Returns the canonical backend
+ * model_id (e.g. ``"openai:gpt-4o"``), the precedence reason
+ * (``"override" | "founder_default" | "user_preference" | "task_default" | "fallback"``),
+ * and the Card 18 operator flag.
+ *
+ * Throws ``ApiError`` (from lib/api) on auth / network / 4xx / 5xx.
+ * No callsites yet — exposed for future integration.
+ */
+export async function selectModel(
+  intent: string,
+  context: Record<string, unknown> = {},
+  override?: string,
+): Promise<ModelSelectionResult> {
+  const res = await request<ModelRouteResponse>(CLOUD_ROUTES.modelProxy, {
+    method: "POST",
+    body: { intent, context, ...(override ? { override } : {}) },
+  });
+  return {
+    model: res.model,
+    reason: res.reason,
+    operator: res.operator,
+  };
+}
+
+/**
+ * Card 19.3: probe result enriched with the simplified ``ModelId``
+ * the backend's canonical id maps to (or ``null`` when no mapping
+ * exists — surfaces backend additions that the phone hasn't taught
+ * itself about yet).
+ */
+export interface ProbedModelSelection extends ModelSelectionResult {
+  simplifiedModel: ModelId | null;
+}
+
+/**
+ * Card 19.2: non-throwing observability probe over ``selectModel``.
+ * Returns ``null`` on any failure (no session, network, 4xx/5xx). Use
+ * fire-and-forget at callsites so the user-facing path is never
+ * delayed or destabilised by the probe.
+ *
+ * Card 19.3: enriches the response with ``simplifiedModel`` so callers
+ * see both the canonical backend id (``"openai:gpt-4o"``) and the
+ * phone's simplified id (``"chatgpt"``) in one round-trip.
+ */
+export async function probeModelSelection(
+  intent: string,
+): Promise<ProbedModelSelection | null> {
+  try {
+    const res = await selectModel(intent);
+    return { ...res, simplifiedModel: mapCanonicalToModelId(res.model) };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Card 19.5: real-text completion result from the backend.
+ * ``mock`` is true when the server's provider key is unset and the
+ * router fell back to its deterministic stub.
+ */
+export interface CompletionResult {
+  ok: true;
+  model: CanonicalModelId;
+  text: string;
+  elapsed_ms: number;
+  mock: boolean;
+  provider: string | null;
+}
+
+/**
+ * Card 19.5: call the backend ``/model/complete`` adapter for real
+ * text generation. Throws ``ApiError`` on auth / network / 4xx / 5xx
+ * (including 429 rate-limit). Callers should typically fire-and-forget
+ * so a slow provider doesn't block the user-facing path; use
+ * ``probeCompleteText`` when you want the swallowed-error variant.
+ */
+export async function completeText(
+  model: CanonicalModelId,
+  prompt: string,
+): Promise<CompletionResult> {
+  return request<CompletionResult>(CLOUD_ROUTES.modelComplete, {
+    method: "POST",
+    body: { model, prompt },
+  });
+}
+
+/**
+ * Card 19.5: non-throwing wrapper over ``completeText``. Returns
+ * ``null`` on any failure (no session, network, 4xx/5xx, rate-limit).
+ * Use this for hybrid-mode observability where the real completion
+ * is best-effort and must never crash the user path.
+ */
+export async function probeCompleteText(
+  model: CanonicalModelId,
+  prompt: string,
+): Promise<CompletionResult | null> {
+  try {
+    return await completeText(model, prompt);
+  } catch {
+    return null;
+  }
+}
 
 export type ModelId =
   | "copilot"
@@ -10,6 +136,57 @@ export type ModelId =
   | "gemini"
   | "grok"
   | "local";
+
+// Card 19.3: a canonical backend model id (e.g. ``"openai:gpt-4o"``).
+// Kept as ``string`` for forward-compatibility so the backend can add
+// new ids without a phone-side type update — the runtime mapping below
+// gates which ones the phone knows how to translate.
+export type CanonicalModelId = string;
+
+/**
+ * Card 19.3: authoritative map from canonical backend model ids →
+ * phone's simplified ``ModelId`` enum.
+ *
+ * Entries are restricted to ids that actually exist in the backend's
+ * ``MODEL_REGISTRY`` (model_router.py). Speculative entries (e.g.
+ * future Claude / GPT versions) are deliberately omitted so that when
+ * the backend ships a new id, ``mapCanonicalToModelId`` returns
+ * ``null`` and the gap is visible in observability logs instead of
+ * being silently masked.
+ */
+export const canonicalModelMap: Record<CanonicalModelId, ModelId> = {
+  "openai:gpt-4o":          "chatgpt",
+  "openai:gpt-4o-mini":     "chatgpt",
+  "anthropic:claude-3.7":   "claude",
+  "google:gemini-2.0-flash": "gemini",
+  "xai:groq-llama":         "grok",
+  "local:llama3.1":         "local",
+};
+
+/**
+ * Card 19.3: forward lookup — backend canonical id → phone ``ModelId``.
+ * Returns ``null`` when the backend id has no phone mapping yet
+ * (intentional: surfaces drift instead of hiding it).
+ */
+export function mapCanonicalToModelId(
+  canonical: CanonicalModelId,
+): ModelId | null {
+  return canonicalModelMap[canonical] ?? null;
+}
+
+/**
+ * Card 19.3: reverse lookup — phone ``ModelId`` → every backend
+ * canonical id that maps to it. Returns ``[]`` when the phone enum
+ * has no matching backend id. Multiple-to-one is expected (e.g. both
+ * ``openai:gpt-4o`` and ``openai:gpt-4o-mini`` map to ``"chatgpt"``).
+ */
+export function mapModelIdToCanonical(
+  model: ModelId,
+): CanonicalModelId[] {
+  return Object.entries(canonicalModelMap)
+    .filter(([, v]) => v === model)
+    .map(([k]) => k);
+}
 
 export type RouterErrorCode =
   | "no_credentials"

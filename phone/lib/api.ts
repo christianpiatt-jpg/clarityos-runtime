@@ -79,7 +79,7 @@ export class ApiError extends Error {
 
 type ReqOpts = { method?: string; body?: unknown; auth?: boolean };
 
-async function request<T = any>(path: string, opts: ReqOpts = {}): Promise<T> {
+export async function request<T = any>(path: string, opts: ReqOpts = {}): Promise<T> {
   const { method = "GET", body, auth = true } = opts;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
@@ -547,7 +547,7 @@ export interface V33ELINSObject {
     days: number;
     version: string;
   };
-  synthesis: { top_primitive: string; top_primitive_intensity: number; domain: string | null; signal: string; trend: string; stress_score: number; relief_score: number };
+  synthesis: { top_primitive: string; top_primitive_intensity: number; domain: string | null; signal: string; trend: string; stress_score: number; relief_score: number; external_anchors?: string[] };
   qc_s_elins: { self_check: string; max_delta: number; deltas: Record<string, number> };
   output_object: { scenario_id: string; summary: Record<string, unknown>; ts: number; version: string };
   layer_names: string[];
@@ -1147,11 +1147,22 @@ export interface ThreadDetail {
   messages: ThreadMessage[];
 }
 
+// A30 — per-directive result (status + directive-specific fields).
+export type GroundingStatus = "grounded" | "incomplete";
+export interface DirectiveMeta {
+  status?: string | null;
+  [k: string]: unknown;
+}
+
 export interface ThreadMessageResult {
   meta: ThreadMeta;
   user_message: ThreadMessage;
   assistant_message: ThreadMessage;
   model_id?: string | null;
+  // A19/A30 — read-only per-turn directive surface; null/[]/{} when none.
+  grounding_status?: GroundingStatus | null;
+  directives?: string[];
+  directive_metadata?: Record<string, DirectiveMeta> | null;
 }
 
 /** List every thread for the current user, newest-first by ``updated_at``. */
@@ -1797,4 +1808,887 @@ export function getOrgTimeline(window: OrgTimelineWindow): Promise<OrgTimelineRe
     "/org/timeline/" + window,
     { method: "GET", auth: true },
   );
+}
+
+
+// ===========================================================================
+// Engine V1 — canonical /engine/v1/run contract (Phase-1)
+//
+// Hand-mirrored from the Pydantic models in app.py per the established
+// no-cross-tree-sharing rule (phone uses Metro, web uses Vite, desktop
+// uses Vite — no shared package). Field shapes must stay 1:1 with the
+// engine; FastAPI's /openapi.json is the cross-language source of truth.
+// ===========================================================================
+export type EngineFlowRegime = "laminar" | "transitional" | "turbulent";
+
+export type EnginePrimitiveType =
+  | "entity"
+  | "attitude"
+  | "relationship"
+  | "event"
+  | "signal"
+  | "temperature";
+
+export interface EngineHydraulicState {
+  pressure:   number;
+  gradient:   number;
+  flow:       number;
+  resistance: number;
+  timestamp:  string;
+}
+
+export interface EnginePrimitiveMetadata {
+  primitive_id:   string;
+  primitive_type: EnginePrimitiveType;
+  timestamp:      string;
+  version:        string;
+  domain:         string;
+  source:         string;
+  parent_id:      string | null;
+  // Card 20 cherry-pick: lineage + dependency graph fields.
+  ancestors:      string[];
+  depends_on:     string[];
+  influences:     string[];
+  confidence:     number;
+  completeness:   number;
+  reliability:    number;
+}
+
+export interface EnginePrimitive {
+  metadata:        EnginePrimitiveMetadata;
+  content:         Record<string, unknown>;
+  hydraulic_state: EngineHydraulicState;
+  // Card 20 cherry-pick: self-referential lineage. Both null / empty
+  // in Phase-1 because there's no archive yet; shape locked early so
+  // Phase-2 only changes values.
+  origin_state:       EnginePrimitive | null;
+  historical_states:  EnginePrimitive[];
+}
+
+export interface EngineOverlayResult {
+  primitive_id:     string;
+  reynolds_number:  number;
+  flow_regime:      EngineFlowRegime;
+  stability:        number;
+  in_critical_zone: boolean;
+  distance_to_fold: number;
+  resilience:       number;
+  // Card 20 cherry-pick: Godhard-curve fields.
+  curve_position:   number;
+  on_upper_branch:  boolean;
+  sensitivity:      number;
+  hysteresis:       number;
+}
+
+export interface EngineRegimeChange {
+  day:    number;
+  regime: EngineFlowRegime;
+}
+
+export interface EngineRegressionResult {
+  primitive_id:           string;
+  current_state:          EnginePrimitive;
+  origin_state:           EnginePrimitive;
+  path:                   EnginePrimitive[];
+  reconstruction_error:   number;
+  path_confidence:        number;
+  deviation_from_origin:  number;
+  historical_similarity:  number;
+  attitude_match_score:   number;
+}
+
+export interface EngineProjectionResult {
+  primitive_id:        string;
+  source_state:        EnginePrimitive;
+  projected_state:     EnginePrimitive;
+  projection_days:     number;
+  confidence:          number;
+  uncertainty:         number;
+  pressure_trajectory: number[];
+  flow_trajectory:     number[];
+  regime_changes:      EngineRegimeChange[];
+}
+
+export interface EngineDiagnostics {
+  observation_id:    string;
+  observer_notes:    string;
+  confidence_level:  number;
+  validation_status: string;
+  early_warnings:    Record<string, number>;
+  errors:            string[];
+  // Card 20 cherry-pick: applied-interventions trace. Empty in
+  // Phase-1; structured by a later card.
+  interventions:     string[];
+}
+
+// Phase-2 / Phase-3 reserved placeholders. Empty by design; both
+// engine and clients tolerate extra keys as the contract evolves.
+export interface EngineValidationResult { [k: string]: unknown }
+export interface EngineCrossRegressionResult { [k: string]: unknown }
+export interface EngineBacktestResult { [k: string]: unknown }
+
+export interface EngineResponseV1 {
+  ok:               true;
+  primitives:       EnginePrimitive[];
+  overlays:         EngineOverlayResult[];
+  regression:       EngineRegressionResult | null;
+  projection:       EngineProjectionResult | null;
+  diagnostics:      EngineDiagnostics;
+  // Reserved — undefined or null until later cards land.
+  validation?:       EngineValidationResult       | null;
+  cross_regression?: EngineCrossRegressionResult  | null;
+  backtest?:         EngineBacktestResult         | null;
+}
+
+export interface EnginePrimitiveInput {
+  primitive_id?:   string;
+  primitive_type?: EnginePrimitiveType;
+  domain?:         string;
+  source?:         string;
+  content?:        Record<string, unknown>;
+  pressure:        number;
+  flow:            number;
+  resistance:      number;
+  gradient?:       number;
+}
+
+export interface EngineRunRequest {
+  primitives:       EnginePrimitiveInput[];
+  projection_days?: number;
+}
+
+export function engineV1Run(input: EngineRunRequest): Promise<EngineResponseV1> {
+  return request<EngineResponseV1>("/engine/v1/run", {
+    method: "POST",
+    body: input,
+  });
+}
+
+// Card 22A — naming alias only. ``runEngineV1`` is the public name the
+// upstream card vocabulary uses; ``EngineRequestV1`` is a type alias to
+// the deployed ``EngineRunRequest`` Pydantic body. No new request shape
+// is introduced; this is a compatibility shim, not a re-spec.
+export type EngineRequestV1 = EngineRunRequest;
+
+export async function runEngineV1(input: EngineRequestV1): Promise<EngineResponseV1> {
+  return engineV1Run(input);
+}
+
+// Card 23 — Engine V1 Operator Debug Panel (Phase-1 minimal).
+// Pure, side-effect-free introspection helper. No network, no UI,
+// no session state. Returns a stable shape so dev tooling and tests
+// can read Engine V1 responses without re-deriving counts/firsts.
+export interface EngineV1DebugSnapshot {
+  primitiveCount: number;
+  overlayCount:   number;
+  diagnostics:    EngineDiagnostics;
+  firstPrimitive: EnginePrimitive      | null;
+  firstOverlay:   EngineOverlayResult  | null;
+}
+
+export function debugEngineV1(response: EngineResponseV1): EngineV1DebugSnapshot {
+  return {
+    primitiveCount: response.primitives.length,
+    overlayCount:   response.overlays.length,
+    diagnostics:    response.diagnostics,
+    firstPrimitive: response.primitives[0] ?? null,
+    firstOverlay:   response.overlays[0]   ?? null,
+  };
+}
+
+// Card 24 — Engine V1 input builder (Phase-1 minimal).
+// Canonical, deterministic constructor for EngineRunRequest. TypeScript
+// enforces shape at compile time; runtime is intentionally pass-through
+// (no defensive copies, no field-level validation) so future operator
+// tools, projection/regression controls, and overlays all build engine
+// requests the same way without duplicating logic.
+//
+// Default projectionDays = 7 matches the Phase-1 example payload.
+export function buildEngineRunRequest(
+  primitives:     EnginePrimitiveInput[],
+  projectionDays: number = 7,
+): EngineRunRequest {
+  return {
+    primitives,
+    projection_days: projectionDays,
+  };
+}
+
+// Card 25 — Engine V1 output normalizer (Phase-1 minimal).
+// Pure deterministic normaliser that downstream consumers (operator
+// tools, future UI, regression/projection panels) call instead of
+// poking at EngineResponseV1 directly. Defensive ``??`` fallbacks
+// guard against malformed runtime payloads even though the type
+// declares the fields non-nullable.
+//
+// EMPTY_ENGINE_DIAGNOSTICS is the principled default for the
+// diagnostics fallback: the card spec's ``?? {}`` doesn't compile
+// because EngineDiagnostics is strict-typed with 7 required fields.
+// This constant supplies zero-value defaults so the fallback is
+// honest, type-safe, and visible.
+const EMPTY_ENGINE_DIAGNOSTICS: EngineDiagnostics = {
+  observation_id:    "",
+  observer_notes:    "",
+  confidence_level:  0,
+  validation_status: "unvalidated",
+  early_warnings:    {},
+  errors:            [],
+  interventions:     [],
+};
+
+export interface NormalizedEngineV1 {
+  primitives:     EnginePrimitive[];
+  overlays:       EngineOverlayResult[];
+  // Card 26A — top-level analytical outputs carried through unchanged
+  // so downstream consumers (classifier, operator tools, future UI)
+  // don't have to keep the raw EngineResponseV1 alongside the
+  // normalized view.
+  regression:     EngineRegressionResult | null;
+  projection:     EngineProjectionResult | null;
+  diagnostics:    EngineDiagnostics;
+  primitiveCount: number;
+  overlayCount:   number;
+}
+
+export function normalizeEngineResponse(
+  response: EngineResponseV1,
+): NormalizedEngineV1 {
+  const primitives = response.primitives ?? [];
+  const overlays   = response.overlays   ?? [];
+  return {
+    primitives,
+    overlays,
+    regression:     response.regression ?? null,
+    projection:     response.projection ?? null,
+    diagnostics:    response.diagnostics ?? EMPTY_ENGINE_DIAGNOSTICS,
+    primitiveCount: primitives.length,
+    overlayCount:   overlays.length,
+  };
+}
+
+// Card 26A — Engine V1 classifier (Phase-1 minimal, contract-faithful).
+// Pure deterministic categoriser keyed on the actual deployed
+// fields: primitive_type (signal/entity/attitude/...) and overlay
+// flow_regime + in_critical_zone + on_upper_branch. Regression and
+// projection are top-level analytical outputs on EngineResponseV1
+// (not overlay categories) and are passed through unchanged so
+// downstream tools don't need to keep the raw response alongside.
+export interface EngineV1Classification {
+  signals:               EnginePrimitive[];
+  entities:              EnginePrimitive[];
+  attitudes:             EnginePrimitive[];
+  relationships:         EnginePrimitive[];
+  events:                EnginePrimitive[];
+  temperatures:          EnginePrimitive[];
+
+  laminarOverlays:       EngineOverlayResult[];
+  transitionalOverlays:  EngineOverlayResult[];
+  turbulentOverlays:     EngineOverlayResult[];
+  criticalZoneOverlays:  EngineOverlayResult[];
+  upperBranchOverlays:   EngineOverlayResult[];
+
+  regression:            EngineRegressionResult | null;
+  projection:            EngineProjectionResult | null;
+  diagnostics:           EngineDiagnostics;
+}
+
+export function classifyEngineV1(
+  normalized: NormalizedEngineV1,
+): EngineV1Classification {
+  return {
+    signals:        normalized.primitives.filter((p) => p.metadata.primitive_type === "signal"),
+    entities:       normalized.primitives.filter((p) => p.metadata.primitive_type === "entity"),
+    attitudes:      normalized.primitives.filter((p) => p.metadata.primitive_type === "attitude"),
+    relationships:  normalized.primitives.filter((p) => p.metadata.primitive_type === "relationship"),
+    events:         normalized.primitives.filter((p) => p.metadata.primitive_type === "event"),
+    temperatures:   normalized.primitives.filter((p) => p.metadata.primitive_type === "temperature"),
+
+    laminarOverlays:      normalized.overlays.filter((o) => o.flow_regime === "laminar"),
+    transitionalOverlays: normalized.overlays.filter((o) => o.flow_regime === "transitional"),
+    turbulentOverlays:    normalized.overlays.filter((o) => o.flow_regime === "turbulent"),
+    criticalZoneOverlays: normalized.overlays.filter((o) => o.in_critical_zone),
+    upperBranchOverlays:  normalized.overlays.filter((o) => o.on_upper_branch),
+
+    regression:  normalized.regression ?? null,
+    projection:  normalized.projection ?? null,
+    diagnostics: normalized.diagnostics,
+  };
+}
+
+// Card 27 — Engine V1 one-shot pipeline (Phase-1 minimal).
+// Pure composition of the Card 24/22A/25/26A helpers: builder → request
+// → normalizer → classifier. Becomes the canonical operator-layer
+// entry point for Engine V1 so callers don't have to wire the same
+// four steps every time. No new semantics; no new logic.
+export async function runEngineV1Pipeline(
+  primitives:     EnginePrimitiveInput[],
+  projectionDays?: number,
+): Promise<EngineV1Classification> {
+  const request    = buildEngineRunRequest(primitives, projectionDays);
+  const response   = await runEngineV1(request);
+  const normalized = normalizeEngineResponse(response);
+  return classifyEngineV1(normalized);
+}
+
+// Card 28 — Engine V1 OperatorContext (Phase-1 minimal).
+// Typed, immutable snapshot of a single engine run. Captures the
+// inputs (primitives + projection window) alongside every layer of
+// output (raw / normalized / classified) so Cards 29-40 operator
+// tools (overlay inspectors, regression viewers, lineage tools, etc.)
+// can reason about a run without re-passing primitives or recomputing
+// intermediate results.
+//
+// projectionDays is normalised to the Card 24 builder default (7) so
+// callers always see the actual window the engine ran against — not
+// undefined when omitted at the call site.
+export interface EngineV1OperatorContext {
+  primitives:     EnginePrimitiveInput[];
+  projectionDays: number;
+
+  raw:        EngineResponseV1;
+  normalized: NormalizedEngineV1;
+  classified: EngineV1Classification;
+}
+
+export async function createEngineV1Context(
+  primitives:     EnginePrimitiveInput[],
+  projectionDays?: number,
+): Promise<EngineV1OperatorContext> {
+  const request    = buildEngineRunRequest(primitives, projectionDays);
+  const raw        = await runEngineV1(request);
+  const normalized = normalizeEngineResponse(raw);
+  const classified = classifyEngineV1(normalized);
+  return {
+    primitives,
+    projectionDays: projectionDays ?? 7,
+    raw,
+    normalized,
+    classified,
+  };
+}
+
+// Card 29 — Engine V1 multi-run context (Phase-1 minimal).
+// Typed container + pure diff helpers for comparing multiple
+// EngineV1OperatorContext snapshots. Foundation for Cards 30-35
+// (operator diff tools, regression inspectors, multi-run overlays).
+// Spec delta: card said match primitives by metadata.id; the
+// deployed field is metadata.primitive_id (Card 20 cherry-pick).
+export interface EngineV1MultiRunContext {
+  runs: EngineV1OperatorContext[];
+}
+
+export function createMultiRunContext(
+  runs: EngineV1OperatorContext[],
+): EngineV1MultiRunContext {
+  return { runs };
+}
+
+export function diffPrimitives(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): { added: EnginePrimitive[]; removed: EnginePrimitive[] } {
+  const aIds = new Set(a.raw.primitives.map((p) => p.metadata.primitive_id));
+  const bIds = new Set(b.raw.primitives.map((p) => p.metadata.primitive_id));
+  const added   = b.raw.primitives.filter((p) => !aIds.has(p.metadata.primitive_id));
+  const removed = a.raw.primitives.filter((p) => !bIds.has(p.metadata.primitive_id));
+  return { added, removed };
+}
+
+export function diffOverlays(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): { changed: EngineOverlayResult[] } {
+  const aMap = new Map(a.raw.overlays.map((o) => [o.primitive_id, o] as const));
+  const changed = b.raw.overlays.filter((bo) => {
+    const ao = aMap.get(bo.primitive_id);
+    if (!ao) return false;  // overlay only in b counts as added, not changed
+    return (
+      ao.flow_regime      !== bo.flow_regime      ||
+      ao.in_critical_zone !== bo.in_critical_zone ||
+      ao.on_upper_branch  !== bo.on_upper_branch  ||
+      ao.hysteresis       !== bo.hysteresis
+    );
+  });
+  return { changed };
+}
+
+export function diffDiagnostics(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): Partial<EngineDiagnostics> {
+  const diff: Partial<EngineDiagnostics> = {};
+  const ad = a.raw.diagnostics;
+  const bd = b.raw.diagnostics;
+  if (ad.observation_id    !== bd.observation_id)    diff.observation_id    = bd.observation_id;
+  if (ad.observer_notes    !== bd.observer_notes)    diff.observer_notes    = bd.observer_notes;
+  if (ad.confidence_level  !== bd.confidence_level)  diff.confidence_level  = bd.confidence_level;
+  if (ad.validation_status !== bd.validation_status) diff.validation_status = bd.validation_status;
+  if (JSON.stringify(ad.early_warnings) !== JSON.stringify(bd.early_warnings)) diff.early_warnings = bd.early_warnings;
+  if (JSON.stringify(ad.errors)         !== JSON.stringify(bd.errors))         diff.errors         = bd.errors;
+  if (JSON.stringify(ad.interventions)  !== JSON.stringify(bd.interventions))  diff.interventions  = bd.interventions;
+  return diff;
+}
+
+// Card 30 — Engine V1 unified delta object (Phase-1 minimal).
+// Pure composition over the Card 29 diff helpers. Becomes the
+// canonical "diff payload" higher-level operator tools (Cards 31-35:
+// diff panels, regression inspectors, multi-run overlays, historical
+// state tools) consume instead of calling the three helpers
+// separately. No new logic, no new fields, no mutation.
+export interface EngineV1Delta {
+  primitives: {
+    added:   EnginePrimitive[];
+    removed: EnginePrimitive[];
+  };
+  overlays: {
+    changed: EngineOverlayResult[];
+  };
+  diagnostics: Partial<EngineDiagnostics>;
+}
+
+export function computeEngineV1Delta(
+  a: EngineV1OperatorContext,
+  b: EngineV1OperatorContext,
+): EngineV1Delta {
+  return {
+    primitives:  diffPrimitives(a, b),
+    overlays:    diffOverlays(a, b),
+    diagnostics: diffDiagnostics(a, b),
+  };
+}
+
+// Card 31 — Primitive lineage extractor (Phase-1 minimal).
+// Pure deterministic helper: given a multi-run context and a
+// primitive id, return per-run presence + overlay of that primitive.
+// Foundation for Cards 32-34 (lineage diffing, visualization,
+// lineage-based operator tools).
+//
+// Spec deviation (implementation detail only): the card spec finds
+// primitives by concatenating the 6 classified arrays. We look them
+// up directly on ctx.normalized.primitives (the unpartitioned full
+// set) — equivalent by construction since classified is a partition
+// of normalized, simpler to read, and future-proof if a new
+// primitive_type enum value is ever added before the classifier
+// learns about it.
+export interface EngineV1PrimitiveLineage {
+  primitive_id: string;
+  runs: Array<{
+    index:     number;
+    primitive: EnginePrimitive     | null;
+    overlay:   EngineOverlayResult | null;
+  }>;
+}
+
+export function extractPrimitiveLineage(
+  multi:        EngineV1MultiRunContext,
+  primitive_id: string,
+): EngineV1PrimitiveLineage {
+  return {
+    primitive_id,
+    runs: multi.runs.map((ctx, index) => ({
+      index,
+      primitive: ctx.normalized.primitives.find(
+        (p) => p.metadata.primitive_id === primitive_id,
+      ) ?? null,
+      overlay: ctx.normalized.overlays.find(
+        (o) => o.primitive_id === primitive_id,
+      ) ?? null,
+    })),
+  };
+}
+
+// Card 32 — Primitive lineage diff (Phase-1 minimal).
+// Pure deterministic helper that compares pairwise-adjacent runs in
+// a lineage to surface: when the primitive appears / disappears, when
+// its metadata changed, when its hydraulic state changed, and when
+// its overlay changed. JSON.stringify equality is used for shape
+// comparison — deterministic for the deployed Engine V1 field types.
+export interface EngineV1PrimitiveLineageDiff {
+  primitive_id: string;
+
+  appearance: {
+    added:   number[];
+    removed: number[];
+  };
+
+  metadataChanges: Array<{
+    from:      EnginePrimitive | null;
+    to:        EnginePrimitive | null;
+    indexFrom: number;
+    indexTo:   number;
+  }>;
+
+  hydraulicChanges: Array<{
+    from:      EnginePrimitive | null;
+    to:        EnginePrimitive | null;
+    indexFrom: number;
+    indexTo:   number;
+  }>;
+
+  overlayChanges: Array<{
+    from:      EngineOverlayResult | null;
+    to:        EngineOverlayResult | null;
+    indexFrom: number;
+    indexTo:   number;
+  }>;
+}
+
+export function diffPrimitiveLineage(
+  lineage: EngineV1PrimitiveLineage,
+): EngineV1PrimitiveLineageDiff {
+  const { primitive_id, runs } = lineage;
+
+  const appearance: EngineV1PrimitiveLineageDiff["appearance"] = {
+    added:   [],
+    removed: [],
+  };
+  const metadataChanges:  EngineV1PrimitiveLineageDiff["metadataChanges"]  = [];
+  const hydraulicChanges: EngineV1PrimitiveLineageDiff["hydraulicChanges"] = [];
+  const overlayChanges:   EngineV1PrimitiveLineageDiff["overlayChanges"]   = [];
+
+  for (let i = 0; i < runs.length - 1; i++) {
+    const a = runs[i];
+    const b = runs[i + 1];
+
+    // Appearance / disappearance.
+    if (a.primitive === null && b.primitive !== null) appearance.added.push(b.index);
+    if (a.primitive !== null && b.primitive === null) appearance.removed.push(b.index);
+
+    // Metadata + hydraulic — only when the primitive is present on both sides.
+    if (a.primitive && b.primitive) {
+      if (JSON.stringify(a.primitive.metadata) !== JSON.stringify(b.primitive.metadata)) {
+        metadataChanges.push({
+          from: a.primitive, to: b.primitive,
+          indexFrom: a.index, indexTo: b.index,
+        });
+      }
+      if (JSON.stringify(a.primitive.hydraulic_state) !== JSON.stringify(b.primitive.hydraulic_state)) {
+        hydraulicChanges.push({
+          from: a.primitive, to: b.primitive,
+          indexFrom: a.index, indexTo: b.index,
+        });
+      }
+    }
+
+    // Overlay change (covers null↔non-null transitions too).
+    if (a.overlay || b.overlay) {
+      if (JSON.stringify(a.overlay) !== JSON.stringify(b.overlay)) {
+        overlayChanges.push({
+          from: a.overlay, to: b.overlay,
+          indexFrom: a.index, indexTo: b.index,
+        });
+      }
+    }
+  }
+
+  return { primitive_id, appearance, metadataChanges, hydraulicChanges, overlayChanges };
+}
+
+// Card 33 — Primitive lineage overlay (Phase-1 minimal).
+// Pure composition: pairs the Card 31 raw lineage with the Card 32
+// diff into a single operator-layer artifact. Becomes the canonical
+// "operator-ready" lineage payload for Cards 34-36 (lineage-based
+// regression tools, hydraulic evolution analysis, primitive-centric
+// debugging). No new logic, no inference.
+export interface EngineV1PrimitiveLineageOverlay {
+  primitive_id: string;
+  lineage:      EngineV1PrimitiveLineage;
+  diff:         EngineV1PrimitiveLineageDiff;
+}
+
+export function buildPrimitiveLineageOverlay(
+  lineage: EngineV1PrimitiveLineage,
+): EngineV1PrimitiveLineageOverlay {
+  return {
+    primitive_id: lineage.primitive_id,
+    lineage,
+    diff:         diffPrimitiveLineage(lineage),
+  };
+}
+
+// Card 34 — Multi-primitive lineage map (Phase-1 minimal).
+// Pure deterministic helper: enumerate every primitive_id that
+// appears in any run of a multi-run context, then build the lineage
+// + diff + overlay for each. Foundation for Cards 35-37 (system-level
+// hydraulic evolution tools, multi-primitive regression inspectors,
+// system-wide change utilities).
+//
+// Spec deviation (same approved simplification as Card 31): the card
+// spec enumerates primitive ids via the 6-way classified concat. We
+// use ctx.normalized.primitives — equivalent by construction
+// (classified is a partition of normalized) and future-proof if a
+// new primitive_type enum value lands before the classifier learns
+// about it. ID sort is default string-lexicographic for stable
+// deterministic ordering.
+export interface EngineV1LineageMap {
+  primitive_ids: string[];
+  lineages:      Record<string, EngineV1PrimitiveLineage>;
+  diffs:         Record<string, EngineV1PrimitiveLineageDiff>;
+  overlays:      Record<string, EngineV1PrimitiveLineageOverlay>;
+}
+
+export function buildLineageMap(
+  multi: EngineV1MultiRunContext,
+): EngineV1LineageMap {
+  const primitive_ids = Array.from(
+    new Set(
+      multi.runs.flatMap((ctx) =>
+        ctx.normalized.primitives.map((p) => p.metadata.primitive_id),
+      ),
+    ),
+  ).sort();
+
+  const lineages: Record<string, EngineV1PrimitiveLineage>        = {};
+  const diffs:    Record<string, EngineV1PrimitiveLineageDiff>    = {};
+  const overlays: Record<string, EngineV1PrimitiveLineageOverlay> = {};
+
+  for (const id of primitive_ids) {
+    const lineage = extractPrimitiveLineage(multi, id);
+    lineages[id] = lineage;
+    diffs[id]    = diffPrimitiveLineage(lineage);
+    overlays[id] = buildPrimitiveLineageOverlay(lineage);
+  }
+
+  return { primitive_ids, lineages, diffs, overlays };
+}
+
+// Card 35 — Hydraulic evolution map (Phase-1 minimal).
+// First system-level hydraulic diagnostic. Given a lineage map (Card
+// 34), captures per-primitive hydraulic state across runs and rolls
+// up per-run system-wide regime / critical-zone / upper-branch
+// counts. Foundation for Cards 36-37 (system-level overlays + flow-
+// regime regression inspectors).
+//
+// Spec adjustment (documented in source): the card spec types
+// hydraulic_state as ``any | null``. Replaced with the deployed
+// EngineHydraulicState type — same shape at runtime, full TS
+// inference downstream.
+export interface EngineV1HydraulicEvolutionMap {
+  primitive_ids: string[];
+
+  perPrimitive: Record<string, {
+    primitive_id: string;
+    runs: Array<{
+      index:           number;
+      hydraulic_state: EngineHydraulicState | null;
+      overlay:         EngineOverlayResult  | null;
+    }>;
+  }>;
+
+  perRun: Array<{
+    index:         number;
+    laminar:       number;
+    transitional:  number;
+    turbulent:     number;
+    critical_zone: number;
+    upper_branch:  number;
+  }>;
+}
+
+export function buildHydraulicEvolutionMap(
+  lineageMap: EngineV1LineageMap,
+): EngineV1HydraulicEvolutionMap {
+  const { primitive_ids, lineages } = lineageMap;
+
+  const perPrimitive: EngineV1HydraulicEvolutionMap["perPrimitive"] = {};
+  for (const id of primitive_ids) {
+    const lineage = lineages[id];
+    perPrimitive[id] = {
+      primitive_id: id,
+      runs: lineage.runs.map((r) => ({
+        index:           r.index,
+        hydraulic_state: r.primitive ? r.primitive.hydraulic_state : null,
+        overlay:         r.overlay,
+      })),
+    };
+  }
+
+  // Card 31 lineages always cover every run in the source multi-run
+  // context, so the first primitive's run count is the system-wide
+  // run count. Empty primitive_ids → runCount = 0 → perRun = [].
+  const runCount = primitive_ids.length > 0
+    ? (lineages[primitive_ids[0]]?.runs.length ?? 0)
+    : 0;
+
+  const perRun: EngineV1HydraulicEvolutionMap["perRun"] = [];
+  for (let i = 0; i < runCount; i++) {
+    let laminar       = 0;
+    let transitional  = 0;
+    let turbulent     = 0;
+    let critical_zone = 0;
+    let upper_branch  = 0;
+    for (const id of primitive_ids) {
+      const overlay = perPrimitive[id].runs[i].overlay;
+      if (!overlay) continue;
+      if (overlay.flow_regime === "laminar")      laminar++;
+      if (overlay.flow_regime === "transitional") transitional++;
+      if (overlay.flow_regime === "turbulent")    turbulent++;
+      if (overlay.in_critical_zone)               critical_zone++;
+      if (overlay.on_upper_branch)                upper_branch++;
+    }
+    perRun.push({ index: i, laminar, transitional, turbulent, critical_zone, upper_branch });
+  }
+
+  return { primitive_ids, perPrimitive, perRun };
+}
+
+// Card 36 — System-level Engine V1 overlay (Phase-1 minimal).
+// Top-level operator artifact: pure composition of the Card 34
+// lineage map and the Card 35 hydraulic evolution map. Becomes the
+// canonical "show me the whole system evolution" structure for
+// Cards 37-40 (system-level regression tools, evolution inspectors,
+// operator-surface integration).
+export interface EngineV1SystemOverlay {
+  primitive_ids:      string[];
+  lineageMap:         EngineV1LineageMap;
+  hydraulicEvolution: EngineV1HydraulicEvolutionMap;
+}
+
+export function buildSystemOverlay(
+  multi: EngineV1MultiRunContext,
+): EngineV1SystemOverlay {
+  const lineageMap         = buildLineageMap(multi);
+  const hydraulicEvolution = buildHydraulicEvolutionMap(lineageMap);
+  return {
+    primitive_ids: lineageMap.primitive_ids,
+    lineageMap,
+    hydraulicEvolution,
+  };
+}
+
+// Card 37 — System-level regression diff (Phase-1 minimal).
+// Given a system overlay and two run indices, summarises what changed
+// between them: which primitives were added / removed / changed
+// (changed = any non-empty Card 32 diff entry on the matching index
+// pair) and how the system-wide hydraulic regime counts shifted.
+// Foundation for Cards 38-40 (operator console integration, phone
+// parity, multi-run evolution panels).
+//
+// Hardening (documented adjustments beyond the literal card spec):
+//   1. Upfront RangeError on out-of-bounds indices — the card spec
+//      reads perRun[badIndex].laminar which throws an opaque
+//      TypeError instead of a clear contract violation.
+//   2. Non-adjacent indices are accepted but `changed` is only
+//      populated for ADJACENT pairs (toIndex === fromIndex + 1)
+//      because Card 32 only records pairwise-adjacent diffs. For
+//      non-adjacent comparisons, hydraulic deltas + added/removed
+//      are still correct; `changed` returns []. Phase-2 can expand
+//      the analytic to span-comparisons when the need lands.
+export interface EngineV1SystemRegressionDiff {
+  fromIndex: number;
+  toIndex:   number;
+
+  primitiveChanges: {
+    added:   string[];
+    removed: string[];
+    changed: string[];
+  };
+
+  hydraulic: {
+    laminarDelta:       number;
+    transitionalDelta:  number;
+    turbulentDelta:     number;
+    criticalZoneDelta:  number;
+    upperBranchDelta:   number;
+  };
+}
+
+export function computeSystemRegressionDiff(
+  overlay:   EngineV1SystemOverlay,
+  fromIndex: number,
+  toIndex:   number,
+): EngineV1SystemRegressionDiff {
+  const { primitive_ids, lineageMap, hydraulicEvolution } = overlay;
+  const runCount = hydraulicEvolution.perRun.length;
+
+  if (
+    !Number.isInteger(fromIndex) || fromIndex < 0 || fromIndex >= runCount ||
+    !Number.isInteger(toIndex)   || toIndex   < 0 || toIndex   >= runCount
+  ) {
+    throw new RangeError(
+      `computeSystemRegressionDiff: indices out of range — fromIndex=${fromIndex}, ` +
+      `toIndex=${toIndex}, runCount=${runCount}`,
+    );
+  }
+
+  // Primitive-level: which ids gained / lost a primitive between the two runs.
+  const fromPresent = new Set(
+    primitive_ids.filter((id) => lineageMap.lineages[id].runs[fromIndex].primitive !== null),
+  );
+  const toPresent = new Set(
+    primitive_ids.filter((id) => lineageMap.lineages[id].runs[toIndex].primitive !== null),
+  );
+  const added   = Array.from(toPresent).filter((id) => !fromPresent.has(id));
+  const removed = Array.from(fromPresent).filter((id) => !toPresent.has(id));
+
+  // `changed` — primitives with any Card 32 diff entry exactly matching
+  // (fromIndex → toIndex). Card 32 only records adjacent pairs, so this
+  // populates only when toIndex === fromIndex + 1.
+  const changed = primitive_ids.filter((id) => {
+    const diff = lineageMap.diffs[id];
+    return (
+      diff.metadataChanges.some((d)  => d.indexFrom === fromIndex && d.indexTo === toIndex) ||
+      diff.hydraulicChanges.some((d) => d.indexFrom === fromIndex && d.indexTo === toIndex) ||
+      diff.overlayChanges.some((d)   => d.indexFrom === fromIndex && d.indexTo === toIndex)
+    );
+  });
+
+  // System-wide hydraulic regime deltas. Direct subtraction; positive
+  // means the count grew, negative means it shrank.
+  const fromRun = hydraulicEvolution.perRun[fromIndex];
+  const toRun   = hydraulicEvolution.perRun[toIndex];
+  const hydraulic = {
+    laminarDelta:       toRun.laminar       - fromRun.laminar,
+    transitionalDelta:  toRun.transitional  - fromRun.transitional,
+    turbulentDelta:     toRun.turbulent     - fromRun.turbulent,
+    criticalZoneDelta:  toRun.critical_zone - fromRun.critical_zone,
+    upperBranchDelta:   toRun.upper_branch  - fromRun.upper_branch,
+  };
+
+  return {
+    fromIndex,
+    toIndex,
+    primitiveChanges: { added, removed, changed },
+    hydraulic,
+  };
+}
+
+// Card 39 — Operator Console API surface (Phase-1 minimal).
+// Single ergonomic entrypoint that groups the Cards 28-37 operator-
+// layer helpers behind a stable, typed shape. The fields delegate by
+// identity to the underlying helpers (no wrapping, no adapters) so
+// downstream consumers can treat ``api.computeDelta`` and
+// ``computeEngineV1Delta`` as the same function. Becomes the
+// Operator Console's internal API for Card 40+.
+export interface EngineV1OperatorAPI {
+  // Context + Multi-run
+  createContext:           typeof createEngineV1Context;
+  createMultiRunContext:   typeof createMultiRunContext;
+  // Unified delta
+  computeDelta:            typeof computeEngineV1Delta;
+  // Lineage
+  extractLineage:          typeof extractPrimitiveLineage;
+  diffLineage:             typeof diffPrimitiveLineage;
+  buildLineageOverlay:     typeof buildPrimitiveLineageOverlay;
+  buildLineageMap:         typeof buildLineageMap;
+  // Hydraulic evolution
+  buildHydraulicEvolution: typeof buildHydraulicEvolutionMap;
+  // System-level
+  buildSystemOverlay:      typeof buildSystemOverlay;
+  computeSystemRegression: typeof computeSystemRegressionDiff;
+}
+
+export function createEngineV1OperatorAPI(): EngineV1OperatorAPI {
+  return {
+    createContext:           createEngineV1Context,
+    createMultiRunContext:   createMultiRunContext,
+    computeDelta:            computeEngineV1Delta,
+    extractLineage:          extractPrimitiveLineage,
+    diffLineage:             diffPrimitiveLineage,
+    buildLineageOverlay:     buildPrimitiveLineageOverlay,
+    buildLineageMap:         buildLineageMap,
+    buildHydraulicEvolution: buildHydraulicEvolutionMap,
+    buildSystemOverlay:      buildSystemOverlay,
+    computeSystemRegression: computeSystemRegressionDiff,
+  };
 }

@@ -293,6 +293,127 @@ def get_billing_state(user: str) -> Optional[str]:
     return doc.get("billing_state")
 
 
+# ---------------------------------------------------------------------------
+# C1 / A+D — Stripe Subscription fields (per-user; Stripe is the canonical
+# renewal engine once a subscription exists).
+# ---------------------------------------------------------------------------
+# These coexist with the v31 billing_state machine. The renewal scheduler
+# skips any user that carries a ``stripe_subscription_id`` (see
+# billing_renewal.renew_membership) — Stripe's invoice.* webhooks drive that
+# user's lifecycle instead.
+#
+#   stripe_customer_id      str   — Stripe Customer id  (cus_...)
+#   stripe_subscription_id  str   — Stripe Subscription id (sub_...)
+#   subscription_status     str   — mirrors Stripe (VALID_SUBSCRIPTION_STATUSES)
+#   current_period_end_ts   int   — unix ts of period end ("renews on")
+#   cancel_at_period_end    bool  — scheduled-cancellation flag
+#   payment_action_required bool  — off-session SCA / recovery flag
+VALID_SUBSCRIPTION_STATUSES = (
+    "active", "trialing", "past_due", "unpaid",
+    "canceled", "incomplete", "incomplete_expired",
+)
+
+
+def set_subscription(
+    user: str,
+    *,
+    customer_id: Optional[str],
+    subscription_id: Optional[str],
+    status: Optional[str],
+    current_period_end: Optional[int] = None,
+    cancel_at_period_end: bool = False,
+) -> None:
+    """Write the full Stripe-subscription field set onto the user doc (first
+    create / full sync). ``status`` is validated against
+    VALID_SUBSCRIPTION_STATUSES (None allowed to leave it unset)."""
+    if status is not None and status not in VALID_SUBSCRIPTION_STATUSES:
+        raise ValueError(
+            f"subscription_status must be one of {VALID_SUBSCRIPTION_STATUSES!r}, got {status!r}"
+        )
+    payload: dict = {
+        "stripe_customer_id": customer_id,
+        "stripe_subscription_id": subscription_id,
+        "subscription_status": status,
+        "cancel_at_period_end": bool(cancel_at_period_end),
+    }
+    if current_period_end is not None:
+        payload["current_period_end_ts"] = int(current_period_end)
+    update_user(user, payload)
+
+
+def update_subscription_status(
+    user: str,
+    *,
+    status: Optional[str] = None,
+    current_period_end: Optional[int] = None,
+    cancel_at_period_end: Optional[bool] = None,
+) -> None:
+    """Partial subscription-field update (webhook sync). Only the fields
+    passed are written; the rest stay intact."""
+    if status is not None and status not in VALID_SUBSCRIPTION_STATUSES:
+        raise ValueError(
+            f"subscription_status must be one of {VALID_SUBSCRIPTION_STATUSES!r}, got {status!r}"
+        )
+    payload: dict = {}
+    if status is not None:
+        payload["subscription_status"] = status
+    if current_period_end is not None:
+        payload["current_period_end_ts"] = int(current_period_end)
+    if cancel_at_period_end is not None:
+        payload["cancel_at_period_end"] = bool(cancel_at_period_end)
+    if payload:
+        update_user(user, payload)
+
+
+def mark_subscription_canceled(user: str) -> None:
+    """Terminal cancellation (Stripe ``customer.subscription.deleted``):
+    subscription_status=canceled + clear cancel_at_period_end. Stripe ids are
+    kept for audit."""
+    update_user(user, {
+        "subscription_status": "canceled",
+        "cancel_at_period_end": False,
+    })
+
+
+def mark_payment_action_required(user: str, required: bool) -> None:
+    """Flag/unflag the off-session SCA recovery state surfaced to the UI."""
+    update_user(user, {"payment_action_required": bool(required)})
+
+
+def get_subscription_view(user: str) -> dict:
+    """Read-only subscription snapshot for client rendering. Always a dict."""
+    doc = get_user(user) or {}
+    return {
+        "stripe_customer_id": doc.get("stripe_customer_id"),
+        "stripe_subscription_id": doc.get("stripe_subscription_id"),
+        "subscription_status": doc.get("subscription_status"),
+        "current_period_end_ts": doc.get("current_period_end_ts"),
+        "cancel_at_period_end": bool(doc.get("cancel_at_period_end") or False),
+        "payment_action_required": bool(doc.get("payment_action_required") or False),
+    }
+
+
+def find_user_by_stripe_customer_id(customer_id: str) -> Optional[str]:
+    """Resolve a Stripe customer id back to a username. Used by the webhook
+    handlers to map a Stripe object → our user. Returns None if unknown."""
+    if not customer_id:
+        return None
+    if _backend() == "firestore":
+        from google.cloud.firestore_v1 import FieldFilter  # type: ignore
+        coll = _users_collection()
+        q = coll.where(
+            filter=FieldFilter("stripe_customer_id", "==", str(customer_id))
+        ).limit(1)
+        for doc in q.stream():
+            data = doc.to_dict() or {}
+            return data.get("username") or doc.id
+        return None
+    for username, data in _MEMORY_USERS.items():
+        if data.get("stripe_customer_id") == customer_id:
+            return username
+    return None
+
+
 def list_all_usernames() -> list[str]:
     """v43 — return every known username. Memory backend iterates the
     in-memory dict; Firestore backend streams the users collection.

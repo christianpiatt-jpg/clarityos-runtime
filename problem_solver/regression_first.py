@@ -67,6 +67,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -124,6 +125,31 @@ def _now_ms() -> int:
 
 
 # ---------------------------------------------------------------------------
+# Creation-sequence counter (mirrors intelligence_kernel._next_macro_seq).
+#
+# Stamped onto every chain at ``start_chain`` time as ``seq``. It exists so
+# stateless / per-request stores — notably ``VaultBackedRegressionChainStore``,
+# which is reconstructed on every request and therefore cannot keep an
+# in-process insertion counter — can order chains newest-first
+# deterministically. ``created_at`` is a coarse ms wall clock
+# (``time.time()`` resolves to ~15ms on Windows), so back-to-back
+# ``start_chain`` calls routinely share an identical ``created_at``;
+# ``seq`` is the monotonic tiebreak that keeps ordering stable instead of
+# falling back to the random UUID ``chain_id``. The lock is pre-allocated at
+# import to close the TOCTOU window (same reasoning as intelligence_kernel).
+# ---------------------------------------------------------------------------
+_creation_seq: int = 0
+_creation_seq_lock: threading.Lock = threading.Lock()
+
+
+def _next_creation_seq() -> int:
+    global _creation_seq
+    with _creation_seq_lock:
+        _creation_seq += 1
+        return _creation_seq
+
+
+# ---------------------------------------------------------------------------
 # TypedDicts — V76 stored chain shape
 # ---------------------------------------------------------------------------
 class RegressionLayer(TypedDict):
@@ -136,6 +162,9 @@ class RegressionLayer(TypedDict):
 class RegressionChain(TypedDict):
     chain_id: str             # canonical UUID4 string (with dashes)
     created_at: int           # ms epoch — set by kernel on /start
+    seq: int                  # monotonic creation counter — tiebreaks a
+                              # shared (coarse) ``created_at`` so stateless
+                              # stores order newest-first deterministically
     closed_at: Optional[int]  # ms epoch — set by kernel on /close
     title: str
     notes: Optional[str]
@@ -230,15 +259,22 @@ def list_chains(
 ) -> list[RegressionChain]:
     """All chains in ``store``, newest-first.
 
-    Ordering policy is delegated to the store's ``list_all`` (in-memory
-    keeps an insertion seq tiebreak; vault sorts by created_at then
-    chain_id). The kernel just trusts whatever the store returns.
+    Ordering policy is delegated to the store's ``list_all``. Both stock
+    backends order by ``(created_at, seq) DESC`` — ``seq`` is the
+    monotonic per-chain creation counter stamped by ``start_chain``,
+    which keeps newest-first stable when the coarse ms ``created_at``
+    ties (e.g. rapid back-to-back creates on Windows). ``chain_id`` is a
+    final deterministic tiebreak. The kernel just trusts whatever the
+    store returns.
     """
     return _resolve_store(store).list_all()   # type: ignore[return-value]
 
 
 def _reset_for_tests() -> None:
-    """Wipe the module-level default store + prompt cache."""
+    """Wipe the module-level default store + prompt cache + seq counter."""
+    global _creation_seq
+    with _creation_seq_lock:
+        _creation_seq = 0
     _reset_default_store_for_tests()
     _reset_prompt_cache()
 
@@ -269,6 +305,7 @@ def start_chain(
     chain: RegressionChain = {
         "chain_id":   _make_chain_id(),
         "created_at": now,
+        "seq":        _next_creation_seq(),
         "closed_at":  None,
         "title":      title,
         "notes":      norm_notes,
