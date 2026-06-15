@@ -71,6 +71,7 @@ from pydantic import BaseModel, ConfigDict, Field
 import users_store
 import sessions_store
 import auth_magiclink            # magic-link auth (/auth/enter, /auth/verify)
+import _version                  # CL-13 — single-source backend version constant
 import invites_store
 import tokens as invite_tokens
 import billing
@@ -1494,15 +1495,18 @@ async def billing_webhook(request: Request):
     eid = event.get("id")
     obj = (event.get("data") or {}).get("object") or {}
 
-    # v42 — idempotency: short-circuit duplicate event ids.
-    if eid and billing_config.seen_event(eid):
+    # v42/C3 — durable idempotency: short-circuit duplicate event ids.
+    # audit_seen / audit_begin persist one _audit/<event_id> doc per event when
+    # CLARITYOS_BACKEND=firestore (durable across instances/restarts), and fall
+    # back to the in-process seen-set for memory / mock backends.
+    if eid and billing_config.audit_seen(eid):
         v29_hardening.log_event(
             "billing_webhook_duplicate", route="/billing/webhook",
             event_id=str(eid), event_type=etype, success=True,
         )
-        return {"ok": True, "duplicate": True}
+        return {"ok": True, "duplicate": True, "event_id": str(eid)}
     if eid:
-        billing_config.mark_event_seen(eid)
+        billing_config.audit_begin(event)
 
     v29_hardening.log_event(
         "billing_webhook_received", route="/billing/webhook",
@@ -1522,34 +1526,50 @@ async def billing_webhook(request: Request):
         event_id=eid, mode=runtime_mode,
     )
 
-    # v31 — PaymentIntent dispatcher for membership + #G credit flows.
-    if etype.startswith("payment_intent."):
-        result = billing_intents.handle_payment_webhook(event)
-        if not result.get("ok") and result.get("error") == "intent_not_found":
-            # Don't 4xx — Stripe retries on non-2xx and the intent will
-            # never appear, so we ack and move on. Operator can audit
-            # via the structured log.
-            pass
+    # v31/C3 — dispatch handlers under a durable-audit guard: on success the
+    # _audit doc is flagged processed=True; on exception it stays unprocessed
+    # (error recorded) and we return 5xx so Stripe re-drives the event.
+    try:
+        # v31 — PaymentIntent dispatcher for membership + #G credit flows.
+        if etype.startswith("payment_intent."):
+            result = billing_intents.handle_payment_webhook(event)
+            if not result.get("ok") and result.get("error") == "intent_not_found":
+                # Don't 4xx — Stripe retries on non-2xx and the intent will
+                # never appear, so we ack and move on. Operator can audit
+                # via the structured log.
+                pass
+            billing_config.audit_complete(eid)
+            return {"ok": True}
+
+        # C1 / A+D — Stripe Subscription lifecycle (canonical billing for new
+        # signups). Additive + idempotent: these sync the new subscription
+        # fields (and mirror billing_state / membership) for subscription
+        # members. They run alongside the v42 _handle_subscription_event
+        # below; each no-ops when the Stripe customer doesn't resolve to a
+        # user, so existing flows (and the v42 tests, which resolve by
+        # metadata) are untouched.
+        if etype in ("invoice.paid", "invoice.payment_succeeded"):
+            billing_subscriptions.handle_invoice_paid(obj)
+        elif etype == "invoice.payment_failed":
+            billing_subscriptions.handle_invoice_payment_failed(obj)
+        elif etype == "customer.subscription.updated":
+            billing_subscriptions.handle_subscription_updated(obj)
+        elif etype == "customer.subscription.deleted":
+            billing_subscriptions.handle_subscription_deleted(obj)
+
+        # v42 — subscription / checkout lifecycle handlers (billing_state mirror).
+        _handle_subscription_event(etype, obj)
+        billing_config.audit_complete(eid)
         return {"ok": True}
-
-    # C1 / A+D — Stripe Subscription lifecycle (canonical billing for new
-    # signups). Additive + idempotent: these sync the new subscription fields
-    # (and mirror billing_state / membership) for subscription members. They
-    # run alongside the v42 _handle_subscription_event below; each no-ops when
-    # the Stripe customer doesn't resolve to a user, so existing flows (and
-    # the v42 tests, which resolve by metadata) are untouched.
-    if etype in ("invoice.paid", "invoice.payment_succeeded"):
-        billing_subscriptions.handle_invoice_paid(obj)
-    elif etype == "invoice.payment_failed":
-        billing_subscriptions.handle_invoice_payment_failed(obj)
-    elif etype == "customer.subscription.updated":
-        billing_subscriptions.handle_subscription_updated(obj)
-    elif etype == "customer.subscription.deleted":
-        billing_subscriptions.handle_subscription_deleted(obj)
-
-    # v42 — subscription / checkout lifecycle handlers (billing_state mirror).
-    _handle_subscription_event(etype, obj)
-    return {"ok": True}
+    except Exception as e:
+        billing_config.audit_fail(eid, e)
+        logger.exception(
+            "billing webhook handler error eid=%s etype=%s", str(eid or ""), etype
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error_response("handler_error", "event processing failed"),
+        )
 
 
 def _billing_payload_meta(event_type: str, obj: dict) -> dict:
@@ -1581,26 +1601,71 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
         or (obj.get("client_reference_id") if isinstance(obj, dict) else None)
     )
     if event_type == "checkout.session.completed":
-        if user and obj.get("payment_status") == "paid":
+        # C3 Fork A — resolve the buyer email (Stripe-authoritative first, then
+        # the C2 metadata / client_reference_id, both of which carry the email),
+        # then find-or-provision a passwordless shell and activate.
+        cd = obj.get("customer_details") or {}
+        email_lower = auth_magiclink._normalize_email(
+            cd.get("email")
+            or obj.get("customer_email")
+            or md.get("user_id")
+            or obj.get("client_reference_id")
+        ) or None
+        if not email_lower:
+            # No email to key on — a retry won't grow one, so acknowledge and
+            # leave it for ops review via the structured log.
+            logger.warning(
+                "checkout.session.completed has no resolvable email obj_id=%s",
+                obj.get("id"),
+            )
+            return
+
+        customer_id = obj.get("customer")
+        paid = obj.get("payment_status") == "paid"
+
+        # Provision a brand-new buyer via the EXISTING magic-link helper
+        # (auth_magiclink._ensure_user) — never a new account-creation path.
+        # The shell gets an unusable bcrypt password, so /login can't claim it;
+        # the buyer claims the account later via magic-link. _ensure_user is
+        # idempotent (no-ops when the user already exists).
+        newly_created = auth_magiclink._ensure_user(email_lower, time.time())
+        if newly_created:
+            users_store.update_user(
+                email_lower,
+                {"email": email_lower, "provisioned_via": "stripe_webhook"},
+            )
+        # Bind the Stripe customer id so later customer.subscription.* events
+        # (which carry ``customer``, not metadata) resolve back to this user.
+        if customer_id:
+            users_store.update_user(
+                email_lower, {"stripe_customer_id": str(customer_id)}
+            )
+
+        if paid:
             users_store.set_billing_state(
-                user, billing_state="active",
+                email_lower, billing_state="active",
                 renewal_ts=time.time() + 30 * 24 * 3600.0,
             )
             try:
                 membership_store.record_transaction(
-                    user, type="checkout_session_completed",
+                    email_lower, type="checkout_session_completed",
                     amount=float(obj.get("amount_total") or 0) / 100.0,
                     credits_delta=0,
                     metadata={
                         "session_id_short": _privacy.event_ref(obj.get("id") or ""),
                         "plan": md.get("plan"),
+                        "provisioned_via": "stripe_webhook" if newly_created else "existing",
                     },
                 )
             except Exception as e:  # pragma: no cover (defensive)
                 logger.warning(
                     "checkout transaction record failed user=%s err=%s",
-                    _user_ref(user), e,
+                    _user_ref(email_lower), e,
                 )
+        logger.info(
+            "c3 checkout user=%s customer=%s newly_created=%s paid=%s",
+            _user_ref(email_lower), customer_id, newly_created, paid,
+        )
         return
 
     if event_type == "invoice.payment_succeeded":
@@ -9546,6 +9611,98 @@ def subscription_cancel(req: SubscriptionCancelRequest, session: dict = Depends(
 
 
 # ===========================================================================
+# C2 — public, email-only Stripe Checkout link (WP button -> hosted Checkout)
+# ===========================================================================
+import re
+from urllib.parse import urlparse
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_CHECKOUT_ALLOWED_HOSTS = {
+    "pro-mediations.com",
+    "www.pro-mediations.com",
+    "clarity.pro-mediations.com",
+}
+
+
+class CheckoutLinkRequest(BaseModel):
+    email: str
+    price_id: Optional[str] = None
+    plan: str = "founding"
+
+
+@app.post("/billing/checkout-link")
+def billing_checkout_link(req: CheckoutLinkRequest, request: Request):
+    """Public, email-only. Creates a Stripe Checkout Session (subscription
+    mode, Founding price) and returns its hosted URL. No auth — the buyer is
+    identified by email (customer_email + client_reference_id +
+    metadata.user_id) so the webhook can resolve them. Abuse controls:
+    per-IP rate limit + soft Origin allowlist. Webhook activation of an
+    email-keyed user is C3; here we only mint the link."""
+    # Rate limit FIRST (5 / 10 min / IP) — also throttles 403-spam.
+    ip = _client_ip(request)
+    if not v29_hardening.check_rate_limit(
+        f"ip:{ip}", "/billing/checkout-link", capacity=5, window_s=600,
+    ):
+        raise HTTPException(
+            status_code=429,
+            detail=error_response("rate_limited", "Too many requests"),
+        )
+    # Soft Origin check (hostname match via urlparse, not substring).
+    origin = (
+        request.headers.get("origin")
+        or request.headers.get("referer")
+        or ""
+    )
+    if origin:
+        try:
+            hostname = urlparse(origin).hostname or ""
+        except Exception:
+            hostname = ""
+        if hostname not in _CHECKOUT_ALLOWED_HOSTS:
+            raise HTTPException(
+                status_code=403,
+                detail=error_response("origin_not_allowed", "Origin not permitted"),
+            )
+    # Absent Origin (server-side WP -> engine) passes through.
+    # Email validation (regex per Finding 1 — no EmailStr dependency).
+    email = (req.email or "").strip().lower()
+    if not _EMAIL_RE.match(email):
+        raise HTTPException(
+            status_code=422,
+            detail=error_response("invalid_email", "Email format invalid"),
+        )
+    # Price resolution: body override -> env -> mock fallback.
+    price_id = (
+        req.price_id
+        or os.environ.get("CLARITYOS_STRIPE_PRICE_FOUNDING")
+        or "price_founding_mock"
+    )
+    # Public landing URLs (env-driven; /success + /cancel SPA routes are C2.1).
+    base = os.environ.get(
+        "CLARITYOS_PUBLIC_BASE_URL", "https://clarity.pro-mediations.com",
+    )
+    success_url = f"{base}/success"
+    cancel_url = f"{base}/cancel"
+    try:
+        checkout_url = billing.create_membership_checkout_session(
+            email=email, price_id=price_id, plan=req.plan,
+            success_url=success_url, cancel_url=cancel_url,
+        )
+    except billing.BillingNotConfigured:
+        raise HTTPException(
+            status_code=503,
+            detail=error_response("billing_not_configured", "Billing not configured"),
+        )
+    except Exception:
+        logger.exception("checkout_link_create_failed")
+        raise HTTPException(
+            status_code=502,
+            detail=error_response("stripe_error", "Checkout creation failed"),
+        )
+    return {"ok": True, "checkout_url": checkout_url}
+
+
+# ===========================================================================
 # v74 / Unit 84 — Founding 500 Subscription Gate confirmation
 # ===========================================================================
 # Distinct from /membership/activate:
@@ -16058,7 +16215,7 @@ def health():
     return {
         "ok": True,
         "status": "healthy",
-        "version": "4.24",
+        "version": _version.__version__,
         "branch": os.getenv("BRANCH", "unknown"),
         "commit_sha": os.getenv("COMMIT_SHA", "unknown"),
     }
@@ -16069,7 +16226,7 @@ def root():
     return {
         "ok": True,
         "service": "ClarityOS Cloud",
-        "version": "4.24",
+        "version": _version.__version__,
         "auth": "POST /login then send X-Session-ID header",
         "endpoints": {
             "POST /login":    "auth (public)",
@@ -16096,6 +16253,7 @@ def root():
             "POST /billing/intent/confirm":"mock-only confirm (auth)",
             "POST /billing/webhook":"Stripe / mock webhook receiver",
             "GET  /billing/history":"transaction + intent history (auth)",
+            "POST /billing/checkout-link":"Email-only Stripe Checkout session (public)",
             "POST /waitlist/join":"public waitlist signup",
             "GET  /public/cohort_status":"cohort fill stats (public)",
             "GET  /founder/waitlist":"founder waitlist listing (founder)",

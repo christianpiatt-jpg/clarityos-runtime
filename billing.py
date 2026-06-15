@@ -102,6 +102,43 @@ def create_checkout_session(
     return session.url
 
 
+def create_membership_checkout_session(
+    email: str, price_id: str, plan: str,
+    success_url: str, cancel_url: str,
+) -> str:
+    """Public, email-only Stripe Checkout Session for the WP -> Stripe
+    pipeline (C2). Subscription mode, Founding price.
+
+    Inits Stripe via ``billing_config.get_secret_key()`` — deliberately
+    NOT ``_stripe()``, whose ``is_configured()`` gate also requires the
+    legacy ``STRIPE_PRICE_ONETIME``/``STRIPE_PRICE_RECURRING`` env vars
+    and would raise ``BillingNotConfigured`` for the wrong reason.
+    Explicit 503 path on a missing secret key.
+    """
+    import billing_config
+    import stripe  # type: ignore
+    secret = billing_config.get_secret_key()
+    if not secret:
+        raise BillingNotConfigured("Stripe secret key not configured")
+    stripe.api_key = secret
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        line_items=[{"price": price_id, "quantity": 1}],
+        customer_email=email,
+        client_reference_id=email,
+        metadata={
+            "user_id": email,
+            "plan": plan,
+            "source": "wp_button",
+        },
+        success_url=success_url + (
+            "&" if "?" in success_url else "?"
+        ) + "session_id={CHECKOUT_SESSION_ID}",
+        cancel_url=cancel_url,
+    )
+    return session.url
+
+
 def retrieve_session(session_id: str) -> dict:
     """Fetch a Checkout Session. Raises if Stripe rejects."""
     stripe = _stripe()
@@ -127,7 +164,22 @@ def verify_webhook(payload: bytes, sig_header: str) -> Optional[dict]:
     the webhook secret isn't set.
     """
     import billing_config
-    stripe = _stripe()
+    # C3 — webhook validation needs only the secret key (to init the SDK) and
+    # the webhook signing secret. It must NOT route through _stripe(), whose
+    # is_configured() gate also demands the legacy STRIPE_PRICE_ONETIME /
+    # STRIPE_PRICE_RECURRING env vars (removed under Doctrine #74 LAD) and would
+    # raise BillingNotConfigured for the wrong reason. Mirrors
+    # create_membership_checkout_session (see the note at lines ~112-116).
+    secret_key = billing_config.get_secret_key()
+    if not secret_key:
+        raise BillingNotConfigured("Stripe secret key not configured")
+    try:
+        import stripe  # type: ignore
+    except ImportError as e:
+        raise BillingNotConfigured(
+            "stripe SDK not installed. Add `stripe` to requirements.txt and redeploy."
+        ) from e
+    stripe.api_key = secret_key
     secret = billing_config.get_webhook_secret()
     if not secret:
         raise BillingNotConfigured(

@@ -172,6 +172,106 @@ def mark_event_seen(event_id: Optional[str]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# C3 — durable webhook audit + idempotency (Firestore-backed)
+# ---------------------------------------------------------------------------
+# The in-process _seen_event_ids set above is per-instance and lost on restart;
+# on Cloud Run (multi-instance / cold starts) that is not a sufficient
+# idempotency guarantee. When CLARITYOS_BACKEND=firestore we persist one doc
+# per Stripe event id under the _audit collection: existence == "already seen",
+# and a ``processed`` flag records whether the handler ran to completion.
+# Memory / mock backends transparently fall back to the in-process seen-set so
+# the test suite (and local synthetic-event flows) are unchanged.
+_AUDIT_COLLECTION = "_audit"
+_audit_firestore_client = None  # lazy init
+
+
+def _audit_backend() -> str:
+    return os.environ.get("CLARITYOS_BACKEND", "memory").lower()
+
+
+def _audit_fs():
+    global _audit_firestore_client
+    if _audit_firestore_client is not None:
+        return _audit_firestore_client
+    from google.cloud import firestore  # type: ignore
+    _audit_firestore_client = firestore.Client()
+    return _audit_firestore_client
+
+
+def _audit_doc(event_id):
+    return _audit_fs().collection(_AUDIT_COLLECTION).document(str(event_id))
+
+
+def audit_seen(event_id: Optional[str]) -> bool:
+    """Durable duplicate check. Firestore ``_audit/<event_id>`` existence when
+    backend=firestore; the in-process seen-set otherwise. Fails OPEN to the
+    in-process set on a Firestore error so a transient blip never silently
+    drops a real event."""
+    if not event_id:
+        return False
+    if _audit_backend() == "firestore":
+        try:
+            return _audit_doc(event_id).get().exists
+        except Exception as e:  # pragma: no cover (defensive)
+            logger.warning("audit_seen firestore read failed eid=%s err=%s", event_id, e)
+            return seen_event(event_id)
+    return seen_event(event_id)
+
+
+def audit_begin(event: Optional[dict]) -> None:
+    """Record receipt of an event (``processed=False``). Always updates the
+    in-process seen-set; additionally writes the durable ``_audit`` doc when
+    backend=firestore."""
+    if not isinstance(event, dict):
+        return
+    eid = event.get("id")
+    if not eid:
+        return
+    mark_event_seen(eid)
+    if _audit_backend() != "firestore":
+        return
+    try:
+        _audit_doc(eid).set({
+            "event_id": str(eid),
+            "type": event.get("type"),
+            "livemode": bool(event.get("livemode", False)),
+            "api_version": event.get("api_version"),
+            "received_at": time.time(),
+            "processed": False,
+        })
+    except Exception as e:  # pragma: no cover (defensive)
+        logger.warning("audit_begin firestore write failed eid=%s err=%s", eid, e)
+
+
+def audit_complete(event_id: Optional[str]) -> None:
+    """Flag the durable ``_audit`` doc ``processed=True`` once the handler
+    succeeds. No-op for memory / mock backends."""
+    if not event_id or _audit_backend() != "firestore":
+        return
+    try:
+        _audit_doc(event_id).set(
+            {"processed": True, "processed_at": time.time()}, merge=True
+        )
+    except Exception as e:  # pragma: no cover (defensive)
+        logger.warning("audit_complete firestore write failed eid=%s err=%s", event_id, e)
+
+
+def audit_fail(event_id: Optional[str], err: object) -> None:
+    """Record a handler failure on the durable ``_audit`` doc (``processed``
+    stays False so Stripe's retry can re-drive the event). No-op for memory /
+    mock backends."""
+    if not event_id or _audit_backend() != "firestore":
+        return
+    try:
+        _audit_doc(event_id).set(
+            {"processed": False, "error": str(err)[:500], "errored_at": time.time()},
+            merge=True,
+        )
+    except Exception as e:  # pragma: no cover (defensive)
+        logger.warning("audit_fail firestore write failed eid=%s err=%s", event_id, e)
+
+
+# ---------------------------------------------------------------------------
 # Module 18 — webhook failure triage signal (queryable, content-free)
 # ---------------------------------------------------------------------------
 def record_webhook_failure(reason: str, now_ts: Optional[float] = None) -> None:
