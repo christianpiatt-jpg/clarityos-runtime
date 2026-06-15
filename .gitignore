@@ -133,3 +133,7 @@ scratch/
 .claude/launch.json
 .claude/*.lock
 BUILD_VERSION
+
+# FRAGO 12.06.5 §2 — local ops scratch / artifacts (operator-authorized)
+_audit/
+wordpress_shells/
