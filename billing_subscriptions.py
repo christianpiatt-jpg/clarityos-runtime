@@ -259,14 +259,18 @@ def _resolve_user(obj: dict) -> Optional[str]:
 def _invoice_period_end(invoice: dict) -> Optional[int]:
     if not isinstance(invoice, dict):
         return None
-    pe = invoice.get("period_end")
-    if pe:
-        return int(pe)
+    # CL-18: prefer the line-item period end (the true subscription period upper
+    # bound). The top-level ``invoice.period_end`` equals ``period_start`` for a
+    # subscription's first invoice, so it must be the FALLBACK, not the primary
+    # (returning it as the period end was the FRAGO 12.04 §3 renewal-date defect).
     lines = (invoice.get("lines") or {}).get("data") or []
     if lines:
         end = ((lines[0] or {}).get("period") or {}).get("end")
         if end:
             return int(end)
+    pe = invoice.get("period_end")
+    if pe:
+        return int(pe)
     return None
 
 
