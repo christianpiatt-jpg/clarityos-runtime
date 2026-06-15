@@ -696,7 +696,7 @@ def test_health_version_4_8(app_module, client):
     # v54 → 4.8, v60 → 4.9, v67 → 4.10, v68 → 4.11, v69 → 4.12, v70 → 4.13,
     # v71 → 4.14, v72 → 4.15, v73 → 4.16, v74 → 4.17. The test name
     # pins the v54 era; the assertion tracks the current minor head.
-    assert r.json()["version"] == "4.23"
+    assert r.json()["version"] == __import__("_version").__version__
 
 
 # ===========================================================================

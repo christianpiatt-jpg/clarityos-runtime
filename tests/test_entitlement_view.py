@@ -380,4 +380,4 @@ class TestManifestAndVersion:
         assert "GET  /founder/entitlement/{user_id}" in endpoints
 
     def test_health_version(self, client):
-        assert client.get("/health").json()["version"] == "4.23"
+        assert client.get("/health").json()["version"] == __import__("_version").__version__

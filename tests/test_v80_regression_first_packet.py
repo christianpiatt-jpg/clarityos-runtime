@@ -426,4 +426,4 @@ class TestRouteAndManifest:
     def test_health_version_locked(self, client):
         r = client.get("/health")
         assert r.status_code == 200
-        assert r.json()["version"] == "4.23"
+        assert r.json()["version"] == __import__("_version").__version__

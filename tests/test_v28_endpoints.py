@@ -87,7 +87,7 @@ def test_health_version(client):
     # v68 → 4.11, v69 → 4.12, v70 → 4.13, v71 → 4.14, v72 → 4.15,
     # v73 → 4.16, v74 → 4.17. The v28 contract never pinned the
     # literal; this assertion bumps with each app.py version.
-    assert body["version"] == "4.23"
+    assert body["version"] == __import__("_version").__version__
 
 
 def test_v29_flags_returns_user_view(app_module, client):

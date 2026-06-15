@@ -447,7 +447,7 @@ class TestRoutesAndManifest:
 
     def test_health_version_locked(self, client):
         r = client.get("/health")
-        assert r.json()["version"] == "4.23"
+        assert r.json()["version"] == __import__("_version").__version__
 
     def test_chain_envelope_includes_archived_field(self, client):
         _, sid = _make_user("alice")
