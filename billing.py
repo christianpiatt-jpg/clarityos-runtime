@@ -102,6 +102,35 @@ def create_checkout_session(
     return session.url
 
 
+def _resolve_or_create_customer_id(stripe, email: str) -> str:
+    """CL-17 — resolve a Stripe Customer id for an email-keyed buyer instead of
+    minting one implicitly via the ``customer_email`` arg (root cause of the duplicate
+    Customer that consumed FRAGOs 12.04-12.06). Mirrors the C3 webhook's
+    ``users_store.get_user(email)`` lookup; never overwrites a live id (same
+    discipline as CL-19):
+
+      A) user-doc has a non-deleted ``stripe_customer_id``  -> reuse, no write
+      B) user-doc exists, id empty or its Customer is deleted -> create + write-back
+      C) no user-doc yet (new buyer)                        -> create, no write
+                                                               (webhook binds it)
+    """
+    import users_store
+    doc = users_store.get_user(email)
+    existing = (doc or {}).get("stripe_customer_id")
+    if existing:
+        try:
+            deleted = bool(getattr(stripe.Customer.retrieve(existing), "deleted", None))
+        except Exception:
+            deleted = True  # stale / unretrievable id -> replace
+        if not deleted:
+            return str(existing)  # Case A
+    new_id = str(stripe.Customer.create(email=email).id)
+    if doc is not None:
+        # Case B only (empty field, or over a deleted id). Case C has no doc.
+        users_store.update_user(email, {"stripe_customer_id": new_id})
+    return new_id
+
+
 def create_membership_checkout_session(
     email: str, price_id: str, plan: str,
     success_url: str, cancel_url: str,
@@ -121,10 +150,12 @@ def create_membership_checkout_session(
     if not secret:
         raise BillingNotConfigured("Stripe secret key not configured")
     stripe.api_key = secret
+    # CL-17: resolve/reuse the Customer up front (no implicit customer_email mint).
+    customer_id = _resolve_or_create_customer_id(stripe, email)
     session = stripe.checkout.Session.create(
         mode="subscription",
         line_items=[{"price": price_id, "quantity": 1}],
-        customer_email=email,
+        customer=customer_id,
         client_reference_id=email,
         metadata={
             "user_id": email,
