@@ -1634,12 +1634,32 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
                 email_lower,
                 {"email": email_lower, "provisioned_via": "stripe_webhook"},
             )
-        # Bind the Stripe customer id so later customer.subscription.* events
-        # (which carry ``customer``, not metadata) resolve back to this user.
+        # CL-19: bind the Stripe customer id so later customer.subscription.*
+        # events (which carry ``customer``, not metadata) resolve back to this
+        # user — but NEVER clobber an existing, different id (the FRAGO 12.04 §3
+        # root cause). Write on empty, no-op on match, and on mismatch record
+        # passive audit fields without corrupting the primary.
         if customer_id:
-            users_store.update_user(
-                email_lower, {"stripe_customer_id": str(customer_id)}
+            customer_id = str(customer_id)
+            _existing_cid = (users_store.get_user(email_lower) or {}).get(
+                "stripe_customer_id"
             )
+            if not _existing_cid:
+                users_store.update_user(
+                    email_lower, {"stripe_customer_id": customer_id}
+                )
+            elif _existing_cid != customer_id:
+                users_store.update_user(email_lower, {
+                    "_cl19_mismatch_observed_at": datetime.now(timezone.utc).strftime(
+                        "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ),
+                    "_cl19_mismatch_incoming": customer_id,
+                    "_cl19_mismatch_existing": str(_existing_cid),
+                })
+                logger.warning(
+                    "CL-19 stripe_customer_id mismatch user=%s (primary preserved)",
+                    _user_ref(email_lower),
+                )
 
         if paid:
             users_store.set_billing_state(
