@@ -1,0 +1,2 @@
+ops/ledger/*.jsonl text eol=lf
+ops/snapshots/*.jsonl text eol=lf
