@@ -63,7 +63,7 @@ from typing import Any, Literal, Optional
 
 import bcrypt
 import hmac
-from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, status
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
@@ -577,6 +577,84 @@ def require_session(x_session_id: Optional[str] = Header(default=None)) -> dict:
     except Exception:  # pragma: no cover — defensive against backend hiccups
         cohort = None
     return {"session_id": x_session_id, "user": session["user"], "cohort": cohort}
+
+
+def require_active_entitlement(session: dict = Depends(require_session)) -> dict:
+    """Membership gate. 403 inactive_entitlement for non-members.
+    Reads the canonical entitlement projection (same store the webhook writes)."""
+    view = entitlement_view.compute_entitlement_view(session["user"])
+    if not view.get("active"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=error_response("inactive_entitlement",
+                                  "Active membership required for this resource."),
+        )
+    return session
+
+
+def require_credit_balance(session: dict = Depends(require_active_entitlement)) -> dict:
+    """Membership + cheap balance pre-check. 402 no_credits when balance is 0.
+    For read-but-not-debit routes; compute routes use metered_compute instead."""
+    if users_store.get_g_credit_balance(session["user"]) <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=error_response("no_credits",
+                                  "Out of compute credits. Recharge to continue."),
+        )
+    return session
+
+
+def metered_compute(
+    response: Response,
+    session: dict = Depends(require_active_entitlement),
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+):
+    """Paid-compute gate used as the route's session dependency.
+
+    Enforces membership (403), requires an Idempotency-Key (400), debits one
+    credit atomically (402 on empty balance), and — via the FastAPI
+    yield-dependency teardown — refunds the credit if the route raises.
+    Handler bodies are unchanged: the route still receives the session dict.
+    Sets `X-Remaining-Credits` on the response.
+    """
+    if not idempotency_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_response("missing_idempotency_key",
+                                  "Idempotency-Key header required for compute calls."),
+        )
+    user = session["user"]
+    try:
+        res = users_store.consume_g_credit_tx(user, idempotency_key)
+    except ValueError as exc:
+        if str(exc) == "no_credits":
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=error_response("no_credits",
+                                      "Out of compute credits. Recharge to continue."),
+            )
+        raise
+    response.headers["X-Remaining-Credits"] = str(res["remaining"])
+    try:
+        yield session
+    except Exception:
+        if not res["replay"]:
+            users_store.refund_g_credit_tx(user, idempotency_key)
+        raise
+
+
+def _assert_prod_firestore_backend() -> None:
+    """Production (Cloud Run sets K_SERVICE) must use the firestore backend;
+    the memory credit path is non-atomic. Raises at import in prod otherwise."""
+    import os as _os
+    if _os.environ.get("K_SERVICE") and _os.environ.get("CLARITYOS_BACKEND") != "firestore":
+        raise RuntimeError(
+            "CLARITYOS_BACKEND must be 'firestore' in production (K_SERVICE set); "
+            "credit debit is non-atomic on the memory backend."
+        )
+
+
+_assert_prod_firestore_backend()
 
 
 # ---------------------------------------------------------------------------
@@ -2116,7 +2194,7 @@ def _emit_timeline(user: str, kind: str, ref: Optional[str], summary: str, data:
 
 
 @app.post("/vault/write")
-def vault_write(req: VaultWriteRequest, session: dict = Depends(require_session)):
+def vault_write(req: VaultWriteRequest, session: dict = Depends(require_active_entitlement)):
     user = session["user"]
     if req.type not in ALLOWED_VAULT_TYPES:
         raise HTTPException(
@@ -2153,7 +2231,7 @@ def vault_write(req: VaultWriteRequest, session: dict = Depends(require_session)
 
 
 @app.post("/vault/update")
-def vault_update(req: VaultUpdateRequest, session: dict = Depends(require_session)):
+def vault_update(req: VaultUpdateRequest, session: dict = Depends(require_active_entitlement)):
     user = session["user"]
     existing = vault_store.get(req.id)
     if not existing:
@@ -2208,7 +2286,7 @@ def vault_update(req: VaultUpdateRequest, session: dict = Depends(require_sessio
 
 
 @app.post("/vault/delete")
-def vault_delete(req: VaultDeleteRequest, session: dict = Depends(require_session)):
+def vault_delete(req: VaultDeleteRequest, session: dict = Depends(require_active_entitlement)):
     user = session["user"]
     item = vault_store.get(req.id)
     if not item:
@@ -2261,7 +2339,7 @@ class LibraryUpdateRequest(BaseModel):
 
 
 @app.post("/library/write")
-def library_user_write(req: LibraryWriteRequest, session: dict = Depends(require_session)):
+def library_user_write(req: LibraryWriteRequest, session: dict = Depends(require_active_entitlement)):
     user = session["user"]
     if not req.title or not req.title.strip():
         raise HTTPException(
@@ -2299,7 +2377,7 @@ def library_user_write(req: LibraryWriteRequest, session: dict = Depends(require
 
 
 @app.post("/library/update")
-def library_user_update(req: LibraryUpdateRequest, session: dict = Depends(require_session)):
+def library_user_update(req: LibraryUpdateRequest, session: dict = Depends(require_active_entitlement)):
     user = session["user"]
     existing = library_store.get(req.id)
     if not existing:
@@ -2368,7 +2446,7 @@ class TimelineWriteRequest(BaseModel):
 
 
 @app.post("/timeline/write")
-def timeline_write(req: TimelineWriteRequest, session: dict = Depends(require_session)):
+def timeline_write(req: TimelineWriteRequest, session: dict = Depends(require_active_entitlement)):
     user = session["user"]
     if not req.kind or not req.kind.strip():
         raise HTTPException(
@@ -2835,7 +2913,7 @@ def _persist_markov_state(
 @app.post("/markov/state/update")
 def markov_state_update(
     req: MarkovStateUpdateRequest,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_active_entitlement),
 ):
     user = session["user"]
     if not req.session_id or not req.session_id.strip():
@@ -8028,7 +8106,7 @@ def _classify_intent(v_final: list[float]) -> str:
 @app.post("/markov/chat")
 def markov_chat(
     req: MarkovChatRequest,
-    session: dict = Depends(require_session),
+    session: dict = Depends(metered_compute),
 ):
     user = session["user"]
     if not req.session_id or not req.session_id.strip():
@@ -8362,7 +8440,7 @@ def _log_call(engine: str, session: dict) -> None:
 
 
 @app.post("/markov")
-def markov(req: EngineRequest, session: dict = Depends(require_session)):
+def markov(req: EngineRequest, session: dict = Depends(metered_compute)):
     _log_call("markov", session)
     return ok_response(
         "markov",
@@ -8371,7 +8449,7 @@ def markov(req: EngineRequest, session: dict = Depends(require_session)):
 
 
 @app.post("/galileo")
-def galileo(req: EngineRequest, session: dict = Depends(require_session)):
+def galileo(req: EngineRequest, session: dict = Depends(metered_compute)):
     _log_call("galileo", session)
     return ok_response(
         "galileo",
@@ -8380,7 +8458,7 @@ def galileo(req: EngineRequest, session: dict = Depends(require_session)):
 
 
 @app.post("/library")
-def library(req: EngineRequest, session: dict = Depends(require_session)):
+def library(req: EngineRequest, session: dict = Depends(metered_compute)):
     _log_call("library", session)
     return ok_response(
         "library",
@@ -8389,7 +8467,7 @@ def library(req: EngineRequest, session: dict = Depends(require_session)):
 
 
 @app.post("/tizzy")
-def tizzy(req: EngineRequest, session: dict = Depends(require_session)):
+def tizzy(req: EngineRequest, session: dict = Depends(metered_compute)):
     _log_call("tizzy", session)
     return ok_response(
         "tizzy",
@@ -11539,7 +11617,7 @@ EnginePrimitive.model_rebuild()
 @app.post("/engine/v1/run", response_model=EngineResponseV1)
 def engine_v1_run(
     req: EngineRunRequest,
-    session: dict = Depends(require_session),
+    session: dict = Depends(metered_compute),
 ):
     """Umbrella Phase-1 engine endpoint.
 

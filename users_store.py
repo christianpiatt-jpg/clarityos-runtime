@@ -206,6 +206,90 @@ def consume_g_credit(user: str, *, history_entry: Optional[dict] = None) -> int:
     return new_balance
 
 
+_DEBITS_COLLECTION = "g_debits"
+_MEMORY_DEBITS: dict = {}   # dev/test only; the firestore path is authoritative
+
+
+def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
+    """Atomic, idempotent debit of ``cost`` credits keyed by ``request_id``.
+
+    Returns ``{"remaining": int, "replay": bool}``. Raises
+    ``ValueError("no_credits")`` when balance < cost and this request_id has
+    not already been charged. Firestore path is transactional
+    (concurrency-safe, no double-spend, no double-charge on replay); the
+    memory path is a non-atomic dev/test fallback.
+    """
+    if not request_id:
+        raise ValueError("missing_request_id")
+
+    if _backend() != "firestore":
+        rec = _MEMORY_DEBITS.get(request_id)
+        if rec and rec.get("status") == "charged":
+            return {"remaining": get_g_credit_balance(user), "replay": True}
+        bal = get_g_credit_balance(user)
+        if bal < cost:
+            raise ValueError("no_credits")
+        update_user(user, {"g_credits": bal - cost})
+        _MEMORY_DEBITS[request_id] = {"user": user, "cost": cost, "status": "charged"}
+        return {"remaining": bal - cost, "replay": False}
+
+    from google.cloud import firestore  # lazy import, matches module convention
+    client = _get_firestore()
+    user_ref = _coll().document(user)
+    debit_ref = client.collection(_DEBITS_COLLECTION).document(request_id)
+
+    @firestore.transactional
+    def _txn(txn):
+        debit_snap = debit_ref.get(transaction=txn)   # all reads before writes
+        user_snap = user_ref.get(transaction=txn)
+        bal = int((user_snap.to_dict() or {}).get("g_credits") or 0)
+        if debit_snap.exists and (debit_snap.to_dict() or {}).get("status") == "charged":
+            return {"remaining": bal, "replay": True}   # idempotent no-op
+        if bal < cost:
+            raise ValueError("no_credits")
+        txn.update(user_ref, {"g_credits": bal - cost})
+        txn.set(debit_ref, {
+            "user": user, "cost": cost, "status": "charged",
+            "request_id": request_id, "ts": time.time(),
+        })
+        return {"remaining": bal - cost, "replay": False}
+
+    return _txn(client.transaction())
+
+
+def refund_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> None:
+    """Void a prior debit after a failed compute call. Idempotent: only a
+    ``charged`` debit is refunded, then flipped to ``refunded`` so it can
+    never refund twice.
+    """
+    if not request_id:
+        return
+
+    if _backend() != "firestore":
+        rec = _MEMORY_DEBITS.get(request_id)
+        if rec and rec.get("status") == "charged":
+            update_user(user, {"g_credits": get_g_credit_balance(user) + cost})
+            rec["status"] = "refunded"
+        return
+
+    from google.cloud import firestore
+    client = _get_firestore()
+    user_ref = _coll().document(user)
+    debit_ref = client.collection(_DEBITS_COLLECTION).document(request_id)
+
+    @firestore.transactional
+    def _txn(txn):
+        debit_snap = debit_ref.get(transaction=txn)
+        user_snap = user_ref.get(transaction=txn)
+        if not debit_snap.exists or (debit_snap.to_dict() or {}).get("status") != "charged":
+            return
+        bal = int((user_snap.to_dict() or {}).get("g_credits") or 0)
+        txn.update(user_ref, {"g_credits": bal + cost})
+        txn.update(debit_ref, {"status": "refunded", "refunded_ts": time.time()})
+
+    _txn(client.transaction())
+
+
 def set_membership(
     user: str,
     *,
