@@ -538,12 +538,18 @@ def error_response(error: str, message: str) -> dict:
 
 @app.exception_handler(HTTPException)
 async def _envelope_http_exception_handler(_request: Request, exc: HTTPException):
-    """Unwrap detail=envelope so mobile clients see {ok:false,...} at top level."""
+    """Unwrap detail=envelope so mobile clients see {ok:false,...} at top level.
+
+    Forwards ``exc.headers`` so a caller that attaches headers to the raised
+    exception (e.g. metered_compute's 409 ``X-Remaining-Credits``) keeps them;
+    the fresh JSONResponse would otherwise drop them (D2_SPEC §9-Q1)."""
     if isinstance(exc.detail, dict) and "ok" in exc.detail:
-        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+        return JSONResponse(status_code=exc.status_code, content=exc.detail,
+                            headers=exc.headers)
     return JSONResponse(
         status_code=exc.status_code,
         content=error_response("http_error", str(exc.detail)),
+        headers=exc.headers,
     )
 
 
@@ -614,6 +620,8 @@ def metered_compute(
     Enforces membership (403), requires an Idempotency-Key (400), debits one
     credit atomically (402 on empty balance), and — via the FastAPI
     yield-dependency teardown — refunds the credit if the route raises.
+    A refunded key is terminal: replaying it returns HTTP 409
+    ``idempotency_key_terminal`` (D2 / R5) without re-charging or computing.
     Handler bodies are unchanged: the route still receives the session dict.
     Sets `X-Remaining-Credits` on the response.
     """
@@ -634,6 +642,18 @@ def metered_compute(
                                       "Out of compute credits. Recharge to continue."),
             )
         raise
+    # D2 (R5) — a refunded Idempotency-Key is terminal: no charge occurred and
+    # no compute runs. Return 409 so the client mints a fresh key. The balance
+    # header is attached to the exception (not `response`) because the envelope
+    # exception handler emits a fresh response object (D2_SPEC §9-Q1).
+    if res.get("terminal"):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=error_response("idempotency_key_terminal",
+                                  "Idempotency-Key was refunded and cannot be reused. "
+                                  "Generate a fresh key and retry."),
+            headers={"X-Remaining-Credits": str(res["remaining"])},
+        )
     response.headers["X-Remaining-Credits"] = str(res["remaining"])
     try:
         yield session

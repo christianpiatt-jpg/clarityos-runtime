@@ -213,11 +213,18 @@ _MEMORY_DEBITS: dict = {}   # dev/test only; the firestore path is authoritative
 def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
     """Atomic, idempotent debit of ``cost`` credits keyed by ``request_id``.
 
-    Returns ``{"remaining": int, "replay": bool}``. Raises
+    Returns ``{"remaining": int, "replay": bool, "terminal": bool}``. Raises
     ``ValueError("no_credits")`` when balance < cost and this request_id has
     not already been charged. Firestore path is transactional
     (concurrency-safe, no double-spend, no double-charge on replay); the
     memory path is a non-atomic dev/test fallback.
+
+    D2 (R5) — terminality: a debit that has been *refunded* is terminal. A
+    replay on a refunded ``request_id`` never re-charges; it returns
+    ``{"replay": True, "terminal": True}`` so the caller can reject the reused
+    key (HTTP 409) rather than silently re-billing. ``terminal`` is ``False`` on
+    a fresh debit and on an ordinary (still-``charged``) replay. Both backends
+    behave identically.
     """
     if not request_id:
         raise ValueError("missing_request_id")
@@ -225,13 +232,15 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
     if _backend() != "firestore":
         rec = _MEMORY_DEBITS.get(request_id)
         if rec and rec.get("status") == "charged":
-            return {"remaining": get_g_credit_balance(user), "replay": True}
+            return {"remaining": get_g_credit_balance(user), "replay": True, "terminal": False}
+        if rec and rec.get("status") == "refunded":
+            return {"remaining": get_g_credit_balance(user), "replay": True, "terminal": True}
         bal = get_g_credit_balance(user)
         if bal < cost:
             raise ValueError("no_credits")
         update_user(user, {"g_credits": bal - cost})
         _MEMORY_DEBITS[request_id] = {"user": user, "cost": cost, "status": "charged"}
-        return {"remaining": bal - cost, "replay": False}
+        return {"remaining": bal - cost, "replay": False, "terminal": False}
 
     from google.cloud import firestore  # lazy import, matches module convention
     client = _get_firestore()
@@ -243,8 +252,12 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
         debit_snap = debit_ref.get(transaction=txn)   # all reads before writes
         user_snap = user_ref.get(transaction=txn)
         bal = int((user_snap.to_dict() or {}).get("g_credits") or 0)
-        if debit_snap.exists and (debit_snap.to_dict() or {}).get("status") == "charged":
-            return {"remaining": bal, "replay": True}   # idempotent no-op
+        if debit_snap.exists:
+            status = (debit_snap.to_dict() or {}).get("status")
+            if status == "charged":
+                return {"remaining": bal, "replay": True, "terminal": False}   # idempotent no-op
+            if status == "refunded":
+                return {"remaining": bal, "replay": True, "terminal": True}    # R5 — terminal key
         if bal < cost:
             raise ValueError("no_credits")
         txn.update(user_ref, {"g_credits": bal - cost})
@@ -252,7 +265,7 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
             "user": user, "cost": cost, "status": "charged",
             "request_id": request_id, "ts": time.time(),
         })
-        return {"remaining": bal - cost, "replay": False}
+        return {"remaining": bal - cost, "replay": False, "terminal": False}
 
     return _txn(client.transaction())
 
