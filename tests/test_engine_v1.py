@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import secrets
 import time
+import uuid
 
 import pytest
 
@@ -41,15 +42,25 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    # D1-TEST-MIG-01 — /engine/v1/run is a metered_compute route, so the
+    # caller must hold an active membership + g_credits, and g_credits is
+    # founder-cohort gated. These are functional engine tests (entitled
+    # caller -> 200), so provision entitlement here. cohort=None call-sites
+    # fall back to "founder" (enables g_credits); ample credits keep the
+    # 31-call rate-limit test on the 429 path rather than 402.
+    users_store.update_user(username, {"cohort": cohort or "founder"})
+    users_store.set_membership(username, tier="founding", price=50.0, status="active")
+    users_store.add_g_credits(username, 1000)
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
 
 
 def _auth(sid):
-    return {"X-Session-ID": sid}
+    # D1: /engine/v1/run is metered_compute -> needs an Idempotency-Key
+    # (400 without it). Fresh key per call = distinct charge (determinism
+    # test posts twice; both must charge, not idempotent-replay).
+    return {"X-Session-ID": sid, "Idempotency-Key": uuid.uuid4().hex}
 
 
 def _basic_primitive(pressure=5.0, flow=4.0, resistance=2.0):

@@ -291,6 +291,11 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine", "privacy_surface",
     },
     # ---- Pre-existing PASS-2/3 spine coverage (foundations) ----
+    # D1-TEST-MIG-01 — engine_v1 endpoint tests are now D1-aware (entitled
+    # caller -> 200); gate them so the marker suite sees their coverage.
+    "test_engine_v1.py": {
+        "runtime_spine",
+    },
     "test_v40_intelligence_kernel.py": {
         "runtime_spine",
     },
