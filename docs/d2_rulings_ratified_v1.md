@@ -151,3 +151,33 @@ Carried forward unchanged:
 ---
 
 **End D2 Rulings — RATIFIED 2026-06-19 12:02 EDT**
+
+---
+
+## Status Update — 2026-06-22 (FRAGO 12.23.C)
+
+> Appended per FRAGO 12.23.C (ET-1.W substrate-mutation lane; CT-1 ratified 2026-06-22 15:20 EDT). The 2026-06-19 ratified content above is preserved verbatim; this addendum supersedes the BASE-TBD and PR-#1-CI status lines that were open at ratification.
+
+### BASE — RESOLVED
+
+```
+D2 BASE: origin/main @ 3e91640f9551804bc73db5ec6e77b7874caa3c1d
+(merged 2026-06-22 via PR #3, ratified per FRAGO 12.23.A gap analysis 2026-06-22)
+```
+
+Supersedes the **BASE** ruling line *"D2 expected base SHA = PR #1 merge commit SHA (TBD on merge)"*. The D1 foundation reached `origin/main` via **PR #3** (merge commit `3e91640`), not the originally-anticipated PR #1 lane.
+
+### Stage-1 Activation Conditions — ALL MET
+
+The five conditions under *"Stage-1 Activation Conditions"* (including *"PR #1 CI settle (currently 2/4 checks complete)"*) are now satisfied:
+
+1. CI settled — **4/4** checks green on the D1-merge PR (PR #3: runtime_spine · privacy_surface · determinism_surface · runtime CI gate)
+2. CT-2 merge-verdict issued (10/10 PASS)
+3. CT-1 merge authorization granted
+4. D1 merged to `origin/main` (HEAD now `3e91640`)
+5. CT-2 substrate re-witness complete (`origin/main` = `3e91640`)
+
+D2 Stage-1 lane-commit to substrate is therefore unblocked.
+
+---
+**End Status Update — 2026-06-22**
