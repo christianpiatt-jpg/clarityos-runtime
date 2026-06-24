@@ -44,6 +44,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+import urllib.error
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, Optional
@@ -81,7 +82,7 @@ MODEL_REGISTRY: dict[str, tuple[str, ...]] = {
     "ollama":    ("ollama:llama3.1",),
     # v80.1 — DeepSeek V4 (OpenAI wire-format) + Mistral Large 3.
     "deepseek":  ("deepseek:deepseek-v4-flash", "deepseek:deepseek-v4-pro"),
-    "mistral":   ("mistral:mistral-large-3-25-12",),
+    "mistral":   ("mistral:mistral-large-2512",),
 }
 
 # Derived flat tuple. ``auto`` is appended once (routing sentinel, not
@@ -223,9 +224,9 @@ _MODEL_ALIASES: dict[str, str] = {
     "deepseek-pro":   "deepseek:deepseek-v4-pro",
     "v4-flash":       "deepseek:deepseek-v4-flash",
     "v4-pro":         "deepseek:deepseek-v4-pro",
-    "mistral":        "mistral:mistral-large-3-25-12",
-    "mistral-large":  "mistral:mistral-large-3-25-12",
-    "large":          "mistral:mistral-large-3-25-12",
+    "mistral":        "mistral:mistral-large-2512",
+    "mistral-large":  "mistral:mistral-large-2512",
+    "large":          "mistral:mistral-large-2512",
 }
 
 
@@ -667,7 +668,14 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
             "text": text, "mock": False, "ts": started,
         }
     except Exception as e:  # pragma: no cover
-        logger.warning("anthropic call failed → mock; err=%s", e)
+        if isinstance(e, urllib.error.HTTPError):
+            try:
+                body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                body = "<body unreadable>"
+            logger.warning("anthropic http error status=%s body=%s", e.code, body)
+        else:
+            logger.warning("anthropic non-http error: %s", str(e))
         return _mock_result(model_id, "anthropic", prompt, started, error=str(e))
 
 
@@ -705,7 +713,14 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             "text": text, "mock": False, "ts": started,
         }
     except Exception as e:  # pragma: no cover
-        logger.warning("gemini call failed → mock; err=%s", e)
+        if isinstance(e, urllib.error.HTTPError):
+            try:
+                body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                body = "<body unreadable>"
+            logger.warning("gemini http error status=%s body=%s", e.code, body)
+        else:
+            logger.warning("gemini non-http error: %s", str(e))
         return _mock_result(model_id, "gemini", prompt, started, error=str(e))
 
 
@@ -949,7 +964,14 @@ def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens:
             "text": text, "mock": False, "ts": started,
         }
     except Exception as e:  # pragma: no cover (real-network path)
-        logger.warning("mistral call failed → mock; err=%s", e)
+        if isinstance(e, urllib.error.HTTPError):
+            try:
+                body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                body = "<body unreadable>"
+            logger.warning("mistral http error status=%s body=%s", e.code, body)
+        else:
+            logger.warning("mistral non-http error: %s", str(e))
         return _mock_result(model_id, "mistral", prompt, started, error=str(e))
 
 
