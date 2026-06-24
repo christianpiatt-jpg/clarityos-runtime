@@ -832,19 +832,36 @@ def _timed(adapter_name: str, fn, *args, **kwargs):
 
 
 def markov_adapter(text: str, meta: dict | None, user: str) -> dict:
-    length = len(text.strip())
-    tags: list[str] = []
-    if "?" in text:
-        tags.append("question")
-    if "!" in text:
-        tags.append("emphasis")
-    if length > 120:
-        tags.append("long")
+    """v80 — route /markov through model_router. Defaults to
+    ``ollama:llama3.1`` (local Ollama daemon). Callers may override via
+    ``meta["model"]`` with any SUPPORTED_MODELS id (e.g. ``"openai:gpt-4o"``
+    for an A/B comparison, or ``"local:llama3.1"`` once llama-cpp-python
+    is wired).
+
+    Without ``CLARITYOS_OLLAMA_URL`` set (or with any other unconfigured
+    provider) ``route_request`` returns the deterministic mock — so this
+    adapter always returns something, even offline / on Cloud Run.
+
+    Returns the v80 envelope: ``{model, provider, output, mock, user}``.
+    Replaces the v2.1 stub (``score``/``tags``/``interpretation``).
+    """
+    override = (meta or {}).get("model")
+    # v80.1 — route through select_model so founder/user model preferences
+    # apply; TASK_DEFAULTS["markov"] = ollama:llama3.1 is the fallback. An
+    # invalid meta["model"] is dropped to None so it falls through the
+    # precedence chain rather than raising (preserves prior lenient behavior).
+    model_id = model_router.select_model(
+        user,
+        task="markov",
+        override=override if model_router.is_valid_model(override) else None,
+    )
+    result = model_router.route_request(model_id, text)
     return {
-        "score": min(1.0, length / 200.0),
-        "tags": tags,
-        "interpretation": f"(markov-stub) {text[:200]}",
-        "user": user,
+        "model":    result.get("model_id", model_id),
+        "provider": result.get("provider", "ollama"),
+        "output":   result.get("text", ""),
+        "mock":     bool(result.get("mock", True)),
+        "user":     user,
     }
 
 

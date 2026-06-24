@@ -77,6 +77,7 @@ class TestResponseShape:
         ).json()
         assert set(body["registry"].keys()) == {
             "openai", "anthropic", "google", "xai", "local",
+            "ollama", "deepseek", "mistral",
         }
 
     def test_registry_values_are_string_lists(self, client):

@@ -302,11 +302,12 @@ class TestNoSurfaceReplacement:
         # All v44/v45 provider handlers stay registered.
         assert set(mr._PROVIDER_HANDLERS.keys()) == {
             "openai", "anthropic", "gemini", "xai", "local",
+            "ollama", "deepseek", "mistral",
         }
 
     def test_router_version_bumped(self):
-        # The version string was bumped to reflect Unit 38 landing.
-        assert mr.ROUTER_VERSION == "model_router.v57.1"
+        # v80 — bumped for FRAGO 12.B.08 (deepseek + mistral wiring).
+        assert mr.ROUTER_VERSION == "model_router.v80"
 
 
 # ===========================================================================

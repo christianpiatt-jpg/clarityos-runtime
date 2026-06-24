@@ -53,7 +53,7 @@ import runtime_privacy
 
 logger = logging.getLogger("clarityos.model_router")
 
-ROUTER_VERSION: str = "model_router.v57.1"
+ROUTER_VERSION: str = "model_router.v80"
 
 # v45 — model id that routes through the on-device runtime.
 LOCAL_MODEL_ID: str = "local:llama3.1"
@@ -75,6 +75,13 @@ MODEL_REGISTRY: dict[str, tuple[str, ...]] = {
     "google":    ("google:gemini-2.0-flash",),
     "xai":       ("xai:groq-llama",),
     "local":     ("local:llama3.1",),
+    # v80 — Ollama as HTTP-localhost provider. Avoids the native Windows
+    # build chain (MSVC/CMake/BLAS/wheels) that llama-cpp-python requires.
+    # Activated by CLARITYOS_OLLAMA_URL; falls back to mock otherwise.
+    "ollama":    ("ollama:llama3.1",),
+    # v80.1 — DeepSeek V4 (OpenAI wire-format) + Mistral Large 3.
+    "deepseek":  ("deepseek:deepseek-v4-flash", "deepseek:deepseek-v4-pro"),
+    "mistral":   ("mistral:mistral-large-3-25-12",),
 }
 
 # Derived flat tuple. ``auto`` is appended once (routing sentinel, not
@@ -96,6 +103,9 @@ PROVIDER_PREFIXES: tuple = (
     ("google:",    "gemini"),
     ("xai:",       "xai"),
     ("local:",     "local"),
+    ("ollama:",    "ollama"),
+    ("deepseek:",  "deepseek"),
+    ("mistral:",   "mistral"),
 )
 
 # Task → default model. OpenAI keys are wired, so the reasoning + thread
@@ -131,6 +141,10 @@ TASK_DEFAULTS: dict[str, str] = {
     # ``/me/regression_first/packet`` endpoint that drives the model
     # from raw text, this default is what ``select_model`` returns.
     "regression_first": "openai:gpt-4o",
+    # v80.1 — /markov routed via select_model so founder/user model
+    # preferences apply; ollama:llama3.1 is the task default (local Ollama
+    # daemon, mock-fallback when CLARITYOS_OLLAMA_URL is unset).
+    "markov":   "ollama:llama3.1",
 }
 
 # Provider → env var(s) that must be set for the provider to count as
@@ -142,6 +156,11 @@ _PROVIDER_ENV_KEYS: dict[str, tuple[str, ...]] = {
     "gemini":    ("CLARITYOS_GEMINI_KEY",),
     "xai":       ("CLARITYOS_XAI_KEY",),
     "local":     ("CLARITYOS_LOCAL_MODEL_PATH",),
+    # v80 — Ollama is "configured" when the URL is set. Suggested value
+    # for local Ollama installs: "http://localhost:11434".
+    "ollama":    ("CLARITYOS_OLLAMA_URL",),
+    "deepseek":  ("CLARITYOS_DEEPSEEK_KEY",),
+    "mistral":   ("CLARITYOS_MISTRAL_KEY",),
 }
 
 # Founder global override.
@@ -194,6 +213,19 @@ _MODEL_ALIASES: dict[str, str] = {
     "local":          "local:llama3.1",
     "llama":          "local:llama3.1",
     "llama3.1":       "local:llama3.1",
+    # v80 — Ollama localhost HTTP provider
+    "ollama":         "ollama:llama3.1",
+    "ollama-llama":   "ollama:llama3.1",
+    "ollama-llama3.1":"ollama:llama3.1",
+    # v80.1 — DeepSeek + Mistral aliases
+    "deepseek":       "deepseek:deepseek-v4-flash",
+    "deepseek-flash": "deepseek:deepseek-v4-flash",
+    "deepseek-pro":   "deepseek:deepseek-v4-pro",
+    "v4-flash":       "deepseek:deepseek-v4-flash",
+    "v4-pro":         "deepseek:deepseek-v4-pro",
+    "mistral":        "mistral:mistral-large-3-25-12",
+    "mistral-large":  "mistral:mistral-large-3-25-12",
+    "large":          "mistral:mistral-large-3-25-12",
 }
 
 
@@ -790,12 +822,146 @@ def get_local_runtime_status() -> dict:
     return local_model_runtime.get_runtime_status()
 
 
+def _call_ollama(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
+    """v80 — Ollama HTTP provider. POSTs to ``{CLARITYOS_OLLAMA_URL}/api/generate``
+    on the local Ollama daemon (default Ollama install listens on
+    ``http://localhost:11434``). No API key — Ollama is local.
+
+    Activated by ``CLARITYOS_OLLAMA_URL``. When unset, returns the
+    deterministic mock so the surrounding system is indifferent. When
+    set but the daemon is unreachable (not running, wrong port,
+    firewall), the HTTP exception is caught and we still fall back to
+    mock with ``fallback_error`` stamped for diagnostics. This mirrors
+    the OpenAI / Anthropic / Gemini handler pattern.
+
+    Wire model is the suffix after ``ollama:`` — ``"ollama:llama3.1"``
+    posts with ``"model": "llama3.1"``, so any model pulled via
+    ``ollama pull <name>`` is reachable by registering it as
+    ``"ollama:<name>"`` in MODEL_REGISTRY.
+    """
+    started = time.time()
+    if not _provider_configured("ollama"):
+        return _mock_result(model_id, "ollama", prompt, started)
+    base_url = (os.environ.get("CLARITYOS_OLLAMA_URL") or "").strip().rstrip("/")
+    wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    try:
+        body = {
+            "model": wire_model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": temperature,
+                "num_predict": max_tokens,
+            },
+        }
+        # Local Ollama can take a few seconds warm, much longer cold
+        # (first request loads the model). 120s ceiling matches the
+        # cold-load worst case for ~8B models on consumer hardware.
+        # If runtime_http_config gains an "ollama" entry later, switch
+        # to runtime_http_config.get_call_timeout("ollama").
+        with _request_timeout(120.0):
+            out = _http_post_json(
+                f"{base_url}/api/generate",
+                headers={"Content-Type": "application/json"},
+                body=body,
+            )
+        # Ollama generate shape (stream=False):
+        # {"model": str, "response": str, "done": bool, ...}
+        text = out.get("response")
+        if not isinstance(text, str):
+            raise ValueError("ollama response missing 'response' field")
+        return {
+            "ok": True, "model_id": model_id, "provider": "ollama",
+            "text": text, "mock": False, "ts": started,
+        }
+    except Exception as e:  # pragma: no cover (real-network path)
+        logger.warning("ollama call failed → mock; err=%s", e)
+        return _mock_result(model_id, "ollama", prompt, started, error=str(e))
+
+
+def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
+    """v80.1 — DeepSeek V4 provider (OpenAI wire-format). POSTs to
+    ``api.deepseek.com/v1/chat/completions``. Activated by
+    ``CLARITYOS_DEEPSEEK_KEY``; mock-on-unset mirrors the other handlers."""
+    started = time.time()
+    if not _provider_configured("deepseek"):
+        return _mock_result(model_id, "deepseek", prompt, started)
+    key = (os.environ.get("CLARITYOS_DEEPSEEK_KEY") or "").strip()
+    wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    try:
+        body = {
+            "model": wire_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        with _request_timeout(runtime_http_config.get_call_timeout("deepseek")):
+            out = _http_post_json(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type":  "application/json",
+                },
+                body=body,
+            )
+        text = out.get("choices", [{}])[0].get("message", {}).get("content")
+        if not isinstance(text, str):
+            raise ValueError("deepseek response missing choices[0].message.content")
+        return {
+            "ok": True, "model_id": model_id, "provider": "deepseek",
+            "text": text, "mock": False, "ts": started,
+        }
+    except Exception as e:  # pragma: no cover (real-network path)
+        logger.warning("deepseek call failed → mock; err=%s", e)
+        return _mock_result(model_id, "deepseek", prompt, started, error=str(e))
+
+
+def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
+    """v80.1 — Mistral Large 3 provider (OpenAI wire-format). POSTs to
+    ``api.mistral.ai/v1/chat/completions``. Activated by
+    ``CLARITYOS_MISTRAL_KEY``; mock-on-unset mirrors the other handlers."""
+    started = time.time()
+    if not _provider_configured("mistral"):
+        return _mock_result(model_id, "mistral", prompt, started)
+    key = (os.environ.get("CLARITYOS_MISTRAL_KEY") or "").strip()
+    wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
+    try:
+        body = {
+            "model": wire_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        with _request_timeout(runtime_http_config.get_call_timeout("mistral")):
+            out = _http_post_json(
+                "https://api.mistral.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type":  "application/json",
+                },
+                body=body,
+            )
+        text = out.get("choices", [{}])[0].get("message", {}).get("content")
+        if not isinstance(text, str):
+            raise ValueError("mistral response missing choices[0].message.content")
+        return {
+            "ok": True, "model_id": model_id, "provider": "mistral",
+            "text": text, "mock": False, "ts": started,
+        }
+    except Exception as e:  # pragma: no cover (real-network path)
+        logger.warning("mistral call failed → mock; err=%s", e)
+        return _mock_result(model_id, "mistral", prompt, started, error=str(e))
+
+
 _PROVIDER_HANDLERS: dict[str, Any] = {
     "openai":    _call_openai,
     "anthropic": _call_anthropic,
     "gemini":    _call_gemini,
     "xai":       _call_xai,
     "local":     _call_local,
+    "ollama":    _call_ollama,
+    "deepseek":  _call_deepseek,
+    "mistral":   _call_mistral,
 }
 
 
