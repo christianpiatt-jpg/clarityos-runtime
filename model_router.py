@@ -627,7 +627,14 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             "text": text, "mock": False, "ts": started,
         }
     except Exception as e:  # pragma: no cover (real-network path)
-        logger.warning("openai call failed → mock; err=%s", e)
+        if isinstance(e, urllib.error.HTTPError):
+            try:
+                body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                body = "<body unreadable>"
+            logger.warning("openai http error status=%s body=%s", e.code, body)
+        else:
+            logger.warning("openai non-http error: %s", str(e))
         return _mock_result(model_id, "openai", prompt, started, error=str(e))
 
 
@@ -927,7 +934,14 @@ def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens
             "text": text, "mock": False, "ts": started,
         }
     except Exception as e:  # pragma: no cover (real-network path)
-        logger.warning("deepseek call failed → mock; err=%s", e)
+        if isinstance(e, urllib.error.HTTPError):
+            try:
+                body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                body = "<body unreadable>"
+            logger.warning("deepseek http error status=%s body=%s", e.code, body)
+        else:
+            logger.warning("deepseek non-http error: %s", str(e))
         return _mock_result(model_id, "deepseek", prompt, started, error=str(e))
 
 
