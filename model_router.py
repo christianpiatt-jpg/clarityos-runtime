@@ -73,7 +73,7 @@ LOCAL_MODEL_ID: str = "local:llama3.1"
 MODEL_REGISTRY: dict[str, tuple[str, ...]] = {
     "openai":    ("openai:gpt-4o", "openai:gpt-4o-mini"),
     "anthropic": ("anthropic:claude-haiku-4-5-20251001",),
-    "google":    ("google:gemini-2.0-flash",),
+    "google":    ("google:gemini-2.5-flash",),
     "xai":       ("xai:groq-llama",),
     "local":     ("local:llama3.1",),
     # v80 — Ollama as HTTP-localhost provider. Avoids the native Windows
@@ -202,9 +202,9 @@ _MODEL_ALIASES: dict[str, str] = {
     "gpt-4o":         "openai:gpt-4o",
     "gpt-4o-mini":    "openai:gpt-4o-mini",
     # Google family
-    "gemini":           "google:gemini-2.0-flash",
-    "google":           "google:gemini-2.0-flash",
-    "gemini-2.0-flash": "google:gemini-2.0-flash",
+    "gemini":           "google:gemini-2.5-flash",
+    "google":           "google:gemini-2.5-flash",
+    "gemini-2.0-flash": "google:gemini-2.5-flash",
     # xAI / Groq
     "xai":            "xai:groq-llama",
     "grok":           "xai:groq-llama",
@@ -684,7 +684,7 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     if not _provider_configured("gemini"):
         return _mock_result(model_id, "gemini", prompt, started)
     key = (os.environ.get("CLARITYOS_GEMINI_KEY") or "").strip()
-    # model_id is "google:gemini-2.0-flash"; strip prefix for wire.
+    # model_id is "google:gemini-2.5-flash"; strip prefix for wire.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
         body = {
