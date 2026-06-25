@@ -15,7 +15,7 @@ forwards the call, returning the response text.
 NAMING BRIDGE
 -------------
 Operator vocabulary uses bare provider names (``"gemini"``) while
-``model_router`` uses provider-prefixed model_ids (``"google:gemini-2.0-flash"``):
+``model_router`` uses provider-prefixed model_ids (``"google:gemini-2.5-flash"``):
 
     operator provider  → model_router prefix
     "anthropic"        → "anthropic:"
@@ -140,9 +140,9 @@ def get_default_provider() -> Optional[str]:
 # v44 SUPPORTED_MODELS entries so the result is always a valid
 # model_router model_id.
 _PROVIDER_DEFAULT_MODEL: dict = {
-    "anthropic": "claude-3.7",
-    "openai":    "gpt-4o",
-    "gemini":    "gemini-2.0-flash",
+    "anthropic": "claude-haiku-4-5-20251001",
+    "openai":    "gpt-5.4",
+    "gemini":    "gemini-2.5-flash",
     "xai":       "groq-llama",
     "local":     "llama3.1",
 }
@@ -160,7 +160,7 @@ def get_operator_model(vault) -> tuple[str, str]:
         2. First available real provider (env key set), in
            PROVIDERS_ORDER. Anthropic first if its key is set,
            else OpenAI, etc.
-        3. ``"anthropic" + "claude-3.7"`` — final fallback when no
+        3. ``"anthropic" + "claude-haiku-4-5-20251001"`` — final fallback when no
            keys are set. ``call_model`` will mock through it because
            the provider isn't configured.
 
@@ -189,7 +189,7 @@ def get_operator_model(vault) -> tuple[str, str]:
     if default_provider is not None:
         return (default_provider, _PROVIDER_DEFAULT_MODEL[default_provider])
 
-    # 3. Final fallback — anthropic/claude-3.7 (will mock through
+    # 3. Final fallback — anthropic/claude-haiku-4-5-20251001 (will mock through
     # model_router because no env key is set).
     return ("anthropic", _PROVIDER_DEFAULT_MODEL["anthropic"])
 
