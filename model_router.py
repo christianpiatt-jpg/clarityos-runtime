@@ -72,7 +72,7 @@ LOCAL_MODEL_ID: str = "local:llama3.1"
 # ---------------------------------------------------------------------------
 MODEL_REGISTRY: dict[str, tuple[str, ...]] = {
     "openai":    ("openai:gpt-4o", "openai:gpt-4o-mini"),
-    "anthropic": ("anthropic:claude-3.7",),
+    "anthropic": ("anthropic:claude-haiku-4-5-20251001",),
     "google":    ("google:gemini-2.0-flash",),
     "xai":       ("xai:groq-llama",),
     "local":     ("local:llama3.1",),
@@ -111,29 +111,29 @@ PROVIDER_PREFIXES: tuple = (
 
 # Task → default model. OpenAI keys are wired, so the reasoning + thread
 # tasks route to gpt-4o and the fast `c` task to gpt-4o-mini. The tasks
-# still on anthropic:claude-3.7 mock-fall back until an Anthropic key
-# is added (no Anthropic key configured as of this change).
+# still resolve to anthropic:claude-haiku-4-5-20251001; the earlier id 404'd on a
+# configured, authenticating key, so claude-haiku-4-5-20251001 now loads (not key-absence).
 TASK_DEFAULTS: dict[str, str] = {
     "c":        "openai:gpt-4o-mini",      # fast comment / lexical work
     "G":        "openai:gpt-4o",           # heavy reasoning + neighborhoods
     "ELINS":    "openai:gpt-4o",           # deterministic pipeline
-    "regional": "anthropic:claude-3.7",
-    "forecast": "anthropic:claude-3.7",
-    "macro":    "anthropic:claude-3.7",
-    "entity":   "anthropic:claude-3.7",
+    "regional": "anthropic:claude-haiku-4-5-20251001",
+    "forecast": "anthropic:claude-haiku-4-5-20251001",
+    "macro":    "anthropic:claude-haiku-4-5-20251001",
+    "entity":   "anthropic:claude-haiku-4-5-20251001",
     # v47 — threaded conversations. Pick the reasoning-heavy default;
     # users can override per-thread via preferred_model.
     "thread":   "openai:gpt-4o",
     # v50 — per-thread summaries. Cheap call (1-2 sentence output),
     # but we still route through the deterministic-reasoning model
     # so the summary tone matches the assistant turn voice.
-    "thread_summary": "anthropic:claude-3.7",
+    "thread_summary": "anthropic:claude-haiku-4-5-20251001",
     # v52 — emotional_physics structural-not-sentimental analysis.
     # Multi-layered JSON contract; correctness + coherence matter
     # more than latency, so route to the deterministic-reasoning
     # default. No vendor pinning beyond the task default — users can
     # override via operator_state.preferred_model.
-    "emotional_physics": "anthropic:claude-3.7",
+    "emotional_physics": "anthropic:claude-haiku-4-5-20251001",
     # v79 — ProblemSolver.REGRESSION_FIRST canonical task. The packet
     # parser (``analyze_packet``) doesn't itself make an LLM call —
     # it consumes packets the upstream caller emitted under the
@@ -192,9 +192,9 @@ def is_valid_model(model_id: Optional[str]) -> bool:
 # friendly while still resolving to a SUPPORTED_MODELS id.
 _MODEL_ALIASES: dict[str, str] = {
     # Anthropic family
-    "claude":         "anthropic:claude-3.7",
-    "anthropic":      "anthropic:claude-3.7",
-    "claude-3.7":     "anthropic:claude-3.7",
+    "claude":         "anthropic:claude-haiku-4-5-20251001",
+    "anthropic":      "anthropic:claude-haiku-4-5-20251001",
+    "claude-3.7":     "anthropic:claude-haiku-4-5-20251001",
     # OpenAI family
     "openai":         "openai:gpt-4o",
     "gpt":            "openai:gpt-4o",
