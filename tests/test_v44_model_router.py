@@ -67,7 +67,7 @@ def _auth(sid):
 def test_select_model_explicit_override(reset_stores):
     import model_router as mr
     assert mr.select_model(None, task="ELINS",
-                           override="openai:gpt-4o") == "openai:gpt-4o"
+                           override="openai:gpt-5.4") == "openai:gpt-5.4"
 
 
 def test_select_model_override_auto_falls_through(reset_stores):
@@ -89,11 +89,11 @@ def test_select_model_override_unknown_raises(reset_stores):
 def test_select_model_founder_default_overrides_user_pref(reset_stores):
     import model_router as mr
     import operator_state
-    operator_state.set_preferred_model("alice", "openai:gpt-4o")
-    mr.set_founder_default_model("anthropic:claude-3.7")
+    operator_state.set_preferred_model("alice", "openai:gpt-5.4")
+    mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
     try:
         # No explicit override → founder default wins over user pref.
-        assert mr.select_model("alice", task="c") == "anthropic:claude-3.7"
+        assert mr.select_model("alice", task="c") == "anthropic:claude-haiku-4-5-20251001"
     finally:
         mr.set_founder_default_model(None)
 
@@ -101,8 +101,8 @@ def test_select_model_founder_default_overrides_user_pref(reset_stores):
 def test_select_model_user_pref_used_when_no_override_and_no_founder_default(reset_stores):
     import model_router as mr
     import operator_state
-    operator_state.set_preferred_model("alice", "google:gemini-2.0-flash")
-    assert mr.select_model("alice", task="c") == "google:gemini-2.0-flash"
+    operator_state.set_preferred_model("alice", "google:gemini-2.5-flash")
+    assert mr.select_model("alice", task="c") == "google:gemini-2.5-flash"
 
 
 def test_select_model_falls_to_task_default(reset_stores):
@@ -124,10 +124,10 @@ def test_select_model_run_kind_aliases(reset_stores):
 def test_select_model_is_deterministic(reset_stores):
     import model_router as mr
     import operator_state
-    operator_state.set_preferred_model("alice", "anthropic:claude-3.7")
+    operator_state.set_preferred_model("alice", "anthropic:claude-haiku-4-5-20251001")
     a = mr.select_model("alice", task="c")
     b = mr.select_model("alice", task="c")
-    assert a == b == "anthropic:claude-3.7"
+    assert a == b == "anthropic:claude-haiku-4-5-20251001"
 
 
 # ---------------------------------------------------------------------------
@@ -135,10 +135,10 @@ def test_select_model_is_deterministic(reset_stores):
 # ---------------------------------------------------------------------------
 def test_route_request_default_mock(reset_stores):
     import model_router as mr
-    r = mr.route_request("anthropic:claude-3.7", "hello world")
+    r = mr.route_request("anthropic:claude-haiku-4-5-20251001", "hello world")
     assert r["ok"] is True
     assert r["mock"] is True
-    assert r["model_id"] == "anthropic:claude-3.7"
+    assert r["model_id"] == "anthropic:claude-haiku-4-5-20251001"
     assert r["provider"] == "anthropic"
 
 
@@ -154,7 +154,7 @@ def test_route_request_calls_correct_provider(reset_stores, monkeypatch):
         }
 
     monkeypatch.setitem(mr._PROVIDER_HANDLERS, "openai", fake_handler)
-    r = mr.route_request("openai:gpt-4o", "ping")
+    r = mr.route_request("openai:gpt-5.4", "ping")
     assert called["name"] == "openai"
     assert r["mock"] is False
 
@@ -177,8 +177,8 @@ def test_route_request_auto_resolves_safely(reset_stores):
 
 def test_route_request_mock_is_deterministic(reset_stores):
     import model_router as mr
-    a = mr.route_request("anthropic:claude-3.7", "exact prompt")
-    b = mr.route_request("anthropic:claude-3.7", "exact prompt")
+    a = mr.route_request("anthropic:claude-haiku-4-5-20251001", "exact prompt")
+    b = mr.route_request("anthropic:claude-haiku-4-5-20251001", "exact prompt")
     # ts differs — strip it.
     a.pop("ts", None); b.pop("ts", None)
     assert a == b
@@ -219,7 +219,7 @@ def test_router_status_includes_supported_models(reset_stores):
     # selector contract didn't change.
     assert status["version"].startswith("model_router.v")
     assert "auto" in status["supported_models"]
-    assert "anthropic:claude-3.7" in status["supported_models"]
+    assert "anthropic:claude-haiku-4-5-20251001" in status["supported_models"]
     assert isinstance(status["task_defaults"], dict)
 
 
@@ -241,15 +241,15 @@ def test_operator_state_set_preferred_model_validates(reset_stores):
 
 def test_operator_state_set_preferred_model_accepts_clear(reset_stores):
     import operator_state
-    operator_state.set_preferred_model("alice", "anthropic:claude-3.7")
+    operator_state.set_preferred_model("alice", "anthropic:claude-haiku-4-5-20251001")
     state = operator_state.set_preferred_model("alice", None)
     assert state["preferred_model"] is None
 
 
 def test_operator_state_record_model_used(reset_stores):
     import operator_state
-    operator_state.record_model_used("alice", "openai:gpt-4o")
-    assert operator_state.get_operator_state("alice")["last_model_used"] == "openai:gpt-4o"
+    operator_state.record_model_used("alice", "openai:gpt-5.4")
+    assert operator_state.get_operator_state("alice")["last_model_used"] == "openai:gpt-5.4"
 
 
 # ---------------------------------------------------------------------------
@@ -324,11 +324,11 @@ def test_kernel_run_records_last_model_used(reset_stores):
 def test_kernel_view_for_user_includes_model_fields(reset_stores):
     import intelligence_kernel as ik
     import operator_state
-    operator_state.set_preferred_model("alice", "openai:gpt-4o")
-    operator_state.record_model_used("alice", "anthropic:claude-3.7")
+    operator_state.set_preferred_model("alice", "openai:gpt-5.4")
+    operator_state.record_model_used("alice", "anthropic:claude-haiku-4-5-20251001")
     view = ik.kernel_view_for_user("alice")
-    assert view["preferred_model"] == "openai:gpt-4o"
-    assert view["last_model_used"] == "anthropic:claude-3.7"
+    assert view["preferred_model"] == "openai:gpt-5.4"
+    assert view["last_model_used"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_kernel_status_includes_models_block(reset_stores):
@@ -346,18 +346,18 @@ def test_endpoint_set_preferred_model(app_module, client):
     user, sid = _make_user(app_module, "mp_a", cohort="founder")
     r = client.post(
         "/me/operator_state/model", headers=_auth(sid),
-        json={"preferred_model": "anthropic:claude-3.7"},
+        json={"preferred_model": "anthropic:claude-haiku-4-5-20251001"},
     )
     assert r.status_code == 200, r.json()
     state = r.json()["state"]
-    assert state["preferred_model"] == "anthropic:claude-3.7"
+    assert state["preferred_model"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_endpoint_set_preferred_model_clear_with_null(app_module, client):
     user, sid = _make_user(app_module, "mp_b", cohort="founder")
     client.post(
         "/me/operator_state/model", headers=_auth(sid),
-        json={"preferred_model": "anthropic:claude-3.7"},
+        json={"preferred_model": "anthropic:claude-haiku-4-5-20251001"},
     )
     r = client.post(
         "/me/operator_state/model", headers=_auth(sid),
@@ -398,12 +398,12 @@ def test_endpoint_founder_models_override_round_trip(app_module, client):
     user, sid = _make_user(app_module, "fmo_a", cohort="founder")
     r = client.post(
         "/founder/models/override", headers=_auth(sid),
-        json={"default_model": "google:gemini-2.0-flash"},
+        json={"default_model": "google:gemini-2.5-flash"},
     )
     assert r.status_code == 200
     body = r.json()
-    assert body["default_model"] == "google:gemini-2.0-flash"
-    assert body["router"]["founder_default_model"] == "google:gemini-2.0-flash"
+    assert body["default_model"] == "google:gemini-2.5-flash"
+    assert body["router"]["founder_default_model"] == "google:gemini-2.5-flash"
     # Clear the override.
     r2 = client.post(
         "/founder/models/override", headers=_auth(sid),
@@ -425,7 +425,7 @@ def test_endpoint_founder_models_override_requires_founder(app_module, client):
     user, sid = _make_user(app_module, "fmo_outsider", cohort=None)
     r = client.post(
         "/founder/models/override", headers=_auth(sid),
-        json={"default_model": "anthropic:claude-3.7"},
+        json={"default_model": "anthropic:claude-haiku-4-5-20251001"},
     )
     assert r.status_code == 403
 
@@ -437,7 +437,7 @@ def test_me_includes_preferred_and_last_model(app_module, client):
     user, sid = _make_user(app_module, "me_a", cohort="founder")
     client.post(
         "/me/operator_state/model", headers=_auth(sid),
-        json={"preferred_model": "anthropic:claude-3.7"},
+        json={"preferred_model": "anthropic:claude-haiku-4-5-20251001"},
     )
     # Trigger a kernel run so last_model_used populates.
     client.post(
@@ -447,10 +447,10 @@ def test_me_includes_preferred_and_last_model(app_module, client):
     r = client.get("/me", headers=_auth(sid))
     body = r.json()
     ik_block = body["intelligence_kernel"]
-    assert ik_block["preferred_model"] == "anthropic:claude-3.7"
+    assert ik_block["preferred_model"] == "anthropic:claude-haiku-4-5-20251001"
     # last_model_used should reflect the user's preference (which the
     # router selects for the ELINS task).
-    assert ik_block["last_model_used"] == "anthropic:claude-3.7"
+    assert ik_block["last_model_used"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_me_advertises_model_router_capability(app_module, client):
@@ -484,11 +484,11 @@ def test_card_19_model_route_explicit_override(app_module, client):
     user, sid = _make_user(app_module, "mr_override", cohort=None)
     r = client.post(
         "/model/route", headers=_auth(sid),
-        json={"intent": "ELINS", "override": "openai:gpt-4o"},
+        json={"intent": "ELINS", "override": "openai:gpt-5.4"},
     )
     assert r.status_code == 200
     body = r.json()
-    assert body["model"] == "openai:gpt-4o"
+    assert body["model"] == "openai:gpt-5.4"
     assert body["reason"] == "override"
 
 
@@ -496,14 +496,14 @@ def test_card_19_model_route_user_preference(app_module, client):
     """User preferred_model wins when no override + no founder default."""
     import operator_state
     user, sid = _make_user(app_module, "mr_pref", cohort=None)
-    operator_state.set_preferred_model(user, "anthropic:claude-3.7")
+    operator_state.set_preferred_model(user, "anthropic:claude-haiku-4-5-20251001")
     r = client.post(
         "/model/route", headers=_auth(sid),
         json={"intent": "c"},
     )
     assert r.status_code == 200
     body = r.json()
-    assert body["model"] == "anthropic:claude-3.7"
+    assert body["model"] == "anthropic:claude-haiku-4-5-20251001"
     assert body["reason"] == "user_preference"
 
 
@@ -512,8 +512,8 @@ def test_card_19_model_route_founder_default(app_module, client):
     import model_router as mr
     import operator_state
     user, sid = _make_user(app_module, "mr_fd", cohort=None)
-    operator_state.set_preferred_model(user, "openai:gpt-4o")
-    mr.set_founder_default_model("anthropic:claude-3.7")
+    operator_state.set_preferred_model(user, "openai:gpt-5.4")
+    mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
     try:
         r = client.post(
             "/model/route", headers=_auth(sid),
@@ -521,7 +521,7 @@ def test_card_19_model_route_founder_default(app_module, client):
         )
         assert r.status_code == 200
         body = r.json()
-        assert body["model"] == "anthropic:claude-3.7"
+        assert body["model"] == "anthropic:claude-haiku-4-5-20251001"
         assert body["reason"] == "founder_default"
     finally:
         mr.set_founder_default_model(None)
@@ -592,12 +592,12 @@ def test_card_19_5_model_complete_returns_text(app_module, client):
     user, sid = _make_user(app_module, "mc_basic", cohort=None)
     r = client.post(
         "/model/complete", headers=_auth(sid),
-        json={"model": "openai:gpt-4o-mini", "prompt": "hello world"},
+        json={"model": "openai:gpt-5.4-mini", "prompt": "hello world"},
     )
     assert r.status_code == 200
     body = r.json()
     assert body["ok"] is True
-    assert body["model"] == "openai:gpt-4o-mini"
+    assert body["model"] == "openai:gpt-5.4-mini"
     assert isinstance(body["text"], str) and len(body["text"]) > 0
     assert body["mock"] is True  # no OPENAI_KEY in test env
     assert body["provider"] == "openai"
@@ -620,7 +620,7 @@ def test_card_19_5_model_complete_requires_session(app_module, client):
     """No X-Session-ID → 401."""
     r = client.post(
         "/model/complete",
-        json={"model": "openai:gpt-4o-mini", "prompt": "x"},
+        json={"model": "openai:gpt-5.4-mini", "prompt": "x"},
     )
     assert r.status_code == 401
 
@@ -630,9 +630,9 @@ def test_card_19_5_model_complete_dispatches_per_provider(app_module, client):
     callers can confirm routing without parsing text content."""
     user, sid = _make_user(app_module, "mc_disp", cohort=None)
     cases = [
-        ("openai:gpt-4o",          "openai"),
-        ("anthropic:claude-3.7",   "anthropic"),
-        ("google:gemini-2.0-flash", "gemini"),
+        ("openai:gpt-5.4",          "openai"),
+        ("anthropic:claude-haiku-4-5-20251001",   "anthropic"),
+        ("google:gemini-2.5-flash", "gemini"),
         ("xai:groq-llama",         "xai"),
         ("local:llama3.1",         "local"),
     ]
@@ -658,7 +658,7 @@ def test_card_19_5_model_complete_rate_limit_enforced(app_module, client, monkey
     for i in range(11):
         r = client.post(
             "/model/complete", headers=_auth(sid),
-            json={"model": "openai:gpt-4o-mini", "prompt": f"p{i}"},
+            json={"model": "openai:gpt-5.4-mini", "prompt": f"p{i}"},
         )
         last_status = r.status_code
         if last_status == 429:
@@ -675,10 +675,10 @@ def test_card_19_5_model_complete_no_route_request_changes(app_module, client):
     string)."""
     import model_router as mr
     user, sid = _make_user(app_module, "mc_pin", cohort=None)
-    direct = mr.route_request("openai:gpt-4o-mini", "anchor-text")
+    direct = mr.route_request("openai:gpt-5.4-mini", "anchor-text")
     r = client.post(
         "/model/complete", headers=_auth(sid),
-        json={"model": "openai:gpt-4o-mini", "prompt": "anchor-text"},
+        json={"model": "openai:gpt-5.4-mini", "prompt": "anchor-text"},
     )
     assert r.status_code == 200
     body = r.json()

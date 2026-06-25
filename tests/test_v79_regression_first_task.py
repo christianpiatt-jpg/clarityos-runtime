@@ -64,7 +64,7 @@ class TestTaskDefaults:
     def test_regression_first_registered(self):
         import model_router as mr
         assert "regression_first" in mr.TASK_DEFAULTS
-        assert mr.TASK_DEFAULTS["regression_first"] == "openai:gpt-4o"
+        assert mr.TASK_DEFAULTS["regression_first"] == "openai:gpt-5.4"
 
     def test_select_model_falls_to_task_default(self, reset_stores):
         import model_router as mr
@@ -75,9 +75,9 @@ class TestTaskDefaults:
     def test_select_model_explicit_override(self, reset_stores):
         import model_router as mr
         chosen = mr.select_model(
-            None, task="regression_first", override="openai:gpt-4o",
+            None, task="regression_first", override="openai:gpt-5.4",
         )
-        assert chosen == "openai:gpt-4o"
+        assert chosen == "openai:gpt-5.4"
 
     def test_select_model_unknown_override_raises(self, reset_stores):
         import model_router as mr
@@ -88,10 +88,10 @@ class TestTaskDefaults:
 
     def test_select_model_founder_default_overrides(self, reset_stores):
         import model_router as mr
-        mr.set_founder_default_model("openai:gpt-4o")
+        mr.set_founder_default_model("openai:gpt-5.4")
         try:
             assert mr.select_model(None, task="regression_first") == (
-                "openai:gpt-4o"
+                "openai:gpt-5.4"
             )
         finally:
             mr.set_founder_default_model(None)
@@ -99,9 +99,9 @@ class TestTaskDefaults:
     def test_select_model_user_preferred(self, reset_stores):
         import model_router as mr
         import operator_state
-        operator_state.set_preferred_model("alice", "google:gemini-2.0-flash")
+        operator_state.set_preferred_model("alice", "google:gemini-2.5-flash")
         assert mr.select_model("alice", task="regression_first") == (
-            "google:gemini-2.0-flash"
+            "google:gemini-2.5-flash"
         )
 
 
@@ -151,16 +151,16 @@ class TestRunRegressionFirst:
         )
         state = operator_state.get_operator_state("alice") or {}
         # last_model_used should reflect the task default.
-        assert state.get("last_model_used") == "openai:gpt-4o"
+        assert state.get("last_model_used") == "openai:gpt-5.4"
 
     def test_explicit_model_id_threaded_through(self, reset_stores):
         import intelligence_kernel as ik
         result = ik.run_regression_first(
             _canonical_packet(),
             user_id="alice",
-            model_id="openai:gpt-4o",
+            model_id="openai:gpt-5.4",
         )
-        assert result["model_id"] == "openai:gpt-4o"
+        assert result["model_id"] == "openai:gpt-5.4"
 
     def test_graceful_degrade_on_malformed_packet(self, reset_stores):
         import intelligence_kernel as ik
@@ -169,7 +169,7 @@ class TestRunRegressionFirst:
         assert result["packet"] is None
         assert result["chain"] is None
         # Even on degrade, the model_id is still resolved.
-        assert result["model_id"] == "openai:gpt-4o"
+        assert result["model_id"] == "openai:gpt-5.4"
 
     def test_graceful_degrade_on_non_dict_input(self, reset_stores):
         import intelligence_kernel as ik
@@ -207,7 +207,7 @@ class TestRunRegressionFirst:
         rf = [c for c in captured if c.get("kind") == "run_regression_first"]
         assert len(rf) == 1
         meta = rf[0].get("meta") or {}
-        assert meta.get("model_id") == "openai:gpt-4o"
+        assert meta.get("model_id") == "openai:gpt-5.4"
         assert meta.get("regression_required") is True
         assert isinstance(meta.get("chain_id"), str)
 
@@ -220,14 +220,14 @@ class TestCallRegressionFirst:
         import model_router as mr
         result = mr.call_regression_first(_canonical_packet())
         assert result["ok"] is True
-        assert result["model_id"] == "openai:gpt-4o"
+        assert result["model_id"] == "openai:gpt-5.4"
 
     def test_explicit_model_id_override(self, reset_stores):
         import model_router as mr
         result = mr.call_regression_first(
-            _canonical_packet(), model_id="openai:gpt-4o",
+            _canonical_packet(), model_id="openai:gpt-5.4",
         )
-        assert result["model_id"] == "openai:gpt-4o"
+        assert result["model_id"] == "openai:gpt-5.4"
 
     def test_unknown_override_raises(self, reset_stores):
         import model_router as mr
@@ -239,11 +239,11 @@ class TestCallRegressionFirst:
     def test_user_preferred_model_wins_over_task_default(self, reset_stores):
         import model_router as mr
         import operator_state
-        operator_state.set_preferred_model("alice", "google:gemini-2.0-flash")
+        operator_state.set_preferred_model("alice", "google:gemini-2.5-flash")
         result = mr.call_regression_first(
             _canonical_packet(), user="alice",
         )
-        assert result["model_id"] == "google:gemini-2.0-flash"
+        assert result["model_id"] == "google:gemini-2.5-flash"
 
     def test_pass_through_store(self, reset_stores):
         import model_router as mr
@@ -272,10 +272,10 @@ class TestCallRegressionFirst:
 
         monkeypatch.setattr(ik, "run_regression_first", _spy)
         mr.call_regression_first(
-            _canonical_packet(), user="alice", model_id="openai:gpt-4o",
+            _canonical_packet(), user="alice", model_id="openai:gpt-5.4",
         )
         assert seen["user_id"]  == "alice"
-        assert seen["model_id"] == "openai:gpt-4o"
+        assert seen["model_id"] == "openai:gpt-5.4"
 
 
 # ===========================================================================

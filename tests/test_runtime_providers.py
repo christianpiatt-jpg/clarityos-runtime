@@ -88,14 +88,14 @@ class TestAvailableProviders:
 # ===========================================================================
 class TestModelIdBridge:
     def test_anthropic_maps_to_anthropic_prefix(self):
-        assert rp.model_id_for("anthropic", "claude-3.7") == "anthropic:claude-3.7"
+        assert rp.model_id_for("anthropic", "claude-haiku-4-5-20251001") == "anthropic:claude-haiku-4-5-20251001"
 
     def test_openai_maps_to_openai_prefix(self):
-        assert rp.model_id_for("openai", "gpt-4o") == "openai:gpt-4o"
+        assert rp.model_id_for("openai", "gpt-5.4") == "openai:gpt-5.4"
 
     def test_gemini_maps_to_google_prefix(self):
         # NB: operator-vocab "gemini" maps to model_router prefix "google:".
-        assert rp.model_id_for("gemini", "gemini-2.0-flash") == "google:gemini-2.0-flash"
+        assert rp.model_id_for("gemini", "gemini-2.5-flash") == "google:gemini-2.5-flash"
 
     def test_unknown_provider_rejected(self):
         with pytest.raises(ValueError, match="provider"):
@@ -111,9 +111,9 @@ class TestModelIdBridge:
 # ===========================================================================
 class TestCallModelMockFallback:
     def test_anthropic_without_key_returns_mock_text(self):
-        text = rp.call_model("anthropic", "claude-3.7", "hello")
-        # Mock text prefixes with "[mock anthropic:claude-3.7]".
-        assert text.startswith("[mock anthropic:claude-3.7]")
+        text = rp.call_model("anthropic", "claude-haiku-4-5-20251001", "hello")
+        # Mock text prefixes with "[mock anthropic:claude-haiku-4-5-20251001]".
+        assert text.startswith("[mock anthropic:claude-haiku-4-5-20251001]")
 
     def test_unsupported_model_id_returns_synthetic_mock(self):
         # Model name that won't pass is_valid_model — bridge returns
@@ -137,11 +137,11 @@ class TestCallModelRealStub:
             return {"content": [{"type": "text", "text": "stub-anthropic-reply"}]}
         monkeypatch.setattr(mr, "_http_post_json", fake_http)
 
-        text = rp.call_model("anthropic", "claude-3.7", "hello there")
+        text = rp.call_model("anthropic", "claude-haiku-4-5-20251001", "hello there")
         assert text == "stub-anthropic-reply"
         assert captured["url"] == "https://api.anthropic.com/v1/messages"
         assert captured["headers"]["x-api-key"] == "sk-test"
-        assert captured["body"]["model"] == "claude-3.7"
+        assert captured["body"]["model"] == "claude-haiku-4-5-20251001"
         assert captured["body"]["messages"][0]["content"] == "hello there"
 
     def test_openai_real_path_via_stubbed_http(self, monkeypatch):
@@ -151,7 +151,7 @@ class TestCallModelRealStub:
             return {"choices": [{"message": {"content": "stub-openai-reply"}}]}
         monkeypatch.setattr(mr, "_http_post_json", fake_http)
 
-        text = rp.call_model("openai", "gpt-4o", "hi")
+        text = rp.call_model("openai", "gpt-5.4", "hi")
         assert text == "stub-openai-reply"
 
     def test_gemini_real_path_via_stubbed_http(self, monkeypatch):
@@ -161,7 +161,7 @@ class TestCallModelRealStub:
             return {"candidates": [{"content": {"parts": [{"text": "stub-gemini-reply"}]}}]}
         monkeypatch.setattr(mr, "_http_post_json", fake_http)
 
-        text = rp.call_model("gemini", "gemini-2.0-flash", "hi")
+        text = rp.call_model("gemini", "gemini-2.5-flash", "hi")
         assert text == "stub-gemini-reply"
 
     def test_anthropic_http_failure_falls_back_to_mock(self, monkeypatch):
@@ -171,8 +171,8 @@ class TestCallModelRealStub:
             raise ConnectionError("simulated network error")
         monkeypatch.setattr(mr, "_http_post_json", boom)
 
-        text = rp.call_model("anthropic", "claude-3.7", "hi")
-        assert text.startswith("[mock anthropic:claude-3.7]")
+        text = rp.call_model("anthropic", "claude-haiku-4-5-20251001", "hi")
+        assert text.startswith("[mock anthropic:claude-haiku-4-5-20251001]")
 
 
 # ===========================================================================
@@ -181,24 +181,24 @@ class TestCallModelRealStub:
 class TestGetOperatorModel:
     def test_empty_vault_no_keys_falls_back_to_anthropic_default(self):
         provider, model = rp.get_operator_model({})
-        assert (provider, model) == ("anthropic", "claude-3.7")
+        assert (provider, model) == ("anthropic", "claude-haiku-4-5-20251001")
 
     def test_no_vault_pref_uses_first_available_provider(self, monkeypatch):
         monkeypatch.setenv("CLARITYOS_OPENAI_KEY", "sk-test")
         # No anthropic key — first available is openai.
         provider, model = rp.get_operator_model({})
         assert provider == "openai"
-        assert model == "gpt-4o"
+        assert model == "gpt-5.4"
 
     def test_vault_pref_wins_over_default(self, monkeypatch):
         monkeypatch.setenv("CLARITYOS_OPENAI_KEY", "sk-test")
         vault = {
             "runtime": {
-                "model_preferences": {"provider": "gemini", "model": "gemini-2.0-flash"},
+                "model_preferences": {"provider": "gemini", "model": "gemini-2.5-flash"},
             },
         }
         provider, model = rp.get_operator_model(vault)
-        assert (provider, model) == ("gemini", "gemini-2.0-flash")
+        assert (provider, model) == ("gemini", "gemini-2.5-flash")
 
     def test_malformed_vault_pref_falls_through(self, monkeypatch):
         # provider not in PROVIDERS_ORDER → ignore, fall through.
@@ -213,7 +213,7 @@ class TestGetOperatorModel:
         vault = {"runtime": {"model_preferences": {"provider": "anthropic"}}}
         provider, model = rp.get_operator_model(vault)
         # Falls through to no-key default.
-        assert (provider, model) == ("anthropic", "claude-3.7")
+        assert (provider, model) == ("anthropic", "claude-haiku-4-5-20251001")
 
 
 # ===========================================================================
@@ -222,16 +222,16 @@ class TestGetOperatorModel:
 class TestVaultPreferenceRoundtrip:
     def test_set_returns_new_vault_with_preference(self):
         new = rp.set_operator_model_preference_in_vault(
-            {}, "anthropic", "claude-3.7",
+            {}, "anthropic", "claude-haiku-4-5-20251001",
         )
         assert new["runtime"]["model_preferences"] == {
-            "provider": "anthropic", "model": "claude-3.7",
+            "provider": "anthropic", "model": "claude-haiku-4-5-20251001",
         }
 
     def test_set_preserves_existing_keys(self):
         vault = {"elins": {"fusion_history": [{"step": 1}]}}
         new = rp.set_operator_model_preference_in_vault(
-            vault, "openai", "gpt-4o",
+            vault, "openai", "gpt-5.4",
         )
         assert new["elins"] == {"fusion_history": [{"step": 1}]}
         assert new["runtime"]["model_preferences"]["provider"] == "openai"
@@ -239,7 +239,7 @@ class TestVaultPreferenceRoundtrip:
     def test_set_does_not_mutate_input(self):
         vault = {"runtime": {"other_key": "preserved"}}
         new = rp.set_operator_model_preference_in_vault(
-            vault, "anthropic", "claude-3.7",
+            vault, "anthropic", "claude-haiku-4-5-20251001",
         )
         # New runtime dict; input unchanged.
         assert "model_preferences" not in vault["runtime"]
@@ -267,14 +267,14 @@ class TestSessionLoopIntegration:
         # Seed a vault preference for op_alice.
         prior_vault = rp_mod.load_vault("op_alice") or {}
         new_vault = rp.set_operator_model_preference_in_vault(
-            prior_vault, "gemini", "gemini-2.0-flash",
+            prior_vault, "gemini", "gemini-2.5-flash",
         )
         rp_mod.save_vault("op_alice", new_vault)
 
         sl_mod.step_session(state, "do a thing")
         # Vault preference should override the engine-based default
         # (query intent → copilot engine → xai:groq-llama).
-        assert captured["model_id"] == "google:gemini-2.0-flash"
+        assert captured["model_id"] == "google:gemini-2.5-flash"
 
     def test_no_vault_pref_uses_engine_default(self, monkeypatch):
         # Without a vault preference and without env keys, the
@@ -292,9 +292,9 @@ class TestSessionLoopIntegration:
         rp_mod._VAULTS.clear()
         sl_mod.step_session(state, "do a thing")
         # With NO env keys, get_operator_model returns ("anthropic",
-        # "claude-3.7") (final fallback). That gets injected and wins.
+        # "claude-haiku-4-5-20251001") (final fallback). That gets injected and wins.
         # This proves the chain works end-to-end.
-        assert captured["model_id"] == "anthropic:claude-3.7"
+        assert captured["model_id"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 # ===========================================================================
@@ -312,7 +312,7 @@ class TestProviderErrorField:
         # Set anthropic preference so the step hits the failing path.
         prior_vault = rp_mod.load_vault("op_alice") or {}
         new_vault = rp.set_operator_model_preference_in_vault(
-            prior_vault, "anthropic", "claude-3.7",
+            prior_vault, "anthropic", "claude-haiku-4-5-20251001",
         )
         rp_mod.save_vault("op_alice", new_vault)
 

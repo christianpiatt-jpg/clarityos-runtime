@@ -57,14 +57,14 @@ def test_founder_default_persists_across_simulated_process_restart(reset_stores)
     assert mr.get_founder_default_model() is None
 
     # Set + verify the in-process cache reflects the new value.
-    mr.set_founder_default_model("openai:gpt-4o")
-    assert mr.get_founder_default_model() == "openai:gpt-4o"
+    mr.set_founder_default_model("openai:gpt-5.4")
+    assert mr.get_founder_default_model() == "openai:gpt-5.4"
 
     # The vault is the source of truth — confirm the entry landed.
     stored = memory_vault.vault_get(
         mr._FOUNDER_GLOBAL_USER_ID, mr._FOUNDER_DEFAULT_KEY,
     )
-    assert stored == "openai:gpt-4o"
+    assert stored == "openai:gpt-5.4"
 
     # Simulate process restart by clearing the in-process cache only.
     # The vault entry is left alone — mirrors what a new Cloud Run
@@ -74,7 +74,7 @@ def test_founder_default_persists_across_simulated_process_restart(reset_stores)
     assert mr._founder_default_loaded is False
 
     # First call in the "new process" re-hydrates from the vault.
-    assert mr.get_founder_default_model() == "openai:gpt-4o"
+    assert mr.get_founder_default_model() == "openai:gpt-5.4"
     assert mr._founder_default_loaded is True
 
 
@@ -109,10 +109,10 @@ def test_founder_default_clear_with_none_removes_vault_entry(reset_stores):
     import model_router as mr
     import memory_vault
 
-    mr.set_founder_default_model("anthropic:claude-3.7")
+    mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
     assert memory_vault.vault_get(
         mr._FOUNDER_GLOBAL_USER_ID, mr._FOUNDER_DEFAULT_KEY,
-    ) == "anthropic:claude-3.7"
+    ) == "anthropic:claude-haiku-4-5-20251001"
 
     mr.set_founder_default_model(None)
     assert memory_vault.vault_get(
@@ -133,10 +133,10 @@ def test_founder_default_multi_instance_consistency(reset_stores):
     import model_router as mr
 
     # ---- Process 1 ----
-    mr.set_founder_default_model("google:gemini-2.0-flash")
-    assert mr.get_founder_default_model() == "google:gemini-2.0-flash"
+    mr.set_founder_default_model("google:gemini-2.5-flash")
+    assert mr.get_founder_default_model() == "google:gemini-2.5-flash"
     # Confirm select_model picks it up (precedence step 2).
-    assert mr.select_model("alice", task="c") == "google:gemini-2.0-flash"
+    assert mr.select_model("alice", task="c") == "google:gemini-2.5-flash"
 
     # ---- Process 2 (fresh) ----
     # Wipe only the model_router cache — leave the vault intact, which
@@ -145,11 +145,11 @@ def test_founder_default_multi_instance_consistency(reset_stores):
 
     # Process 2 has never called set_founder_default_model; the vault
     # is the only place the value lives.
-    assert mr.get_founder_default_model() == "google:gemini-2.0-flash"
+    assert mr.get_founder_default_model() == "google:gemini-2.5-flash"
 
     # And select_model uses the same precedence on the fresh side,
     # without any in-process state ever having been written.
-    assert mr.select_model("alice", task="ELINS") == "google:gemini-2.0-flash"
+    assert mr.select_model("alice", task="ELINS") == "google:gemini-2.5-flash"
 
 
 def test_founder_default_validation_unchanged(reset_stores):

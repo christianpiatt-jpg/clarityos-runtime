@@ -60,15 +60,15 @@ class TestModelRouterReloadGuards:
         a reload by resetting only the module-level cache, then verify
         the next ``get_founder_default_model`` re-hydrates from the
         vault. This is the V2 contract under a reload cycle."""
-        mr.set_founder_default_model("anthropic:claude-3.7")
-        assert mr.get_founder_default_model() == "anthropic:claude-3.7"
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
+        assert mr.get_founder_default_model() == "anthropic:claude-haiku-4-5-20251001"
 
         # Simulate process restart — cache cleared, vault preserved.
         mr._founder_default_model = None
         mr._founder_default_loaded = False
 
         # First call in the "new process" reads from the vault.
-        assert mr.get_founder_default_model() == "anthropic:claude-3.7"
+        assert mr.get_founder_default_model() == "anthropic:claude-haiku-4-5-20251001"
         assert mr._founder_default_loaded is True
 
     def test_reset_does_not_resurrect_stale_local_handle(self, reset_stores):

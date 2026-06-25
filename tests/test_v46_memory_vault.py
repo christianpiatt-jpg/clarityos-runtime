@@ -81,8 +81,8 @@ def _auth(sid):
 def test_vault_put_get_round_trip(reset_stores):
     import memory_vault as mv
     mv.vault_init("alice")
-    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-3.7")
-    assert mv.vault_get("alice", "operator_state.preferred_model") == "anthropic:claude-3.7"
+    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
+    assert mv.vault_get("alice", "operator_state.preferred_model") == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_vault_put_get_complex_value(reset_stores):
@@ -114,11 +114,11 @@ def test_vault_list_returns_decrypted(reset_stores):
     mv.vault_init("alice")
     mv.vault_put("alice", "notes.a", "first")
     mv.vault_put("alice", "notes.b", "second")
-    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-3.7")
+    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
     listing = mv.vault_list("alice")
     assert listing["notes.a"] == "first"
     assert listing["notes.b"] == "second"
-    assert listing["operator_state.preferred_model"] == "anthropic:claude-3.7"
+    assert listing["operator_state.preferred_model"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_vault_clear_drops_everything_for_user(reset_stores):
@@ -268,7 +268,7 @@ def test_vault_count_for_user_filters_by_namespace(reset_stores):
     mv.vault_put("alice", "notes.a", "x")
     mv.vault_put("alice", "notes.b", "x")
     mv.vault_put("alice", "embeddings.e1", [0.1, 0.2])
-    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-3.7")
+    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
     assert mv.vault_count_for_user("alice") == 4
     assert mv.vault_count_for_user("alice", "notes") == 2
     assert mv.vault_count_for_user("alice", "embeddings") == 1
@@ -303,10 +303,10 @@ def test_vault_sqlite_backend_round_trip(reset_stores, monkeypatch, tmp_path):
 
     mv.vault_init("alice")
     mv.vault_put("alice", "notes.from_sqlite", "hello")
-    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-3.7")
+    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
     listing = mv.vault_list("alice")
     assert listing["notes.from_sqlite"] == "hello"
-    assert listing["operator_state.preferred_model"] == "anthropic:claude-3.7"
+    assert listing["operator_state.preferred_model"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 # ---------------------------------------------------------------------------
@@ -420,11 +420,11 @@ def test_vault_firestore_round_trip(reset_stores, monkeypatch):
     mv.vault_init("alice")
     mv.vault_put("alice", "notes.a", "first")
     mv.vault_put("alice", "notes.b", "second")
-    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-3.7")
+    mv.vault_put("alice", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
     assert mv.vault_list("alice") == {
         "notes.a": "first",
         "notes.b": "second",
-        "operator_state.preferred_model": "anthropic:claude-3.7",
+        "operator_state.preferred_model": "anthropic:claude-haiku-4-5-20251001",
     }
     mv.vault_delete("alice", "notes.a")
     assert mv.vault_get("alice", "notes.a") is None
@@ -517,15 +517,15 @@ def test_operator_state_history_capped(reset_stores):
 def test_operator_state_set_preferred_model_writes_vault(reset_stores):
     import memory_vault as mv
     import operator_state as os_
-    os_.set_preferred_model("alice", "anthropic:claude-3.7")
-    assert mv.vault_get("alice", "operator_state.preferred_model") == "anthropic:claude-3.7"
-    assert os_.get_operator_state("alice")["preferred_model"] == "anthropic:claude-3.7"
+    os_.set_preferred_model("alice", "anthropic:claude-haiku-4-5-20251001")
+    assert mv.vault_get("alice", "operator_state.preferred_model") == "anthropic:claude-haiku-4-5-20251001"
+    assert os_.get_operator_state("alice")["preferred_model"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_operator_state_set_preferred_model_clear(reset_stores):
     import memory_vault as mv
     import operator_state as os_
-    os_.set_preferred_model("alice", "anthropic:claude-3.7")
+    os_.set_preferred_model("alice", "anthropic:claude-haiku-4-5-20251001")
     os_.set_preferred_model("alice", None)
     assert mv.vault_get("alice", "operator_state.preferred_model") is None
 
@@ -533,8 +533,8 @@ def test_operator_state_set_preferred_model_clear(reset_stores):
 def test_operator_state_record_model_used(reset_stores):
     """v44 record_model_used continues to work via the vault."""
     import operator_state as os_
-    os_.record_model_used("alice", "openai:gpt-4o")
-    assert os_.get_operator_state("alice")["last_model_used"] == "openai:gpt-4o"
+    os_.record_model_used("alice", "openai:gpt-5.4")
+    assert os_.get_operator_state("alice")["last_model_used"] == "openai:gpt-5.4"
 
 
 def test_operator_state_bump_local_model_usage(reset_stores):
@@ -567,8 +567,8 @@ def test_operator_state_migration_round_trip(reset_stores):
         "external_signal_mode": "cloud_perplexity",
         "preferred_domains": {"economic": 1.5, "geopolitical": 0.8},
         "preferred_regions": {"US": 2.0, "MEA": 0.5},
-        "preferred_model": "openai:gpt-4o",
-        "last_model_used": "anthropic:claude-3.7",
+        "preferred_model": "openai:gpt-5.4",
+        "last_model_used": "anthropic:claude-haiku-4-5-20251001",
         "local_model_usage_count": 7,
         "created_ts": 1_000_000.0,
         "last_active_ts": 1_001_000.0,
@@ -584,8 +584,8 @@ def test_operator_state_migration_round_trip(reset_stores):
     }
     state = os_.migrate_operator_state_to_vault("alice", legacy)
     assert state["external_signal_mode"] == "cloud_perplexity"
-    assert state["preferred_model"] == "openai:gpt-4o"
-    assert state["last_model_used"] == "anthropic:claude-3.7"
+    assert state["preferred_model"] == "openai:gpt-5.4"
+    assert state["last_model_used"] == "anthropic:claude-haiku-4-5-20251001"
     assert state["local_model_usage_count"] == 7
     assert len(state["elins_history"]) == 2
     assert len(state["g_history"]) == 1
@@ -726,7 +726,7 @@ def test_endpoint_founder_vault_users_lists_only_users_with_entries(
     user, sid = _make_user(app_module, "fv_admin", cohort="founder")
     # Create vault entries for two users.
     mv.vault_put("user_a", "notes.x", "x")
-    mv.vault_put("user_b", "operator_state.preferred_model", "anthropic:claude-3.7")
+    mv.vault_put("user_b", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
     r = client.get("/founder/vault/users", headers=_auth(sid))
     assert r.status_code == 200
     users = r.json()["users"]
@@ -747,7 +747,7 @@ def test_endpoint_founder_vault_keys_groups_by_namespace(app_module, client):
     mv.vault_put("target", "notes.a", "x")
     mv.vault_put("target", "notes.b", "x")
     mv.vault_put("target", "embeddings.e1", [0.1])
-    mv.vault_put("target", "operator_state.preferred_model", "anthropic:claude-3.7")
+    mv.vault_put("target", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
     r = client.get("/founder/vault/target/keys", headers=_auth(sid))
     body = r.json()
     assert body["count"] == 4

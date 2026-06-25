@@ -68,7 +68,7 @@ class TestAuth:
     def test_post_requires_auth(self, client):
         r = client.post(
             "/operator/model_preferences",
-            json={"provider": "anthropic", "model": "claude-3.7"},
+            json={"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
         )
         assert r.status_code == 401
 
@@ -78,13 +78,13 @@ class TestAuth:
 # ===========================================================================
 class TestGetDefault:
     def test_no_vault_returns_chain_default(self, client):
-        # No env keys → fallback to ("anthropic", "claude-3.7").
+        # No env keys → fallback to ("anthropic", "claude-haiku-4-5-20251001").
         r = client.get("/operator/model_preferences", headers=_auth("op_alice"))
         assert r.status_code == 200
         body = r.json()
         assert body["operator_id"] == "op_alice"
         assert body["provider"]    == "anthropic"
-        assert body["model"]       == "claude-3.7"
+        assert body["model"]       == "claude-haiku-4-5-20251001"
         assert body["source"]      == "default"
 
     def test_no_vault_with_openai_key_returns_openai(self, client, monkeypatch):
@@ -105,7 +105,7 @@ class TestPostUpdate:
     def test_post_returns_updated_preference(self, client):
         r = client.post(
             "/operator/model_preferences",
-            json={"provider": "anthropic", "model": "claude-3.7"},
+            json={"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
             headers=_auth("op_alice"),
         )
         assert r.status_code == 200
@@ -113,7 +113,7 @@ class TestPostUpdate:
         assert body == {
             "operator_id": "op_alice",
             "provider":    "anthropic",
-            "model":       "claude-3.7",
+            "model":       "claude-haiku-4-5-20251001",
             "source":      "vault",
         }
 
@@ -127,7 +127,7 @@ class TestPostUpdate:
         # POST.
         client.post(
             "/operator/model_preferences",
-            json={"provider": "openai", "model": "gpt-4o"},
+            json={"provider": "openai", "model": "gpt-5.4"},
             headers=_auth("op_alice"),
         )
 
@@ -137,28 +137,28 @@ class TestPostUpdate:
         ).json()
         assert after["source"]   == "vault"
         assert after["provider"] == "openai"
-        assert after["model"]    == "gpt-4o"
+        assert after["model"]    == "gpt-5.4"
 
     def test_post_persists_to_vault(self, client):
         client.post(
             "/operator/model_preferences",
-            json={"provider": "anthropic", "model": "claude-3.7"},
+            json={"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
             headers=_auth("op_alice"),
         )
         vault = rp_mod.load_vault("op_alice")
         assert vault["runtime"]["model_preferences"] == {
-            "provider": "anthropic", "model": "claude-3.7",
+            "provider": "anthropic", "model": "claude-haiku-4-5-20251001",
         }
 
     def test_post_overwrites_prior_preference(self, client):
         client.post(
             "/operator/model_preferences",
-            json={"provider": "anthropic", "model": "claude-3.7"},
+            json={"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
             headers=_auth("op_alice"),
         )
         client.post(
             "/operator/model_preferences",
-            json={"provider": "gemini", "model": "gemini-2.0-flash"},
+            json={"provider": "gemini", "model": "gemini-2.5-flash"},
             headers=_auth("op_alice"),
         )
         vault = rp_mod.load_vault("op_alice")
@@ -198,7 +198,7 @@ class TestPostValidation:
     def test_missing_provider_returns_422(self, client):
         r = client.post(
             "/operator/model_preferences",
-            json={"model": "claude-3.7"},
+            json={"model": "claude-haiku-4-5-20251001"},
             headers=_auth("op_alice"),
         )
         assert r.status_code == 422
@@ -212,7 +212,7 @@ class TestPerOperatorScoping:
         # Alice sets preference.
         client.post(
             "/operator/model_preferences",
-            json={"provider": "openai", "model": "gpt-4o"},
+            json={"provider": "openai", "model": "gpt-5.4"},
             headers=_auth("op_alice"),
         )
         # Bob's GET still returns default chain.
@@ -226,12 +226,12 @@ class TestPerOperatorScoping:
     def test_two_operators_independent_preferences(self, client):
         client.post(
             "/operator/model_preferences",
-            json={"provider": "anthropic", "model": "claude-3.7"},
+            json={"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
             headers=_auth("op_alice"),
         )
         client.post(
             "/operator/model_preferences",
-            json={"provider": "openai", "model": "gpt-4o"},
+            json={"provider": "openai", "model": "gpt-5.4"},
             headers=_auth("op_bob"),
         )
         alice = client.get(

@@ -266,8 +266,8 @@ class TestNoRegressionForCleanData:
             "external_signal_mode": "cloud_perplexity",
             "preferred_domains": {"trust": 1.0, "supply": 0.5},
             "preferred_regions": {"US": 1.0},
-            "preferred_model":   "openai:gpt-4o",
-            "last_model_used":   "anthropic:claude-3.7",
+            "preferred_model":   "openai:gpt-5.4",
+            "last_model_used":   "anthropic:claude-haiku-4-5-20251001",
             "local_model_usage_count": 12,
             "created_ts":      1_699_000_000.0,
             "last_active_ts":  1_700_000_000.0,
@@ -280,8 +280,8 @@ class TestNoRegressionForCleanData:
         assert state["external_signal_mode"] == "cloud_perplexity"
         assert state["preferred_domains"]    == {"trust": 1.0, "supply": 0.5}
         assert state["preferred_regions"]    == {"US": 1.0}
-        assert state["preferred_model"]      == "openai:gpt-4o"
-        assert state["last_model_used"]      == "anthropic:claude-3.7"
+        assert state["preferred_model"]      == "openai:gpt-5.4"
+        assert state["last_model_used"]      == "anthropic:claude-haiku-4-5-20251001"
         assert state["local_model_usage_count"] == 12
         assert state["created_ts"]      == 1_699_000_000.0
         assert state["last_active_ts"]  == 1_700_000_000.0

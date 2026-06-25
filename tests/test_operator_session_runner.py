@@ -212,23 +212,23 @@ class TestIntentTypeHappyPaths:
             _operator_intent(intent_type="query"), None,
         )
         assert out["runtime"]["model_route"]["engine"] == "copilot"
-        # copilot soft-maps to task "c" → openai:gpt-4o-mini.
-        assert out["model"]["request"]["model_id"] == "openai:gpt-4o-mini"
+        # copilot soft-maps to task "c" → openai:gpt-5.4-mini.
+        assert out["model"]["request"]["model_id"] == "openai:gpt-5.4-mini"
 
     def test_plan_routes_to_claude_engine(self):
         out = osr_mod.run_operator_session_step(
             _operator_intent(intent_type="plan"), None,
         )
         assert out["runtime"]["model_route"]["engine"] == "claude"
-        assert out["model"]["request"]["model_id"] == "openai:gpt-4o"
+        assert out["model"]["request"]["model_id"] == "openai:gpt-5.4"
 
     def test_action_routes_to_gemini_engine(self):
         out = osr_mod.run_operator_session_step(
             _operator_intent(intent_type="action"), None,
         )
         assert out["runtime"]["model_route"]["engine"] == "gemini"
-        # gemini soft-maps to task "ELINS" → openai:gpt-4o.
-        assert out["model"]["request"]["model_id"] == "openai:gpt-4o"
+        # gemini soft-maps to task "ELINS" → openai:gpt-5.4.
+        assert out["model"]["request"]["model_id"] == "openai:gpt-5.4"
 
     def test_diagnostic_routes_to_local_hard_pin(self):
         out = osr_mod.run_operator_session_step(
@@ -239,7 +239,7 @@ class TestIntentTypeHappyPaths:
         assert out["model"]["request"]["model_id"] == mr.LOCAL_MODEL_ID
 
     def test_diagnostic_ignores_founder_default(self):
-        mr.set_founder_default_model("anthropic:claude-3.7")
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
         try:
             out = osr_mod.run_operator_session_step(
                 _operator_intent(intent_type="diagnostic"), None,

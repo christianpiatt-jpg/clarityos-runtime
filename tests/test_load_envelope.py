@@ -589,7 +589,7 @@ class TestL3TimeoutUnderLoad:
         def worker(idx: int) -> None:
             barrier.wait(timeout=30.0)
             out = mr.route_request(
-                "openai:gpt-4o",
+                "openai:gpt-5.4",
                 f"prompt_for_user_{idx}",
             )
             with results_lock:
@@ -604,7 +604,7 @@ class TestL3TimeoutUnderLoad:
         assert len(results) == N
         for r in results:
             assert r["mock"] is True
-            assert r["model_id"] == "openai:gpt-4o"
+            assert r["model_id"] == "openai:gpt-5.4"
 
         # Logger captured warnings. The canary string from the
         # exception body is fine to log (it's the exception's own

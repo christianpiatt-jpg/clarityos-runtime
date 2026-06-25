@@ -36,14 +36,14 @@ class TestD1FounderDefaultMultiInstance:
         preserved) must read the same value without ever calling
         ``set_founder_default_model``."""
         # ---- Process A ----
-        mr.set_founder_default_model("anthropic:claude-3.7")
-        assert mr.get_founder_default_model() == "anthropic:claude-3.7"
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
+        assert mr.get_founder_default_model() == "anthropic:claude-haiku-4-5-20251001"
 
         # Confirm it landed in the vault under the synthetic global user.
         stored = memory_vault.vault_get(
             mr._FOUNDER_GLOBAL_USER_ID, mr._FOUNDER_DEFAULT_KEY,
         )
-        assert stored == "anthropic:claude-3.7"
+        assert stored == "anthropic:claude-haiku-4-5-20251001"
 
         # ---- Process B (fresh import) ----
         # Wipe ONLY the module-level cache; leave the vault row alone.
@@ -53,7 +53,7 @@ class TestD1FounderDefaultMultiInstance:
         mr._founder_default_loaded = False
 
         # First read in the new "process" re-hydrates from the vault.
-        assert mr.get_founder_default_model() == "anthropic:claude-3.7"
+        assert mr.get_founder_default_model() == "anthropic:claude-haiku-4-5-20251001"
         assert mr._founder_default_loaded is True
 
     def test_d1_no_process_global_drift_across_select_model(self, reset_stores):
@@ -62,15 +62,15 @@ class TestD1FounderDefaultMultiInstance:
         check that the precedence chain (founder > preferred_model >
         task default) survives the simulated restart."""
         # ---- Process A: write + verify selection ----
-        mr.set_founder_default_model("google:gemini-2.0-flash")
-        assert mr.select_model("alice", task="ELINS") == "google:gemini-2.0-flash"
+        mr.set_founder_default_model("google:gemini-2.5-flash")
+        assert mr.select_model("alice", task="ELINS") == "google:gemini-2.5-flash"
 
         # ---- Process B: cache reset, vault preserved ----
         mr._founder_default_model = None
         mr._founder_default_loaded = False
 
         # Process B has never written; the founder default still wins.
-        assert mr.select_model("alice", task="ELINS") == "google:gemini-2.0-flash"
+        assert mr.select_model("alice", task="ELINS") == "google:gemini-2.5-flash"
         # And task default is correctly bypassed.
         assert mr.select_model("alice", task="ELINS") != mr.TASK_DEFAULTS["ELINS"]
 
@@ -78,10 +78,10 @@ class TestD1FounderDefaultMultiInstance:
         """Clearing via ``set_founder_default_model(None)`` must remove
         the vault entry so the next fresh-process read also returns
         None (no stale value resurrection)."""
-        mr.set_founder_default_model("openai:gpt-4o")
+        mr.set_founder_default_model("openai:gpt-5.4")
         assert memory_vault.vault_get(
             mr._FOUNDER_GLOBAL_USER_ID, mr._FOUNDER_DEFAULT_KEY,
-        ) == "openai:gpt-4o"
+        ) == "openai:gpt-5.4"
 
         mr.set_founder_default_model(None)
         assert memory_vault.vault_get(
@@ -233,12 +233,12 @@ class TestB2RouterMultiInstance:
 
     def test_b2_founder_default_persists_across_instances(self, reset_stores):
         # ---- Instance A ----
-        mr.set_founder_default_model("openai:gpt-4o")
-        assert mr.get_founder_default_model() == "openai:gpt-4o"
+        mr.set_founder_default_model("openai:gpt-5.4")
+        assert mr.get_founder_default_model() == "openai:gpt-5.4"
 
         # ---- Instance B (fresh) ----
         _simulate_router_instance_reset()
-        assert mr.get_founder_default_model() == "openai:gpt-4o"
+        assert mr.get_founder_default_model() == "openai:gpt-5.4"
 
     def test_b2_select_model_stable_across_instances(self, reset_stores):
         """``select_model`` precedence must produce the same answer in
@@ -249,13 +249,13 @@ class TestB2RouterMultiInstance:
         import operator_state
 
         # ---- Instance A: configure persistent state ----
-        mr.set_founder_default_model("anthropic:claude-3.7")
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
         operator_state.set_preferred_model(
-            "b2_select_user", "google:gemini-2.0-flash",
+            "b2_select_user", "google:gemini-2.5-flash",
         )
         chosen_a = mr.select_model("b2_select_user", task="ELINS")
         # Founder default wins (precedence step 2).
-        assert chosen_a == "anthropic:claude-3.7"
+        assert chosen_a == "anthropic:claude-haiku-4-5-20251001"
 
         # ---- Instance B (fresh) ----
         _simulate_router_instance_reset()
@@ -290,10 +290,10 @@ class TestB2RouterMultiInstance:
         map — its output must be byte-identical across instances for
         every documented alias."""
         cases = [
-            ("claude", "anthropic:claude-3.7"),
-            ("CLAUDE", "anthropic:claude-3.7"),
-            ("gpt-4o", "openai:gpt-4o"),
-            ("gemini", "google:gemini-2.0-flash"),
+            ("claude", "anthropic:claude-haiku-4-5-20251001"),
+            ("CLAUDE", "anthropic:claude-haiku-4-5-20251001"),
+            ("gpt-4o", "openai:gpt-5.4"),
+            ("gemini", "google:gemini-2.5-flash"),
             ("groq", "xai:groq-llama"),
             ("llama3.1", "local:llama3.1"),
             (None, None),

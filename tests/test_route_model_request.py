@@ -93,30 +93,30 @@ class TestTopLevelShape:
 class TestSoftMappedRouting:
     def test_claude_engine_routes_via_G_task(self):
         out = mr.route_model_request(_operator_intent(), _route("claude"))
-        assert out["request"]["model_id"] == "openai:gpt-4o"
+        assert out["request"]["model_id"] == "openai:gpt-5.4"
         assert out["request"]["task"] == "G"
 
     def test_copilot_engine_routes_via_c_task(self):
         out = mr.route_model_request(_operator_intent(), _route("copilot"))
-        assert out["request"]["model_id"] == "openai:gpt-4o-mini"
+        assert out["request"]["model_id"] == "openai:gpt-5.4-mini"
         assert out["request"]["task"] == "c"
 
     def test_gemini_engine_routes_via_ELINS_task(self):
-        # TASK_DEFAULTS["ELINS"] is openai:gpt-4o.
+        # TASK_DEFAULTS["ELINS"] is openai:gpt-5.4.
         out = mr.route_model_request(_operator_intent(), _route("gemini"))
-        assert out["request"]["model_id"] == "openai:gpt-4o"
+        assert out["request"]["model_id"] == "openai:gpt-5.4"
         assert out["request"]["task"] == "ELINS"
 
     def test_grok_engine_routes_via_c_task(self):
         out = mr.route_model_request(_operator_intent(), _route("grok"))
-        assert out["request"]["model_id"] == "openai:gpt-4o-mini"
+        assert out["request"]["model_id"] == "openai:gpt-5.4-mini"
         assert out["request"]["task"] == "c"
 
     def test_founder_default_overrides_soft_mapped(self):
-        mr.set_founder_default_model("google:gemini-2.0-flash")
+        mr.set_founder_default_model("google:gemini-2.5-flash")
         try:
             out = mr.route_model_request(_operator_intent(), _route("claude"))
-            assert out["request"]["model_id"] == "google:gemini-2.0-flash"
+            assert out["request"]["model_id"] == "google:gemini-2.5-flash"
         finally:
             mr.set_founder_default_model(None)
 
@@ -134,7 +134,7 @@ class TestHardPinnedRouting:
         assert out["request"]["task"] == "(pinned)"
 
     def test_local_overrides_founder_default(self):
-        mr.set_founder_default_model("anthropic:claude-3.7")
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
         try:
             out = mr.route_model_request(_operator_intent(), _route("local"))
             # Hard-pin wins — diagnostic intents stay on-device regardless
@@ -277,13 +277,13 @@ class TestNoSurfaceReplacement:
     def test_select_model_still_callable(self):
         # v44 entrypoint must continue to work after Unit 38 lands.
         model_id = mr.select_model(None, task="G")
-        assert model_id == "openai:gpt-4o"
+        assert model_id == "openai:gpt-5.4"
 
     def test_route_request_still_callable(self):
         # v44 entrypoint must continue to work after Unit 38 lands.
-        out = mr.route_request("anthropic:claude-3.7", "hello")
+        out = mr.route_request("anthropic:claude-haiku-4-5-20251001", "hello")
         assert out["ok"] is True
-        assert out["model_id"] == "anthropic:claude-3.7"
+        assert out["model_id"] == "anthropic:claude-haiku-4-5-20251001"
 
     def test_task_defaults_untouched(self):
         # v44/v45 task buckets must be preserved exactly.
@@ -293,8 +293,8 @@ class TestNoSurfaceReplacement:
     def test_supported_models_untouched(self):
         # v44/v45 model catalogue must be preserved.
         for model_id in (
-            "openai:gpt-4o", "anthropic:claude-3.7",
-            "google:gemini-2.0-flash", "xai:groq-llama", "local:llama3.1",
+            "openai:gpt-5.4", "anthropic:claude-haiku-4-5-20251001",
+            "google:gemini-2.5-flash", "xai:groq-llama", "local:llama3.1",
         ):
             assert model_id in mr.SUPPORTED_MODELS
 

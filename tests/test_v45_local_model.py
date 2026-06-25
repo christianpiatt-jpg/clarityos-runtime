@@ -417,7 +417,7 @@ def test_kernel_increments_local_usage_when_local_chosen(reset_stores):
 def test_kernel_does_not_increment_for_non_local_model(reset_stores):
     import intelligence_kernel as ik
     import operator_state as os_mod
-    # Default task default for ELINS is anthropic:claude-3.7 — not local.
+    # Default task default for ELINS is openai:gpt-5.4 — not local.
     ik.run_ELINS("alice", "x", kind="preview", persist=False)
     assert os_mod.get_operator_state("alice")["local_model_usage_count"] == 0
 

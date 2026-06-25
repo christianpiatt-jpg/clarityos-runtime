@@ -131,7 +131,7 @@ class TestRegistryCoherence:
         assert isinstance(mr.SUPPORTED_MODELS, tuple)
 
     def test_is_valid_model_still_works(self):
-        assert mr.is_valid_model("anthropic:claude-3.7")
+        assert mr.is_valid_model("anthropic:claude-haiku-4-5-20251001")
         assert mr.is_valid_model("auto")
         assert not mr.is_valid_model("not-a-real-model")
         assert not mr.is_valid_model(None)
@@ -145,7 +145,7 @@ class TestValidationStillWorks:
         # The (provider, model) -> model_id helper exposed by
         # runtime_providers must continue to produce ids that pass
         # is_valid_model after the rewrite.
-        mid = runtime_providers.model_id_for("anthropic", "claude-3.7")
+        mid = runtime_providers.model_id_for("anthropic", "claude-haiku-4-5-20251001")
         assert mr.is_valid_model(mid)
 
     def test_model_id_for_unknown_model_fails_is_valid_check(self):

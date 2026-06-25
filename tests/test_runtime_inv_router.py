@@ -32,10 +32,10 @@ class TestINV_R1_SelectModelPrecedence:
     task) and assert the documented winner. Failure indicates the
     precedence chain has drifted."""
 
-    _OVERRIDE = "anthropic:claude-3.7"
-    _FOUNDER  = "google:gemini-2.0-flash"
-    _PREF     = "openai:gpt-4o"
-    _TASK     = "c"  # → openai:gpt-4o-mini per TASK_DEFAULTS
+    _OVERRIDE = "anthropic:claude-haiku-4-5-20251001"
+    _FOUNDER  = "google:gemini-2.5-flash"
+    _PREF     = "openai:gpt-5.4"
+    _TASK     = "c"  # → openai:gpt-5.4-mini per TASK_DEFAULTS
 
     def _setup(
         self,
@@ -63,7 +63,7 @@ class TestINV_R1_SelectModelPrecedence:
         # No override, no founder → preferred_model wins.
         (False, False, True,  _PREF),
         # No override, no founder, no pref → task default.
-        (False, False, False, "openai:gpt-4o-mini"),
+        (False, False, False, "openai:gpt-5.4-mini"),
     ])
     def test_inv_r1_precedence_matrix(
         self, reset_stores, override, founder, preferred, expected,
@@ -94,28 +94,28 @@ class TestINV_R1_SelectModelPrecedence:
 # ---------------------------------------------------------------------------
 class TestINV_R2_FounderDefaultVaultBacked:
     def test_inv_r2_set_writes_to_vault(self, reset_stores):
-        mr.set_founder_default_model("openai:gpt-4o")
+        mr.set_founder_default_model("openai:gpt-5.4")
         stored = memory_vault.vault_get(
             mr._FOUNDER_GLOBAL_USER_ID, mr._FOUNDER_DEFAULT_KEY,
         )
-        assert stored == "openai:gpt-4o", (
+        assert stored == "openai:gpt-5.4", (
             "INV-R2 violated — set_founder_default_model did not "
             "persist to the vault"
         )
 
     def test_inv_r2_fresh_process_reads_from_vault(self, reset_stores):
-        mr.set_founder_default_model("anthropic:claude-3.7")
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
 
         # Simulate fresh process — clear cache only, leave vault alone.
         mr._founder_default_model = None
         mr._founder_default_loaded = False
 
-        assert mr.get_founder_default_model() == "anthropic:claude-3.7", (
+        assert mr.get_founder_default_model() == "anthropic:claude-haiku-4-5-20251001", (
             "INV-R2 violated — cache reload did not consult the vault"
         )
 
     def test_inv_r2_clear_removes_vault_entry(self, reset_stores):
-        mr.set_founder_default_model("openai:gpt-4o")
+        mr.set_founder_default_model("openai:gpt-5.4")
         mr.set_founder_default_model(None)
         assert memory_vault.vault_get(
             mr._FOUNDER_GLOBAL_USER_ID, mr._FOUNDER_DEFAULT_KEY,
@@ -153,10 +153,10 @@ class TestINV_R4_MockResultUsesPromptPreview:
     def test_inv_r4_preview_matches_runtime_privacy(self, reset_stores):
         long_prompt = ("x" * 30) + ("y" * 200)
         out = mr._mock_result(
-            "anthropic:claude-3.7", "anthropic", long_prompt, 0.0,
+            "anthropic:claude-haiku-4-5-20251001", "anthropic", long_prompt, 0.0,
         )
         text = out["text"]
-        lead = "[mock anthropic:claude-3.7] "
+        lead = "[mock anthropic:claude-haiku-4-5-20251001] "
         assert text.startswith(lead)
         embedded = text[len(lead):]
         expected = runtime_privacy.prompt_preview(long_prompt).rstrip()
@@ -169,11 +169,11 @@ class TestINV_R4_MockResultUsesPromptPreview:
 # ---------------------------------------------------------------------------
 class TestINV_R5_ResolveModelAlias:
     @pytest.mark.parametrize("alias,canonical", [
-        ("claude",       "anthropic:claude-3.7"),
-        ("CLAUDE",       "anthropic:claude-3.7"),
-        ("Claude",       "anthropic:claude-3.7"),
-        ("gpt",          "openai:gpt-4o"),
-        ("gemini",       "google:gemini-2.0-flash"),
+        ("claude",       "anthropic:claude-haiku-4-5-20251001"),
+        ("CLAUDE",       "anthropic:claude-haiku-4-5-20251001"),
+        ("Claude",       "anthropic:claude-haiku-4-5-20251001"),
+        ("gpt",          "openai:gpt-5.4"),
+        ("gemini",       "google:gemini-2.5-flash"),
         ("groq",         "xai:groq-llama"),
         ("local",        "local:llama3.1"),
     ])
@@ -182,10 +182,10 @@ class TestINV_R5_ResolveModelAlias:
 
     def test_inv_r5_canonical_ids_case_sensitive(self):
         # Canonical id matches exactly.
-        assert mr.resolve_model_alias("openai:gpt-4o") == "openai:gpt-4o"
+        assert mr.resolve_model_alias("openai:gpt-5.4") == "openai:gpt-5.4"
         # Case-mangled canonical id falls through to alias map (None
         # for unknown alias).
-        assert mr.resolve_model_alias("OPENAI:gpt-4o") is None
+        assert mr.resolve_model_alias("OPENAI:gpt-5.4") is None
 
     def test_inv_r5_unknown_returns_none(self):
         assert mr.resolve_model_alias(None) is None

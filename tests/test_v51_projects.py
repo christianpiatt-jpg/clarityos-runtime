@@ -20,7 +20,7 @@ threads_vault backward compat:
 * rename / append / get_thread_meta preserve project_id
 
 model_router aliases:
-* "claude" → anthropic:claude-3.7
+* "claude" → anthropic:claude-haiku-4-5-20251001
 * exact ids pass through
 * unknown / empty returns None
 
@@ -234,16 +234,16 @@ def test_thread_meta_append_preserves_project_id(reset_stores):
 # ===========================================================================
 def test_resolve_model_alias_known_aliases(reset_stores):
     import model_router as mr
-    assert mr.resolve_model_alias("claude") == "anthropic:claude-3.7"
-    assert mr.resolve_model_alias("CLAUDE") == "anthropic:claude-3.7"
-    assert mr.resolve_model_alias("gpt") == "openai:gpt-4o"
-    assert mr.resolve_model_alias("gemini") == "google:gemini-2.0-flash"
+    assert mr.resolve_model_alias("claude") == "anthropic:claude-haiku-4-5-20251001"
+    assert mr.resolve_model_alias("CLAUDE") == "anthropic:claude-haiku-4-5-20251001"
+    assert mr.resolve_model_alias("gpt") == "openai:gpt-5.4"
+    assert mr.resolve_model_alias("gemini") == "google:gemini-2.5-flash"
     assert mr.resolve_model_alias("local") == "local:llama3.1"
 
 
 def test_resolve_model_alias_canonical_pass_through(reset_stores):
     import model_router as mr
-    assert mr.resolve_model_alias("anthropic:claude-3.7") == "anthropic:claude-3.7"
+    assert mr.resolve_model_alias("anthropic:claude-haiku-4-5-20251001") == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_resolve_model_alias_unknown_returns_none(reset_stores):
@@ -262,7 +262,7 @@ def test_kernel_uses_project_default_model(reset_stores):
     import threads_vault as tv
     pv.create_project("alice", {
         "project_id": "VA_LITIGATION", "name": "VA",
-        "default_model": "openai:gpt-4o",   # override the thread default
+        "default_model": "openai:gpt-5.4",   # override the thread default
     })
     m = tv.create_thread("alice", "T", project_id="VA_LITIGATION")
     pv.add_thread_to_project("alice", "VA_LITIGATION", m["thread_id"])
@@ -270,11 +270,11 @@ def test_kernel_uses_project_default_model(reset_stores):
         "alice", m["thread_id"], "draft it",
         project_id="VA_LITIGATION",
     )
-    assert out["model_id"] == "openai:gpt-4o"
+    assert out["model_id"] == "openai:gpt-5.4"
 
 
 def test_kernel_resolves_alias_in_project_default_model(reset_stores):
-    """``"claude"`` in the project meta resolves to anthropic:claude-3.7."""
+    """``"claude"`` in the project meta resolves to anthropic:claude-haiku-4-5-20251001."""
     import intelligence_kernel as ik
     import projects_vault as pv
     import threads_vault as tv
@@ -286,7 +286,7 @@ def test_kernel_resolves_alias_in_project_default_model(reset_stores):
     out = ik.run_thread_message(
         "alice", m["thread_id"], "x", project_id="VA_LITIGATION",
     )
-    assert out["model_id"] == "anthropic:claude-3.7"
+    assert out["model_id"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_kernel_project_id_mismatch_raises(reset_stores):
@@ -320,11 +320,11 @@ def test_kernel_allowed_models_constrains_choice(reset_stores):
     pv.create_project("alice", {
         "project_id": "P1", "name": "P1",
         "default_model": None,
-        "allowed_models": ["openai:gpt-4o"],   # task default isn't in here
+        "allowed_models": ["openai:gpt-5.4"],   # task default isn't in here
     })
     m = tv.create_thread("alice", "T", project_id="P1")
     out = ik.run_thread_message("alice", m["thread_id"], "x", project_id="P1")
-    assert out["model_id"] == "openai:gpt-4o"
+    assert out["model_id"] == "openai:gpt-5.4"
 
 
 def test_kernel_log_carries_project_id(reset_stores, caplog):
@@ -489,7 +489,7 @@ def test_endpoint_post_message_with_project_id_routes_correctly(app_module, clie
         json={"content": "draft", "project_id": "VA"},
     )
     assert r.status_code == 200
-    assert r.json()["model_id"] == "anthropic:claude-3.7"
+    assert r.json()["model_id"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_endpoint_post_message_project_id_mismatch_400(app_module, client):

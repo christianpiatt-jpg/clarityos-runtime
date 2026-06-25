@@ -4,7 +4,7 @@ Tests for v52 — Emotional Physics kernel.
 Covers:
 
 model_router:
-  * TASK_DEFAULTS['emotional_physics'] is anthropic:claude-3.7
+  * TASK_DEFAULTS['emotional_physics'] is anthropic:claude-haiku-4-5-20251001
 
 intelligence_kernel:
   * _extract_json handles plain JSON / fenced JSON / prose-wrapped JSON
@@ -129,7 +129,7 @@ def _install_fake_handler(monkeypatch, response_text):
 # ===========================================================================
 def test_task_defaults_has_emotional_physics():
     import model_router as mr
-    assert mr.TASK_DEFAULTS.get("emotional_physics") == "anthropic:claude-3.7"
+    assert mr.TASK_DEFAULTS.get("emotional_physics") == "anthropic:claude-haiku-4-5-20251001"
 
 
 # ===========================================================================
@@ -208,11 +208,11 @@ def test_run_emotional_physics_happy_path(reset_stores, monkeypatch):
     assert out["relational_primitives"]["trust"] == "fluctuating"
     # _meta block.
     meta = out["_meta"]
-    assert meta["model_id"] == "anthropic:claude-3.7"
+    assert meta["model_id"] == "anthropic:claude-haiku-4-5-20251001"
     assert isinstance(meta["ts_ms"], int) and meta["ts_ms"] > 0
     assert meta["parse_error"] is None
     # Task was routed via TASK_DEFAULTS.
-    assert captured["model_id"] == "anthropic:claude-3.7"
+    assert captured["model_id"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_run_emotional_physics_fence_tolerant(reset_stores, monkeypatch):
@@ -245,7 +245,7 @@ def test_run_emotional_physics_graceful_degrade_on_garbage(
         assert isinstance(out[k], dict)
         assert out[k] == {}   # skeleton — empty dict per layer
     assert isinstance(out["_meta"]["parse_error"], str)
-    assert out["_meta"]["model_id"] == "anthropic:claude-3.7"
+    assert out["_meta"]["model_id"] == "anthropic:claude-haiku-4-5-20251001"
 
 
 def test_run_emotional_physics_partial_response_flags_missing(
@@ -339,7 +339,7 @@ def test_run_emotional_physics_emits_kernel_log_line(
     assert found, "expected a kernel_run log line with kind=emotional_physics"
     last = found[-1]
     assert last["ok"] is True
-    assert last["meta"]["model_id"] == "anthropic:claude-3.7"
+    assert last["meta"]["model_id"] == "anthropic:claude-haiku-4-5-20251001"
     assert last["meta"]["input_len"] > 0
     assert last["meta"]["raw_len"] > 0
     assert last["meta"]["parse_error"] is None
@@ -362,7 +362,7 @@ def test_endpoint_analyze_happy_path(app_module, client, monkeypatch):
     body = r.json()
     assert body["field_curvature"]["intensity"] == "medium"
     assert body["external_expression"]["next_step"]
-    assert body["_meta"]["model_id"] == "anthropic:claude-3.7"
+    assert body["_meta"]["model_id"] == "anthropic:claude-haiku-4-5-20251001"
     assert body["_meta"]["parse_error"] is None
 
 

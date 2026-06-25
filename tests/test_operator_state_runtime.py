@@ -198,10 +198,10 @@ class TestB2OperatorStateMultiInstance:
             "b2_persist_user", "cloud_perplexity",
         )
         operator_state.set_preferred_model(
-            "b2_persist_user", "openai:gpt-4o",
+            "b2_persist_user", "openai:gpt-5.4",
         )
         operator_state.record_model_used(
-            "b2_persist_user", "anthropic:claude-3.7",
+            "b2_persist_user", "anthropic:claude-haiku-4-5-20251001",
         )
         operator_state.record_elins_interaction(
             "b2_persist_user", "elins_a",

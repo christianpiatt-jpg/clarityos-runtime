@@ -511,7 +511,7 @@ class TestE2EnvMatrix:
     ])
     @pytest.mark.parametrize("founder_default", [
         None,                       # unset
-        "anthropic:claude-3.7",     # set
+        "anthropic:claude-haiku-4-5-20251001",     # set
     ])
     def test_e2_encryption_and_founder_default_matrix(
         self,

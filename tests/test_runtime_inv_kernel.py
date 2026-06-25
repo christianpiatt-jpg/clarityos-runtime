@@ -160,7 +160,7 @@ class TestINV_K5_ModelSelectionRoutedThroughRouter:
     """Source-level grep: the kernel's run_* paths must call
     ``model_router.select_model`` (or the kernel's local
     ``_resolve_model`` which wraps it). They must NOT hardcode a
-    canonical model_id like ``"openai:gpt-4o"`` directly in the run
+    canonical model_id like ``"openai:gpt-5.4"`` directly in the run
     body. The kernel may reference such ids elsewhere (e.g. logging
     test fixtures) — this test scans only the run paths."""
 
@@ -177,7 +177,7 @@ class TestINV_K5_ModelSelectionRoutedThroughRouter:
         )
 
     def test_inv_k5_no_hardcoded_canonical_ids_in_run_paths(self):
-        """Hard-pin: ``openai:gpt-4o``, ``anthropic:claude-3.7``, etc.
+        """Hard-pin: ``openai:gpt-5.4``, ``anthropic:claude-haiku-4-5-20251001``, etc.
         must not appear as a quoted string inside the kernel's run_*
         functions. They legitimately appear in TASK_DEFAULTS (router)
         and in tests — but never as an inline hardcoded fallback in
@@ -186,8 +186,8 @@ class TestINV_K5_ModelSelectionRoutedThroughRouter:
         # canonical ids in the source file. The kernel doc/docstring
         # may mention them by name; the rule we care about is that
         # nowhere in the file is a canonical id used as a literal
-        # ``= "openai:gpt-4o"`` assignment or a literal ``return
-        # "openai:gpt-4o"``.
+        # ``= "openai:gpt-5.4"`` assignment or a literal ``return
+        # "openai:gpt-5.4"``.
         src = Path("intelligence_kernel.py").read_text(encoding="utf-8")
         for canonical in mr.SUPPORTED_MODELS:
             # Skip the auto sentinel + the local id (used by tests for

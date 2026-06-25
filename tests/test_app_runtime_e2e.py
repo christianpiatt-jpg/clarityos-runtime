@@ -464,7 +464,7 @@ class TestB6KernelRouterOperatorIntegrationUnderDeployment:
         _register_user(app_module, "b6_cycle_user")
         # Switch on the founder default on instance A.
         import model_router as mr
-        mr.set_founder_default_model("anthropic:claude-3.7")
+        mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
 
         # ---------- Instance A — full cycle ----------
         r_login_a = client.post(
@@ -483,7 +483,7 @@ class TestB6KernelRouterOperatorIntegrationUnderDeployment:
 
         # Operator_state on instance A: preferred_model unset, founder
         # default wins → last_model_used == founder default.
-        assert me_a_2["intelligence_kernel"]["last_model_used"] == "anthropic:claude-3.7"
+        assert me_a_2["intelligence_kernel"]["last_model_used"] == "anthropic:claude-haiku-4-5-20251001"
 
         # ---------- Simulate instance restart ----------
         _simulate_instance_reset_b()
@@ -501,8 +501,8 @@ class TestB6KernelRouterOperatorIntegrationUnderDeployment:
 
         # ----- operator_state stable -----
         # Last model used persists across the restart (the vault has it).
-        assert me_b_1["intelligence_kernel"]["last_model_used"] == "anthropic:claude-3.7"
-        assert me_b_2["intelligence_kernel"]["last_model_used"] == "anthropic:claude-3.7"
+        assert me_b_1["intelligence_kernel"]["last_model_used"] == "anthropic:claude-haiku-4-5-20251001"
+        assert me_b_2["intelligence_kernel"]["last_model_used"] == "anthropic:claude-haiku-4-5-20251001"
         # ELINS history grew by one entry (the second preview) — the
         # first preview's entry survives the restart.
         history_a = me_a_2.get("intelligence_kernel", {}).get("elins_history_count")
@@ -534,7 +534,7 @@ class TestB6KernelRouterOperatorIntegrationUnderDeployment:
 
         # ----- no drift in founder default -----
         # Re-read on instance B: vault is the source of truth.
-        assert mr.get_founder_default_model() == "anthropic:claude-3.7"
+        assert mr.get_founder_default_model() == "anthropic:claude-haiku-4-5-20251001"
 
         # ----- no concurrency anomalies in vault state -----
         # The vault keys for ELINS history sort cleanly by ts; no
@@ -566,7 +566,7 @@ class TestB6KernelRouterOperatorIntegrationUnderDeployment:
         # Instance A: user sets preferred_model.
         r_set = client.post(
             "/me/operator_state/model", headers=hdrs,
-            json={"preferred_model": "google:gemini-2.0-flash"},
+            json={"preferred_model": "google:gemini-2.5-flash"},
         )
         assert r_set.status_code == 200
 
@@ -587,5 +587,5 @@ class TestB6KernelRouterOperatorIntegrationUnderDeployment:
         ).json()
 
         me_b = client.get("/me", headers=hdrs).json()
-        assert me_b["intelligence_kernel"]["preferred_model"] == "google:gemini-2.0-flash"
-        assert me_b["intelligence_kernel"]["last_model_used"] == "google:gemini-2.0-flash"
+        assert me_b["intelligence_kernel"]["preferred_model"] == "google:gemini-2.5-flash"
+        assert me_b["intelligence_kernel"]["last_model_used"] == "google:gemini-2.5-flash"

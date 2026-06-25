@@ -351,10 +351,10 @@ class TestModelRouterMockUsesPromptPreview:
         # rstrip is a no-op and the byte-for-byte check is exact.
         long_prompt = ("x" * 30) + ("y" * 200)
         out = mr._mock_result(
-            "anthropic:claude-3.7", "anthropic", long_prompt, 0.0,
+            "anthropic:claude-haiku-4-5-20251001", "anthropic", long_prompt, 0.0,
         )
         text = out["text"]
-        lead = "[mock anthropic:claude-3.7] "
+        lead = "[mock anthropic:claude-haiku-4-5-20251001] "
         assert text.startswith(lead)
         embedded = text[len(lead):]
         expected = runtime_privacy.prompt_preview(long_prompt).rstrip()
@@ -366,10 +366,10 @@ class TestModelRouterMockUsesPromptPreview:
         (subject to the trailing rstrip on the assembled text)."""
         import model_router as mr
         out = mr._mock_result(
-            "anthropic:claude-3.7", "anthropic", "hello world", 0.0,
+            "anthropic:claude-haiku-4-5-20251001", "anthropic", "hello world", 0.0,
         )
         text = out["text"]
-        assert text == "[mock anthropic:claude-3.7] hello world"
+        assert text == "[mock anthropic:claude-haiku-4-5-20251001] hello world"
 
     def test_mock_result_preview_none_prompt(self):
         """None / empty prompt produces a clean ``[mock ...]`` line —
@@ -377,10 +377,10 @@ class TestModelRouterMockUsesPromptPreview:
         sane mock-result text."""
         import model_router as mr
         out = mr._mock_result(
-            "anthropic:claude-3.7", "anthropic", "", 0.0,
+            "anthropic:claude-haiku-4-5-20251001", "anthropic", "", 0.0,
         )
         # After rstrip the trailing space after the bracket is gone.
-        assert out["text"] == "[mock anthropic:claude-3.7]"
+        assert out["text"] == "[mock anthropic:claude-haiku-4-5-20251001]"
 
 
 # ===========================================================================
