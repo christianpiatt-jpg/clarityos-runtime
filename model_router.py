@@ -71,7 +71,7 @@ LOCAL_MODEL_ID: str = "local:llama3.1"
 # model) and remains a top-level entry in ``SUPPORTED_MODELS``.
 # ---------------------------------------------------------------------------
 MODEL_REGISTRY: dict[str, tuple[str, ...]] = {
-    "openai":    ("openai:gpt-4o", "openai:gpt-4o-mini"),
+    "openai":    ("openai:gpt-5.4", "openai:gpt-5.4-mini"),
     "anthropic": ("anthropic:claude-haiku-4-5-20251001",),
     "google":    ("google:gemini-2.5-flash",),
     "xai":       ("xai:groq-llama",),
@@ -110,20 +110,20 @@ PROVIDER_PREFIXES: tuple = (
 )
 
 # Task → default model. OpenAI keys are wired, so the reasoning + thread
-# tasks route to gpt-4o and the fast `c` task to gpt-4o-mini. The tasks
+# tasks route to gpt-5.4 and the fast `c` task to gpt-5.4-mini. The tasks
 # still resolve to anthropic:claude-haiku-4-5-20251001; the earlier id 404'd on a
 # configured, authenticating key, so claude-haiku-4-5-20251001 now loads (not key-absence).
 TASK_DEFAULTS: dict[str, str] = {
-    "c":        "openai:gpt-4o-mini",      # fast comment / lexical work
-    "G":        "openai:gpt-4o",           # heavy reasoning + neighborhoods
-    "ELINS":    "openai:gpt-4o",           # deterministic pipeline
+    "c":        "openai:gpt-5.4-mini",      # fast comment / lexical work
+    "G":        "openai:gpt-5.4",           # heavy reasoning + neighborhoods
+    "ELINS":    "openai:gpt-5.4",           # deterministic pipeline
     "regional": "anthropic:claude-haiku-4-5-20251001",
     "forecast": "anthropic:claude-haiku-4-5-20251001",
     "macro":    "anthropic:claude-haiku-4-5-20251001",
     "entity":   "anthropic:claude-haiku-4-5-20251001",
     # v47 — threaded conversations. Pick the reasoning-heavy default;
     # users can override per-thread via preferred_model.
-    "thread":   "openai:gpt-4o",
+    "thread":   "openai:gpt-5.4",
     # v50 — per-thread summaries. Cheap call (1-2 sentence output),
     # but we still route through the deterministic-reasoning model
     # so the summary tone matches the assistant turn voice.
@@ -141,7 +141,7 @@ TASK_DEFAULTS: dict[str, str] = {
     # bundle prompt was written for (Claude 3.7). When V80 lands a
     # ``/me/regression_first/packet`` endpoint that drives the model
     # from raw text, this default is what ``select_model`` returns.
-    "regression_first": "openai:gpt-4o",
+    "regression_first": "openai:gpt-5.4",
     # v80.1 — /markov routed via select_model so founder/user model
     # preferences apply; ollama:llama3.1 is the task default (local Ollama
     # daemon, mock-fallback when CLARITYOS_OLLAMA_URL is unset).
@@ -196,11 +196,11 @@ _MODEL_ALIASES: dict[str, str] = {
     "anthropic":      "anthropic:claude-haiku-4-5-20251001",
     "claude-3.7":     "anthropic:claude-haiku-4-5-20251001",
     # OpenAI family
-    "openai":         "openai:gpt-4o",
-    "gpt":            "openai:gpt-4o",
-    "gpt-4":          "openai:gpt-4o",
-    "gpt-4o":         "openai:gpt-4o",
-    "gpt-4o-mini":    "openai:gpt-4o-mini",
+    "openai":         "openai:gpt-5.4",
+    "gpt":            "openai:gpt-5.4",
+    "gpt-4":          "openai:gpt-5.4",
+    "gpt-4o":         "openai:gpt-5.4",
+    "gpt-4o-mini":    "openai:gpt-5.4-mini",
     # Google family
     "gemini":           "google:gemini-2.5-flash",
     "google":           "google:gemini-2.5-flash",
@@ -600,7 +600,7 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     if not _provider_configured("openai"):
         return _mock_result(model_id, "openai", prompt, started)
     key = (os.environ.get("CLARITYOS_OPENAI_KEY") or "").strip()
-    # model_id is "openai:gpt-4o"; strip the prefix for the wire model.
+    # model_id is "openai:gpt-5.4"; strip the prefix for the wire model.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
         body = {
