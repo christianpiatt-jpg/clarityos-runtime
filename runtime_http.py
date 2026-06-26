@@ -675,9 +675,9 @@ def _check_provider_health(provider: str) -> dict[str, Any]:
                         "Content-Type": "application/json",
                     },
                     body={
-                        "model": "gpt-4o",
+                        "model": "gpt-5.4-mini",
                         "messages": [{"role": "user", "content": "?"}],
-                        "max_tokens": 1,
+                        "max_completion_tokens": 1,
                     },
                 )
             elif provider == "gemini":

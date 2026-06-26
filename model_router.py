@@ -607,7 +607,7 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             "model": wire_model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": temperature,
-            "max_tokens": max_tokens,
+            "max_completion_tokens": max_tokens,
         }
         with _request_timeout(runtime_http_config.get_call_timeout("openai")):
             out = _http_post_json(
