@@ -143,9 +143,12 @@ TASK_DEFAULTS: dict[str, str] = {
     # from raw text, this default is what ``select_model`` returns.
     "regression_first": "openai:gpt-5.4",
     # v80.1 — /markov routed via select_model so founder/user model
-    # preferences apply; ollama:llama3.1 is the task default (local Ollama
-    # daemon, mock-fallback when CLARITYOS_OLLAMA_URL is unset).
-    "markov":   "ollama:llama3.1",
+    # preferences apply. v81 — default flipped ollama:llama3.1 →
+    # anthropic:claude-haiku-4-5-20251001: CLARITYOS_ANTHROPIC_KEY is set on the
+    # live revision (00092-tep) whereas CLARITYOS_OLLAMA_URL is unset, so
+    # ollama returned a deterministic mock in prod. Anthropic yields a real
+    # recast; callers can still override per-request via meta["model"].
+    "markov":   "anthropic:claude-haiku-4-5-20251001",
 }
 
 # Provider → env var(s) that must be set for the provider to count as

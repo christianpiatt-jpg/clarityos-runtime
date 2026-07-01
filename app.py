@@ -113,6 +113,7 @@ import billing_config              # v42 — Stripe mode/keys + recent events
 import founder_analytics           # v43 — founder analytics aggregator
 import monitoring_alerts           # Phase 5 — anomaly + churn alert aggregators
 import model_router                 # v44 — multi-model router
+import primitives_extract           # v81 — P-series decomposition for /markov recast
 import local_model_runtime          # v45 — on-device inference runtime
 import memory_vault                 # v46 — local encrypted KV store
 import threads_vault                # v47 — threaded interactions
@@ -831,37 +832,98 @@ def _timed(adapter_name: str, fn, *args, **kwargs):
     return result
 
 
+# v81 — /markov recast constants.
+#
+# Provenance: HQ-authored recast constants, transmitted to ET-1
+# 2026-07-01 11:51 EDT. Not sandbox-substrate-preexisting — HQ is the
+# author of record. (Witnessed by COW-1 at pre-commit as HQ-authored.)
+_RECAST_SYSTEM_PROMPT = (
+    "You are a recast engine. You will be given a situation decomposed into "
+    "physics primitives (entities, actions, relations, states, tensions, and "
+    "hydronic elements: flows, blockages, gradients, pressure points). \n\n"
+    "Your job: describe the situation using ONLY the vocabulary provided in "
+    "the primitives. Do not summarize, do not advise, do not add words that "
+    "were not extracted. Reference entities by their exact extracted names. "
+    "Reference actions by their exact extracted forms. When you name a "
+    "tension, name which specific structural/external/motive tension from the "
+    "list. When you name a flow or blockage, name it exactly as listed. \n\n"
+    "Output structure (plain text, no markdown headers): \n"
+    "1. One paragraph naming the entities present and what state each is in. \n"
+    "2. One paragraph naming the actions and relations between them. \n"
+    "3. One paragraph naming the tensions and hydronic elements that shape "
+    "the situation. \n\n"
+    "If a primitive list is empty, say so explicitly for that category rather "
+    "than inventing content. Do not conclude, recommend, or interpret motive. "
+    "You are recasting, not analyzing."
+)
+
+
+def _build_recast_prompt(primitives_formatted: str, original_text: str) -> str:
+    """Compose the user-turn prompt sent to the LLM. Includes the primitive
+    decomposition (the constraint) and a truncated view of the original text
+    (for grounding — the model may not invent primitives beyond the list)."""
+    # Cap original text to keep tokens bounded; primitives already carry the
+    # extracted structure so full text is not required for the recast.
+    original_preview = original_text.strip()
+    if len(original_preview) > 2000:
+        original_preview = original_preview[:2000] + " [...truncated]"
+    return (
+        _RECAST_SYSTEM_PROMPT
+        + "\n\n---\nEXTRACTED PRIMITIVES:\n"
+        + primitives_formatted
+        + "\n\n---\nORIGINAL TEXT (for grounding only — do not add primitives "
+        "not present in the extraction above):\n"
+        + original_preview
+        + "\n\n---\nRECAST:\n"
+    )
+
+
 def markov_adapter(text: str, meta: dict | None, user: str) -> dict:
-    """v80 — route /markov through model_router. Defaults to
-    ``ollama:llama3.1`` (local Ollama daemon). Callers may override via
-    ``meta["model"]`` with any SUPPORTED_MODELS id (e.g. ``"openai:gpt-4o"``
-    for an A/B comparison, or ``"local:llama3.1"`` once llama-cpp-python
-    is wired).
+    """v81 — route /markov through model_router with a P-series primitive
+    decomposition + LLM recast. Model is chosen via
+    ``select_model(task="markov")`` (v80 convention; TASK_DEFAULTS["markov"]).
+    Callers may override via ``meta["model"]`` with any SUPPORTED_MODELS id
+    (e.g. ``"openai:gpt-5.4"`` for an A/B comparison, or ``"local:llama3.1"``
+    once llama-cpp-python is wired).
 
-    Without ``CLARITYOS_OLLAMA_URL`` set (or with any other unconfigured
-    provider) ``route_request`` returns the deterministic mock — so this
-    adapter always returns something, even offline / on Cloud Run.
+    Without a configured provider ``route_request`` returns the deterministic
+    mock — so this adapter always returns something, even offline / on Cloud
+    Run. The ``mock`` flag propagates so the frontend can tell a real recast
+    from a stub.
 
-    Returns the v80 envelope: ``{model, provider, output, mock, user}``.
+    Returns the v80 envelope (``model``/``provider``/``output``/``mock``/
+    ``user``) plus the P-series decomposition (``primitives``/
+    ``primitives_formatted``/``primitives_meta``) and the ``recast``.
     Replaces the v2.1 stub (``score``/``tags``/``interpretation``).
     """
     override = (meta or {}).get("model")
-    # v80.1 — route through select_model so founder/user model preferences
-    # apply; TASK_DEFAULTS["markov"] = ollama:llama3.1 is the fallback. An
-    # invalid meta["model"] is dropped to None so it falls through the
-    # precedence chain rather than raising (preserves prior lenient behavior).
+    # Route through select_model so founder/user model preferences apply;
+    # TASK_DEFAULTS["markov"] is the fallback. An invalid meta["model"] is
+    # dropped to None so it falls through the precedence chain rather than
+    # raising (preserves prior lenient behavior).
     model_id = model_router.select_model(
         user,
         task="markov",
         override=override if model_router.is_valid_model(override) else None,
     )
-    result = model_router.route_request(model_id, text)
+    # Pre-LLM: deterministic P-series primitive decomposition.
+    primitives = primitives_extract.extract_primitives(text)
+    primitives_formatted = primitives_extract.format_primitives(primitives)
+    primitives_meta = primitives_extract.build_metadata(primitives)
+
+    prompt = _build_recast_prompt(primitives_formatted, text)
+    result = model_router.route_request(model_id, prompt)
+    recast = result.get("text", "")
     return {
         "model":    result.get("model_id", model_id),
         "provider": result.get("provider", "ollama"),
-        "output":   result.get("text", ""),
+        "output":   recast,
         "mock":     bool(result.get("mock", True)),
         "user":     user,
+        "primitives":           primitives,
+        "primitives_formatted": primitives_formatted,
+        "primitives_meta":      primitives_meta,
+        "recast":               recast,
     }
 
 
