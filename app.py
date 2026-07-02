@@ -678,6 +678,40 @@ def _assert_prod_firestore_backend() -> None:
 _assert_prod_firestore_backend()
 
 
+def _assert_prod_default_provider_configured() -> None:
+    """Production (K_SERVICE set) must have the markov TASK_DEFAULT provider
+    configured, else /markov silently serves deterministic mock recasts to
+    paying users. Raises at import in prod otherwise.
+
+    Scope: the task-default fallback provider only. Founder/user/override
+    providers are resolved dynamically per request (select_model tiers 1-3)
+    and cannot be asserted at import.
+
+    Coupling note: reads model_router._provider_configured (model_router.py:271),
+    which is the same predicate model_router uses at request time. Must stay
+    in sync with model_router._PROVIDER_ENV_KEYS.
+    """
+    import os as _os
+    if not _os.environ.get("K_SERVICE"):
+        return
+    default_model = model_router.TASK_DEFAULTS.get("markov", "")
+    if not default_model:
+        raise RuntimeError(
+            "markov TASK_DEFAULT is unset in production (K_SERVICE set); "
+            "/markov would have no default provider."
+        )
+    provider = model_router.parse_provider(default_model)
+    if provider and not model_router._provider_configured(provider):
+        raise RuntimeError(
+            f"markov TASK_DEFAULT provider {provider!r} is not configured in "
+            "production (K_SERVICE set): /markov would serve mock recasts to "
+            "paying users. Set the provider's API key env var."
+        )
+
+
+_assert_prod_default_provider_configured()
+
+
 # ---------------------------------------------------------------------------
 # Card 16 — operator-token auth (privileged path)
 # ---------------------------------------------------------------------------

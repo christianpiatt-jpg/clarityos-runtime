@@ -214,3 +214,56 @@ class TestCrossModuleLoadOrder:
         no stale founder cache survived the reset."""
         chosen = mr.select_model("reload_xprod", task="ELINS")
         assert chosen == mr.TASK_DEFAULTS["ELINS"]
+
+
+# ===========================================================================
+# FRAGO 12.B.15 — prod default-provider config guard
+# (app._assert_prod_default_provider_configured).
+#
+# Tested by DIRECT CALL rather than importlib.reload(app): the existing file's
+# idiom is direct-hook invocation, and reload(app) re-runs full app bootstrap
+# (firestore/admin/schedulers) which raises unrelated errors under
+# K_SERVICE=set. The bare module-level call in app.py wires the guard to
+# import-time (mirrors _assert_prod_firestore_backend); these cases validate
+# its logic in isolation. CLARITYOS_BACKEND is left alone (the firestore guard
+# never runs on a direct call).
+# ===========================================================================
+class TestProdDefaultProviderGuard:
+    def test_guard_noop_when_not_prod(self, monkeypatch):
+        """Case A: K_SERVICE unset → no raise (offline behavior preserved)."""
+        import app
+        monkeypatch.delenv("K_SERVICE", raising=False)
+        app._assert_prod_default_provider_configured()  # must not raise
+
+    def test_guard_raises_when_default_unset(self, monkeypatch):
+        """Case B: K_SERVICE set + TASK_DEFAULTS['markov'] empty → RuntimeError."""
+        import app
+        monkeypatch.setenv("K_SERVICE", "test-service")
+        monkeypatch.setitem(mr.TASK_DEFAULTS, "markov", "")
+        with pytest.raises(RuntimeError, match="markov TASK_DEFAULT is unset"):
+            app._assert_prod_default_provider_configured()
+
+    def test_guard_raises_when_key_missing(self, monkeypatch):
+        """Case C: K_SERVICE set + provider resolved + no key → RuntimeError."""
+        import app
+        monkeypatch.setenv("K_SERVICE", "test-service")
+        # Clear every env var _provider_configured checks for anthropic
+        # (predicate is True if ANY is set — Phase 1 Item 4).
+        for k in mr._PROVIDER_ENV_KEYS.get("anthropic", ()):
+            monkeypatch.delenv(k, raising=False)
+        with pytest.raises(RuntimeError, match="is not configured in production"):
+            app._assert_prod_default_provider_configured()
+
+    def test_guard_passes_when_key_present(self, monkeypatch):
+        """Case D: K_SERVICE set + provider resolved + key present → no raise.
+
+        Sets the exact env var(s) _provider_configured reads
+        (_PROVIDER_ENV_KEYS['anthropic'] == ('CLARITYOS_ANTHROPIC_KEY',)),
+        NOT ANTHROPIC_API_KEY — the latter does not satisfy the predicate.
+        Substrate-corrected from the dispatch's literal ANTHROPIC_API_KEY.
+        """
+        import app
+        monkeypatch.setenv("K_SERVICE", "test-service")
+        for k in mr._PROVIDER_ENV_KEYS.get("anthropic", ()):
+            monkeypatch.setenv(k, "sk-test-fake")
+        app._assert_prod_default_provider_configured()  # must not raise
