@@ -913,6 +913,14 @@ def markov_adapter(text: str, meta: dict | None, user: str) -> dict:
 
     prompt = _build_recast_prompt(primitives_formatted, text)
     result = model_router.route_request(model_id, prompt)
+    if result.get("mock") and result.get("fallback_error"):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=error_response(
+                "provider_error",
+                f"Provider {result.get('provider')} error: {result.get('fallback_error')}",
+            ),
+        )
     recast = result.get("text", "")
     return {
         "model":    result.get("model_id", model_id),

@@ -86,3 +86,84 @@ def test_build_recast_prompt_truncates_over_2000_chars(appmod):
     assert "a" * 2500 not in capped
     # Grounding preview keeps the 2000-char head.
     assert "a" * 2000 in capped
+
+
+# ---------------------------------------------------------------------------
+# v82 — mock/credit fix: raise 502 only on a CONFIGURED-handler error
+# (scenario 3, fallback_error stamped) so metered_compute refunds the credit.
+# Scenarios 1 & 2 (unconfigured provider / no handler → mock, no
+# fallback_error) must still return normally.
+# ---------------------------------------------------------------------------
+def test_markov_adapter_raises_502_when_handler_errors(reset_stores, monkeypatch):
+    """Scenario 3: handler configured, provider call raises → adapter raises 502.
+
+    Verifies the mock/credit fix: a mock:true response with fallback_error
+    causes the adapter to raise HTTPException(502) instead of returning
+    a stub. This lets metered_compute's exception teardown refund the credit.
+    """
+    from fastapi import HTTPException
+    import app as appmod
+    import model_router
+
+    def _raising_handler(model_id, prompt, *, temperature, max_tokens):
+        raise RuntimeError("simulated anthropic outage")
+
+    monkeypatch.setitem(model_router._PROVIDER_HANDLERS, "anthropic", _raising_handler)
+    monkeypatch.setenv("CLARITYOS_ANTHROPIC_KEY", "test-key-for-scenario-3")
+
+    with pytest.raises(HTTPException) as excinfo:
+        appmod.markov_adapter(
+            "test input", {"model": "anthropic:claude-haiku-4-5-20251001"}, "test_user",
+        )
+
+    assert excinfo.value.status_code == 502
+    assert excinfo.value.detail["ok"] is False
+    assert excinfo.value.detail["error"] == "provider_error"
+    assert "anthropic" in excinfo.value.detail["message"]
+    assert "simulated anthropic outage" in excinfo.value.detail["message"]
+
+
+def test_markov_adapter_returns_mock_when_provider_unconfigured(reset_stores, monkeypatch):
+    """Scenario 1 (regression): no provider key → mock:true, no fallback_error
+    → adapter returns normally with mock envelope. Should NOT raise.
+    """
+    import app as appmod
+
+    monkeypatch.delenv("CLARITYOS_ANTHROPIC_KEY", raising=False)
+
+    out = appmod.markov_adapter(
+        "test input", {"model": "anthropic:claude-haiku-4-5-20251001"}, "test_user",
+    )
+
+    assert out["mock"] is True
+    assert "fallback_error" not in out  # scenario 1 has no fallback_error
+    assert out["output"].startswith("[mock ")  # deterministic stub
+
+
+def test_markov_adapter_returns_normally_on_real_result(reset_stores, monkeypatch):
+    """Regression: real (mock:false) response from handler → adapter returns
+    normally, does NOT raise. Guards against the fix over-triggering.
+    """
+    import app as appmod
+    import model_router
+
+    def _real_handler(model_id, prompt, *, temperature, max_tokens):
+        return {
+            "ok": True,
+            "model_id": model_id,
+            "provider": "anthropic",
+            "text": "real response text",
+            "mock": False,
+            "ts": 0.0,
+        }
+
+    monkeypatch.setitem(model_router._PROVIDER_HANDLERS, "anthropic", _real_handler)
+    monkeypatch.setenv("CLARITYOS_ANTHROPIC_KEY", "test-key")
+
+    out = appmod.markov_adapter(
+        "test input", {"model": "anthropic:claude-haiku-4-5-20251001"}, "test_user",
+    )
+
+    assert out["mock"] is False
+    assert out["output"] == "real response text"
+    assert out["recast"] == "real response text"
