@@ -34,6 +34,7 @@ import json
 import logging
 import re
 import time
+from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
@@ -45,6 +46,7 @@ from ELINS import (
     regional_elins,
     standard_elins,
 )
+import azimuth_transition          # Module B — phenomenological preservation hub (W1_HUB)
 import comment_generator
 import directive_engine             # A21/A28 — unified directive engine
 import elins_entity_graph
@@ -869,6 +871,22 @@ def run_thread_message(
             )
         text = directive_engine.apply_pre_enforcement(directives, text)
 
+    # W1_HUB — Module B (phenomenological preservation), advisory-only, non-blocking.
+    module_b_advisory: Optional[dict] = None
+    try:
+        _env = azimuth_transition.EnvelopeState(
+            raw_text=text,
+            captured_at=datetime.now(timezone.utc),
+            rough_intention=text[:200],
+        )
+        if azimuth_transition.detect_externalization_intent(_env):
+            module_b_advisory = asdict(
+                azimuth_transition.compute_aligned_expression(_env),
+            )
+    except Exception:  # pragma: no cover (defensive — Module B must never break the turn)
+        logger.warning("module_b hook skipped", exc_info=True)
+        module_b_advisory = None
+
     started = time.perf_counter()
 
     # v51 — validate the project_id against the thread's stored field
@@ -981,6 +999,8 @@ def run_thread_message(
     meta_final, assistant_msg_saved = threads_vault.append_message(
         user_id, thread_id, assistant_msg,
     )
+    # W1_HUB — attach Module B advisory to meta (None on non-externalization turns).
+    meta_final["module_b_alignment"] = module_b_advisory
 
     # 5. v69 / Unit 74 — Optional EL/INS per-turn analysis hook.
     #    Off by default; users opt in via operator_state.el_ins_per_turn.
