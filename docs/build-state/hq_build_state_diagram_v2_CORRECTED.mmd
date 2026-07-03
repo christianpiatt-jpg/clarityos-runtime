@@ -1,0 +1,111 @@
+---
+config:
+  layout: elk
+---
+graph TD
+  %% ClarityOS build-state map v2 CORRECTED — HEAD 74e8b16 — COW-1 authored, read-only
+  %% Corrections vs v1: V1 IK->dewey/elins rerouted via APP (kernel imports=0);
+  %% V2 CAL moved to governance band (no .py at HEAD); V3 SNAP demoted to resume-only;
+  %% V4 Module B = hub+spokes with line cites, W1-W4 collapsed to single W1_HUB.
+  %% Portability: all edges are node->node (never to a subgraph label).
+
+  subgraph INFRA["Runtime infrastructure — LIVE (on a real code path)"]
+    APP["app.py FastAPI routes<br/>startup asserts :678 / :712<br/>run_thread_message call :12452"]
+    IK["Intelligence Kernel<br/>run_thread_message :809<br/>parse_directives :863<br/>apply_post_enforcement :950/:960"]
+    MR["Model Router"]
+    OS["Operator State"]
+    MV["Memory Vault"]
+    RP["Runtime Privacy"]
+  end
+
+  subgraph GOV["Governance layer — NOT runtime code (net-new @HEAD)"]
+    CAL["Constitutional Layer / CAL<br/>Core Law · Contracts · Validation Conditions<br/>document + process — no .py at 74e8b16"]
+  end
+
+  subgraph CONT["Continuity — PARTIAL"]
+    SNAP["runtime_continuity.resume_runtime_session :164<br/>resume only — no Snapshot Contract / RefreshRequest module"]
+  end
+
+  subgraph MODA["Module A — Interaction Geometry — LIVE via IK"]
+    DE["Directive Engine (directive_engine.py)<br/>migrated + live in kernel"]
+    HPRIM["primitives_extract :46"]
+    HSTRUCT["structure_format :49"]
+    HREG["regression_trace :48"]
+    HCITE["cite_mode :43"]
+    HRED["reduce_signal :47"]
+    HCMP["compare_delta :44"]
+    HOP["operator_brief :45"]
+  end
+
+  subgraph MODC["Module C — Diagnostics — LIVE via APP endpoints (NOT IK)"]
+    DEW["Dewey Pipeline — /dewey/*"]
+    E1["ELINS Unit 1 — single-party"]
+    E4["ELINS Unit 4 — economic-coercion"]
+    DWK["dewey_worker — background, in-process"]
+  end
+
+  subgraph MODB["Module B — implemented + tested, ZERO runtime importers"]
+    AZ["azimuth_transition — HUB"]
+    B_EA["emotional_alignment_engine"]
+    B_AT["ambient_trust_engine"]
+    B_FEA["fea_integration_engine"]
+  end
+
+  subgraph SPEC["Spec-only — described as-if-present per RFI item 4"]
+    SUPGT["UPGT compiler — no upgt_compiler.py"]
+    SGOD["Godhard cusp-catastrophe — no godhard_curve.py"]
+    SCOMP["Compression Index"]
+    SSTRAT["Strategy Physics"]
+    SPRESS["Pressure Map / Cross-Regression family"]
+    SAPX["Appendix A01–A11"]
+  end
+
+  subgraph DELTA["Integration delta — SINGLE wiring task"]
+    W1HUB["W1_HUB — wire azimuth_transition into run_thread_message<br/>+ Article-4 substrate typing<br/>1 import · 1 guarded call site · 1 regression test<br/>lights up B_EA + B_AT + B_FEA in one pass"]
+  end
+
+  %% ---- LIVE edges (verified callers @74e8b16) ----
+  APP --> IK
+  IK --> MR
+  IK --> OS
+  IK --> MV
+  IK --> RP
+  IK --> DE
+  DE --> HPRIM
+  DE --> HSTRUCT
+  DE --> HREG
+  DE --> HCITE
+  DE --> HRED
+  DE --> HCMP
+  DE --> HOP
+
+  %% ---- V1 CORRECTION: dewey/elins reached from APP endpoints, NOT from IK ----
+  APP --> DEW
+  APP --> E1
+  APP --> E4
+  DWK --> DEW
+
+  %% ---- V4: Module B hub orchestrates its spokes (azimuth imports + chains them) ----
+  AZ -->|"align_expression :60"| B_EA
+  AZ -->|"ambient_trust :69"| B_AT
+  AZ -->|"integrate_alignment :75 · wires AlignedExpr :671"| B_FEA
+
+  %% ---- DELTA: the single wiring that closes the Module B gap (dashed = proposed) ----
+  AZ -.proposed.-> W1HUB
+  W1HUB -.hooks into.-> IK
+
+  classDef infra stroke:#2dd4bf,fill:#f0fdfa;
+  classDef live stroke:#818cf8,fill:#eef2ff;
+  classDef gov stroke:#f472b6,fill:#fdf2f8;
+  classDef partial stroke:#facc15,fill:#fefce8;
+  classDef unwired stroke:#fb923c,fill:#fff7ed;
+  classDef spec stroke:#a78bfa,fill:#f5f3ff;
+  classDef delta stroke:#22d3ee,fill:#ecfeff;
+
+  class APP,IK,MR,OS,MV,RP infra;
+  class DE,HPRIM,HSTRUCT,HREG,HCITE,HRED,HCMP,HOP,DEW,E1,E4,DWK live;
+  class CAL gov;
+  class SNAP partial;
+  class AZ,B_EA,B_AT,B_FEA unwired;
+  class SUPGT,SGOD,SCOMP,SSTRAT,SPRESS,SAPX spec;
+  class W1HUB delta;
