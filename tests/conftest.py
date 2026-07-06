@@ -318,6 +318,14 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_runtime_inv_kernel.py": {
         "runtime_spine", "determinism_surface",
     },
+    # ---- W1_HUB-B — Module B alignment hook regression floor ----
+    # Locks the wiring installed in W1_HUB-A (f485e69) against
+    # silent-no-op regression: positive-case dict advisory,
+    # negative-case None-key present, non-blocking exception guarantee,
+    # and import-surface guards for the module-B binding.
+    "test_kernel_module_b_hook.py": {
+        "runtime_spine",
+    },
     "test_runtime_inv_router.py": {
         "runtime_spine", "determinism_surface",
     },
