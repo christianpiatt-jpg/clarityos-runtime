@@ -128,8 +128,57 @@ def user_exists(username: str) -> bool:
     return username in _MEMORY_USERS
 
 
+# ---------------------------------------------------------------------------
+# β1 — Comp-override gate (webhook_comp_override_durability)
+# ---------------------------------------------------------------------------
+# When a user document carries ``comp_override = True``, writes into
+# ``update_user`` are inspected for keys that would mutate the founder comp
+# grant. Guarded keys are dropped from the payload before merge; all other
+# keys pass through unchanged. This holds the grant against Stripe webhook
+# events (invoice.payment_failed, customer.subscription.deleted, etc.) while
+# still letting the doc reflect Stripe's ground truth on informational
+# fields (canceled_at_ts, cancel_at_ts, subscription_status, renewal_ts,
+# stripe_customer_id, _cl19_mismatch_*, etc.).
+#
+# Guarded set is intentionally MINIMAL — only the two fields the entitlement
+# read path uses to gate access.
+COMP_OVERRIDE_GUARDED_KEYS = frozenset({"membership_status", "billing_state"})
+
+
 def update_user(username: str, data: dict) -> None:
-    """Merge `data` into the existing user document. No-op if user not found."""
+    """Merge `data` into the existing user document. No-op if user not found.
+
+    β1 comp-override gate: if the target user carries ``comp_override = True``
+    and ``data`` includes any key in ``COMP_OVERRIDE_GUARDED_KEYS``, those
+    guarded keys are dropped from the merge (logged, not raised). Ungated
+    keys pass through unchanged; empty resulting payload is a no-op.
+    """
+    if not isinstance(data, dict):
+        # Defensive: preserve prior contract (dict merge only).
+        raise TypeError(
+            f"update_user expected dict, got {type(data).__name__}"
+        )
+
+    # Gate: inspect only when the payload could mutate guarded fields.
+    guarded_hit = COMP_OVERRIDE_GUARDED_KEYS.intersection(data.keys())
+    if guarded_hit:
+        existing = get_user(username) or {}
+        if bool(existing.get("comp_override")):
+            filtered = {k: v for k, v in data.items()
+                        if k not in COMP_OVERRIDE_GUARDED_KEYS}
+            logger.warning(
+                "update_user comp_override_hold username=%s dropped_keys=%s "
+                "dropped_values=%s remaining_keys=%s",
+                username,
+                sorted(guarded_hit),
+                {k: data[k] for k in sorted(guarded_hit)},
+                sorted(filtered.keys()),
+            )
+            data = filtered
+            if not data:
+                # All keys were guarded; nothing left to merge.
+                return
+
     if _backend() == "firestore":
         ref = _users_collection().document(username)
         if not ref.get().exists:
