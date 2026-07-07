@@ -99,14 +99,17 @@ export function clearSession(): void {
 }
 
 // ---------- Core request ----------
-type ReqOpts = { method?: string; body?: unknown; auth?: boolean };
+type ReqOpts = { method?: string; body?: unknown; auth?: boolean; idempotent?: boolean };
 
 async function request<T = unknown>(path: string, opts: ReqOpts = {}): Promise<T> {
-  const { method = "GET", body, auth = true } = opts;
+  const { method = "GET", body, auth = true, idempotent = false } = opts;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
     if (!memorySession) throw new ApiError("missing_session", "Not signed in", 401);
     headers["X-Session-ID"] = memorySession;
+  }
+  if (idempotent) {
+    headers["Idempotency-Key"] = crypto.randomUUID();
   }
   const url = getApiBase() + path;
   let res: Response;
@@ -211,18 +214,18 @@ export interface MarkovResult {
 }
 
 export const markov = (text: string, meta?: Record<string, unknown>) =>
-  request<MarkovResult>("/markov", { method: "POST", body: { text, meta } });
+  request<MarkovResult>("/markov", { method: "POST", body: { text, meta }, idempotent: true });
 
 export const galileo = (text: string, meta?: Record<string, unknown>) =>
-  request<{ ok: true; engine: string; data: any }>("/galileo", { method: "POST", body: { text, meta } });
+  request<{ ok: true; engine: string; data: any }>("/galileo", { method: "POST", body: { text, meta }, idempotent: true });
 
 export const tizzy = (text: string, meta?: Record<string, unknown>) =>
-  request<{ ok: true; engine: string; data: any }>("/tizzy", { method: "POST", body: { text, meta } });
+  request<{ ok: true; engine: string; data: any }>("/tizzy", { method: "POST", body: { text, meta }, idempotent: true });
 
 export const library = (path: string, meta?: Record<string, unknown>) =>
   request<{ ok: true; engine: string; data: { path: string; bucket: string; prefix: string; size: number; content: string } }>(
     "/library",
-    { method: "POST", body: { text: path, meta } }
+    { method: "POST", body: { text: path, meta }, idempotent: true }
   );
 
 // ---------- Storage Layer v1 (vault / library / timeline) ----------
@@ -2725,6 +2728,7 @@ export function engineV1Run(input: EngineRunRequest): Promise<EngineResponseV1> 
     method: "POST",
     body: input,
     auth: true,
+    idempotent: true,
   });
 }
 
