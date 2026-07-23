@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from typing import Optional
 
 logger = logging.getLogger("clarityos.users_store")
@@ -293,7 +294,7 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
 
     from google.cloud import firestore  # lazy import, matches module convention
     client = _get_firestore()
-    user_ref = _coll().document(user)
+    user_ref = _users_collection().document(user)
     debit_ref = client.collection(_DEBITS_COLLECTION).document(request_id)
 
     @firestore.transactional
@@ -336,7 +337,7 @@ def refund_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> None:
 
     from google.cloud import firestore
     client = _get_firestore()
-    user_ref = _coll().document(user)
+    user_ref = _users_collection().document(user)
     debit_ref = client.collection(_DEBITS_COLLECTION).document(request_id)
 
     @firestore.transactional

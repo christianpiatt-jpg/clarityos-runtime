@@ -11493,7 +11493,7 @@ def _derive_route_reason(
 def model_route(
     req: ModelRouteRequest,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_active_entitlement),
 ):
     """Compatibility wrapper for ``model_router.select_model``.
 
@@ -11552,7 +11552,7 @@ class ModelCompleteRequest(BaseModel):
 @app.post("/model/complete")
 def model_complete(
     req: ModelCompleteRequest,
-    session: dict = Depends(require_session),
+    session: dict = Depends(metered_compute),
 ):
     """Card 19.5: real-text-generation completion adapter.
 
