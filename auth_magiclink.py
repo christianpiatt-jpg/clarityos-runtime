@@ -78,19 +78,25 @@ _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 # derived set of permitted resolved paths (the two cannot drift). Add new
 # destinations here only.
 NEXT_KEYS = {
-    "app":            "/app",
-    "transformation": "/app/transformation",
-    "onboarding":     "/onboarding",
-    "account":        "/account",
+    "app":            "/cockpit",           # was "/app" — not an SPA route (404)
+    "transformation": "/cockpit",           # was "/app/transformation" — no such route; /cockpit is the safe app landing
+    "onboarding":     "/plans",             # was "/onboarding" — not an SPA route (404)
+    "account":        "/account",           # real SPA route — unchanged
 }
 ALLOWED_NEXT = frozenset(NEXT_KEYS.values())
-DEFAULT_NEXT_PATH = "/app"          # active member, missing/invalid next
-INACTIVE_NEXT_PATH = "/onboarding"  # authenticated but not an active member
+DEFAULT_NEXT_PATH = "/cockpit"      # active member, missing/invalid next (was "/app")
+INACTIVE_NEXT_PATH = "/plans"       # authenticated but not an active member (was "/onboarding")
 
 # Tiers that count as an active entitlement. Anything else (incl. brand-new
 # "free" accounts created on first sign-in) is treated as inactive and routed
-# to /onboarding, where the app surfaces checkout / recovery.
+# to /plans, where the app surfaces checkout / recovery.
 _ACTIVE_TIERS = frozenset({"paid", "active", "member", "founding", "founder"})
+
+# v31 billing-state-machine values that grant app access. Mirrors the access
+# set the renewal scheduler already honors (users_store: active|past_due|
+# grace_period) — this is the field the Stripe webhook actually writes via
+# users_store.set_billing_state, which the legacy `tier` check never saw.
+_ACTIVE_BILLING_STATES = frozenset({"active", "past_due", "grace_period"})
 
 # Rate limits for /auth/enter (always enforced here, independent of the global
 # v29 soft limiter): per-IP and per-email fixed windows.
@@ -376,6 +382,12 @@ def _ensure_user(email: str, now: float) -> bool:
 def _is_active_member(email: str, now: float) -> bool:
     u = users_store.get_user(email) or {}
     if str(u.get("tier", "")).lower() in _ACTIVE_TIERS:
+        return True
+    # v31 billing state machine — the authoritative entitlement signal the
+    # Stripe webhook writes (set_billing_state). A paid buyer carries
+    # billing_state="active" (+ membership_tier="founding_500") while `tier`
+    # is still the shell default "free", so the check above alone misses them.
+    if str(u.get("billing_state", "")).lower() in _ACTIVE_BILLING_STATES:
         return True
     exp = u.get("billing_expires_at")
     try:

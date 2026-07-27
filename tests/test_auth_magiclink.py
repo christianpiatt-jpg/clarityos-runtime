@@ -5,7 +5,7 @@ Tests for the ClarityOS magic-link auth backend (auth_magiclink + the
 Coverage:
     A. /auth/enter token issuance, single-link-per-user, enumeration-safe
        rate limiting, malformed-email rejection.
-    B. /auth/verify happy path (new user -> /onboarding, active member ->
+    B. /auth/verify happy path (new user -> /plans, active member ->
        allowlisted next), one-time use, expiry, garbage tokens, session
        creation.
     C. Redirect allowlist / open-redirect rejection.
@@ -105,7 +105,7 @@ class TestEnter:
 
     def test_valid_email_issues_one_token_and_emails_link(self, reset_stores):
         box = _capturing_sender()
-        r = auth_magiclink.request_magic_link("a@b.com", "wp-shell", "/app", "ip", "ua")
+        r = auth_magiclink.request_magic_link("a@b.com", "wp-shell", "/cockpit", "ip", "ua")
         assert r["status"] == "ok"
         assert "/auth/verify?token=" in box["link"]
         recs = _records_for("a@b.com")
@@ -144,16 +144,16 @@ class TestEnter:
 # B. /auth/verify — token validation + session creation (module level)
 # ===========================================================================
 class TestVerify:
-    def test_new_user_created_and_routed_to_onboarding(self, reset_stores):
+    def test_new_user_created_and_routed_to_plans(self, reset_stores):
         box = _capturing_sender()
-        auth_magiclink.request_magic_link("new@x.com", "wp", "/app", "ip", "ua")
+        auth_magiclink.request_magic_link("new@x.com", "wp", "/cockpit", "ip", "ua")
         raw = _raw_token(box["link"])
         r = auth_magiclink.verify_magic_link(raw, "ip", "ua")
         assert r["status"] == "ok"
         assert r["created"] is True
         assert r["active"] is False
-        assert r["redirect_path"] == "/onboarding"     # inactive -> onboarding
-        assert r["redirect"] == "https://clarity.pro-mediations.com/onboarding"
+        assert r["redirect_path"] == "/plans"     # inactive -> plans
+        assert r["redirect"] == "https://clarity.pro-mediations.com/plans"
         # session really exists and is bound to the email
         sess = sessions_store.get_session(r["session_id"])
         assert sess is not None and sess["user"] == "new@x.com"
@@ -166,33 +166,54 @@ class TestVerify:
     def test_active_member_routes_to_allowlisted_next(self, reset_stores):
         _make_active_member("paid@x.com", time.time())
         box = _capturing_sender()
-        auth_magiclink.request_magic_link("paid@x.com", "wp", "/app", "ip", "ua")
+        auth_magiclink.request_magic_link("paid@x.com", "wp", "/cockpit", "ip", "ua")
         r = auth_magiclink.verify_magic_link(_raw_token(box["link"]), "ip", "ua")
         assert r["status"] == "ok"
         assert r["active"] is True
         assert r["created"] is False
-        assert r["redirect"] == "https://clarity.pro-mediations.com/app"
+        assert r["redirect"] == "https://clarity.pro-mediations.com/cockpit"
 
-    def test_active_member_allowlisted_subpath_preserved(self, reset_stores):
+    def test_active_member_allowlisted_next_preserved(self, reset_stores):
+        # A non-default allowlisted next (here /account) is honored for an
+        # active member rather than collapsing to the default.
         _make_active_member("paid2@x.com", time.time())
         box = _capturing_sender()
-        auth_magiclink.request_magic_link("paid2@x.com", "wp", "/app/transformation", "ip", "ua")
+        auth_magiclink.request_magic_link("paid2@x.com", "wp", "/account", "ip", "ua")
         r = auth_magiclink.verify_magic_link(_raw_token(box["link"]), "ip", "ua")
-        assert r["redirect"] == "https://clarity.pro-mediations.com/app/transformation"
+        assert r["redirect"] == "https://clarity.pro-mediations.com/account"
 
     def test_non_allowlisted_subpath_falls_back(self, reset_stores):
         _make_active_member("paid2b@x.com", time.time())
         box = _capturing_sender()
         auth_magiclink.request_magic_link("paid2b@x.com", "wp", "/app/workspace", "ip", "ua")
         r = auth_magiclink.verify_magic_link(_raw_token(box["link"]), "ip", "ua")
-        assert r["redirect"] == "https://clarity.pro-mediations.com/app"
+        assert r["redirect"] == "https://clarity.pro-mediations.com/cockpit"
 
     def test_open_redirect_next_is_rejected(self, reset_stores):
         _make_active_member("paid3@x.com", time.time())
         box = _capturing_sender()
         auth_magiclink.request_magic_link("paid3@x.com", "wp", "https://evil.example/x", "ip", "ua")
         r = auth_magiclink.verify_magic_link(_raw_token(box["link"]), "ip", "ua")
-        assert r["redirect"] == "https://clarity.pro-mediations.com/app"   # external next ignored
+        assert r["redirect"] == "https://clarity.pro-mediations.com/cockpit"   # external next ignored
+
+    def test_active_via_billing_state_not_tier(self, reset_stores, monkeypatch):
+        # #20 regression: a Stripe-provisioned buyer has tier="free" (the shell
+        # default) but billing_state="active" (+ membership_tier="founding_500").
+        # The legacy `tier` check misses them; billing_state must class active.
+        monkeypatch.setattr(
+            users_store, "get_user",
+            lambda email: {"tier": "free", "billing_state": "active",
+                           "membership_tier": "founding_500"},
+        )
+        assert auth_magiclink._is_active_member("buyer@x.com", time.time()) is True
+
+    def test_inactive_when_no_active_signal(self, reset_stores, monkeypatch):
+        # A canceled/free account with no active billing_state stays inactive.
+        monkeypatch.setattr(
+            users_store, "get_user",
+            lambda email: {"tier": "free", "billing_state": "canceled"},
+        )
+        assert auth_magiclink._is_active_member("lapsed@x.com", time.time()) is False
 
     def test_token_is_single_use(self, reset_stores):
         box = _capturing_sender()
@@ -220,13 +241,14 @@ class TestVerify:
 # ===========================================================================
 class TestNextHardening:
     @pytest.mark.parametrize("raw,expected_key", [
-        ("/app", "app"),
-        ("/app/", "app"),                       # trailing slash tolerated
-        ("/app/transformation", "transformation"),
+        ("/cockpit", "app"),                    # "app" key now resolves to /cockpit
+        ("/cockpit/", "app"),                   # trailing slash tolerated
+        ("/plans", "onboarding"),               # "onboarding" key now resolves to /plans
         ("/account", "account"),
         ("transformation", "transformation"),   # bare symbolic key
         ("app", "app"),
         ("/app/workspace", ""),                 # not on the allowlist
+        ("/app", ""),                           # old path no longer allowlisted
         ("//evil.com", ""),
         ("https://example.com", ""),
         ("http://evil.example", ""),
@@ -258,15 +280,15 @@ class TestNextHardening:
         box = _capturing_sender()
         auth_magiclink.request_magic_link("vec@x.com", "wp", malicious, "ip", "ua")
         r = auth_magiclink.verify_magic_link(_raw_token(box["link"]), "ip", "ua")
-        assert r["redirect"] == "https://clarity.pro-mediations.com/app"
+        assert r["redirect"] == "https://clarity.pro-mediations.com/cockpit"
         assert r["redirect"].startswith("https://clarity.pro-mediations.com/")
 
     def test_resolve_next_path_rules(self, reset_stores):
-        # Inactive members always go to onboarding, even for an allowlisted key.
-        assert auth_magiclink.resolve_next_path("transformation", active=False) == "/onboarding"
-        assert auth_magiclink.resolve_next_path("transformation", active=True) == "/app/transformation"
-        assert auth_magiclink.resolve_next_path("", active=True) == "/app"
-        assert auth_magiclink.resolve_next_path("bogus", active=True) == "/app"
+        # Inactive members always go to /plans, even for an allowlisted key.
+        assert auth_magiclink.resolve_next_path("transformation", active=False) == "/plans"
+        assert auth_magiclink.resolve_next_path("transformation", active=True) == "/cockpit"
+        assert auth_magiclink.resolve_next_path("", active=True) == "/cockpit"
+        assert auth_magiclink.resolve_next_path("bogus", active=True) == "/cockpit"
 
 
 # ===========================================================================
@@ -291,7 +313,7 @@ class TestRoutes:
         raw = _raw_token(box["link"])
         r = _get_noredirect(app_module.app, f"/auth/verify?token={raw}")
         assert r.status_code == 303
-        assert r.headers["location"] == "https://clarity.pro-mediations.com/onboarding"  # new user -> onboarding
+        assert r.headers["location"] == "https://clarity.pro-mediations.com/plans"  # new user -> plans
         set_cookie = r.headers.get("set-cookie", "")
         assert "clarityos_session=" in set_cookie
         assert "HttpOnly" in set_cookie
