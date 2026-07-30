@@ -941,12 +941,23 @@ def run_thread_message(
         _env = azimuth_transition.EnvelopeState(
             raw_text=text,
             captured_at=datetime.now(timezone.utc),
+            # The kernel does no emotional analysis at this advisory seam, so
+            # supply neutral defaults for the three fields EnvelopeState now
+            # requires (added after this caller was first written). Module B
+            # keys its externalization detection off raw_text, not these.
+            emotional_intensity=azimuth_transition.IntensityLevel.LOW,
+            valence=azimuth_transition.Valence.NEUTRAL,
+            pressure_level=azimuth_transition.PressureLevel.LOW,
             rough_intention=text[:200],
         )
         if azimuth_transition.detect_externalization_intent(_env):
-            module_b_advisory = asdict(
+            # Normalize to JSON-native types (tuples -> lists, str-Enums ->
+            # their string values) so the advisory round-trips cleanly when
+            # ``meta`` is serialized/persisted. asdict alone leaves tuples
+            # (plan.steps, surface_directives) that don't survive a JSON round-trip.
+            module_b_advisory = json.loads(json.dumps(asdict(
                 azimuth_transition.compute_aligned_expression(_env),
-            )
+            )))
     except Exception:  # pragma: no cover (defensive — Module B must never break the turn)
         logger.warning("module_b hook skipped", exc_info=True)
         module_b_advisory = None
