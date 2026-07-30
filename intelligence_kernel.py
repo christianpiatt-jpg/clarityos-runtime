@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import time
 from dataclasses import asdict
@@ -51,6 +52,7 @@ import comment_generator
 import directive_engine             # A21/A28 — unified directive engine
 import elins_entity_graph
 import elins_scheduler_config
+import felt_gap_reader                # Phase-1 — felt-gap Layer-B classifier (Ruling C1)
 import kernel_logging
 import local_model_runtime           # v45 — on-device inference runtime
 import memory_vault                  # v46 — encrypted local KV store
@@ -808,6 +810,68 @@ def _apply_project_routing(
     return chosen
 
 
+# ---------------------------------------------------------------------------
+# Phase-1 · felt-gap reader seam helpers (Component A · Rulings C1/2/4).
+# Flag-gated OFF by default; fail-soft; read-only over threads_vault,
+# write-only to an isolated memory_vault namespace. engine_v1 untouched.
+# ---------------------------------------------------------------------------
+_ARC_RECORD_PREFIX = "arc_records."
+
+
+def _felt_gap_arc_key(thread_id: str, assistant_seq: int) -> str:
+    return f"{_ARC_RECORD_PREFIX}{thread_id}.{int(assistant_seq):06d}"
+
+
+def _lookup_prior_completable_pair(messages: list) -> Optional[dict]:
+    """Given the thread's chronological messages AFTER the current user+assistant
+    turns are appended, find the prior (user_prompt, assistant_reply) pair that the
+    current user turn just answered. Ordering:
+    [..., prior_user, prior_assistant, current_user, current_assistant].
+    Returns None when there is no completable prior pair (e.g. the first exchange)."""
+    if not isinstance(messages, list) or len(messages) < 4:
+        return None
+    # messages[-1] = current assistant, messages[-2] = current user turn.
+    # Walk back from -3 for the nearest prior assistant, then the user before it.
+    prior_assistant = None
+    prior_assistant_seq = None
+    i = len(messages) - 3
+    while i >= 0:
+        m = messages[i]
+        if isinstance(m, dict) and m.get("role") == "assistant":
+            prior_assistant = m
+            prior_assistant_seq = i
+            break
+        i -= 1
+    if prior_assistant is None:
+        return None
+    prior_user = None
+    j = prior_assistant_seq - 1
+    while j >= 0:
+        m = messages[j]
+        if isinstance(m, dict) and m.get("role") == "user":
+            prior_user = m
+            break
+        j -= 1
+    if prior_user is None:
+        return None
+    return {
+        "assistant_seq": prior_assistant_seq,
+        "user_prompt_text": str(prior_user.get("content") or ""),
+        "assistant_reply_text": str(prior_assistant.get("content") or ""),
+    }
+
+
+def _write_arc_record(
+    user_id: str, thread_id: str, assistant_seq: int, record: dict,
+) -> None:
+    """Persist one arc_record to its own memory_vault namespace (Firestore-backed
+    in prod, same SA). Own-collection write-only; never touches thread keys."""
+    memory_vault.vault_init(user_id)
+    memory_vault.vault_put(
+        user_id, _felt_gap_arc_key(thread_id, assistant_seq), record,
+    )
+
+
 def run_thread_message(
     user_id: str,
     thread_id: str,
@@ -1021,6 +1085,28 @@ def run_thread_message(
     reasoning_mode: Optional[str] = None
     anomalies_emitted: list[dict] = []  # v72 / Unit 80 — additive on return dict
     if user_id:
+        # Phase-1 felt-gap reader — flag-gated OFF by default; deploy inert.
+        # Ruling 2 fail-soft; Ruling C1 deterministic; fixture excluded unconditionally.
+        if os.environ.get("CLARITYOS_FELT_GAP_READER_ENABLED", "0") == "1":
+            try:
+                if user_id != "soldierslawyer@gmail.com":  # fixture exclusion (unconditional)
+                    _, _fg_messages = threads_vault.get_thread(user_id, thread_id)
+                    _fg_prior = _lookup_prior_completable_pair(_fg_messages)
+                    if _fg_prior is not None:
+                        _fg_record = felt_gap_reader.build_arc_record(
+                            user_id=user_id,
+                            thread_id=thread_id,
+                            assistant_seq=_fg_prior["assistant_seq"],
+                            user_prompt_text=_fg_prior["user_prompt_text"],
+                            assistant_reply_text=_fg_prior["assistant_reply_text"],
+                            user_next_reply_text=text,  # current user turn = correction signal
+                            user_next_reply_present=True,
+                        )
+                        _write_arc_record(
+                            user_id, thread_id, _fg_prior["assistant_seq"], _fg_record,
+                        )
+            except Exception:  # Ruling 2 — fail-soft; never break turn-flow
+                logger.debug("felt_gap_reader seam skipped", exc_info=True)
         try:
             if operator_state.get_el_ins_per_turn(user_id):
                 import el_ins as _el_ins
