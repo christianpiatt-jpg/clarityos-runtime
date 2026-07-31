@@ -1100,7 +1100,14 @@ def run_thread_message(
         # Ruling 2 fail-soft; Ruling C1 deterministic; fixture excluded unconditionally.
         if os.environ.get("CLARITYOS_FELT_GAP_READER_ENABLED", "0") == "1":
             try:
-                if user_id != "soldierslawyer@gmail.com":  # fixture exclusion (unconditional)
+                # optional allowlist (privacy-protective scope limit): when set,
+                # the diagnostic applies only to the listed accounts. Empty/unset
+                # -> unchanged behavior (all accounts except the fixture exclusion).
+                _fg_allow = os.environ.get("CLARITYOS_FELT_GAP_ALLOWLIST", "")
+                _fg_allowed = (not _fg_allow) or (
+                    user_id in {u.strip() for u in _fg_allow.split(",") if u.strip()}
+                )
+                if user_id != "soldierslawyer@gmail.com" and _fg_allowed:  # fixture exclusion (unconditional)
                     _, _fg_messages = threads_vault.get_thread(user_id, thread_id)
                     _fg_prior = _lookup_prior_completable_pair(_fg_messages)
                     if _fg_prior is not None:
