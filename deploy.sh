@@ -34,7 +34,7 @@ gcloud run deploy "$SERVICE" \
     --region "$REGION" \
     --platform managed \
     --allow-unauthenticated \
-    --set-env-vars "BUILD_TAG=$BUILD_TAG,COMMIT_SHA=$COMMIT_SHA,BRANCH=$BRANCH" \
+    --update-env-vars "BUILD_TAG=$BUILD_TAG,COMMIT_SHA=$COMMIT_SHA,BRANCH=$BRANCH" \
     --port 8080
 
 cat <<EOF

@@ -47,3 +47,8 @@ lb_snapshot_*/
 bucket-before-*.txt
 phase5a_*.txt
 phase5a_*.yaml
+
+# CL-14 ratified 2026-06-09 — build-context hygiene
+# OPFOR-8: prevent durable audit docs + preflight artifacts from leaking into build context
+_audit/
+preflight-*

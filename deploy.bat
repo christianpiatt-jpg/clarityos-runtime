@@ -32,6 +32,11 @@ if "%BUILD_TAG%"=="" (
     exit /b 1
 )
 
+REM Capture commit provenance so /health reports accurate SHA/branch after a
+REM .bat deploy. Mirror of deploy.sh; consumed by the merge-semantics env flag below.
+for /f %%I in ('git rev-parse HEAD') do set COMMIT_SHA=%%I
+for /f %%I in ('git rev-parse --abbrev-ref HEAD') do set BRANCH=%%I
+
 REM Stamp the cache-bust marker. Trailing newline is fine; Docker COPY
 REM treats this as a small text file and the contents change every run.
 > BUILD_VERSION echo %BUILD_TAG%
@@ -50,6 +55,7 @@ gcloud run deploy %SERVICE% ^
     --region %REGION% ^
     --platform managed ^
     --allow-unauthenticated ^
+    --update-env-vars "BUILD_TAG=%BUILD_TAG%,COMMIT_SHA=%COMMIT_SHA%,BRANCH=%BRANCH%" ^
     --port 8080
 
 if errorlevel 1 (

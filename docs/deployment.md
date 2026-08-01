@@ -434,3 +434,49 @@ bash scripts/run_ci_gates.sh union
 The ``Emit release + target metadata`` step in the deploy job prints
 the placeholder values to the workflow logs at scaffold time — useful
 for confirming the env layout before activating PASS-7.
+
+---
+
+## LB URL Map Architecture (clarity.pro-mediations.com)
+
+**Surface:** clarity.pro-mediations.com
+**LB url-map name:** clarityos-web-map
+**Status:** Active, post-flip 2026-06-09 confirmed via Card D.0.1 + D.0.2 (session 2026-06-09)
+
+### Routing
+
+- **Default backend:** GCS static site (Server: UploadServer, x-goog-* headers)
+- **Path-rule /api/*:** clarity-engine-backend → Cloud Run service `clarity-engine` (us-central1)
+
+### Critical clarification
+
+The `/api/*` rule is a **Cloud Load Balancer URL-map path-rule**, NOT a WordPress reverse-proxy rewrite. There is no WordPress in the request path for `/api/*` routes. External callers (Stripe webhooks, etc.) targeting `https://clarity.pro-mediations.com/api/billing/webhook` are routed by GCP infrastructure directly to the `clarity-engine` Cloud Run backend.
+
+### Verification commands
+
+```bash
+# Confirm url-map structure
+gcloud compute url-maps describe clarityos-web-map
+
+# Confirm backend service
+gcloud compute backend-services describe clarity-engine-backend
+
+# Smoke test both paths return identical fixed-code responses
+curl -X POST https://clarity-engine-y3chr4su7a-uc.a.run.app/billing/webhook \
+  -H "Stripe-Signature: bogus" -d '{}'
+# Expected: 400 bad_signature
+
+curl -X POST https://clarity.pro-mediations.com/api/billing/webhook \
+  -H "Stripe-Signature: bogus" -d '{}'
+# Expected: 400 bad_signature
+```
+
+### Doctrine reference
+
+- **Doctrine #82** — Stripe Dashboard UI Cache Lag vs API Authority (companion: this surface verified via Stripe API direct query in Card D.0.2)
+- **Problem Engagement Template v1 #6** — Cross-Path Verification (this surface motivated the primitive)
+- **Problem Engagement Template v1 #12** — Pre-Flip Cross-Path Smoke (any future flip must test both direct and LB-proxied paths)
+
+### Session reference
+
+Locked 2026-06-09 (CL-12). Empirical verification chain: Card D.0.1 §1 (Cloud Run log of Stripe-UA delivery 200 @ 17:02:11Z on /api/* path) + Card D.0.2 §4 (url-map describe output).
