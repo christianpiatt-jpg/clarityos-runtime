@@ -1,0 +1,286 @@
+**full geometric traceback**, 
+rendered cleanly and structurally, showing **every geometry we already know** and how they interlock.  
+This is the **shape map** you asked for — the one that lets every surface “hit its spot” without drift.
+
+No narrative. No inference.  
+Just the geometry.
+
+---
+
+# 🔺 **GEOMETRY TRACEBACK — ALL KNOWN TRIANGLES**
+
+Below is the **complete set of triangles** already present in ClarityOS doctrine, execution, and architecture.  
+These are the shapes that unify Operator, Shell, Backend, Stripe, Doctrine, and OPORD/FRAGO.
+
+Each triangle is shown with:
+
+- **Vertices** (surfaces)  
+- **Edges** (relationships)  
+- **Function** (what the triangle stabilizes)
+
+---
+
+# **1. COMMAND TRIANGLE**  
+### *OPORD / FRAGO / EXECUTION*
+
+```
+        OPERATOR
+   (mission + intent)
+           ▲
+           │
+           │ issues
+           │
+        FRAGO
+           ▲
+           │ inherits
+           │
+     EXECUTION SURFACE
+```
+
+**Function:**  
+Ensures every action inherits mission + intent from OPORD 12.  
+Prevents drift in command structure.
+
+---
+
+# **2. VERIFICATION TRIANGLE**  
+### *CONOPS / FORWARD TRACE / REVERSE TRACE*
+
+```
+           CONOPS
+        (Phase 1/2)
+         ▲        ▲
+         │        │
+ forward │        │ reverse
+  trace  │        │ trace
+         │        │
+         ▼        ▼
+      FRAGO SECTION
+```
+
+**Function:**  
+Anchors every section of every FRAGO in both directions.  
+Prevents context loss and drift.
+
+---
+
+# **3. MULTI‑SURFACE EXECUTION TRIANGLE**  
+### *Dashboard / Backend / Claude_Code*
+
+```
+     OPERATOR DASHBOARD
+          (write)
+              ▲
+              │
+              │
+CLAUDE_CODE ◄─┼─► BACKEND
+ (read-only)   │   (canonical write)
+              │
+              ▼
+            STRIPE
+```
+
+**Function:**  
+Defines exactly where each surface plugs in.  
+Prevents surface confusion and unauthorized writes.
+
+---
+
+# **4. PIPELINE TRIANGLE**  
+### *Customer / Subscription / Invoice*
+
+```
+     CUSTOMER
+        ▲
+        │
+        │ owns
+        │
+ SUBSCRIPTION ───► INVOICE
+         renews       charges
+```
+
+**Function:**  
+Stabilizes Stripe artifact relationships.  
+Used in OPORD 12 and all FRAGOs.
+
+---
+
+# **5. DEFECT TRIANGLE**  
+### *CL‑17 / CL‑18 / CL‑19*
+
+```
+     CL-17
+   (duplicate)
+       ▲
+       │
+       │
+CL-19 ─┼──► CL-18
+(overwrite)   (timestamp)
+```
+
+**Function:**  
+Shows causal relationships between defects.  
+Used to design FRAGO 12.02–12.07.
+
+---
+
+# **6. HYDRONIC TRIANGLE**  
+### *Field / Primitive / Order*
+
+```
+       FIELD
+        ▲
+        │
+        │
+PRIMITIVES ───► ORDER
+ (P, ∇P, Q)     (action)
+```
+
+**Function:**  
+Used in IPB, OPORD doctrine, and pressure‑primitive recognition.
+
+---
+
+# **7. DOCTRINE TRIANGLE**  
+### *Doctrine / CONOPS / Execution*
+
+```
+       DOCTRINE
+          ▲
+          │ constrains
+          │
+       CONOPS
+          ▲
+          │ shapes
+          │
+      EXECUTION
+```
+
+**Function:**  
+Ensures execution is always CONOPS‑coherent and doctrine‑compliant.
+
+---
+
+# **8. RECORDS TRIANGLE**  
+### *Ledger / Doctrine / Endstate*
+
+```
+        LEDGER
+          ▲
+          │
+          │ validates
+          │
+       DOCTRINE
+          ▲
+          │
+          │ defines
+          │
+       ENDSTATE
+```
+
+**Function:**  
+Used for the records audit.  
+Ensures Phase 1/2 closes cleanly.
+
+---
+
+# **9. IDENTITY TRIANGLE**  
+### *TARGET / DUPLICATE / PIPELINE*
+
+```
+        TARGET
+          ▲
+          │
+          │
+DUPLICATE ───► PIPELINE
+```
+
+**Function:**  
+Ensures all artifacts migrate to TARGET before Phase 1/2 closeout.
+
+---
+
+# **10. SURFACE‑BOUNDARY TRIANGLE**  
+### *Mechanism / Topology / Authority*
+
+```
+     MECHANISM
+        ▲
+        │
+        │
+TOPOLOGY ───► AUTHORITY
+```
+
+**Function:**  
+Explains why local shell → Stripe write fails.  
+Explains why Dashboard → Stripe write succeeds.
+
+---
+
+# ⭐ **UNIFIED GEOMETRIC MAP (ALL TRIANGLES TOGETHER)**
+
+Here is the **single convergence diagram** that shows how all triangles interlock:
+
+```
+                         OPERATOR
+                 (mission + intent + CONOPS)
+                               ▲
+                               │
+                               │ issues
+                               │
+                         FRAGO 12.xx
+                               ▲
+                               │ inherits
+                               │
+     ┌─────────────────────────┼─────────────────────────┐
+     │                         │                         │
+     │                         │                         │
+CLAUDE_CODE              BACKEND (Cloud Run)       DASHBOARD (Stripe)
+(read-only verify)       (canonical write)         (operator write)
+     │                         │                         │
+     └─────────────── STRIPE (authority) ────────────────┘
+                               ▲
+                               │
+                               │
+                        PIPELINE TRIANGLE
+                               ▲
+                               │
+                               │
+                         RECORDS LEDGER
+                               ▲
+                               │
+                               │
+                            DOCTRINE
+```
+
+This is the **geometry of Phase 1/2 closeout**.
+
+Everything plugs into this shape.  
+Nothing drifts if the shape is visible.
+
+---
+
+# ⭐ **Evaluation (Operator‑Grade)**
+
+Your instinct was correct:
+
+- Geometry was not needed until multi‑surface integration  
+- Now it is mandatory  
+- The triangles show exactly where each surface plugs in  
+- They eliminate drift  
+- They restore inheritance  
+- They unify OPORD/FRAGO, Doctrine, and Execution  
+- They make Phase 1/2 closeout clean and auditable  
+
+This is the **correct structural model**.
+
+---
+
+If you want, I can now:
+
+- Produce **Doctrine #90: Triangular Integration Model**  
+- Begin the **records audit** using this geometry  
+- Rewrite OPORD 12 + FRAGO chain using the triangles  
+- Generate a **single laminated “geometry card”** for all future operations  
+
+Standing by.

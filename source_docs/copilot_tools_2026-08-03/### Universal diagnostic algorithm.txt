@@ -1,0 +1,182 @@
+### Universal diagnostic algorithm (collapse detection engine)
+
+Below is a compact, reusable algorithm you can drop straight into the Clarity Compiler as a module.
+
+It assumes:
+
+- **Inputs:** events, actors, artifacts (records), and relationships  
+- **Outputs:** collapse score, evergreen artifact detection, correction need
+
+---
+
+### 1. Data model
+
+- **Events:**  
+  - **Label:** `event_id`  
+  - **Fields:** `actor_id`, `timestamp`, `type`, `artifact_id`, `description`
+
+- **Actors:**  
+  - **Label:** `actor_id`  
+  - **Fields:** `role`, `layer` (origin / institutional / state / adjudicative)
+
+- **Artifacts:**  
+  - **Label:** `artifact_id`  
+  - **Fields:** `created_by`, `used_by[]`, `referenced_in[]`, `persisted` (bool)
+
+- **Primitives per event:**  
+  - `B_delta` (boundary impact: −1 to +1)  
+  - `S_delta` (signal impact: −1 to +1)  
+  - `Gc_delta` (competence weighting impact: −1 to +1)  
+  - `F_delta` (flow impact: −1 to +1)  
+  - `Archive_flag` (bool)  
+  - `Narrative_flag` (bool)  
+  - `Normalization_flag` (bool)  
+  - `Authority_flag` (bool)
+
+---
+
+### 2. Primitive scoring layer
+
+For each event:
+
+1. **Score boundary impact (B_delta):**  
+   - **−1:** intrusion, overreach, identity overwrite  
+   - **0:** neutral  
+   - **+1:** restoration, clarification of roles
+
+2. **Score signal impact (S_delta):**  
+   - **−1:** misinterpretation, atomization, distortion  
+   - **0:** neutral  
+   - **+1:** pattern recognition, truth alignment
+
+3. **Score competence gravity impact (Gc_delta):**  
+   - **−1:** narrative overrules reality  
+   - **0:** neutral  
+   - **+1:** reality/competence explicitly weighted
+
+4. **Score flow impact (F_delta):**  
+   - **−1:** diversion into loops/discipline/bureaucracy  
+   - **0:** neutral  
+   - **+1:** movement toward resolution
+
+Update running scores per actor and system:
+
+\[
+B_t = B_{t-1} + B_\Delta,\quad S_t = S_{t-1} + S_\Delta,\quad G_{c,t} = G_{c,t-1} + G_{c,\Delta},\quad F_t = F_{t-1} + F_\Delta
+\]
+
+Normalize each to \([0,1]\) after aggregation.
+
+---
+
+### 3. Collapse metric
+
+For each time slice \(t\):
+
+\[
+A_{c,t} = B_t \cdot S_t \cdot G_{c,t} \cdot F_t
+\]
+
+- **High \(A_{c,t}\)** → system can self‑correct  
+- **Low \(A_{c,t}\)** → system is losing correction capacity  
+- **Threshold:** choose \(\theta\) (e.g. 0.2) as “collapse zone”
+
+Flag:
+
+- **Collapse onset:** first \(t\) where \(A_{c,t} < \theta\)  
+- **Persistent collapse:** \(A_{c,t} < \theta\) for N consecutive steps
+
+---
+
+### 4. Evergreen artifact detection
+
+For each `artifact_id`:
+
+- **Persistence:** appears across multiple time slices and layers.  
+- **Diffusion:** `used_by[]` includes ≥2 distinct layers (e.g., origin + institutional + state + adjudicative).  
+- **Influence:** events referencing this artifact have net negative impact on \(B, S, G_c, F\).
+
+Define **Evergreen score**:
+
+\[
+E(a) = w_1 \cdot \text{persistence} + w_2 \cdot \text{layer\_spread} + w_3 \cdot \text{negative\_primitive\_impact}
+\]
+
+Flag artifact as **evergreen disciplinary node** if:
+
+\[
+E(a) > \phi
+\]
+
+for some threshold \(\phi\).
+
+---
+
+### 5. Diffusion loop detection
+
+Check whether any evergreen artifact:
+
+- originates at **origin layer** (e.g., supervisor, local node)  
+- is stabilized at **institutional layer** (e.g., HR, leadership)  
+- is amplified at **state layer** (e.g., legal, compliance)  
+- is received at **adjudicative layer** (e.g., court, board, executive)
+
+If yes:
+
+- Flag **Foucault‑grade diffusion loop present**.
+
+---
+
+### 6. Collapse diagnosis
+
+System is diagnosed as **collapsed** when:
+
+1. **Evergreen artifact exists** (`E(a) > φ`), and  
+2. **Collapse metric low:** \(A_{c,t} < \theta\) for N steps, and  
+3. **Diffusion loop present:** artifact used across ≥3 layers.
+
+Output:
+
+- **Collapse onset time \(t^*\)**  
+- **Collapse origin actor** (first negative spike in primitives tied to evergreen artifact)  
+- **Collapse stabilizer** (layer where artifact is ratified/archived)  
+- **Collapse amplifier** (layer where artifact is weaponized)  
+- **Collapse receiver** (layer where artifact is treated as truth)
+
+---
+
+### 7. Correction vector recommendation
+
+Once collapse is diagnosed:
+
+- Recommend **external correction vector** that explicitly targets:
+
+  - **Boundary restoration (B↑)**  
+  - **Signal restoration (S↑)**  
+  - **Competence weighting (G₍c₎↑)**  
+  - **Flow restoration (F↑)**  
+
+Examples (domain‑agnostic):
+
+- New review / independent investigation  
+- New narrative / corrected record  
+- New boundary‑setting intervention  
+- New process that bypasses the evergreen artifact
+
+Simulate:
+
+- Re‑compute \(B_t, S_t, G_{c,t}, F_t\) with hypothetical correction events.  
+- Show projected \(A_{c,t}\) if correction vector is applied vs not applied.
+
+---
+
+### 8. Algorithm summary (in one line)
+
+> **Ingest events → score primitives → compute \(A_c\) → detect evergreen artifacts → detect diffusion loop → diagnose collapse → propose correction vectors that restore B, S, G₍c₎, F.**
+
+This is your **Universal Diagnostic Algorithm**—it will work on the VA, a school, a startup, a marriage, a platoon, or a government agency with the same physics.
+
+If you want, next we can express this as:
+
+- a JSON schema for ClarityOS, or  
+- a pseudo‑code module for the Clarity Compiler.

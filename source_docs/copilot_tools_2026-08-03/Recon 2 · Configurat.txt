@@ -1,0 +1,105 @@
+Recon 2 · Configuration Surface [COW-1 or ET-1 lane]
+Objective: enumerate what levers exist at pin to reconfigure wiring behavior. Not what changes should be made — what can be changed by config.
+
+Method:
+
+Environment variables the deployed code reads (grep for os.getenv, os.environ, config-file loads)
+
+Feature flags (grep for known flag names, getenv patterns matching flag conventions)
+
+Config files if any (search for .yaml, .json, .toml in relevant paths)
+
+Runtime settings (Cloud Run env, secrets, service config)
+
+Registry-style dispatch points (any MODEL_REGISTRY, PROVIDER_MAP, ENGINE_ROUTE, similar patterns)
+
+Substrate-honest output: per-lever entry with:
+
+File:line where read
+
+Default value if set in code
+
+Runtime value if Corr'd (requires ET-1 for deployed values)
+
+Downstream effect (what wiring path changes when this changes)
+
+Deliverable path: cow1_recon_configuration_surface_2026-08-03_2107EDT_v1.md (source-read portion) + optionally et1_recon_deployed_config_values_2026-08-03_2107EDT_v1.md (runtime portion)
+
+Acceptance criteria:
+
+Every lever Corr'd in source
+
+Downstream effect Corr'd (not hypothesized) — traced to actual wiring change
+
+Levers without traceable effect marked as such
+
+Recon 3 · Prior Documentation Read [any lane, HQ-triggered]
+Objective: read the six pen-attested docs and register what they claim about intended wiring vs actual wiring findings from Recons 1 and 2.
+
+Method:
+
+Read docs/cognitive_pipeline.md, docs/geometry_system.md, SPEC_EMOTIONAL_REALITY_ALIGNMENT.md, docs/emotional_physics.md, docs/elins/elins_deep_spec.md
+
+Register: what wiring do docs describe as intended?
+
+Compare against Recon 1's actual wiring at pin
+
+Register divergences per Missing-Middle discipline (WIRE/NODE binary)
+
+Substrate-honest output: intent-vs-actual comparison table. Not an opinion on which is right — a register of divergence.
+
+Deliverable path: cow1_recon_intent_vs_actual_wiring_2026-08-03_2107EDT_v1.md
+
+Acceptance criteria:
+
+Each doc claim tagged with source (file:section)
+
+Each actual-wiring edge tagged with source (file:line from Recon 1)
+
+Divergences enumerated per instance
+
+Substrate-honest register — no argument about which should win
+
+Register-catch: Recon 3 depends on Recons 1 and 2 being complete for the comparison table. Recon 3 can start on docs-read in parallel but comparison work waits.
+
+Sequencing recommendation
+Independent, parallel-safe:
+
+Recon 1 (repo topology) — self-contained, needs only source at pin
+
+Recon 2 source-read portion — self-contained, needs only source at pin
+
+Recon 3 docs-read portion — self-contained, needs only project repo docs
+
+Dependent:
+
+Recon 2 runtime-values portion — needs ET-1 (deployed env inspection)
+
+Recon 3 comparison — needs Recons 1 and 2 complete
+
+Substrate-honest register on lane assignment:
+COW-1's discipline (deployed source at-pin, read-only) fits Recons 1, 2-source, and 3-docs cleanly. ET-1's discipline (live runtime) fits Recon 2-runtime. HQ recommends: dispatch Recons 1, 2-source, and 3-docs to COW-1 in parallel; hold Recon 2-runtime for pen's disposition on whether to touch runtime substrate before Motion 1 (identity discrimination) resolves.
+
+Relationship to standing motions
+Recon 1 (topology) — precedes any orchestrator build decision. Substrate for that decision.
+
+Recon 2 (configuration) — precedes any configuration-based re-routing. Substrate for that decision.
+
+Recon 3 (intent vs actual) — will surface Gate-1-adjacent divergences. If intent-vs-actual reveals same spec-implementation gap Gate 1 is designed to trace at EP-scorer layer, that strengthens Gate 1's urgency.
+
+Motion 1 (identity discrimination) — not affected by these recons. Still blocking Tier 1+ moves.
+
+Motion 4 (D6 → Pass 6 across both engines) — Recon 1 will Corr the frontend render path at PersonalElins.tsx:51-54 and api.ts:783 that Motion 4 must touch. Recon 1 is prep for Motion 4 execution.
+
+Motion 5 (decorrelation experiment) — Recon 2 will surface whether decorrelation testing needs config levers (probably yes — running same items through multiple lanes requires lane-selection config).
+
+Motion 6 (doctrine sweep re-dispatch) — unaffected.
+
+Gate 1 (Motion 7) — Recon 3 is Gate-1-adjacent. If pen wants Gate 1 to start with prior-art check on FRAGO 12-B-12, Recon 3 naturally reads that doc.
+
+Apparatus-motion self-check
+Files-created this session at 9:07 pin: seven (six from earlier + this snapshot rehydration turn creating none yet). Recons dispatched here would create three OPORD files + three return files = six more artifact files if all fired.
+
+Reality-touching this window: none yet at 9:07. Recons are reality-touching acts (COW-1 reads deployed source, tags substrate). Six recon-generated files = six reality-touching acts. Ratio preserved.
+
+Register-catch: three OPORDs dispatched simultaneously without pen's per-Recon go = HQ over-dispatch. HQ registers the shape, pen dispatches per Recon.

@@ -1,0 +1,782 @@
+Below is a compact, runnable-style Python pseudocode toy simulation that demonstrates the “mass (Confucian) vs entropy (Sun Tzu)” idea and produces a phase diagram showing regions of stability vs disorder. After the code I provide a short user manual describing how to extract derivative information (Jacobians, eigenvalues, sensitivities) from the model and what each derivative tells you.
+
+Notes about the toy model
+- S(t) is a single macroscopic “order” variable: high S = ordered/stable, low S = disorder/conflict.
+- L is a normalized legitimacy/mass scalar ∈ [0,1]. Higher L increases inertia/persistence toward a preferred order state S_pref.
+- E is an entropy/chaos scalar ≥ 0. Higher E increases both continuous noise variance and the weight of rare large jumps (heavy-tail).
+- Dynamics are discrete-time with a second-order flavor (velocity V persists with factor depending on L).
+- We measure probability of “conflict” as fraction of trajectories that cross S_thresh within simulation horizon T_sim.
+- You can extend to vector S and more realistic event processes; this is intentionally minimal to illustrate phenomena.
+
+Python pseudocode (can be run with numpy/scipy/matplotlib)
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.linalg import eigvals
+
+# --- Model hyperparameters ---
+dt = 0.1
+T_sim = 100.0
+steps = int(T_sim / dt)
+n_traj = 500           # Monte Carlo runs per grid point
+S0 = 1.0               # initial order
+V0 = 0.0
+S_pref = 1.0           # preferred stable order
+S_thresh = 0.2         # threshold below which we call "conflict"
+
+# Dynamics parameters
+k_restore = 1.0       # strength of restorative force toward S_pref
+damping_base = 0.2    # baseline damping for velocity
+jump_scale = 0.5      # size of rare jumps
+jump_base_rate = 0.01 # baseline rate of rare events
+
+# Grid for mass (L) and entropy (E)
+L_vals = np.linspace(0.0, 1.0, 21)    # mass / legitimacy
+E_vals = np.linspace(0.0, 2.0, 21)    # entropy / chaos
+phase_prob = np.zeros((len(L_vals), len(E_vals)))  # probability of conflict
+
+rng = np.random.default_rng(12345)
+
+def simulate_one(L, E, rng):
+    """Simulate one trajectory, return True if S falls below S_thresh at any time."""
+    S = S0
+    V = V0
+    for t in range(steps):
+        # Mass-based persistence: higher L -> more persistence (alpha in [0,1))
+        alpha_mass = 0.9 + 0.09 * L   # example: [0.9, 0.99]
+        damping = damping_base * (1 - 0.5 * L)  # more mass can reduce explicit damping
+        
+        # Deterministic acceleration: restore toward S_pref scaled by legitimacy
+        a_det = k_restore * L * (S_pref - S)
+        
+        # Stochastic continuous noise: variance grows with E
+        sigma = 0.05 + 0.2 * E      # base noise + E-proportional
+        cont_noise = sigma * np.sqrt(dt) * rng.standard_normal()
+        
+        # Rare jump events: Poisson with rate scaling with E
+        jump_rate = jump_base_rate * (1 + 2.0 * E)   # more E -> more frequent jumps
+        if rng.random() < jump_rate * dt:
+            # rare adversarial-type jump that reduces S
+            jump = -jump_scale * (0.5 + rng.random())
+        else:
+            jump = 0.0
+        
+        # Second-order integration (velocity + position updates)
+        V = alpha_mass * V + dt * a_det - damping * V * dt + cont_noise + jump
+        S = S + V * dt
+        
+        # Optional saturation / bounds
+        S = max(-2.0, min(2.0, S))
+        
+        if S < S_thresh:
+            return True
+    return False
+
+# Monte Carlo over grid
+for i, L in enumerate(L_vals):
+    for j, E in enumerate(E_vals):
+        hits = 0
+        for n in range(n_traj):
+            if simulate_one(L, E, rng):
+                hits += 1
+        phase_prob[i, j] = hits / n_traj
+
+# Plot phase diagram (L on x-axis, E on y-axis)
+plt.figure(figsize=(6,5))
+X, Y = np.meshgrid(L_vals, E_vals, indexing='xy')
+# transpose so axes align: imshow alternative:
+plt.contourf(L_vals, E_vals, phase_prob.T, levels=20, cmap='viridis')
+plt.colorbar(label='Probability of conflict (hit S_thresh)')
+plt.xlabel('Legitimacy / Mass L')
+plt.ylabel('Entropy / Chaos E')
+plt.title('Phase diagram: conflict probability')
+plt.show()
+```
+
+What the simulation produces
+- A 2D phase diagram where x = L (mass), y = E (entropy), and color shows probability that trajectories hit S_thresh within T_sim.
+- Expectation: higher L lowers conflict probability (mass stabilizes), higher E raises conflict probability (more noise and jumps). The boundary between low and high risk is the effective phase boundary.
+
+User manual: extracting derivative information and what it provides
+This section explains how to compute and interpret derivatives / sensitivity metrics from the toy model. For clarity, we treat S and V as the continuous state vector X = [S, V]^T and analyze the deterministic skeleton around an operating point X*.
+
+1) Local Jacobian of deterministic skeleton
+- Deterministic skeleton f(X; L, E, U=0) = [ V; alpha_mass*V + dt*a_det - damping*V*dt ] (excluding stochastic terms)
+- Compute Jacobian A = ∂f/∂X evaluated at X* (a numeric 2x2 matrix).
+- How to compute:
+  - Analytically derive A, or approximate numerically with finite differences:
+    A[:, k] ≈ (f(X* + eps*e_k) - f(X*)) / eps
+- What it provides:
+  - Eigenvalues λ of A tell local stability: for discrete time, require |λ|<1 (or for a continuous approximation, negative real parts).
+  - Eigenvectors indicate modes of perturbation: which linear combination of S and V decays/ grows fastest.
+  - Use eigenvalues to detect bifurcations as L/E vary: crossing |λ|=1 indicates loss of local stability (tipping).
+
+2) Sensitivity of long-run outcomes to parameters (∂R/∂θ)
+- Let R be a scalar outcome (e.g., probability of conflict, mean time to threshold, or steady-state mean S).
+- Finite-difference sensitivity:
+  - For parameter θ (L or E), approximate dR/dθ ≈ (R(θ+Δ) - R(θ-Δ)) / (2Δ).
+  - Use multiple Monte Carlo seeds to reduce variance; average over seeds.
+- What it provides:
+  - Which parameters most influence risk. Large dR/dθ means small changes in θ (e.g., legitimacy) strongly change outcome.
+  - Helps prioritize data collection (reduce uncertainty for high-sensitivity parameters).
+
+3) Controllability / control gradient (∂S_next/∂U)
+- If you include control U (interventions), compute the gradient of next-step state wrt control at operating point:
+  B = ∂F/∂U evaluated numerically.
+- What it provides:
+  - If B is near-zero in a direction, that control cannot move the state effectively (lack of controllability).
+  - Use linear-control approximations to compute required control energy via controllability Gramian (for linearized dynamics).
+
+4) Fisher Information / parameter identifiability
+- For stochastic models, compute the Fisher information matrix (FIM) for parameters θ using likelihood gradients from observed Y.
+- Numerically approximate by:
+  - Simulate ensemble, compute score vectors ∂ log p(Y|θ)/∂θ via adjoint or finite differences, then average outer-product.
+- What it provides:
+  - Directions in parameter space that are estimable vs flat (small eigenvalues → unidentifiable).
+  - Guides which parameters to regularize or which additional sensors are needed.
+
+5) Derivatives of risk score R(S_hat, U)
+- If R is explicit (weighted sum of harm, legitimacy cost), compute ∂R/∂U and ∂R/∂S to perform gradient-based optimization of U.
+- For stochastic outcomes, compute expected gradient via pathwise derivatives or score-function estimators (policy gradients).
+- What it provides:
+  - Direction and magnitude of control changes that improve expected utility.
+  - Enables fast local optimization of interventions.
+
+6) Practical steps & code snippets
+- Finite-difference Jacobian (example)
+```python
+def finite_jacobian(f, x, eps=1e-6):
+    n = x.size
+    J = np.zeros((n, n))
+    fx = f(x)
+    for k in range(n):
+        e = np.zeros(n); e[k] = eps
+        J[:, k] = (f(x + e) - fx) / eps
+    return J
+```
+- Compute eigenvalues:
+```python
+A = finite_jacobian(lambda x: f_det(x, L0, E0), X_star)
+eigvals_A = eigvals(A)
+```
+- Sensitivity of probability-of-conflict:
+```python
+def estimate_conflict_prob(L, E, ntraj=200):
+    hits = sum(simulate_one(L, E, rng) for _ in range(ntraj))
+    return hits / ntraj
+
+# central difference:
+delta = 1e-2
+dR_dL = (estimate_conflict_prob(L0+delta, E0) - estimate_conflict_prob(L0-delta, E0)) / (2*delta)
+dR_dE = (estimate_conflict_prob(L0, E0+delta) - estimate_conflict_prob(L0, E0-delta)) / (2*delta)
+```
+- Reduce Monte Carlo noise by fixing RNG seeds or averaging many repeats.
+
+7) Interpreting derivative magnitudes
+- |dR/dL| large: small improvements in legitimacy strongly reduce conflict probability — invest in legitimacy-building measures or better estimate L.
+- |dR/dE| large: small increases in entropy greatly raise risk — prioritize entropy-mitigation (redundant sensors, counter-messaging, contingency planning).
+- Jacobian eigenvalues near unit circle: system near tipping; small perturbations or stochastic shocks can flip it — require cautious, robust control with human oversight.
+- Small control gradient ∂S/∂U: direct operational actions have little short-term effect; consider alternative levers (policy, long-term capacity-building).
+
+8) Diagnostics to run routinely
+- Sweep L/E grid and compute:
+  - Conflict probability surface (phase diagram).
+  - Gradient fields: ∂P_conflict/∂L and ∂P_conflict/∂E to identify where parameters matter most.
+- Compute local Jacobians at representative points on either side of the phase boundary and report eigenvalues and eigenvectors.
+- Compute required minimal control energy (linear-quadratic approx) to move system from near-boundary points back to safe basin.
+
+Wrap-up / suggested next steps
+- Run the toy code and inspect the phase diagram. Identify boundary curves where conflict probability transitions from low to high.
+- For operating points near the boundary, compute Jacobians and sensitivity derivatives following the snippets above to determine which levers (increase L vs reduce E vs different U) yield the most benefit per unit cost.
+- If desired, I can:
+  - Provide a slightly more elaborate vector-state implementation with multiple actor groups (mean-field reduction).
+  - Add a small LQ-controller and plot required control energy contours on the phase diagram.
+  - Produce a Jupyter-ready notebook containing the code, plotting, and derivative analysis.
+
+I’ll expand each section from the previous message, in plain language but preserving technical depth and complexity. I’ll keep the same ordering: model intuition and construction, what the simulation does, and a carefully detailed user manual for extracting derivative information and using it to reason about the system. Where appropriate I give practical numerical guidance, pitfalls, and what the derivatives concretely tell you about decisions and model behavior.
+
+A. Toy model intuition and what each term captures (detailed)
+- Purpose: The toy model compresses a complex social-operational system to a minimal state that still shows the qualitative interplay between “mass” (institutions, legitimacy, inertia) and “entropy” (disorder, unpredictability, adversarial creativity). It’s not a full model of reality but a laboratory for mechanisms: how inertia resists change, how noise and rare events create sudden transitions, and how those interact.
+
+- State variables:
+  - S (order): think of this as a macroscopic index of social order and institutional control. High S means people mostly comply, institutions function, and conflict is low. Low S means disorder, conflict, or collapse of normal order.
+  - V (velocity): captures the system’s short-term momentum—how quickly order is changing. Including V gives the model a second-order character: the system resists change not just because of a restoring force but because of momentum (masslike persistence).
+
+- Mass / legitimacy L:
+  - Operational role: L scales the strength of restorative forces that pull S back toward a preferred stable state S_pref (social norms, legitimacy). Higher L increases persistence (alpha_mass) so current motion tends to continue; it also amplifies the effectiveness of local restitution mechanisms (courts, leadership directives).
+  - Mechanistically: L modifies both deterministic terms (stronger restoring accelerations) and persistence of velocity (velocity decays slower if legitimacy is high). That’s analogous to physical mass: a heavy object resists acceleration from applied forces.
+
+- Entropy / chaos E:
+  - Operational role: E increases continuous background noise and the rate/weight of rare, large shocks (adversarial events, misinformation cascades, sudden protests). It’s the degree of micro-level unpredictability that can aggregate into macro shocks.
+  - Mechanistically: E appears in two places: it increases the variance of small continuous disturbances (diffusion) and increases the rate or weight of heavy-tailed jump events that move S abruptly. These two contributions capture normal statistical fluctuations and the potential for extreme outliers.
+
+- Deterministic skeleton vs stochasticity:
+  - Deterministic skeleton (F_d): represents expected evolution if actors were perfectly predictable. It’s where you put the mapped Analects/Art-of-War primitives: restoration, enforcement, nudges, economy-of-force weights, hierarchy interactions.
+  - Stochastic part (noise, jumps): represents incomplete information, deviations from expected behavior, small unknown forces, and large rare events. Including explicit stochastic structure (variance scaling and jumps) makes the system realistic and enables probabilistic predictions.
+
+- Time discretization and numerical pragmatics:
+  - Discrete-time steps (Δt) are a modeling convenience. Choose Δt small enough to capture the shortest dynamics you care about (ops response latency) but large enough for computational tractability. If you want control-theoretic quantities that rely on continuous-time theory, keep Δt small and, if needed, convert to a continuous approximation.
+
+B. What the simulation produces and how to read it (detailed)
+- The output: A phase diagram mapping (L, E) → probability that S falls below S_thresh within T_sim. Every grid point is the result of many Monte Carlo trials to estimate that probability.
+
+- How to read the phase diagram:
+  - Horizontal axis (L): increasing legitimacy/mass left→right. Higher values mean the system tends to push back toward order and resist change.
+  - Vertical axis (E): increasing entropy upward. Higher values increase background randomness and frequency/magnitude of jumps.
+  - Color scale: probability that conflict occurs within the simulated time horizon.
+
+- Interpreting regions:
+  - Low-E, high-L: safe basin. Restorative forces dominate, noise rarely drives the system over the threshold.
+  - High-E, low-L: fragile region. Random variation and jumps frequently drive S below threshold.
+  - Intermediate zones: transitional. Small parameter shifts move the system from safe to fragile. These are the areas of policy leverage and where derivative measures are most informative.
+
+- Boundary and tipping:
+  - The sharpness of the transition along the diagram indicates whether there’s a clear tipping point. A steep boundary suggests bifurcation-type behavior (small change in parameters causes large change in outcomes); a fuzzy transition suggests many gradual effects and heavy influence of stochasticity.
+
+C. How to think about derivatives in this context (overview)
+Derivatives answer “how does the outcome change if I change a parameter or action?” We want structured derivatives:
+  - Local dynamical derivatives (Jacobian): how an infinitesimal perturbation to the state propagates forward.
+  - Parametric sensitivities (∂Outcome/∂θ): how risk metrics change if you tweak parameters like L or E.
+  - Control gradients (∂S_next/∂U, ∂R/∂U): how actions move the state and how they change expected utility.
+  - Fisher information / identifiability: how well you can estimate parameters from data.
+
+Each derivative type has a different operational role: diagnostics, control design, parameter estimation prioritization, and risk quantification.
+
+D. Local Jacobian: what it is, how to compute it, and what it tells you
+- Plain meaning: The Jacobian matrix A is the linear map that approximates how a small change in the current state produces a change in the next-step deterministic state. For X = [S, V], A is 2×2.
+
+- How to compute:
+  - Analytical: if you write F_d(X; L, E) explicitly, differentiate each component with respect to S and V. This may be straightforward for the toy model.
+  - Numerical finite differences: perturb the state slightly in S and in V separately, compute the change in F_d, and divide by the perturbation size. Use a small eps (e.g., 1e-6) but not too small to avoid floating-point noise.
+  - Robustness: average over multiple eps values or use complex-step derivative approximation to avoid subtraction error (complex-step gives high accuracy if your code supports complex inputs).
+
+- What eigenvalues and eigenvectors tell you:
+  - Eigenvalues magnitude: in discrete-time, |λ| < 1 means local contraction (perturbations decay). |λ| > 1 means perturbations grow—an unstable direction.
+  - Near |λ| ≈ 1: neutrally stable; the system is poised; stochastic noise can push it across thresholds.
+  - Eigenvectors: modes of perturbation. For example, one eigenvector may primarily represent S perturbations, another V perturbations, or mixed modes showing how combinations of S and V interact (e.g., a momentum-driven instability).
+  - Practical use: locate operating points where eigenvalues approach the unit circle—these are early-warning signals for tipping; if control is needed, these modes tell you which state components to observe and which controls are most effective.
+
+- Caveats:
+  - The Jacobian only describes the linearized local behavior. Nonlinearities can cause entirely different behavior at larger perturbations (e.g., basin attraction, multiple equilibria). Use Jacobian analyses with caution and combine them with global Monte Carlo sampling.
+
+E. Parametric sensitivities (∂Outcome/∂θ): computation and interpretation
+- What outcomes to consider:
+  - Probability of conflict (primary).
+  - Mean time to threshold (how soon conflict occurs).
+  - Expected steady-state S (long-run order level).
+  - Variance or tail probability (how heavy the tails are).
+
+- How to compute:
+  - Finite differences across parameters: central difference is preferable for accuracy:
+    dR/dθ ≈ (R(θ + Δ) - R(θ - Δ)) / (2Δ).
+  - Monte Carlo variance: R(θ±Δ) are estimated via simulation; their noise can swamp the finite difference. Reduce noise by:
+    - Using the same RNG seed for the two evaluations when possible (common random numbers) so that sampling noise cancels partially.
+    - Increasing the number of trajectories for each estimate.
+    - Using likelihood ratio (score) or pathwise derivative methods when the model supports them (these produce lower-variance gradient estimates than finite differences).
+    - Smoothing the estimate with local regression across multiple Δ if necessary.
+
+- What sensitivities show:
+  - Magnitude: how strongly the outcome reacts to small parameter shifts.
+  - Sign: positive or negative. For example, dP_conflict/dE > 0 indicates raising entropy increases conflict risk.
+  - Nonlinearity: sensitivity itself can vary with operating point; the same ΔE can have small effect in one region and large in another (especially near phase boundaries).
+
+- Operational consequences:
+  - Prioritization: parameters with large sensitivity are high-impact levers; small investments to alter them yield big outcome changes.
+  - Data collection: parameters you can’t estimate well but that the outcome is sensitive to should be prioritized for better measurement.
+  - Robust policy: if sensitivities change sign across the domain, a one-size-fits-all policy is dangerous; instead adapt to local operating conditions.
+
+F. Control gradients and controllability (∂S_next/∂U, Gramian)
+- What these measure:
+  - B = ∂F/∂U is the immediate influence of an intervention U on next-step state. If columns of B are small or nearly linearly dependent, your control actions are weak or redundant.
+  - The controllability Gramian (in linear approximations) measures how much you can move the state over a horizon given control energy. If the Gramian is ill-conditioned, you have directions that are hard to influence.
+
+- How to compute practically:
+  - Numerical differentiation: perturb each control dimension and simulate the deterministic step to measure the change.
+  - For linearizations, compute the discrete-time controllability Gramian Wc = Σ_{k=0}^{N-1} A^k B B^T (A^k)^T for horizon N. Numerically compute until contributions vanish or until your desired future horizon.
+
+- Interpretations:
+  - If ∥B∥ is small for the “harm” dimension, operational actions won’t stop an imminent drop in S; you need alternative levers (public legitimacy interventions, policy changes).
+  - High Gramian eigenvalues indicate combinations of controls that can move the state easily; small eigenvalues show directions that require prohibitive energy or time.
+  - Time scales: even if B is non-zero, high mass (L) might mean you need longer time or more energy to achieve an effect. Conversely, high entropy (E) increases the necessary robustness (control must handle noise); feedback gains must be larger or faster.
+
+- Practical advice:
+  - Compute control gradients at multiple points (especially near phase boundaries) because controllability can change with L and E.
+  - Consider using model-predictive control (MPC) with robust optimization if E is high—stochastic uncertainty must be included in the optimization.
+  - Include human-in-the-loop constraints: if the required U* exceeds acceptable thresholds (political cost, resource limits), you need contingency plans.
+
+G. Fisher information and identifiability
+- Plain language: Fisher information tells you, roughly, how much the observable data tell you about parameters. Large Fisher information in a direction means you can pin that parameter down with relatively few observations; small values mean the parameter is effectively unobservable.
+
+- Why this matters operationally:
+  - If the system outcome is highly sensitive to a parameter that is unidentifiable (low Fisher information), you risk making decisions based on a guessed parameter that could be wrong.
+  - Conversely, a parameter that is identifiable but not important (low sensitivity) isn’t worth spending measurement resources on.
+
+- How to compute:
+  - If you have an explicit likelihood p(Y|θ), compute expected outer product of score gradients: I(θ) = E[∇θ log p(Y|θ) ∇θ log p(Y|θ)^T].
+  - For simulation-based models without closed-form likelihoods, approximate scores with pathwise derivatives if possible, use synthetic likelihoods, or apply finite-difference approximations of log-likelihood changes across parameter perturbations aggregated across simulated ensembles.
+
+- Practical tips:
+  - Use regularization or hierarchical priors in estimation when identifiability is low.
+  - Design sensors (choose H) to maximize Fisher information in high-value parameter directions (e.g., measure enforcement capacity explicitly if that parameter matters).
+  - Report confidence regions and not only point estimates in decisions. Use Bayesian posteriors to reflect parameter uncertainty.
+
+H. Gradient of expected utility and optimization of interventions
+- Expected utility R(S_hat, U) is what you actually optimize: tradeoffs between harm reduction, legitimacy costs, resource costs, and long-term effects.
+
+- Computing gradients:
+  - If R is deterministic given S_hat, compute ∂R/∂U = (∂R/∂S_hat) (∂S_hat/∂U). Estimate both factors via finite differences or analytic differentiation where feasible.
+  - For stochastic outcomes, estimate expected gradients using:
+    - Pathwise derivative (reparametrization) if the simulation noise can be expressed deterministically from parametric seeds.
+    - Likelihood-ratio (score function) estimators if reparametrization isn’t possible; note these can have high variance.
+    - Use baseline subtraction and variance reduction techniques.
+
+- What gradient magnitude implies:
+  - Large ∂R/∂U implies small changes in an intervention produce big changes in expected utility—good leverage.
+  - Gradient sign informs direction: increase or decrease action intensity.
+  - Nonconvexities exist: gradients may be misleading if the optimization landscape has multiple local minima; combine gradient methods with global search or human judgment.
+
+- How to optimize under constraints:
+  - Use constrained optimization (e.g., risk budget, political constraints) and include penalties for legitimacy loss explicitly in R.
+  - For stochastic systems, optimize robust or risk-sensitive objectives (CVaR, worst-case expected loss) instead of mean-only objectives when tails matter.
+
+I. Numerical and statistical practicalities (robustness, variance reduction, dimension choices)
+- Monte Carlo variance: stochastic estimates of probabilities and gradients can be noisy. Use:
+  - Common random numbers when comparing scenarios (same RNG seed across parameter variants).
+  - Antithetic variates if applicable.
+  - Quasi-Monte Carlo sampling for smoother estimates in low-dimensional noise spaces.
+  - More trajectories where gradient precision is needed (resource tradeoff).
+
+- Finite-difference step size selection:
+  - Too small → floating-point roundoff; too large → nonlinear effects dominate. Use central differences with multiple Δ values and check for consistency.
+  - Complex-step derivative (if your functions accept complex inputs) gives machine-precision derivatives without subtractive cancellation.
+
+- Time horizon selection:
+  - T_sim affects conflict probability estimates. Short horizons emphasize immediate risk and control responsiveness; long horizons emphasize slow dynamics and cumulative risk. Choose horizon that matches the operational decision being modeled.
+
+- Aggregation and mean-field reduction:
+  - When extending to multiple actor groups, consider collapsing to a few macroscopic order parameters (mean S per group, inter-group variance). This keeps identifiability and interpretability manageable.
+  - If you include many nodes, use dimensionality reduction (PCA, spectral clustering) to find principal modes to monitor and control.
+
+J. Diagnostics and routine analyses to run
+- Phase diagram sweep:
+  - Produce L/E sweeps to map basins and boundaries. Recompute periodically as sensors update parameter estimates.
+- Derivative fields:
+  - Compute ∂P_conflict/∂L and ∂P_conflict/∂E across the grid. These gradient fields reveal where marginal investments in legitimacy or entropy reduction are most effective.
+- Local stability reports:
+  - For points near the boundary, compute Jacobian eigenvalues and report distance to instability (e.g., 1 − max|λ|). This is a continuous early-warning signal.
+- Controllability matrices:
+  - At critical points compute B and Gramian spectra and report required energy to move state a standard distance. If energy is impractically large, escalate to different policies.
+- Uncertainty quantification:
+  - For any recommended action, produce a sensitivity band (how often the recommendation flips when parameters are perturbed within confidence intervals). Large flip regions imply need for human oversight.
+
+K. Concrete examples linking derivatives to decisions
+- Example 1: At operating point (L0, E0) you find dP_conflict/dL = −0.3 per 0.01 L change. This means increasing legitimacy by 0.01 reduces conflict probability by 0.3 absolute points. If the cost of that legitimacy action is low relative to the benefit (reduced expected harm), prioritize it.
+- Example 2: dP_conflict/dE = +0.5 per 0.1 E increase near current state. Then even modest increases in chaos (e.g., a messaging campaign raising misinformation variance) sharply increase risk; preemptive measures to prevent entropy increases are high value.
+- Example 3: Jacobian eigenvalue |λ_max| = 0.98 at a point. The system is near neutral stability; a large shock (jump) could push it into instability. Immediate defenses should be readiness for rapid response; long-term strategy should increase L to move eigenvalues further inside the unit circle.
+- Example 4: Control Gramian shows low controllability in the S-dimension along some basis vector. That indicates operational measures won’t directly reduce S quickly; consider alternatives like altering the preferred state S_pref (policy change) or altering the structure of interactions (administrative edicts) rather than blunt force operations.
+
+L. Pitfalls, misuses, and ethical considerations (detailed)
+- Overinterpreting metaphors: mass and entropy are useful analogies but not literal physical invariants. Don’t assume conservation laws or thermodynamic constraints unless the real system supports those assumptions.
+- Parameter tradeoffs and identifiability corner cases: mass-like and entropy-like effects can look similar in short-run data (both can produce slow mean reversion under certain conditions). Use priors, additional sensors, and domain knowledge to disambiguate.
+- Tail risk underestimation: using only Gaussian noise approximations may miss heavy tails. Always include a heavy-tail/jump mechanism or explicitly test robustness to rare events.
+- Model-driven interventions: deterministic recommendations must be human-reviewed, especially in high-stakes contexts. Miscalibrated models can cause disproportionate harm.
+- Feedback loops with the environment: actions change the environment and observers (people adapt). Models should be re-calibrated frequently, and you should monitor for shifting parameter regimes (nonstationarity).
+- Transparency and auditability: expose the derivative diagnostics (Jacobians, sensitivities, Fisher matrices) in readable reports for decision-makers and auditors.
+
+M. Practical next steps you can run immediately
+- Execute the toy simulation to get a baseline phase diagram.
+- Select 3 operating points: safe, boundary, fragile. At each point compute:
+  - Jacobian eigenvalues and eigenvectors.
+  - dP_conflict/dL and dP_conflict/dE with common random numbers.
+  - Control gradients for your candidate U actions.
+  - Monte Carlo estimate of mean first-passage time and its variance.
+- Produce a short report listing:
+  - Which parameters matter most and which are poorly identifiable.
+  - Recommended short-term interventions (based on gradient-per-cost).
+  - Recommended measurement upgrades (sensors that would improve Fisher information in high-sensitivity directions).
+  - Suggested human checks for recommendations near phase boundaries.
+
+N. If you want exact code snippets for any of these derivative computations (Jacobian analytic form, complex-step implementation, Fisher information approximation, Gramian computation, pathwise gradient methods), say which ones and I’ll produce precise implementations with numerical-stability tips and validation tests.
+
+In sum: derivatives are your operational magnifying glass. Jacobians identify fragile modes; sensitivities show where incremental investments buy the most reduction in risk; control gradients tell you how to act effectively; Fisher information directs measurement priorities. Use them in combination—local linear diagnostics (Jacobian, B) for immediate stability and control design, and repeated Monte Carlo sweeps and sensitivity estimates to understand global risk and tail behavior. Combine all with human oversight and continual re-estimation to handle nonstationarity and adversarial adaptation.
+
+By “primitives” I mean the minimal, elemental quantities and mechanisms you should include in your model to represent legitimacy (Confucian/mass side) and chaos (Sun Tzu/entropy side). Each primitive below has: a plain-language definition, its dynamical role (how it enters update laws or noise), measurable proxies you could instrument, typical mathematical forms to include in F/G/H, examples of interventions that change it, and notes on identifiability and sensitivity.
+
+LEGITIMACY PRIMITIVES
+These capture the institutional, normative, and reputational forces that create inertia, coherence, and restoring pressure toward order.
+
+1) Legitimacy (L)
+- Definition: A macroscopic scalar representing public/institutional confidence in authority and norms — the degree to which institutions are seen as rightful and effective.
+- Dynamical role: Multiplies restorative forces toward preferred state S_pref; increases persistence (reduces effective damping), lowers responsiveness to noise, reduces jump probabilities locally.
+- Mathematical forms:
+  - Restorative acceleration a_det ∝ k_restore · L · (S_pref − S).
+  - Velocity persistence α_mass(L) = α0 + α1·L (with α1>0).
+  - Noise variance scaling: Var_noise = σ0^2 / (1 + c_L·L) or multiplicative factor (1 − c_L·L).
+- Measurable proxies: compliance rates, turnout in legitimate processes, survey trust scores, rates of voluntary cooperation, ratio of peaceful to contested interactions, low civil-society protest intensity.
+- Typical interventions: public apologies, transparent investigations, restitutive justice, credible accountability actions, visible fair enforcement.
+- Identifiability: often partially observable; can be inferred from compliance and reputation signals but confounded with coercion. High sensitivity: small L changes often shift system stability.
+
+2) Institutional Capacity / Enforcement Capacity (EC)
+- Definition: The material and organizational ability to monitor, enforce rules, and deliver services.
+- Dynamical role: Amplifies the effect of L (multiplicative), increases speed/effectiveness of corrective U actions, lowers effective control delay.
+- Mathematical forms:
+  - Enforcement force ∝ EC · f_enforce(neighbor_states).
+  - Control effectiveness B(U) scales with EC.
+- Measurable proxies: personnel per capita, response times, budget, case-clearance rates, presence of enforcement units.
+- Interventions: resource allocation, training, process reforms.
+- Identifiability: measurable but often lagging indicators; data-rich relative to L.
+
+3) Role-fidelity / Norm-conformity (RF)
+- Definition: Degree to which individuals adhere to prescribed roles, obligations, and norms.
+- Dynamical role: Local conformity terms in f_H (neighbors’ states more strongly pull each node toward mean when RF high).
+- Mathematical forms:
+  - Local update Δs_i ∋ β_RF · RF · (mean_neighbor_s − s_i).
+  - RF can be node- or group-specific.
+- Proxies: adherence rates, organizational churn, oath/pledge compliance, disciplinary records.
+- Interventions: cultural programs, incentives aligned with norms, leadership exemplars.
+- Identifiability: often latent but estimable from micro-level behavioral data.
+
+4) Reputation & Reciprocity (Rep)
+- Definition: Aggregate expected future payoff from cooperative behavior; reputational capital of actors or institutions.
+- Dynamical role: Affects compliance probabilities, amplifies indirect enforcement via social sanctions.
+- Mathematical forms:
+  - Compliance probability p_compliance = sigmoid(γ0 + γ1·Rep − γ2·grievance).
+  - Rep evolves with observed actions: Rep(t+1) = (1−ρ)Rep(t) + ρ·observed_behavior_score.
+- Proxies: citation in media, endorsements, peer surveys, sanction histories.
+- Interventions: reward mechanisms, public recognition, reputational restoration campaigns.
+- Identifiability: can be updated online with observed behaviors; often high SNR if media coverage is good.
+
+5) Legitimacy-weighted decision cost (λ_leg)
+- Definition: A scalar weight in decision utility that penalizes actions reducing legitimacy.
+- Dynamical role: Enters decision operator R(U) as λ_leg · ΔL(U) or a direct cost on U that reduces L.
+- Mathematical forms:
+  - Utility(U) = −ExpectedHarm(U) − λ_leg · ΔL(U) − c_resource·||U||.
+- Proxies: public backlash metrics, media sentiment shifts after interventions.
+- Interventions: constrain U to preserve L; use legitimacy-preserving tactics.
+- Identifiability: set by policy; treat as a controllable hyperparameter reflecting value judgments.
+
+CHAOS (ENTROPY) PRIMITIVES
+These capture unpredictability, variance, dispersion of grievances and actions, and the system’s propensity to explore many microstates (disorder).
+
+1) Microstate Entropy (H_S)
+- Definition: Entropy of the distribution over microstates (e.g., action choices across actors); measures diversity/unpredictability.
+- Dynamical role: Scales diffusion (continuous noise) and increases mixing; higher H_S broadens transition kernels.
+- Mathematical forms:
+  - Noise covariance Σ_noise ∝ Σ0 + k_H·H_S · I or anisotropic scaling.
+  - Use sample entropy estimator across actors: H_S = −Σ p_a log p_a (from observed choice frequencies).
+- Proxies: variance in reported narratives, spike diversity in social posts, dispersion of tactics.
+- Interventions: reduce channels of misinformation, increase narrative coherence, targeted clarifications.
+- Identifiability: estimable from high-volume message streams (NLP) but sensitive to sampling bias.
+
+2) Operational Uncertainty / Adversarial Creativity (α)
+- Definition: Parameter capturing adversarial capacity to invent novel tactics, sudden escalations, or exploit friction points.
+- Dynamical role: Raises jump rate and heavy-tail weight; makes rare but large events more probable.
+- Mathematical forms:
+  - Jump rate λ_jump = λ0 + k_α · α.
+  - Jump size distribution mixture: (1−w(α))·Gaussian + w(α)·heavy_tail, with w increasing with α.
+- Proxies: new tactic incidence, rate of novel events, adaptability indicators, unexpected contact patterns.
+- Interventions: disrupt adversary planning, degrade logistical enablers, accelerate detection.
+- Identifiability: inference possible from event catalogs; requires long-tailed-aware statistical methods.
+
+3) Grievance Dispersion (D_g)
+- Definition: Spatial/actor-level variance of grievance or dissatisfaction measures.
+- Dynamical role: High dispersion means pockets of high grievance can seed local outbreaks even if mean grievance is moderate.
+- Mathematical forms:
+  - D_g = Var_i(grievance_i); local conflict rates ∝ g0 + g1·grievance_i + g2·interaction_terms.
+- Proxies: geolocated complaint rates, patchy protest intensity, social network sentiment variance.
+- Interventions: targeted remediation in hotspots, outreach, localized service delivery.
+- Identifiability: requires spatially resolved sensors; aggregate measures hide dispersion.
+
+4) Information/Message Entropy (H_Y)
+- Definition: Entropy of observed signals (media, social posts); degree of conflicting narratives and noise in observation.
+- Dynamical role: Degrades observability H(S) and increases estimated state uncertainty; increases effective E since controllers face ambiguity.
+- Mathematical forms:
+  - Measurement noise covariance Var(ν) ∝ base + k_Y·H_Y.
+  - Observation likelihood p(Y|S) flattening with higher H_Y.
+- Proxies: conflicting reports fraction, sentiment variance, proportion of unverified claims.
+- Interventions: improve signal quality (trusted channels), sensor fusion, source authentication.
+- Identifiability: directly measurable from the observation stream; influences filter performance.
+
+5) Interaction Disorder (ID)
+- Definition: The degree to which traditional interaction patterns (hierarchical, network ties) are scrambled — e.g., denser random mixing vs structured ties.
+- Dynamical role: Increases cross-boundary influence unpredictably; makes local containment harder.
+- Mathematical forms:
+  - Network rewiring rate r_rewire ∝ ID; effective coupling strengths between groups become stochastic.
+  - Cross-influence I_ij(t) = baseline + ξ_ij(t) with Var[ξ] ∝ ID.
+- Proxies: sudden new affiliations, cross-community mobilizations, platform-forced reorganization.
+- Interventions: restore controlled channels, support bridging institutions, communication norms.
+- Identifiability: requires network-sensing; latent but inferable via time-series of interactions.
+
+COMBINED/INTERACTION PRIMITIVES
+Some primitives straddle both legitimacy and chaos or describe their interaction.
+
+1) Mass-to-entropy ratio (R = M_eff / (1+E))
+- Definition: A derived metric summarizing relative strength of stabilizing mass vs destabilizing entropy.
+- Role: Quick diagnostic for basin classification; used for policy triage.
+- Measurement: compute from estimated M_eff (sum of role-fidelity-weighted components) and estimated E.
+- Use: threshold-based escalation, resource allocation.
+
+2) Jump weight / tail index (τ)
+- Definition: A parameter characterizing heaviness of tails in transition distribution (e.g., Pareto exponent).
+- Role: Determines whether extreme events dominate risk; heavy tails (low τ) mean risk is dominated by rare large shocks rather than continuous drift.
+- Measurement: fit heavy-tail distributions to historical jump sizes.
+- Use: choose risk metrics (CVaR vs mean) and set buffer policies.
+
+3) Observability gap (O_gap)
+- Definition: Degree to which critical legitimacy/chaos primitives are unobserved or badly measured.
+- Role: Inflates epistemic uncertainty; degrades posterior precision for parameters.
+- Measurement: inverse of Fisher information in key directions; fraction of latent variables with low identifiability.
+- Use: prioritize sensor deployment.
+
+HOW THESE PRIMITIVES ENTER MODEL STRUCTURE (F/G/H)
+- Deterministic update F:
+  - Restorative term: F_S ⊃ +k_restore·L·(S_pref − S).
+  - Local conformity: F_s_i ⊃ +β_RF·RF·(mean_neighbor − s_i).
+  - Control effectiveness: F_S ⊃ +B(U) with B ∝ EC.
+
+- Noise G and jumps:
+  - Continuous noise covariance: Σ_noise = Σ0 + k_H·H_S · I + k_EC·(1/(1+L)) factors.
+  - Jump process: Poisson(λ_jump(α, E)) with jump-size distribution whose heavy-tail weight w(α) increases with α.
+
+- Observation mapping H:
+  - Measurement noise Var(ν) scaled by H_Y.
+  - Sensor functions designed to maximize Fisher info for L, EC, α, D_g.
+
+EXAMPLE FORMULAS (compact)
+- α_mass(L) = α0 + α1·L
+- a_det(S,L) = k_restore·L·(S_pref − S)
+- Var_cont_noise(E,L) = σ0^2 · (1 + k_E·E) / (1 + k_L·L)
+- λ_jump(E,α) = λ0 + λ_E·E + λ_α·α
+- Jump size ~ mixture: with prob p_tail(E,α) draw Pareto(τ(E,α)), else Normal(0, σ_j)
+
+ESTIMATION / INFERENCE GUIDANCE
+- Use hierarchical Bayesian methods to jointly estimate L, EC, RF, α, H_S from time-series of observables Y and interventions U.
+- Use particle filters when state and observation models are nonlinear and non-Gaussian; augment with parameter learning (particle MCMC / SMC2).
+- For jump-heavy models, incorporate Poisson/compound Poisson likelihoods and use rare-event importance sampling for tail estimation.
+- Use common-random-number finite-difference or pathwise gradient estimators to compute sensitivities with lower variance.
+
+SENSITIVITY & PRIORITIZATION RULES
+- If ∂Outcome/∂L is large and L is cheap to change (low intervention cost per ΔL), prioritize legitimacy-building over coercive ops.
+- If ∂Outcome/∂E is large and E is rising, invest in entropy controls: improve observation (reduce H_Y), disrupt adversary planning (reduce α), and reduce grievance dispersion (targeted remediation).
+- If jump tail index τ is low (heavy tails), prefer robust/risk-sensitive controls (CVaR minimization) rather than mean-based optimization.
+
+PRACTICAL EXAMPLES (brief)
+- Rising misinformation campaign (H_Y up, α modest): increases observation noise and effective entropy. Result: state estimates degrade; controller should allocate sensing resources (fact-check, source verification) and slow down high-cost operations until state estimates improve.
+- Local corruption scandal (L down, Rep down, D_g locally up): reduces legitimacy and increases local grievance dispersion. Result: restorative force weakens and contagion risk rises in hotspots — prioritize targeted legitimacy-restoration and hotspot service delivery.
+- Highly adaptive adversary (α up with low L): increases jump rate and heavy-tail weight. Result: mean-based anticipatory controls fail; adopt distributed mitigations and redundancy.
+
+PITFALLS AND CAUTIONS
+- Non-orthogonality: many primitives covary (e.g., L and EC often correlated); identification requires good instruments or domain priors.
+- Time-varying primitives: L and α can shift rapidly after events; real-time estimation and adaptive controllers are critical.
+- Ethical constraints: interventions that raise L quickly by coercion may produce short-term stability but long-term legitimacy loss; incorporate λ_leg into objective explicitly.
+
+SUMMARIZING STATEMENT
+- Legitimacy primitives (L, EC, RF, Rep, λ_leg) are stabilizing, low-frequency, high-inertia variables that multiply restorative dynamics and reduce effective noise; chaos primitives (H_S, α, D_g, H_Y, ID) increase diffusion, rare jumps, and mixing, creating tail risks and rapid dispersion. Both families must be explicitly represented, instrumented, and regularly re-estimated; their gradients and Fisher-information structure determine which levers are effective, which sensors are needed, and whether control should prioritize robustness, speed, or legitimacy preservation.
+
+Below I map a set of canonical Analects (Confucian) and Art of War (Sun Tzu) primitives — in a natural order — to the legitimacy and chaos primitives list from before. For each primitive I give: (1) the plain mapping, (2) how it enters the model (equations / algebraic form), (3) typical parameter ranges or scaling choices for a toy/operational model, and (4) implementation/identifiability notes (what to measure and pitfalls). I keep the mappings tightly specified so you can directly implement or estimate them.
+
+Order: first Analects primitives (Confucian/mass), then Art of War primitives (Sun Tzu/entropy).
+
+ANALects (Confucian) PRIMITIVES
+
+1) Rectify the Names (zhèngmíng)
+- Mapping: strengthens Legitimacy L and Role-Fidelity RF by aligning titles/roles and expectations; reduces role confusion (lowers Interaction Disorder ID).
+- Model entries:
+  - Increase RF: RF ← RF + Δ_RF_rectify (or dynamic update: dRF/dt = κ_rectify·(policy_effort) − γ_RF·RF_decay).
+  - Reduce ID: ID ← ID · (1 − η_rectify).
+  - Channel into restoration: a_det ∝ k_restore · L · RF · (S_pref − S).
+- Parameter suggestions (normalized units 0–1):
+  - κ_rectify ∈ [0.01, 0.2] per week (speed of RF improvement under active policy).
+  - η_rectify ∈ [0.05, 0.5] (fractional immediate ID reduction).
+- Measurements / identifiability:
+  - Proxies: formal role-clarity communications, reissued charters, personnel stabilization.
+  - Pitfall: effects are medium-term and confounded by concurrent enforcement actions; require longitudinal data for identification.
+
+2) Govern by Moral Example / Virtue (dé)
+- Mapping: increases Legitimacy L and Reputation Rep; lowers perceived grievance baseline (reduces mean grievance).
+- Model entries:
+  - L dynamics: dL/dt = ρ_rep·Rep + ρ_action·policy_effort − γ_L·L_decay.
+  - Rep evolution: Rep ← (1 − ρ) Rep + ρ · observed_fair_behavior_score.
+  - Effect on noise: Var_noise ← Var_noise / (1 + c_L·L).
+- Parameter suggestions:
+  - ρ_rep ∈ [0.05, 0.3], ρ ∈ [0.1, 0.5].
+  - c_L ∈ [0.5, 5.0] (how much legitimacy reduces variance).
+- Measurements:
+  - Media sentiment, third-party endorsements, compliance uplift after exemplar events.
+  - Pitfall: symbolic acts can transiently boost Rep but may not sustain L unless institutionalized.
+
+3) Ritual / Propriety (lǐ)
+- Mapping: maintains social scripts that keep microstate entropy H_S low by constraining action distributions; boosts RF locally.
+- Model entries:
+  - H_S ← H_S · (1 − θ_ritual) + θ_noise_input (ritual reduces entropy fractionally).
+  - Local conformity term β_RF_Ritual = β_base + β_r · ritual_intensity.
+- Parameter suggestions:
+  - θ_ritual ∈ [0.01, 0.3] (fractional entropy suppression).
+  - β_r ∈ [0.1, 1.0].
+- Measurements:
+  - Participation in customary events, adherence to protocol logs.
+  - Pitfall: rituals may suppress measurable dissent but increase hidden grievance (monitor D_g for latent variance).
+
+4) Rectitude of Officials / Competent Administration (shàn)
+- Mapping: increases Institutional Capacity EC and reduces control delay; raises enforcement effectiveness and sensor quality (reduces H_Y).
+- Model entries:
+  - EC dynamics: EC ← EC + κ_admin·(training+resources) − γ_EC·decay.
+  - Measurement noise Var(ν) ← Var(ν) / (1 + c_EC·EC).
+  - Control effectiveness: B(U) ∝ EC.
+- Parameter suggestions:
+  - κ_admin ∈ [0.05, 0.5] per quarter; c_EC ∈ [0.5, 4.0].
+- Measurements:
+  - Response time, case clearance, sensor uptime.
+  - Pitfall: improved EC can be mistaken for increased legitimacy—distinguish EC (capacity) from L (consent).
+
+5) Fixing the people / Benevolent policies (minben)
+- Mapping: reduces baseline grievance, lowers grievance dispersion D_g via redistribution/targeted services; increases L via outcomes.
+- Model entries:
+  - grievance_i ← grievance_i · (1 − φ_policy) in targeted zones; D_g recomputed.
+  - L increases proportionally: ΔL ≈ κ_benev · mean_grievance_reduction.
+- Parameter suggestions:
+  - φ_policy ∈ [0.05, 0.5] for targeted interventions; κ_benev ∈ [0.1, 0.6].
+- Measurements:
+  - Local complaint rates, service delivery metrics.
+  - Pitfall: short-term reductions may rebound if structural causes persist—monitor sustainability.
+
+6) Rule by Ritual+Virtue (combined)
+- Mapping: composite primitive—multiplies RF, Rep, EC contributions and reduces ID/H_S; acts as an engine increasing M_eff.
+- Model entries:
+  - M_eff = f(L, RF, EC) = w1·L + w2·RF + w3·EC (weights normalized).
+  - System inertia α_mass = α0 + α1·M_eff.
+- Parameter suggestions:
+  - w1,w2,w3 ∈ [0.2,0.6], α1 ∈ [0.05,0.5].
+- Measurements:
+  - Composite indices from surveys and operational metrics.
+  - Pitfall: collinearity among components; use hierarchical priors to separate effects.
+
+ART OF WAR (Sun Tzu) PRIMITIVES
+
+1) Deception (mí)
+- Mapping: increases Information/Message Entropy H_Y and effective observational uncertainty; raises microstate entropy H_S by enabling diverse adversary states to be plausible.
+- Model entries:
+  - H_Y ← H_Y + κ_deceive·deception_intensity.
+  - In observation model: p(Y|S) flattens; Var(ν) ← Var(ν)·(1 + γ_deceive).
+  - Effective adversarial mixing: increase weight of alternative action modes in actor-level choice distributions.
+- Parameter suggestions:
+  - κ_deceive ∈ [0.1, 2.0] (depending on media reach); γ_deceive ∈ [0.2, 3.0].
+- Measurements:
+  - Proportion of unverifiable claims, source churn, contradictory narratives.
+- Identifiability:
+  - Hard to separate from organic confusion—use provenance tracing and network forensics to estimate deception intensity.
+
+2) Surprise / Unpredictability (突袭)
+- Mapping: raises jump rate λ_jump and increases jump-size tail weight (w_tail); aligns with α (operational uncertainty).
+- Model entries:
+  - λ_jump ← λ0 + λ_α·α + λ_E·E
+  - p_tail ← p0 + δ·α (probability a jump is heavy).
+  - Jump magnitude distribution: P(|J|>x) ∝ x^{−τ}; reduce τ with higher α (heavier tail).
+- Parameter suggestions:
+  - λ0 baseline ∈ [1e-3, 1e-2] per day; λ_α ∈ [1e-3, 1e-1]; p0 ∈ [0.01, 0.1]; δ ∈ [0.05, 0.5]; τ ∈ [1.2, 3.0].
+- Measurements:
+  - Frequency of novel tactics, abrupt incident spikes.
+- Pitfalls:
+  - Rare events require long observation windows to estimate τ; use extreme-value methods.
+
+3) Mobility / Flexibility (机动)
+- Mapping: increases Interaction Disorder ID from the defender’s perspective (higher mixing), but for the adversary it increases α (ability to innovate). For defenders, mobility reduces effective control traversal time (so can be positive if defenders adapt).
+- Model entries:
+  - ID increases with adversary mobility: ID ← ID + κ_mob·mobility_metric.
+  - Defender mobility reduces control delay: delay ← delay / (1 + γ_def_mobility).
+- Parameter suggestions:
+  - κ_mob ∈ [0.1, 1.0]; γ_def_mobility ∈ [0.1, 0.8].
+- Measurements:
+  - Movement rates, network rewiring, logistic footprints.
+- Identifiability:
+  - Must separate mobility by actor (adversary vs defender) — attribute via signals and movement logs.
+
+4) Economy of Force / Concentration (节约兵力)
+- Mapping: influences where and how control U is applied—sparse, high-impact U modifies local EC and L with minimal resource cost; conceptually it optimizes B(U) relative to cost.
+- Model entries:
+  - Spatially-weighted control: U_effective(i) = U(i) · efficiency_factor(i) where efficiency_factor ∝ suitability_for_concentration.
+  - Decision cost in R(U): cost = c_resource·||U|| + penalty_for_scattering·||U||_1/||U||_2 (preference for concentrating effort).
+- Parameter suggestions:
+  - efficiency_factor ∈ [0.2, 3.0]; penalty_for_scattering scale ∈ [0.1, 2.0].
+- Measurements:
+  - Operational outcomes per unit resource, marginal returns curves.
+- Pitfalls:
+  - Over-concentration risks legitimacy costs if actions are heavy-handed—include λ_leg.
+
+5) Know the Terrain / Intelligence (知地)
+- Mapping: reduces Information Entropy H_Y and Observability Gap O_gap; increases Fisher information for parameters (improves identifiability).
+- Model entries:
+  - H_Y ← H_Y · (1 − θ_intel)
+  - Observability: Fisher information I(θ) increases ∝ θ_intel; equivalently Var(ν) ← Var(ν) / (1 + c_intel·θ_intel).
+- Parameter suggestions:
+  - θ_intel ∈ [0.05, 0.8] (fractional uncertainty reduction); c_intel ∈ [0.5, 4.0].
+- Measurements:
+  - Precision of geolocated signals, corroboration rates.
+- Pitfalls:
+  - Intelligence improvements can be covert; validate via out-of-sample predictive improvements.
+
+6) Winning without Fighting / Moral Strategy (道胜)
+- Mapping: aims to maximize L and Rep so the system resolves without expensive kinetic U; minimize expected harm while preserving legitimacy—operationalizes λ_leg high.
+- Model entries:
+  - Objective shift: set λ_leg large in R(U), favor actions that increase L (ΔL(U) > 0) and reduce E via non-coercive measures.
+  - Policy closed-loop: choose U* = argmin_U [E_harm(S_hat(U)) + λ_leg·(-ΔL(U)) + c_resource·||U||], subject to constraints.
+- Parameter suggestions:
+  - λ_leg relative scale: choose so that marginal legitimacy loss of a unit resource equals expected harm of that unit; typical λ_leg ∈ [1, 100] depending on political calculus.
+- Measurements:
+  - Rate of voluntary compliance increases after soft measures; normalized harm reduction per unit legitimacy change.
+- Pitfalls:
+  - Can be slow; if α and E are already high, soft methods may not suffice—use gradient diagnostics first.
+
+IMPLEMENTATION EXAMPLES (concise formulas)
+- Legitimacy-driven restorative acceleration:
+  a_det = k_restore · L · RF · (S_pref − S)
+  choose k_restore ∈ [0.5, 2.0] for toy models.
+
+- Noise variance coupling:
+  Var_noise = σ0^2 · (1 + k_E·H_S) / (1 + k_L·L + k_EC·EC)
+  with σ0 ∈ [0.01, 0.1], k_E ∈ [0.5, 3.0], k_L ∈ [0.5, 2.0], k_EC ∈ [0.5, 2.0].
+
+- Jump rates and tail weight:
+  λ_jump = λ0 + λ_E·E + λ_α·α
+  p_tail = p0 + p_α·α + p_E·E
+  tail exponent τ = τ0 − κ_α·α  (τ0 ∈ [2.5, 4.0], κ_α ∈ [0.1, 1.0])
+
+- Observability modulation:
+  Var_obs = Var_base · (1 + H_Y) / (1 + c_intel·θ_intel)
+
+EXAMPLE PARAMETER TABLE (toy normalized ranges)
+- L ∈ [0,1] (legitimacy)
+- RF ∈ [0,1] (role-fidelity)
+- EC ∈ [0,1] (enforcement capacity)
+- H_S ∈ [0, log(N_actions)] (entropy)
+- α ∈ [0,2] (adversarial creativity / jump propensity)
+- E (aggregate entropy) ∈ [0,2]
+- λ_jump baseline ∈ [1e-3,1e-1] per day
+- σ0 ∈ [0.01, 0.2] (baseline continuous noise scale)
+
+IDENTIFIABILITY & PRIORITIZATION NOTES (for each primitive)
+- Rectify names / RF: medium identifiability if you instrument role-change events and performance metrics; prioritize where role confusion is correlated with incidents.
+- Virtue / Rep: observable via sentiment and behavior changes; high identifiability if media coverage is rich.
+- Ritual / H_S: easy to estimate from participation logs, but watch for hidden grievance.
+- EC: strongly observable (resources, response times) — high identifiability.
+- Minben / grievance: requires granular complaint data to infer D_g reliably.
+- Deception / H_Y: hard to observe without provenance tools — invest in source verification to separate deception from noise.
+- Surprise / α: requires long-run event catalogs and extreme-value methods; prioritize if jump events drive most harm.
+- Mobility / ID: needs network movement logs; distinguish adversary vs defender mobility.
+- Economy of force: measure marginal returns per resource to tune efficiency_factor.
+- Intelligence / O_gap: validate via improvement in forecasting skill (cross-validated).
+- Winning without fighting / λ_leg: policy choice — quantify tradeoffs by estimating dP_conflict/dL and cost per ΔL.
+
+BRIEF EXAMPLE SCENARIOS (illustrative)
+- Scenario A: Low L (0.2), high α (1.2), high H_Y (1.5). Expect high λ_jump and heavy tails. Sun Tzu response: improve intelligence (reduce H_Y), disrupt adversary nodes (reduce α), but avoid heavy-handed ops that further reduce L. Measure dP_conflict/dL and dP_conflict/dα to prioritize investments.
+- Scenario B: Moderate L (0.6), low α (0.2), high D_g in a hotspot. Analects response: targeted minben in hotspots, ritual/community programs to reduce D_g, increase EC locally. Monitor effect on D_g and resulting local S_i trajectories.
+
+FINAL IMPLEMENTATION ADVICE
+- Start with a minimal parameterization for each primitive (1–2 parameters) to avoid identifiability collapse.
+- Use hierarchical priors connecting related primitives (e.g., virtue → higher Rep and L) to stabilize estimation.
+- Calibrate jump/tail parameters with heavy-tail-aware estimators (Hill estimator, POT) and simulate stress tests.
+- Expose each primitive estimate in dashboards with confidence intervals and sensitivity metrics (dOutcome/dPrimitive) so decision-makers understand leverage and uncertainty.
+
+If you want, I can now:
+- Produce a ready-to-run extension of the toy simulation that includes explicit state variables for each of these mapped primitives and demonstrates interventions for selected Sun Tzu/Analects actions, or
+- Provide a short synthetic-data estimation pipeline (particle filter + MCMC) that jointly infers L, RF, EC, H_S, α from noisy observations Y. Which would you like next?

@@ -1,0 +1,143 @@
+### Hydronic compression index (CI)
+
+Let’s define a simple, operator‑grade Compression Index that matches your pseudocode style.
+
+We treat a basin/system as a sequence of pressure events with normalized weights \(p_i\) (like your κ, ρ, β, τ, μ, γ, σ parameters over time).
+
+**Step 1: Effective skew (pressure inequality)**  
+For a given time window, compute a normalized probability vector over dominant patterns/events:
+\[
+p_i = \frac{w_i}{\sum_j w_j}
+\]
+where \(w_i\) are observed frequencies/intensities (e.g., enforcement actions, evasive restructurings, backlog spikes).
+
+Define **entropy**:
+\[
+H = -\sum_i p_i \log p_i
+\]
+
+Define **max entropy** for \(n\) patterns:
+\[
+H_{\max} = \log n
+\]
+
+Define **compression** as how far we are from max entropy:
+\[
+CI = 1 - \frac{H}{H_{\max}}
+\]
+
+- \(CI \approx 0\): flat distribution, high entropy, low curvature → **entropy‑friendly, resilient**.  
+- \(CI \approx 1\): highly skewed distribution, low entropy, high curvature → **over‑compressed, brittle, collapse‑prone**.
+
+You can compute CI per basin (wound, institution, regulatory regime) and track it over time like any of your κ, ρ, β, τ, μ, γ, σ parameters.
+
+---
+
+### Library entry: “Mass, Entropy, Curvature, and Compression in Human–AI Situational Systems”
+
+**Title:**  
+Mass, Entropy, Curvature, and Compression: A Hydronic Geometry for Human–AI Situational Awareness
+
+**Abstract:**  
+This entry formalizes a geometry‑based model of systems behavior—mass vs. entropy, universe vs. local, curvature wells, and hydronic capacity fields—and integrates it with human–AI situational awareness tools and arithmetic coding. Mass‑centered systems (control, conventional armies, rigid institutions) are modeled as flat, zero‑curvature geometries that concentrate load and eventually break because they cannot disperse pressure. Entropy‑centered systems (guerrilla insurgencies, fluid networks, adaptive identities) are modeled as curved, dispersion‑friendly geometries that survive by reconfiguring under universal entropy. Hydronics provides the capacity‑field and curvature‑well framework; arithmetic coding supplies a formal encoding model showing how skewed pressure distributions compress entire histories into single brittle attractors. The Compression Index (CI) quantifies this over‑compression and predicts collapse risk. Combined with multimodal sensing, digital twins, and explainable AI from the situational‑awareness stack, this geometry yields a cockpit‑grade interface for seeing environment, internal pressure, and stability in real time.
+
+---
+
+#### 1. Core operators
+
+- **Mass geometry:**  
+  **Definition:** Local, shape‑based control (fortress, hierarchy, conventional army, rigid institution).  
+  **Behavior:** Concentrates load vertically; zero curvature; cannot disperse pressure; brittle under universal entropy.
+
+- **Entropy geometry:**  
+  **Definition:** Universal dispersion field (flow, adaptation, decentralization, guerrilla networks).  
+  **Behavior:** Distributes pressure; curved; reconfigures under load; resilient because it does not rely on a single shape.
+
+- **Universe/local invariant:**  
+  - Universe runs on entropy.  
+  - Local systems run on mass.  
+  - Mass can dominate locally; entropy dominates universally.
+
+- **Curvature wells (hydronics):**  
+  **Definition:** Regions where pressure and load create geometric “wells” (wound basins, institutional attractors, narrative traps).  
+  **Behavior:** High curvature → deep wells → lock‑in and collapse; low curvature → shallow wells → flexibility.
+
+---
+
+#### 2. Compression Index (CI)
+
+- **Concept:**  
+  CI measures how much a basin/system has compressed its pressure history into a single brittle attractor.
+
+- **Formula:**  
+  - Let \(p_i\) be normalized weights of dominant patterns/events.  
+  - Entropy: \(H = -\sum_i p_i \log p_i\).  
+  - Max entropy: \(H_{\max} = \log n\).  
+  - Compression Index:
+    \[
+    CI = 1 - \frac{H}{H_{\max}}
+    \]
+
+- **Interpretation:**  
+  - Low CI → high entropy, low curvature, many viable paths → resilient, entropy‑friendly.  
+  - High CI → low entropy, high curvature, few viable paths → brittle, collapse‑prone.
+
+- **Applications:**  
+  - **Wound basins:** CI tracks how repeated relational patterns compress identity/expectation into trauma attractors.  
+  - **Institutions:** CI tracks how repeated self‑protective decisions compress legitimacy into a narrow, brittle code.  
+  - **Regulatory regimes (China outbound model):** CI tracks how enforcement patterns and branching behaviors compress the system into lock‑in vs. compliant basins.
+
+---
+
+#### 3. Arithmetic coding as hydronic encoding
+
+- **Mapping:**  
+  - Interval \([0,1)\) = basin capacity.  
+  - Symbol probabilities = pressure distribution.  
+  - Recursive subdivision = curvature formation.  
+  - Final point = encoded attractor (identity, institutional stance, wound).
+
+- **Insight:**  
+  Compression in arithmetic coding is structurally identical to hydronic over‑compression: skewed probabilities shrink capacity and encode the entire history into a single fragile point.
+
+---
+
+#### 4. Integration with human–AI situational awareness
+
+- **Universe layer (from the report):**  
+  - Multimodal foundation models, sensor fusion, digital twins, AR teammates, explainable AI.  
+  - Provides environmental context: “what is happening, where, and how do we know?”
+
+- **Local geometry layer (hydronics):**  
+  - Curvature wells, capacity fields, mass vs. entropy, collapse dynamics.  
+  - Provides internal state: “where is pressure, what is brittle, what is stable?”
+
+- **Encoding layer (CI + arithmetic coding):**  
+  - Provides stability metric: “how compressed is this basin, how close to collapse, how much entropy is needed to decompress?”
+
+- **Interface concept:**  
+  - **Perception panel:** live situational data (sensors, digital twins, AR).  
+  - **Geometry panel:** hydronic maps of pressure, curvature, basins.  
+  - **Compression panel:** CI over time, collapse risk, recommended entropy‑injection corridors.
+
+---
+
+#### 5. Example: China outbound investment rules model
+
+- Parameters (κ, ρ, β, τ, μ, γ, σ) form a **pressure vector**.  
+- Scenario dynamics (surge → backlog → bifurcation) form **basin trajectories**.  
+- CI can be computed over observed patterns (e.g., proportion of evasive vs. compliant behaviors, enforcement events, backlog states) to quantify how close the regime is to lock‑in or cascading failure.  
+- Interventions (clarity, capacity scaling, branch‑cut, shielding) are **entropy‑injection corridors** that lower CI and shallow curvature wells.
+
+---
+
+#### Dewey classification tags
+
+- **003.3** – Systems, complexity, and cybernetics (geometry of systems, mass/entropy dynamics).  
+- **004.0** – Data processing & computer science (human–AI partnership, multimodal models, situational AI).  
+- **006.3** – Artificial intelligence (AI agents, explainability, human–AI collaboration).  
+- **530.1** – Theoretical physics (entropy, universal vs. local forces as conceptual analogues).  
+- **658.4** – Organizational control & systems (institutional collapse, governance geometry).  
+- **355.02** – Military science, strategy (conventional vs. guerrilla geometries as mass vs. entropy).
+
+If you want, next step can be a tight UI spec for the three panels (Perception, Geometry, Compression) wired to your simulator style.

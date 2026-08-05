@@ -1,0 +1,89 @@
+Executing both. Read-only, and I'll state the grep set either way — including the exclusions, since a truncated grep is exactly how I got τ wrong.
+
+`source_docs/floating_geometry_2026-08-04/` is carrying the sensor vocabulary — that's the lineage source. Investigating it plus the two real implementation hits:
+
+Search B has hit something significant. Reading the container and checking for an actual value source:
+
+One final check — whether any concrete P/M/T/D/E values were ever assigned, and whether `SystemState` carries a coherence field:
+
+Both searches returned. Receipt acknowledged; read-only, no mutations, fixture untouched.
+
+## Grep set and exclusions (stated, per §2/§3)
+
+Excluded throughout: `.venv`, `venv`, `site-packages`, `node_modules`, `.git`, `worktrees`, `Archive`, `Index_Records`. All file types, not just `.py`. No `head` truncation applied before the zero/non-zero determination — that's what cost me τ.
+
+# Search A · OrganizationalState / phase_coherence
+
+**Absent under that name. Present under another — and only content-embed search finds it.**
+
+| Term | Result |
+|---|---|
+| `OrganizationalState` | only `analysis/floating_geometry_lineage_2026-08-04.md` — the map documenting the gap |
+| `phase_coherence` | same, map only |
+| `DECOHERENT` | same, map only |
+| `cooperation_basin` / `cooperation basin` | **ZERO** — nothing, anywhere |
+| `parallel_hierarchy` / `parallel hierarchy` | **ZERO** — nothing, anywhere |
+| `alignment_score` | real hit, **different concept** — `compass_elins_bridge.py:115,125,145` is `operator_alignment_score`, an ELINS→Compass field mapped to `position` |
+| `CoherenceLevel` | real hit, **different concept** — `desktop/src/lib/operatorMeta*.ts`, the TypeScript operator meta-layer |
+
+**The structural equivalent is `SystemState`** — `source_docs/floating_geometry_2026-08-04/v2_Individual_Support.txt:25`. Siblings across the same corpus: `GodhardAwareSystemState`, `MultiAgentState`, `InfrastructureStrain`, `PressureMap`, `PressureVector`, `DiscreteState`, `PopulationData`.
+
+§4.6 was load-bearing. Name-only search returns ZERO here and the honest-looking answer would have been "absent" — which is wrong.
+
+# Search B · P/M/T/D/E intake path
+
+**The state vector exists in full. The sensor does not.**
+
+`v2_Individual_Support.txt:24-50`:
+
+```python
+@dataclass
+class SystemState:
+    pressure: float          # P(t) - Force per unit capacity [0-10]
+    margin: float            # M(t) - Distance to failure [0-10]
+    temperature: float       # T(t) - Internal agitation [0-10]
+    drift: float             # D(t) - Cumulative displacement [-5 to +5]
+    escalation_risk: float   # E(t) - Proximity to critical point [0-1]
+    strain: float = field(init=False)
+    fragility: float = field(init=False)
+    measurement_noise: Dict[str, float] = field(default_factory=dict)
+    observability: float = 0.7      # How much of state is visible [0-1]
+```
+
+Three instantiation sites, **none of them from real input**:
+
+| Site | Source of values | Attestation |
+|---|---|---|
+| `:692-695` `target_state = SystemState(pressure=5.0, margin=7.0, …)` | hand-assigned | a **goal** state, not a measurement |
+| `:217` `new_state = SystemState(…)` | evolved from prior state | dynamics |
+| `:466` `return SystemState(…)` | derived | dynamics |
+
+`observability: float = 0.7` is a **default literal**, not a measured quantity. `measurement_noise` defaults empty and is never populated.
+
+The system can propagate state and can be handed a target. Nothing lets it read the world.
+
+# The finding neither search asked for
+
+`source_docs/` is **gitignored** — `.gitignore:136`. Not one line of this corpus is in version control.
+
+Inbound references from tracked code: **zero**. The only files mentioning `escalation_risk` are `analysis/floating_geometry_lineage_2026-08-04.md` and three `command_structure/` prose docs (README, VOCABULARY, CCIR templates). All narrative. No import, no call, no test.
+
+So the entire formalization — `SystemState`, `PhysicsMapping`, `SystemDynamics`, `ControlInput`, `GodhardCurve`, `CascadeDynamics`, `CoupledMarkovChain`, `CrossReportAnalysisEngine` — is Python source sitting in `.txt` files in an ignored directory.
+
+**Third instance of the same shape today:**
+
+| # | Thing | What it actually is |
+|---|---|---|
+| 1 | τ | a comment (`elins_v2_view.py:25,168`), not a variable |
+| 2 | hydronic extractor | word lists, not magnitudes |
+| 3 | `SystemState` | `.txt` in a gitignored dir, not a module |
+
+Pen's formulation holds exactly: every reliable thing lives outside the boundary. This is the sharpest instance — it's not merely unwired, it's not even *versioned*.
+
+**One risk worth naming plainly, outside the search scope:** gitignored and untracked means one `git clean -xdf` from gone. Roughly 900KB of physics formalization with no backup in the repo's own history. That's an exposure, not a doctrine question.
+
+## Status
+
+Both searches returned; neither held. Parent dispatch `HQ-DISPATCH-2026-08-04-1725EDT` and supplement `HQ-SUPP-2026-08-04-1815EDT` untouched — no task structure amended, no Phase 1 task executed. Pin `ae221b68ddc9`, §8 baseline 667/13, R6/counter still uncommitted, fixture `soldierslawyer@gmail.com` untouched.
+
+On your Signal 1: §4.6 changed the answer. Without it Search A reports absence and the lineage map inherits a false negative. Same as the T1.x decomposition surfacing τ — the inferred part is what made the search valid.

@@ -1,0 +1,27 @@
+No dispatch attached, so I'll do the thing that's actually useful: check the classification table against evidence, since I traced several of these rows myself. Four look wrong, and one is stale as of an hour ago. Verifying the one number I never confirmed first.
+
+Confirmed at pin: `tokens.py:30` is `if not s or len(s) < 16` — so row #5's 16-byte threshold is right.
+
+The method is sound, and the wire-impersonates-node insight is the real load-bearing idea. But the evidence table has four rows I'd contest, and one of them is stale as of this session.
+
+**#11 — disproved, and it's an example of the opposite lesson.** All seven `CLARITYOS_*_KEY` env names are bound on `00122-sir` (`CLARITYOS_ANTHROPIC_KEY -> ANTHROPIC_API_KEY:latest`, etc.), and [model_router.py:157](model_router.py:157) reads exactly those names. The wire is correct. The suspicion came from comparing the *secret's* name against the *code's* env name — reading one end and inferring the other, which is precisely what rule 1 forbids. It belongs in the doctrine as a worked example of the rule catching a false positive, not as a WIRE row. Current status: keys ruled out, model IDs the live unverified hypothesis.
+
+**#13 and #10 are the same failure, double-counted, and both mis-rooted.** Ground truth per step 1: the login was sent with the literal string `REDACTED` — the placeholder from my command template. That's a NODE-invalid (an invalid value supplied), and #10's `invalid_session` is strictly downstream of it, because `SID` was `null` after the login failed. "Session live in browser, not connected to the shell var" is a theory the transcript doesn't support.
+
+The `_bootstrap_admin()` finding is mine and I stand by it as a *latent* wire — [app.py:436](app.py:436) returns `"existing"` before line 441 ever reads the secret. But it has not caused an observed failure yet. Putting it in an evidence table as traced is the thing step 1 exists to prevent.
+
+**#8 depends on the half you flagged as attested-only.** WIRE is correct *if* the pages send raw email where an `op_…` exists. If instead the validator's char class is simply too narrow for a legitimate identifier, it's NODE-invalid. The regex result you executed doesn't discriminate between those.
+
+**Tally effect:** removing #11, merging #10 into #13 as NODE, and marking #8 provisional moves it from 8/5 to roughly **5 WIRE / 6 NODE**. The method survives; the headline "wire problems dominate" doesn't. I'd cut that claim rather than defend it — it's the one part that reads as invented rather than derived, and the doctrine is stronger without a tally it doesn't need.
+
+**One addition, from the check I just ran.** `tokens.py:30` merges both node classes into a single test and a single message: `not s or len(s) < 16` → *"missing or too short."* That is exactly why #4 and #5 were indistinguishable from the error text and had to be separated by an env read. It's a concrete illustration of rule 2 with a design corollary worth stating: **an error message that merges absence and invalidity forces the reader into the one-end inference rule 1 forbids.** Ground truth is only as discriminating as the error the code chose to raise — which is why step 1 sometimes can't finish without step 3.
+
+Saving the method, since it's meant to outlive this session.
+
+Saved as durable method, indexed in `MEMORY.md`.
+
+One thing the doctrine sharpens for the immediate work: the admin password is currently an *unclassified* middle. The observed failure was NODE-invalid (`REDACTED` sent literally). The latent `_bootstrap_admin()` issue would be a WIRE. Those have different fixes — retype the password vs. reset the stored hash — and the next login attempt discriminates them in one shot. If Secret Manager's value works, the wire is fine and #13 leaves the table entirely. If it returns `bad_credentials` again, the wire is real and confirmed.
+
+Two attempts left in the 900s throttle window.
+
+B-1 unchanged and still holding: `00119-gas` at 100%, `00122-sir` ready at 0% under `b1-verify`, commit `ae221b6` pushed, rollback `00119-gas`. Waiting on the mint response.

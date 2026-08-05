@@ -1,0 +1,109 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    classDef green fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#155724;
+    classDef yellow fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#856404;
+    classDef red fill:#f8d7da,stroke:#dc3545,stroke-width:2px,color:#721c24;
+    classDef blue fill:#cce5ff,stroke:#007bff,stroke-width:2px,color:#004085;
+    classDef doctrine fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#383d41,stroke-dasharray:5 5;
+    classDef reconciled fill:#d1ecf1,stroke:#17a2b8,stroke-width:2px,color:#0c5460;
+
+    User([👤 User]):::green
+
+    subgraph Entry[ ]
+        InputSurface[("Input Surface<br>simple consumer query input")]:::red
+        RedirectLanding[("Landing Redirect<br>/cockpit active /plans inactive")]:::green
+    end
+
+    subgraph FrontendWiring[ ]
+        FrontendQuery[("Frontend Query Wiring<br>which endpoint called?")]:::yellow
+        FrontendRender[("Frontend Render<br>/cockpit rendered view")]:::red
+    end
+
+    subgraph EngineProcessing[ ]
+        RawEndpoint(["/model/complete<br>raw completion"]):::green
+        C_Run(["/c/run<br>intelligence_kernel run_thread_message"]):::green
+        EngineV1[("engine_v1.run<br>POST /engine/v1/run")]:::reconciled
+        Dewey[("dewey_pipeline<br>embed_object vault/library/timeline")]:::green
+    end
+
+    subgraph Translation[ ]
+        RawOutput[("Raw text output")]:::green
+        RegionOutput[("Structured region<br>forces leans reasons doubt")]:::red
+        EngineV1Out[("engine_v1 output<br>project_forward + regress_to_origin")]:::reconciled
+        HardcodedError[("reconstruction_error = 0.0<br>HARDCODED not measured")]:::red
+    end
+
+    subgraph CockpitDisplay[ ]
+        Display[("Cockpit Display<br>region surfaced to user")]:::red
+        ActEdge[("Act Edge<br>user acts refine push accept")]:::red
+    end
+
+    subgraph Continuity[ ]
+        ContinuityLayer[("Continuity<br>envelope + meter + session update")]:::green
+    end
+
+    User -->|"1. expectation"| InputSurface
+    InputSurface -->|"not built"| FrontendQuery
+
+    User -.->|"after magic-link"| RedirectLanding
+    RedirectLanding -->|"wired"| FrontendRender
+
+    FrontendQuery -->|"routes to"| RawEndpoint
+    FrontendQuery -->|"routes to"| C_Run
+    FrontendQuery -.->|"routes to parallel"| EngineV1
+
+    RawEndpoint -->|"calls"| Router[("model_router<br>providers + mock")]:::green
+    C_Run -->|"calls"| IntelligenceKernel[("intelligence_kernel<br>run_thread_message")]:::green
+    EngineV1 -->|"pure dict→dict"| ProjectForward[("project_forward")]:::reconciled
+    EngineV1 -->|"pure dict→dict"| RegressToOrigin[("regress_to_origin")]:::reconciled
+
+    Router -->|"returns"| RawOutput
+    IntelligenceKernel -->|"returns"| RegionOutput
+    ProjectForward -->|"returns"| EngineV1Out
+    RegressToOrigin -->|"returns hardcoded 0.0"| HardcodedError
+
+    RawOutput -->|"raw text"| Display
+    RegionOutput -->|"region not built"| Display
+    EngineV1Out -->|"engine output"| Display
+    HardcodedError -->|"false confidence"| Display
+
+    Display -->|"surfaces collision"| ActEdge
+    ActEdge -->|"user acts"| ContinuityLayer
+
+    ContinuityLayer -->|"updates kernel"| User
+
+    Discovery30[("Discovery #30<br>engine_v1.py byte-identical<br>0720b70 ↔ ee3297f<br>Zero drift")]:::reconciled
+    Discovery30 -.- EngineV1
+
+    Discovery14[("Discovery #14<br>Pressure: both subtract<br>Flow/Resistance: invert<br>Sign asymmetry flagged")]:::yellow
+    Discovery14 -.- RegressToOrigin
+    Discovery14 -.- ProjectForward
+
+    Substrate([🌍 Substrate R3]):::blue
+    Regression[("Regression R4<br>backward test cheap sensing")]:::doctrine
+    Reconciliation[("Reconciliation R5<br>resolution authority flip")]:::doctrine
+
+    Substrate -.->|"probes"| RawEndpoint
+    Substrate -.->|"probes"| C_Run
+    Substrate -.->|"probes"| EngineV1
+    Substrate -.->|"probes"| Dewey
+
+    RawOutput -.->|"regression: mismatch?"| Regression
+    RegionOutput -.->|"regression: mismatch?"| Regression
+    EngineV1Out -.->|"regression: hardcoded 0.0 hides error?"| Regression
+
+    Regression -->|"finds mismatch"| Reconciliation
+    Reconciliation -->|"fires authority flip"| ActEdge
+    ActEdge -->|"updates identity"| User
+
+    subgraph Legend[ ]
+        L1[✅ Green = Live / Witnessed]:::green
+        L2[⚠️ Yellow = Code exists / unverified or dead]:::yellow
+        L3[❌ Red = Missing / not built]:::red
+        L4[🔵 Blue = Substrate / doctrine nodes]:::blue
+        L5[📐 Dashed = Corrective loops]:::doctrine
+        L6[🔁 Cyan = Reconciled / zero drift]:::reconciled
+    end

@@ -1,0 +1,44 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    OBS["User Input<br/>(Standard / Analytical /<br/>Investigative / Predictive)"]
+    ROUTER["Routing<br/>(provider invisible)"]
+    CORE["ClarityOS Core<br/>(HOC/HITL,<br/>Archetype Scan,<br/>System Classifier)"]
+    ELINS["ELINS Toolbox<br/>(PRO, PLUS,<br/>Distortion, Geometry,<br/>Intervention)"]
+    OUT["Structured Output<br/>Answer + Geometry<br/>+ Interventions"]
+    MEMUSER[("Layer A – User Memory")]
+    MEMSESSION[("Layer B – Session Memory")]
+    MEMWORLD[("Layer C – System Memory (Σ)")]
+    
+    OBS --> ROUTER
+    ROUTER --> CORE
+    CORE --> ELINS
+    CORE --> OUT
+    ELINS --> OUT
+    CORE -->|update A| MEMUSER
+    CORE -->|update B| MEMSESSION
+    CORE -->|update C| MEMWORLD
+    
+    subgraph InputLayer["Input Layer"]
+        OBS
+    end
+    subgraph CorePipeline["Core Pipeline"]
+        ROUTER
+        CORE
+        ELINS
+        OUT
+    end
+    subgraph MemoryLayers["Memory Layers"]
+        MEMUSER
+        MEMSESSION
+        MEMWORLD
+    end
+    
+    classDef process stroke:#818cf8,fill:#eef2ff
+    classDef datastore stroke:#2dd4bf,fill:#f0fdfa
+    classDef output stroke:#fb7185,fill:#fff1f2
+    class OBS,ROUTER,CORE,ELINS process
+    class MEMUSER,MEMSESSION,MEMWORLD datastore
+    class OUT output

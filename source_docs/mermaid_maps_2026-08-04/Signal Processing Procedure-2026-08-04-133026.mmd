@@ -1,0 +1,69 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    A[Input Surface<br/>procedure / event / statement / records / facts] --> B[SignalPacket<br/>raw incoming signal]
+
+    B --> C["extract-observations<br/>raw signal -> admitted fact"]
+    C --> D[ObservationSet<br/>admitted facts / claims / inferred facts / missingness / contradictions / confidence]
+
+    D --> E[E Layer<br/>experience / terrain capture]
+    E --> F[r Layer<br/>reflection / primitive extraction / EP inference / drift check]
+
+    F --> G[PrimitiveState<br/>∇P / μ / T / S / F / φ]
+    F --> H[EPStateDelta<br/>clarity / pressure / safety / agency / reciprocity / integrity]
+
+    D --> I["parse-procedure<br/>facts -> procedural spine"]
+    I --> J[ProcedureMap<br/>R-steps / statuses / assumptions / unresolved rules]
+
+    J --> K["infer-ep-state<br/>procedure + context -> EP deltas"]
+    K --> H
+
+    G --> L["compile-structure<br/>EP + primitives -> system geometry"]
+    H --> L
+
+    L --> M[StructureModel<br/>stocks / flows / constraints / thresholds / feedbacks / burdens / incentives / gates]
+
+    M --> N["infer-product<br/>structure -> actual product by timescale"]
+    N --> O[ProductProfile<br/>immediate / medium / long-horizon product]
+
+    O --> P["compute-damages<br/>product + structure -> damage classes"]
+    P --> Q[DamagesProfile<br/>classes / severity / affected parties]
+
+    J --> R["causation-trace<br/>actual vs but-for path"]
+    M --> R
+    O --> R
+    R --> S[CausationModel<br/>reverse trace / causal roles / alternative paths / but-for confidence]
+
+    M --> T["challenge-model<br/>rival explanation / falsification"]
+    O --> T
+    S --> T
+    T --> U[ChallengeReport<br/>rival models / discriminating evidence / prediction contest / ambiguity score]
+
+    D --> V["ledger-entry<br/>audit-safe persistence"]
+    J --> V
+    H --> V
+    M --> V
+    O --> V
+    Q --> V
+    S --> V
+    U --> V
+
+    V --> W[R Layer<br/>move / hold / intervene / write / return]
+    W --> X[Operator / External Action]
+    X --> Y[Observed Return / New State]
+    Y --> B
+
+    classDef inputNode stroke:#818cf8,fill:#eef2ff
+    classDef processorNode stroke:#a78bfa,fill:#f5f3ff
+    classDef stateNode stroke:#2dd4bf,fill:#f0fdfa
+    classDef outputNode stroke:#fb923c,fill:#fff7ed
+    classDef layerNode stroke:#38bdf8,fill:#f0f9ff
+    classDef feedbackNode stroke:#4ade80,fill:#f0fdf4
+
+    class A inputNode
+    class B,C,I,K,N,P,R,T,V processorNode
+    class D,E,F,G,H,J,L,M,O,Q,S,U stateNode
+    class W,X,Y layerNode
+    class Y feedbackNode

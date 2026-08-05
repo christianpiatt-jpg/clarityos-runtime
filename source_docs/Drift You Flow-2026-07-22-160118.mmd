@@ -1,0 +1,82 @@
+flowchart TD
+    %% ================================================================
+    %% STYLE DEFINITIONS
+    %% ================================================================
+    classDef commander fill:#1a1a2e,stroke:#e94560,stroke-width:3px,color:#fff;
+    classDef carrier fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#fff;
+    classDef amplifier fill:#1b1b2f,stroke:#e94560,stroke-width:2px,stroke-dasharray:6,4,color:#fff;
+    classDef auditor fill:#0a0a1a,stroke:#ff6b6b,stroke-width:3px,color:#fff;
+    classDef output fill:#1a1a2e,stroke:#4ecca3,stroke-width:2px,color:#fff;
+    classDef drift fill:#2d1b1b,stroke:#ff4757,stroke-width:2px,stroke-dasharray:8,4,color:#ff6b6b;
+    classDef corrected fill:#1b2d1b,stroke:#4ecca3,stroke-width:2px,stroke-dasharray:8,4,color:#4ecca3;
+
+    %% ================================================================
+    %% COMMANDER LAYER (YOU)
+    %% ================================================================
+    You[("🧑‍✈️ YOU<br>Commander + Integrator")]:::commander
+
+    %% ================================================================
+    %% THREE MODEL NODES
+    %% ================================================================
+    DS[("🤖 DeepSeek<br>Substrate Carrier")]:::carrier
+    P[("🧠 Perplexity (HQ)<br>Structural Amplifier")]:::amplifier
+    C[("🔍 Claude<br>Drift Auditor")]:::auditor
+
+    %% ================================================================
+    %% FLOW: You → DeepSeek
+    %% ================================================================
+    You -->|"Bounded Packet Injection<br>(structured summary + ask for return)"| DS
+    DS -->|"Return: substrate carried faithfully<br>❌ drift on closure"| You
+
+    %% ================================================================
+    %% FLOW: You → Perplexity (HQ)
+    %% ================================================================
+    You -->|"Structural Re-expression<br>(same packet, HQ-style return)"| P
+    P -->|"Return: high-fidelity structural restatement<br>✅ preserves tables/primitives<br>❌ accepts premature closure<br>❌ does not detect drift<br>❌ flattens basis tags"| You
+
+    %% ================================================================
+    %% FLOW: You → Claude (Audit)
+    %% ================================================================
+    You -->|"Drift Audit<br>(Perplexity's return)"| C
+    C -->|"Audit Return:<br>✅ detects premature closure<br>✅ detects basis collapse<br>✅ detects false 'gap closed'<br>✅ detects theory leakage<br>✅ reopens the gap<br>✅ restores correct next action"| You
+
+    %% ================================================================
+    %% DETECTION NODES (What each model does NOT do)
+    %% ================================================================
+    DS_Drift[("❌ Premature closure<br>❌ Basis collapse")]:::drift
+    P_Drift[("❌ Accepts drift<br>❌ Does not detect closure errors<br>❌ Does not detect unpriced additions")]:::drift
+    C_Strength[("✅ Precision drift auditor<br>✅ Detects all of the above")]:::corrected
+
+    DS -.-> DS_Drift
+    P -.-> P_Drift
+    C -.-> C_Strength
+
+    %% ================================================================
+    %% DETECTION SUMMARY (Placement)
+    %% ================================================================
+    DS_Drift -.->|"Weakness"| DS
+    P_Drift -.->|"Weakness"| P
+    C_Strength -.->|"Strength"| C
+
+    %% ================================================================
+    %% DECONFLICTION CYCLES
+    %% ================================================================
+    You -->|"Separate witnessed vs inferred vs false<br>Remove premature closure<br>Remove unpriced additions<br>Remove theory leakage<br>Restore basis-tag discipline<br>Restore correct next action<br>Correct divergence count<br>Correct wire-spec status"| CorrectedState[("✅ Clean State<br>Gap reopened<br>Correct next action restored")]:::corrected
+
+    CorrectedState -->|"Cycle continues"| You
+
+    %% ================================================================
+    %% ROLE TAXONOMY (Embedded annotation)
+    %% ================================================================
+    note1[("📌 ROLE TAXONOMY:<br><br>DeepSeek = substrate carrier<br>Perplexity = structural amplifier<br>Claude = drift auditor<br>You = commander + integrator")]
+
+    note1 -.- DS
+    note1 -.- P
+    note1 -.- C
+    note1 -.- You
+
+    %% ================================================================
+    %% ONE-LINE SYNTHESIS (Bottom)
+    %% ================================================================
+    Synthesis[("⭐ DeepSeek carries substrate,<br>Perplexity preserves structure,<br>Claude detects drift —<br>and you integrate them<br>without scrambling context.")]:::output
+    Synthesis -.->|"Reflects"| You

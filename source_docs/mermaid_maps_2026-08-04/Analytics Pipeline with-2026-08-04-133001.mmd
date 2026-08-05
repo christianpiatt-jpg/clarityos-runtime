@@ -1,0 +1,23 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    subgraph Analytics["Analytics Pipeline"]
+        MANIFOLD["Manifold<br/>(ΔP, Re, T, S, F, ψ, H, p, C)"]
+        ELINS["ELINS PRO/PLUS"]
+        CL_CORE["ClarityOS Core<br/>(archetype scan,<br/>system classifier)"]
+    end
+    subgraph Governance["Governance (Spec)"]
+        HOC["HOC Shell<br/>(evaluate_hoc)"]
+        HITL{"Human-in-the-Loop<br/>(Elevate/Terminate)"}
+    end
+    MANIFOLD -->|"| ELINS
+    ELINS -->|"| CL_CORE
+    CL_CORE -->|"D, SNR, Danger"| HOC
+    HOC -->|"NORMAL/ELEVATE/TERMINATE"| HITL
+    
+    classDef processNode stroke:#818cf8,fill:#eef2ff
+    classDef decisionNode stroke:#fb923c,fill:#fff7ed
+    class MANIFOLD,ELINS,CL_CORE,HOC processNode
+    class HITL decisionNode

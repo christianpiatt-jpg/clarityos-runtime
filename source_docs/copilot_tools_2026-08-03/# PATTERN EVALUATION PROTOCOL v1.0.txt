@@ -1,0 +1,260 @@
+# PATTERN EVALUATION PROTOCOL v1.0
+### A portable instrument for testing whether a pattern you think you see is real
+
+Plain text by design. Paste it into any model, any editor, any repo. No dependencies except Python 3.
+
+---
+
+## 0. WHAT THIS IS
+
+You have noticed a pattern — in an institution, an adversary, a system, a dataset, or your own
+framework. This protocol tells you whether the pattern is **measurable**, **reproducible**, and
+**predictive**, in that order. Those are three different questions and most claimed patterns die
+at the first.
+
+**It does not tell you whether the pattern is important, moral, or actionable.** It tells you
+whether it is real.
+
+**It applies to your own frameworks.** A pattern-detector that cannot be turned on its author is
+not an instrument, it is a belief.
+
+---
+
+## 1. THE CORE DISCIPLINE
+
+These five rules do the work. Everything else is scaffolding.
+
+1. **Event layer vs. narrative layer.** A number is not a measurement until someone else can
+   produce it from the same source. Until then it is a description wearing a decimal point.
+2. **Revise the rule, not the conclusion.** When the test fails, the coding rule changes. If the
+   conclusion survives every possible result, you were never testing.
+3. **Reliability before validity, validity before prediction.** Can two people apply it? Only then:
+   does it measure anything? Only then: does it forecast?
+4. **Every free parameter is a place to hide a failed prediction.** Count your knobs. If a bad
+   result can be absorbed by tuning one, you have a rescue clause, not a model.
+5. **Beat a baseline or admit you are describing.** A forecast with no competitor is unfalsifiable
+   by construction.
+
+---
+
+## 2. STAGE 0 — STATE THE PATTERN FALSIFIABLY
+
+Fill this in before anything else. If you cannot complete line 3, stop; there is nothing to test.
+
+```
+PATTERN:        [one sentence, no metaphor]
+ACTORS/SCOPE:   [who/what, over what period]
+CLAIM TYPE:     [ descriptive | causal | predictive ]
+FALSIFIER:      [what observation would prove this wrong?]
+IF NO FALSIFIER: STOP. This is a lens, not a claim. Lenses are useful. Do not test them.
+BASELINE:       [what would an informed person without your framework predict?]
+```
+
+---
+
+## 3. STAGE 1 — EVIDENCE TYPING (no numbers required)
+
+The cheapest stage and often the most valuable. Type every material fact.
+
+| Type | Definition | Coding rule (apply in order) | Function |
+|---|---|---|---|
+| **OBSERVED** | Evidenced by a document or an admission | Is there a document or admission showing it? | Foundation — not disputable |
+| **CLAIMED** | Asserted by a person, uncorroborated | Is the only support someone's say-so? | Credibility question |
+| **INFERRED** | Conclusion drawn from observed facts | Does it require a reasoning step? List parents. | Argument — must be labeled |
+| **CONTRADICTED** | Two record statements that cannot both be true | Do two items conflict on the same proposition? Cite both. | Genuine dispute |
+| **MISSING** | Should exist, does not; usually held by the other side | Would it exist in the ordinary course, and is it absent? Name the holder. | Discovery/production target |
+
+```
+| ID | Fact / assertion | Type | Asserted by | Source cite | Conflict | Use |
+|----|------------------|------|-------------|-------------|----------|-----|
+```
+
+**Stop-and-look:** if your CLAIMED column carries the other side's whole position, and your
+OBSERVED column carries yours, you have found something real without a single number.
+
+---
+
+## 4. STAGE 2 — OPTION TRACE (behavioral inference, no mind-reading)
+
+Never infer intent. Infer what was treated as costly, from what was **repeatedly not chosen**.
+
+```
+| ID | Actor | Juncture (observable) | Options available | Option taken | Dominant constraint |
+|----|-------|-----------------------|-------------------|--------------|---------------------|
+```
+
+**Rules:**
+- Options must be enumerable from the record, not imagined.
+- Code from NON-selections: what does consistent avoidance imply was expensive?
+- **Specify the juncture-eligibility rule before selecting junctures.** Whoever picks the
+  junctures picks the answer. This is the biggest unguarded degree of freedom in the method.
+- Constraint menu must be fixed in advance, mutually exclusive, and exhaustive-enough.
+- Start **ordinal or categorical**. Never open with a continuous score.
+
+**Diagnostic that matters most:** if the same constraint dominates across *different actors,
+roles, and forums*, the constraint is **positional**, not personal. That is an argument against
+a motive story, not for one. Know which one you need before you run it.
+
+---
+
+## 5. STAGE 3 — RELIABILITY GATE (the first real gate)
+
+**Question:** can two people apply the rule to the same record and land in the same place?
+
+**Procedure:**
+1. Rater 1 codes. Lock the codes and publish only the hash.
+2. Rater 2 codes **cold** — has not read your analysis, your narrative, or your conclusions.
+3. Set the threshold **before** scoring. Convention: κ ≥ 0.60.
+4. Compute Cohen's kappa.
+5. **If it fails, revise the rule. Not the conclusion. Not the rater.**
+
+**Independence is the whole ballgame.** Two people who have marinated in the same story are one
+rater with two mouths. If your only available rater helped build the analysis, the run is a
+pilot and you must say so.
+
+```python
+# kappa.py
+import json
+RATER2 = {}                       # {"J-01":"C2", ...}
+r1 = json.load(open("rater1_locked.json"))["codes"]
+items = [k for k in RATER2 if RATER2[k]]
+a  = sum(1 for k in items if r1[k]==RATER2[k]) / len(items)
+cats = set(list(r1.values())+list(RATER2.values()))
+pe = sum((sum(1 for k in items if r1[k]==c)/len(items)) *
+         (sum(1 for k in items if RATER2[k]==c)/len(items)) for c in cats)
+k = (a-pe)/(1-pe) if pe < 1 else 1.0
+print(f"agreement {a:.3f}  chance {pe:.3f}  kappa {k:.3f}")
+print("CODEABLE" if k>=0.60 else "NOT CODEABLE — revise the RULE")
+```
+
+**Reliability is not validity.** Passing this earns the right to ask the next question. It does
+not answer it. Two astrologers agreeing on a chart is κ = 1.0.
+
+---
+
+## 6. STAGE 4 — PRE-REGISTRATION (the second real gate)
+
+**Question:** does the pattern predict anything a competent person wouldn't already predict?
+
+**Non-negotiables:**
+- **Two forecasters.** Your framework AND a baseline. One forecaster cannot be evaluated.
+- **Lock before the outcome.** Hash the prediction block. Publish the hash.
+- **Resolution criteria fixed in advance** — exactly what observation counts as a hit.
+- **A pre-committed interpretation** — write down now what result would falsify you.
+- **No rescue clauses.** "It hasn't resolved yet," "the conditions shifted," "the model was right
+  but the environment absorbed it" are banned in advance, in writing.
+- **Divergence is the test.** If your framework and the baseline agree everywhere, you have
+  learned nothing. Find the items where they disagree; those are the only ones that matter.
+
+```python
+# lock.py
+import json, hashlib
+ITEMS = [ {"id":"E1","event":"...","resolution":"...","framework":0.75,"baseline":0.30}, ]
+print(hashlib.sha256(json.dumps(ITEMS, sort_keys=True).encode()).hexdigest())
+```
+
+```python
+# score.py
+OUT  = {}                          # {"E1":1, "E2":0, ...}
+FW   = {}; BASE = {}
+r = {k:v for k,v in OUT.items() if v is not None}
+bf = sum((FW[k]-v)**2   for k,v in r.items())/len(r)
+bb = sum((BASE[k]-v)**2 for k,v in r.items())/len(r)
+print(f"Brier framework {bf:.4f} | baseline {bb:.4f} | skill {1-bf/bb:+.4f}")
+# skill > 0  framework beat ordinary judgment
+# skill ~ 0  framework is a description
+# skill < 0  framework is confidently wrong
+```
+
+**FREEZE RULE:** while a pre-registration is live, you may not modify the framework, add
+parameters, or refine priors. Any change voids the run. **Building during a live test is not
+progress; it is tampering.**
+
+---
+
+## 7. STAGE 5 — VERDICT
+
+| Result | Meaning | Next |
+|---|---|---|
+| κ < 0.60 | Not measurable | Revise the rule. Nothing downstream is fundable. |
+| κ ≥ 0.60, skill < 0 | Measurable, confidently wrong | The construct misleads. Worse than nothing. |
+| κ ≥ 0.60, skill ≈ 0 | Measurable, adds nothing | It is a re-description. Keep it as a lens, drop the numbers. |
+| κ ≥ 0.60, skill > 0 | Measurable and predictive | You have something. Now go find out why. |
+
+---
+
+## 8. FAILURE-MODE CATALOGUE
+
+Checked in order of how often they kill a project.
+
+1. **The invented dynamics table.** Your pipeline has a module with a beautiful contract and no
+   content — the part that maps action to effect. Whoever writes that table writes the answer;
+   everything upstream is ceremony. *Test: sweep every declared weight. If the output never
+   changes, the answer is coming from the undeclared part.*
+2. **False precision.** A primitive with a number but no estimation rule. `curvature = 0.71` where
+   nothing computes 0.71. *Test: could two analysts produce it? If not, delete the decimal.*
+3. **The unfalsifiable score.** It cannot be wrong, which is why it cannot be right.
+4. **Rescue clauses with a type signature.** New parameters that let a failed prediction be
+   absorbed post hoc. *Count the knobs added after the prediction was made. Should be zero.*
+5. **Train/test leakage.** The thing generating your update signal is also your ground truth.
+   Common when modeling a live system that also rules on you. *Fix: hold outcomes out.*
+6. **Non-independent raters.** Shared priors masquerading as agreement.
+7. **Researcher degrees of freedom.** You chose the cases, junctures, or window. Specify the
+   selection rule or the result is unowned.
+8. **Parameters > observations.** 14 knobs, 10 data points. Not estimation — decoration.
+9. **The sycophancy loop.** A model asked to iterate an architecture will always produce a better
+   architecture. Each version is genuinely improved and exactly as far from working, because the
+   missing ingredient was never design. *Tell: the doc says "the next step is not more types,"
+   then ships more types.*
+10. **Declaring victory before resolution.** "It's correct" while the instrument is still running.
+    This is the substitution the whole protocol exists to prevent: treating the model's output as
+    the thing it was supposed to predict.
+
+---
+
+## 9. ONE-PAGE CHECKLIST
+
+```
+[ ] Pattern stated in one sentence, no metaphor
+[ ] Falsifier written down
+[ ] Baseline named and its forecast recorded
+[ ] Facts typed (observed/claimed/inferred/contradicted/missing)
+[ ] Juncture-eligibility rule specified BEFORE junctures selected
+[ ] Constraint menu fixed in advance
+[ ] Scale ordinal, not continuous
+[ ] Rater 1 locked + hashed
+[ ] Rater 2 is COLD (has not read the analysis)
+[ ] κ threshold set before scoring
+[ ] Predictions locked + hashed before outcome
+[ ] Divergence items identified (where framework != baseline)
+[ ] Rescue clauses banned in writing
+[ ] FREEZE in effect until resolution
+[ ] Verdict read straight, including when it says "nothing"
+```
+
+---
+
+## 10. WORKED REFERENCE — Piatt v. Collins (2026)
+
+What this instrument found when run on a real framework and a real record:
+
+- **Stage 1 passed with zero numbers.** The evidence map alone was immediately usable: a large
+  OBSERVED block under a thin CLAIMED layer carrying the entire opposing position.
+- **Stage 2 produced a real finding and a real warning.** The same two constraints dominated three
+  different actors across two forums — meaning the constraint was *positional, not personal*.
+  That finding cut **against** the user's own motive-based legal theory. The instrument was
+  supposed to be able to do that. That is why it is an instrument.
+- **The framework's weight sweep changed the recommendation 0% of the time.** The answer was
+  coming from an action-effect table the spec never defined and the analyst unconsciously wrote
+  to favor the conclusion he already held.
+- **18 of 23 declared primitives had no extraction rule.**
+- **Verdict at time of writing: pending.** Predictions locked 2026‑07‑15, resolution 2026‑09‑30.
+  Freeze in effect.
+
+The most useful output of the whole exercise was not the framework. It was learning which parts
+of it were load-bearing (the evidence typing, the option trace) and which were decoration
+(the scores, the geometry, the topology).
+
+---
+
+*v1.0 — plain text, no dependencies, no ontology. Test your own work first.*

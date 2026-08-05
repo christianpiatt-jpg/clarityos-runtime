@@ -1,0 +1,82 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    subgraph App["Mermaid Chart App Navigation System"]
+        direction TB
+
+        %% Top layer - Global Navigation
+        subgraph GlobalNav["Global Navigation (Top Bar + Hamburger Menu)"]
+            Hamburger["☰ Menu (Top-left)"]
+            TopBar["Top Bar"]
+            TopBar --> Invite["Invite Teammates"]
+            TopBar --> Upgrade["Upgrade to Enterprise"]
+            Hamburger --> Home["Homepage"]
+            Hamburger --> Docs["Docs"]
+            Hamburger --> Plugins["Plugins"]
+            Hamburger --> Settings["Settings"]
+            Hamburger --> Billing["Billing (Current Page)"]
+            Hamburger --> Feedback["Feedback"]
+            Hamburger --> Dark["Dark Mode Toggle"]
+            Hamburger --> Account["Account: christian.piatt@outlook.com (Premium)"]
+            Hamburger --> Signout["Sign Out"]
+        end
+
+        %% Left Sidebar - Workspace
+        subgraph Sidebar["Sidebar ('Your Space')"]
+            Dashboard["Dashboard"]
+            Personal["Personal"]
+            Shared["Shared with You"]
+            Favorites["Favorites ♥ (Placeholder)"]
+            OrgSection["Professional Mediations (Org Section)"]
+            CreateTeam["Create Team (+)"]
+            Referral["Earn $30 (Referral)"]
+            OrgLink["Org Link → /app/organization"]
+            AccountBtn["Account Button: Christian Piatt / Premium Plan"]
+
+            SidebarStart["Sidebar Root"]
+            SidebarStart --> Dashboard
+            SidebarStart --> Personal
+            SidebarStart --> Shared
+            SidebarStart --> Favorites
+            Favorites --> OrgSection
+            OrgSection --> CreateTeam
+            SidebarStart --> Referral
+            SidebarStart --> OrgLink
+            SidebarStart --> AccountBtn
+        end
+
+        %% Current Page - Billing Overview
+        subgraph BillingPage["Billing Page (Current View)"]
+            Banner["Admin Cancellation Warning Banner"]
+            Plans["Subscription Plans<br/>Basic · Plus · Premium (Current) · Enterprise"]
+            Stripe["Go to Stripe (External Billing Portal)"]
+            Cancel["Cancel Subscription"]
+            Toggle["Hide/Show Features List"]
+            Terms["Terms of Use"]
+        end
+
+        %% Flow connections between layers
+        Hamburger --> Sidebar
+        Billing --> BillingPage
+        Account --> Billing
+        AccountBtn --> BillingPage
+        BillingPage --> Stripe
+
+        %% Note relationship: navigation paths
+        Home --> Dashboard
+        Docs --> Settings
+        Plugins --> Settings
+        Settings --> Billing
+        Feedback --> Docs
+    end
+
+    %% Class styling for clarity
+    classDef nav fill:#eef2ff,stroke:#818cf8;
+    classDef page fill:#f0fdfa,stroke:#2dd4bf;
+    classDef action fill:#fff7ed,stroke:#fb923c;
+
+    class Hamburger,TopBar,Home,Docs,Plugins,Settings,Billing,Feedback,Dark,Account,Signout,Invite,Upgrade nav;
+    class BillingPage,Banner,Plans,Stripe,Cancel,Toggle,Terms page;
+    class CreateTeam,Referral,OrgLink,AccountBtn action;

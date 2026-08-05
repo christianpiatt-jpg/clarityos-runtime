@@ -1,0 +1,176 @@
+---
+config:
+  theme: base
+---
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#1a1a2e',
+      'primaryTextColor': '#fff',
+      'primaryBorderColor': '#e94560',
+      'lineColor': '#4ecca3',
+      'secondaryColor': '#16213e',
+      'tertiaryColor': '#0f3460'
+    }
+  }
+}%%
+
+graph TD
+    %% ============================================================
+    %% STYLE DEFINITIONS
+    %% ============================================================
+    classDef external fill:#1a1a2e,stroke:#e94560,stroke-width:3px,color:#fff;
+    classDef user fill:#fce7f3,stroke:#be185d,stroke-width:4px,color:#500724;
+    classDef internal fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#fff;
+    classDef governance fill:#1b1b2f,stroke:#e94560,stroke-width:2px,stroke-dasharray:8 4,color:#fff;
+    classDef integration fill:#ecfeff,stroke:#0891b2,stroke-width:3px,color:#164e63;
+    classDef phase fill:#fefce8,stroke:#ca8a04,stroke-width:2px,stroke-dasharray:6 3,color:#713f12;
+    classDef flow fill:#e2e3e5,stroke:#6c757d,stroke-width:1px,color:#383d41;
+
+    %% ============================================================
+    %% EXTERNAL UNIVERSE
+    %% ============================================================
+    subgraph External["🌍 EXTERNAL NESTED UNIVERSE (Reality)"]
+        direction TB
+        R1["Substrate<br>Ground Truth<br>The World"]:::external
+        R2["External Consequences<br>State Changes<br>Other Actors"]:::external
+        R3["Feedback Loops<br>Delayed Effects<br>Unintended Outcomes"]:::external
+    end
+
+    %% ============================================================
+    %% HUMAN–REALITY TELEMETER
+    %% ============================================================
+    subgraph Telemetry["🧑 HUMAN–REALITY TELEMETER (The User)"]
+        direction TB
+        U1["Expectation (E_t)<br>Prior Confidence<br>Frame"]:::user
+        U2["Action (A_t)<br>Decision<br>Intervention"]:::user
+        U3["Observed Result (Y_t)<br>Felt Gap<br>Posterior Confidence"]:::user
+        U4["What Changed<br>Verdict<br>Correction"]:::user
+    end
+
+    %% ============================================================
+    %% INTERNAL SYSTEM
+    %% ============================================================
+    subgraph Internal["🔮 INTERNAL NESTED DOLL (System)"]
+        direction LR
+
+        subgraph Cockpit["Layer 2 — Cockpit"]
+            C1["Input Surface<br>Captures Expectation"]:::internal
+            C2["Region Display<br>Forces · Leans · Reasons · Doubt"]:::internal
+            C3["Act Edge<br>Refine · Push · Accept · Pull Back"]:::internal
+            C4["Continuity<br>Envelope · Meter · Session"]:::internal
+        end
+
+        subgraph Kernel["Layer 3 — Kernel / Reasoning"]
+            K1["intelligence_kernel<br>run_thread_message"]:::internal
+            K2["engine_v1<br>project_forward · regress_to_origin<br>Current phase: leave as-is"]:::internal
+            K3["model_router<br>Providers + Mock"]:::internal
+            K4["threads_vault<br>Sequenced Turns"]:::internal
+        end
+
+        subgraph Governance["Layer 4 — Meta-Governance (Wrapper)"]
+            G1["Witness Discipline<br>COW‑1 · ET‑1 · HQ"]:::governance
+            G2["Reconciliation<br>Convergence · Gap Measurement"]:::governance
+            G3["Lane Separation<br>Role Assignment"]:::governance
+            G4["Drift Detection<br>Longitudinal Reconciliation"]:::governance
+            G5["Claim Routing<br>Truth‑Source Assignment"]:::governance
+        end
+    end
+
+    %% ============================================================
+    %% PRIMARY INTEGRATION ARTIFACT
+    %% ============================================================
+    subgraph Artifact["🗺️ PRIMARY INTEGRATION ARTIFACT"]
+        direction TB
+        V3["layer-map v3<br>Primary integration map"]:::integration
+        P2["Phase‑2 design review<br>Assess whether engine_v1 gains a real overlay role"]:::phase
+        H["Housekeeping decision<br>Consider engine_v1 deprecation only if no Phase‑2 overlay role exists"]:::phase
+    end
+
+    %% ============================================================
+    %% REALITY → USER
+    %% ============================================================
+    R1 -->|"Reality Acts<br>Consequences · Returns"| U3
+    R2 -->|"External Changes<br>New Information"| U1
+    R3 -->|"Delayed Effects<br>Second‑Order Outcomes"| U4
+
+    %% ============================================================
+    %% USER → SYSTEM
+    %% ============================================================
+    U1 -->|"Expectation & Frame"| C1
+    U2 -->|"Action Intent"| C3
+    U3 -->|"Observed Result"| C4
+    U4 -->|"Verdict · Correction"| G2
+    U4 -->|"What Changed"| K4
+
+    %% ============================================================
+    %% INSIDE SYSTEM
+    %% ============================================================
+    C1 -->|"Input to"| K1
+    C2 -->|"Display from"| K1
+    C3 -->|"Action via"| K4
+    C4 -->|"Continuity to"| K1
+
+    K1 -->|"Queries"| K3
+    K2 -->|"Current annotation layer"| C2
+    K4 -->|"Arc Store"| G4
+
+    G1 -->|"Enforces"| G2
+    G2 -->|"Feeds"| G4
+    G3 -->|"Routes"| G5
+    G5 -->|"Assigns Truth‑Source"| G1
+
+    %% ============================================================
+    %% SYSTEM → USER
+    %% ============================================================
+    C2 -->|"Region Display"| U1
+    C3 -->|"Act Options"| U2
+    K4 -->|"Continuity Update"| U4
+    G2 -->|"Reconciled Gap"| U3
+
+    %% ============================================================
+    %% USER → REALITY
+    %% ============================================================
+    U2 -->|"Act on World"| R1
+    U4 -->|"Updated Frame"| R2
+
+    %% ============================================================
+    %% LAYER-MAP V3 INTEGRATION
+    %% ============================================================
+    V3 -->|"Maps current layers and interfaces"| C1
+    V3 -->|"Maps current layers and interfaces"| K1
+    V3 -->|"Maps governance wrapper"| G1
+    V3 -->|"Records current engine placement"| K2
+
+    %% ============================================================
+    %% ENGINE_V1 PHASE POLICY
+    %% ============================================================
+    K2 -.->|"No current-phase change"| V3
+    V3 -.->|"Phase‑2 overlay assessment"| P2
+    P2 -.->|"If no real overlay role"| H
+    P2 -.->|"If a real overlay role emerges"| K2
+
+    %% ============================================================
+    %% CORRECTION ARROW
+    %% ============================================================
+    U4 -.->|"⚠️ CORRECTION ARROW<br>Reality → User → Cockpit → Kernel → Governance"| G1
+
+    %% ============================================================
+    %% LEGEND
+    %% ============================================================
+    subgraph Legend["Legend"]
+        L1[("🌍 External Universe")]:::external
+        L2[("🧑 Human–Reality Telemeter")]:::user
+        L3[("🔮 Internal Nested Doll")]:::internal
+        L4[("📐 Governance (Wrapper)")]:::governance
+        L5[("🗺️ Primary Artifact: layer-map v3")]:::integration
+        L6[("⏳ Phase‑2 / Housekeeping Decision")]:::phase
+        L7[("➡️ Correction Flow")]:::flow
+    end
+
+    %% ============================================================
+    %% ANNOTATION: THE SEAM
+    %% ============================================================
+    note1["📌 THE SEAM: The user is the portal where reality enters the internal doll.<br>Correction flows from reality through the user to the abstraction.<br>layer-map v3 is the primary integration map.<br>engine_v1 remains unchanged for the current phase."]:::integration
+    note1 -.- U1

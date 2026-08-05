@@ -1,0 +1,889 @@
+# 🌊 Universal Primitives Across Scale-Invariant Systems
+## From Neurons to Nations: Scheme-Indifferent Dynamics
+
+---
+
+## 🎯 Core Discovery
+
+**YES - There exist fundamental primitives that operate identically across:**
+- Viral social media cascades
+- Nation-state collapse
+- Institutional rise/decline
+- Individual psychological breakdown
+- Ecological regime shifts
+- Market crashes
+
+These are **scheme-indifferent**: they don't care about the substrate. Same physics, different medium.
+
+---
+
+## 🌀 THE UNIVERSAL PRIMITIVES
+
+### **Category 1: FLOW PRIMITIVES (Hydraulic/Laminar)**
+
+These describe how "stuff" (attention, trust, resources, legitimacy) moves through systems.
+
+---
+
+#### **1️⃣ PRESSURE GRADIENT (∇P)**
+
+**Physics:** Fluid flows from high pressure → low pressure
+**Universal form:** `Flow = -κ∇P` (Darcy's law, Fick's law, Ohm's law)
+
+| Domain | "Pressure" | "Flow" | Gradient Driver |
+|--------|-----------|--------|-----------------|
+| **Social Media** | Attention density | Viral spread | Content novelty differential |
+| **Nations** | Legitimacy density | Political power flow | Institutional trust gradient |
+| **Institutions** | Resource concentration | Capital/talent flow | Opportunity differential |
+| **Individual** | Emotional pressure | Stress response | Demand-capacity imbalance |
+| **Markets** | Price/value differential | Capital flows | Arbitrage opportunity |
+
+**Scheme-indifferent formulation:**
+```python
+def pressure_gradient_flow(state_vector, diffusion_matrix):
+    """
+    Universal flow equation
+    J = -D·∇Φ
+    
+    Where:
+    J = flux (flow rate)
+    D = diffusivity (ease of movement)
+    Φ = potential field (pressure, legitimacy, attention, etc.)
+    """
+    gradient = compute_gradient(state_vector)
+    flux = -diffusion_matrix @ gradient
+    return flux
+
+# SAME EQUATION for:
+# - Attention flowing to viral content
+# - Legitimacy draining from failing institutions  
+# - Trust evaporating from relationships
+# - Resources leaving declining nations
+```
+
+**Observable signatures:**
+- Flow always high→low potential
+- Concentration differences equilibrate over time
+- Barriers (censorship, borders, psychological defenses) slow but don't stop flow
+- Sudden barrier removal → flood (Berlin Wall, viral breakthrough, breakdown)
+
+---
+
+#### **2️⃣ REYNOLDS NUMBER (Re) - Laminar ↔ Turbulent Transition**
+
+**Physics:** `Re = (inertial forces) / (viscous forces)`
+- Re < 2300: Laminar flow (smooth, predictable)
+- Re > 4000: Turbulent flow (chaotic, unpredictable)
+
+**Universal form:** `Re = ρvL/μ`
+
+| Domain | Laminar (Low Re) | Turbulent (High Re) | Critical Transition |
+|--------|------------------|---------------------|---------------------|
+| **Social Media** | Steady growth, predictable trends | Viral chaos, flash mobs, cancellations | Algorithm change, platform shift |
+| **Nations** | Stable governance, rule of law | Revolution, civil war, state failure | Legitimacy crisis |
+| **Institutions** | Hierarchical control, procedures | Crisis management, restructuring | Leadership vacuum |
+| **Individual** | Regulated emotions, rational decisions | Emotional dysregulation, impulsivity | Nervous breakdown |
+| **Markets** | Steady trading, value investing | Flash crashes, bubbles, panics | Liquidity crisis |
+
+**Scheme-indifferent formulation:**
+```python
+def reynolds_number(flow_velocity, characteristic_scale, viscosity):
+    """
+    Universal turbulence predictor
+    
+    High velocity + large scale + low viscosity = TURBULENCE
+    """
+    Re = (flow_velocity * characteristic_scale) / viscosity
+    return Re
+
+def flow_regime(Re):
+    if Re < CRITICAL_LOW:
+        return "LAMINAR - Predictable, controllable"
+    elif Re > CRITICAL_HIGH:
+        return "TURBULENT - Chaotic, uncontrollable"  
+    else:
+        return "TRANSITIONAL - Bistable, hypersensitive"
+
+# SAME TRANSITION for:
+# - Social media going from slow growth → viral explosion
+# - Nations going from stability → revolution
+# - Minds going from calm → panic
+# - Markets going from trending → crashing
+```
+
+**Mapping to observables:**
+
+| Parameter | Social Media | Nations | Individuals | Institutions |
+|-----------|--------------|---------|-------------|--------------|
+| **Velocity (v)** | Sharing rate | Change rate | Mood swing rate | Decision velocity |
+| **Scale (L)** | Network size | Population | Identity complexity | Org size |
+| **Viscosity (μ)** | Platform friction | Legal/bureaucratic drag | Emotional regulation | Procedural overhead |
+
+**Critical insight:** Systems near critical Re are **maximally sensitive**. Same as Godhard critical zone.
+
+---
+
+#### **3️⃣ CONSERVATION LAWS (Continuity Equation)**
+
+**Physics:** `∂ρ/∂t + ∇·J = S` (mass/energy conserved)
+
+**Universal form:** What flows in must flow out (or accumulate)
+
+| Domain | Conserved Quantity | Accumulation = Crisis | Depletion = Crisis |
+|--------|-------------------|----------------------|-------------------|
+| **Social Media** | Attention (finite) | Information overload | Platform death |
+| **Nations** | Legitimacy (renewable but slow) | Revolutionary pressure | State collapse |
+| **Institutions** | Trust (hard to build, easy to lose) | Rigidity, sclerosis | Dissolution |
+| **Individual** | Psychological energy | Burnout | Depletion, depression |
+| **Markets** | Capital (flows but doesn't disappear) | Bubble | Crash |
+
+**Scheme-indifferent formulation:**
+```python
+def conservation_dynamics(rho, flux_in, flux_out, source_term):
+    """
+    Universal conservation law
+    
+    dρ/dt = J_in - J_out + S
+    
+    Where:
+    ρ = density of conserved quantity
+    J_in = inflow rate
+    J_out = outflow rate  
+    S = source/sink term (production/destruction)
+    """
+    d_rho_dt = flux_in - flux_out + source_term
+    
+    # Crisis detection
+    if rho < CRITICAL_LOW:
+        return "DEPLETION CRISIS"
+    elif rho > CRITICAL_HIGH:
+        return "ACCUMULATION CRISIS"
+    else:
+        return d_rho_dt
+
+# SAME EQUATION for:
+# - Attention accumulating on viral content (bubble)
+# - Legitimacy draining from government (collapse)
+# - Trust eroding in institution (dissolution)
+# - Energy depleting in person (burnout)
+```
+
+**Key observation:** **Sources are slow, sinks are fast** (hysteresis again!)
+- Building trust/legitimacy: slow
+- Destroying trust/legitimacy: fast
+- This asymmetry creates irreversibility
+
+---
+
+### **Category 2: EMOTIONAL/ENERGETIC PRIMITIVES**
+
+These describe the *internal state* of system components.
+
+---
+
+#### **4️⃣ TEMPERATURE (T) - Agitation Level**
+
+**Physics:** `T ∝ ⟨E_kinetic⟩` (average kinetic energy)
+
+**Universal form:** Measure of random fluctuation intensity
+
+| Domain | "Temperature" Observable | Low T | High T |
+|--------|-------------------------|-------|--------|
+| **Social Media** | Engagement volatility | Stable discourse | Outrage mobs, ratio'd, pile-ons |
+| **Nations** | Political volatility | Civil society, dialogue | Riots, protests, violence |
+| **Institutions** | Internal churn rate | Stable employment, culture | High turnover, constant crisis |
+| **Individual** | Emotional arousal | Calm, reflective | Agitated, reactive |
+| **Markets** | Volatility (VIX) | Low volatility regime | High volatility regime |
+
+**Scheme-indifferent formulation:**
+```python
+def system_temperature(state_time_series):
+    """
+    T = variance of fluctuations
+    
+    High temperature = high variance = unstable
+    """
+    # Compute variance of state variable
+    T = np.var(state_time_series)
+    
+    # Or: rate of change variance
+    T_alt = np.var(np.diff(state_time_series))
+    
+    return T
+
+# Temperature affects everything:
+# - Reaction rates (Arrhenius: k ∝ exp(-Ea/kT))
+# - Phase transitions (melting, boiling)
+# - Sensitivity to perturbations
+
+def effective_temperature_from_behavior(reaction_times, errors, volatility):
+    """
+    Infer temperature from observables
+    """
+    T = (
+        0.4 * volatility +  # Direct measure
+        0.3 * (1 / reaction_times) +  # Fast reactions = high T
+        0.3 * errors  # More errors = high T
+    )
+    return T
+```
+
+**Critical temperature effects:**
+
+1. **High T → High reactivity**
+   - Social media: Everything is a crisis
+   - Nations: Small incidents → riots
+   - Individuals: Overreact to minor stressors
+   - Markets: Flash crashes
+
+2. **High T → Low coherence**
+   - Random thermal motion destroys order
+   - Organizations lose coordination
+   - Societies fragment
+   - Individuals become inconsistent
+
+3. **Cooling takes time** (thermal inertia)
+   - Can't instantly calm a heated system
+   - After-effects persist
+
+---
+
+#### **5️⃣ ENTROPY (S) - Disorder Level**
+
+**Physics:** `S = k ln(Ω)` (number of microstates)
+
+**Universal form:** Measure of unpredictability/disorder
+
+| Domain | High Entropy (Disordered) | Low Entropy (Ordered) | Process |
+|--------|--------------------------|----------------------|---------|
+| **Social Media** | Information chaos, noise dominates signal | Coherent narratives, signal clear | Attention fragmentation |
+| **Nations** | Failed state, no monopoly on violence | Rule of law, clear authority | State capacity decay |
+| **Institutions** | Ad-hoc decisions, unclear roles | Clear procedures, hierarchies | Organizational entropy |
+| **Individual** | Scattered attention, no routine | Structured life, habits | Psychological entropy |
+| **Markets** | Maximum uncertainty pricing | Information-efficient pricing | Market microstructure |
+
+**Scheme-indifferent formulation:**
+```python
+def system_entropy(probability_distribution):
+    """
+    Shannon entropy: S = -Σ p_i log(p_i)
+    
+    High entropy = maximum uncertainty
+    Low entropy = predictable
+    """
+    p = probability_distribution
+    p = p[p > 0]  # Avoid log(0)
+    S = -np.sum(p * np.log(p))
+    return S
+
+def entropy_production_rate(state_trajectory):
+    """
+    dS/dt > 0 for irreversible processes (2nd law)
+    
+    Systems naturally increase entropy unless work is done
+    """
+    entropies = [system_entropy(state) for state in state_trajectory]
+    dS_dt = np.diff(entropies)
+    return dS_dt
+
+# Maintaining LOW entropy requires WORK (energy input)
+# - Social media: Moderation effort to maintain discourse quality
+# - Nations: State capacity to maintain order  
+# - Institutions: Management effort to maintain culture
+# - Individuals: Self-regulation to maintain routines
+```
+
+**2nd Law implications:**
+
+**Systems decay without maintenance** (entropy increases)
+- Social platforms → spam, bots, toxicity
+- Nations → corruption, fragmentation, warlordism
+- Institutions → mission drift, bureaucratic decay
+- Individuals → depression, nihilism, addiction
+
+**Order is expensive, disorder is free**
+
+---
+
+#### **6️⃣ FREE ENERGY (F) - Available Work Capacity**
+
+**Physics:** `F = E - TS` (Helmholtz) or `G = H - TS` (Gibbs)
+
+**Universal form:** Energy available to do useful work
+
+| Domain | "Free Energy" | Depleted State | High State |
+|--------|--------------|----------------|------------|
+| **Social Media** | Attention surplus | Everyone exhausted, disengaged | Fresh audience, engagement high |
+| **Nations** | State capacity | Failed state | Developmental state |
+| **Institutions** | Organizational slack | Brittle, no reserves | Resilient, can adapt |
+| **Individual** | Psychological reserves | Burned out | Energized, capable |
+| **Markets** | Market depth/liquidity | Illiquid, fragile | Deep, resilient |
+
+**Scheme-indifferent formulation:**
+```python
+def free_energy(total_energy, temperature, entropy):
+    """
+    F = E - TS
+    
+    Not all energy is usable - some is "locked up" in disorder
+    """
+    F = total_energy - temperature * entropy
+    return F
+
+def system_capacity(free_energy, baseline_demand):
+    """
+    Available capacity = free energy - baseline needs
+    
+    When F < baseline_demand → CRISIS
+    """
+    available = free_energy - baseline_demand
+    
+    if available < 0:
+        return "CRISIS - Operating below minimum"
+    elif available < 0.2 * baseline_demand:
+        return "FRAGILE - No margin"
+    else:
+        return "HEALTHY - Reserves available"
+
+# Crisis occurs when:
+# F < F_critical
+# 
+# This happens when:
+# - E decreases (energy depletion - burnout, resource exhaustion)
+# - T increases (disorder increases - chaos, volatility)
+# - S increases (entropy increases - fragmentation)
+```
+
+**Universal crisis pattern:**
+```
+F = E - TS
+
+As crisis approaches:
+1. E decreases (resources depleted)
+2. T increases (volatility rises)  
+3. S increases (disorder grows)
+
+All three push F toward zero → catastrophic transition
+```
+
+---
+
+### **Category 3: CRITICAL PHENOMENA (Phase Transitions)**
+
+These describe sudden, discontinuous changes.
+
+---
+
+#### **7️⃣ ORDER PARAMETER (φ) - Collective Coordination**
+
+**Physics:** Measure of system-wide order (e.g., magnetization)
+
+**Universal form:** Macroscopic variable that changes discontinuously at critical point
+
+| Domain | Order Parameter | Disordered (φ≈0) | Ordered (φ≈1) |
+|--------|----------------|------------------|---------------|
+| **Social Media** | Consensus/polarization | Diverse opinions | Echo chambers/hivemind |
+| **Nations** | Regime type | Anarchy/civil war | Authoritarianism or democracy |
+| **Institutions** | Cultural alignment | Fragmented culture | Unified culture |
+| **Individual** | Identity integration | Identity diffusion | Integrated self |
+| **Markets** | Price discovery | Dislocated pricing | Efficient markets |
+
+**Scheme-indifferent formulation:**
+```python
+def order_parameter(individual_states):
+    """
+    Kuramoto order parameter: φ = |⟨exp(iθ)⟩|
+    
+    φ = 0: Random (disorder)
+    φ = 1: Synchronized (order)
+    
+    UNIVERSAL across:
+    - Neurons firing
+    - Opinions converging
+    - Markets coordinating
+    - Institutions aligning
+    """
+    # Convert states to phases
+    phases = [state_to_phase(s) for s in individual_states]
+    
+    # Complex representation
+    z = np.mean([np.exp(1j * theta) for theta in phases])
+    phi = np.abs(z)  # Order parameter
+    
+    return phi
+
+def phase_transition_check(order_param, control_param):
+    """
+    At critical point, φ changes discontinuously
+    
+    This is TRUE for:
+    - Water freezing (liquid→solid)
+    - Magnets (paramagnetic→ferromagnetic)
+    - Opinions (diverse→polarized)
+    - Nations (democracy→dictatorship)
+    - Markets (efficient→panicked)
+    """
+    if control_param < CRITICAL_VALUE:
+        return 0.0  # Disordered phase
+    else:
+        return 1.0  # Ordered phase
+    
+    # Near critical point: MAXIMUM SENSITIVITY
+```
+
+**Universal critical point behavior:**
+
+1. **Diverging susceptibility:** χ → ∞
+   - Small perturbations → huge responses
+   - "Overreaction to everything"
+
+2. **Critical slowing down:** τ → ∞
+   - Recovery time increases
+   - "Can't bounce back from upsets"
+
+3. **Long-range correlations:** ξ → ∞
+   - Distant parts become correlated
+   - "Everything affects everything"
+
+**Same mathematical structure:**
+```
+Social media near viral threshold
+= Nations near revolution
+= Individuals near breakdown  
+= Markets near crash
+= Ecosystems near collapse
+
+ALL exhibit critical phenomena
+```
+
+---
+
+#### **8️⃣ HYSTERESIS (Path Dependence)**
+
+**Physics:** Output depends on history, not just current input
+
+**Universal form:** Different paths up vs down
+
+| Domain | Easy Direction | Hard Direction | Hysteresis Width |
+|--------|---------------|----------------|------------------|
+| **Social Media** | Going viral (explosive) | Losing attention (slow) | Large |
+| **Nations** | Losing legitimacy (fast) | Building legitimacy (slow) | Very large |
+| **Institutions** | Trust erosion (fast) | Trust building (slow) | Large |
+| **Individual** | Breakdown (sudden) | Recovery (gradual) | Large |
+| **Markets** | Crash (fast) | Recovery (slow) | Medium |
+
+**Scheme-indifferent formulation:**
+```python
+class HysteresisLoop:
+    """
+    Universal hysteresis model
+    
+    State depends on:
+    1. Current input
+    2. History (which branch you're on)
+    3. Path taken to get here
+    """
+    
+    def __init__(self):
+        self.upper_branch = self._upper_curve
+        self.lower_branch = self._lower_curve
+        self.current_branch = "lower"
+        self.history = []
+    
+    def response(self, input_value):
+        """
+        Same input → different output depending on history
+        """
+        if self.current_branch == "lower":
+            output = self.lower_branch(input_value)
+            
+            # Check if should jump to upper branch
+            if input_value > UPPER_THRESHOLD:
+                self.current_branch = "upper"
+                output = self.upper_branch(input_value)
+                self.history.append(("jump_up", input_value))
+        
+        else:  # upper branch
+            output = self.upper_branch(input_value)
+            
+            # Check if should jump to lower branch
+            if input_value < LOWER_THRESHOLD:
+                self.current_branch = "lower"
+                output = self.lower_branch(input_value)
+                self.history.append(("jump_down", input_value))
+        
+        return output
+    
+    def hysteresis_width(self):
+        """
+        How much further down must you go to recover?
+        
+        UPPER_THRESHOLD (where you break) ≠ LOWER_THRESHOLD (where you recover)
+        
+        Width = UPPER_THRESHOLD - LOWER_THRESHOLD
+        
+        Large width = hard to recover
+        """
+        return UPPER_THRESHOLD - LOWER_THRESHOLD
+
+# SAME HYSTERESIS PATTERN:
+# - Social: Easy to go viral, hard to fade
+# - Political: Easy to lose trust, hard to rebuild
+# - Personal: Easy to break down, hard to recover
+# - Markets: Easy to crash, hard to stabilize
+```
+
+**Universal hysteresis implications:**
+
+1. **Removal of cause ≠ removal of effect**
+   - Take away stressor → person still broken
+   - Remove corrupt leader → nation still dysfunctional
+   - Fix platform rules → culture still toxic
+
+2. **Overshooting required for recovery**
+   - Must go PAST original starting point
+   - "Return to normal" insufficient
+
+3. **History matters fundamentally**
+   - Two identical current states may have different futures
+   - Path shapes possibility space
+
+---
+
+#### **9️⃣ AVALANCHE/CASCADE DYNAMICS (Power Laws)**
+
+**Physics:** Self-organized criticality, scale-free behavior
+
+**Universal form:** `P(size) ∝ size^(-α)` (power law distribution)
+
+| Domain | Avalanche Type | Small Events | Large Events | Critical? |
+|--------|---------------|--------------|--------------|-----------|
+| **Social Media** | Viral cascades | Most posts→nobody | Few posts→millions | Yes |
+| **Nations** | Revolutions | Most protests→nothing | Few→regime change | Yes |
+| **Institutions** | Resignation cascades | Most stay | Few→exodus | Yes |
+| **Individual** | Breakdown cascades | Most stress→cope | Few→crisis | Yes |
+| **Markets** | Price cascades | Small moves | Flash crashes | Yes |
+
+**Scheme-indifferent formulation:**
+```python
+def cascade_dynamics(network, initial_failure, threshold_function):
+    """
+    Universal cascade model
+    
+    1. Node fails
+    2. Neighbors feel increased load
+    3. Some neighbors cross threshold → fail
+    4. Their neighbors feel increased load
+    5. CASCADE or CONTAINMENT
+    
+    SAME for:
+    - Viral spread
+    - Bank runs  
+    - Panic cascades
+    - Revolutions
+    - Ecosystem collapse
+    """
+    failed = {initial_failure}
+    active = {initial_failure}
+    
+    while active:
+        newly_failed = set()
+        
+        for node in active:
+            neighbors = network.neighbors(node)
+            
+            for neighbor in neighbors:
+                if neighbor in failed:
+                    continue
+                
+                # Compute increased load from failed neighbors
+                failed_neighbor_fraction = sum(
+                    1 for n in network.neighbors(neighbor)
+                    if n in failed
+                ) / network.degree(neighbor)
+                
+                # Check threshold
+                if failed_neighbor_fraction > threshold_function(neighbor):
+                    newly_failed.add(neighbor)
+        
+        if not newly_failed:
+            break  # Cascade stopped
+        
+        failed.update(newly_failed)
+        active = newly_failed
+    
+    return len(failed)  # Cascade size
+
+# Power law emerges when system is at critical point
+# P(cascade_size) ~ size^(-α)
+# 
+# Means: Many small cascades, few huge ones
+# NO characteristic scale (scale-free)
+```
+
+**Universal signatures of criticality:**
+
+1. **Power law distributions**
+   - Earthquake magnitudes (Gutenberg-Richter)
+   - Wealth distribution (Pareto)
+   - Social media reach (viral cascades)
+   - Revolution sizes (rare but huge)
+
+2. **Pink noise** (1/f spectrum)
+   - Long-range temporal correlations
+   - "Memory" in the system
+
+3. **Fractal structure**
+   - Self-similarity across scales
+   - "Zooming in looks like zooming out"
+
+**Critical state = maximally sensitive state**
+
+Same as Godhard fold!
+
+---
+
+### **Category 4: NETWORK/TOPOLOGY PRIMITIVES**
+
+These describe *structure* not just dynamics.
+
+---
+
+#### **🔟 PERCOLATION (Connectivity Threshold)**
+
+**Physics:** At critical density, giant connected component appears
+
+**Universal form:** `p_c = 1/⟨k⟩` (critical threshold)
+
+| Domain | Nodes | Edges | Percolation = | Below Threshold | Above Threshold |
+|--------|-------|-------|---------------|-----------------|-----------------|
+| **Social Media** | Users | Connections | Information spread | Contained | Viral possible |
+| **Nations** | Cities | Infrastructure | Coordination | Fragmented | Unified |
+| **Institutions** | People | Relationships | Capability | Siloed | Collaborative |
+| **Individual** | Mental states | Associations | Integration | Fragmented | Coherent |
+| **Disease** | People | Contacts | Epidemic | Endemic | Pandemic |
+
+**Scheme-indifferent formulation:**
+```python
+def percolation_threshold(network):
+    """
+    At critical connectivity, system-spanning cluster emerges
+    
+    DISCONTINUOUS transition:
+    p < p_c: Small isolated clusters
+    p > p_c: One giant component
+    
+    Same math for:
+    - Disease spreading
+    - Information cascading
+    - Coordination emerging
+    - Consciousness integrating
+    """
+    # Critical threshold for random network
+    avg_degree = np.mean([network.degree(n) for n in network.nodes()])
+    p_c = 1.0 / avg_degree
+    
+    # Current connectivity
+    p = network.number_of_edges() / (network.number_of_nodes() ** 2 / 2)
+    
+    if p < p_c:
+        return "SUBCRITICAL - No giant component"
+    else:
+        return "SUPERCRITICAL - Giant component exists"
+
+def giant_component_size(network):
+    """
+    Order parameter for percolation
+    
+    Size of largest connected component jumps at p_c
+    """
+    components = nx.connected_components(network)
+    sizes = [len(c) for c in components]
+    return max(sizes) / network.number_of_nodes()
+```
+
+**Percolation = phase transition in connectivity**
+
+Applications:
+- **Epidemic threshold:** Need R₀ > 1 for pandemic
+- **Viral threshold:** Need network density > p_c
+- **Revolution threshold:** Need coordination links > p_c
+- **Integration threshold:** Need neural connectivity > p_c
+
+**Same mathematics everywhere.**
+
+---
+
+## 🎨 THE MASTER FRAMEWORK
+
+### **Unified Scheme-Indifferent Equations**
+
+```python
+class UniversalDynamics:
+    """
+    Complete scheme-indifferent dynamics
+    
+    Applies to ANY system with:
+    - Multiple components
+    - Interactions
+    - Conserved/flowing quantities
+    - Critical transitions
+    """
+    
+    def __init__(self):
+        # Flow parameters
+        self.diffusion_matrix = None
+        self.viscosity = None
+        
+        # Thermodynamic parameters
+        self.temperature = None
+        self.entropy = None
+        
+        # Critical parameters
+        self.order_parameter = None
+        self.control_parameter = None
+        
+        # Network parameters
+        self.topology = None
+        self.connectivity = None
+    
+    def state_evolution(self, state, dt):
+        """
+        Master equation combining all primitives:
+        
+        dψ/dt = Flow + Thermodynamic + Critical + Network terms
+        """
+        # 1. FLOW (hydraulic)
+        flow_term = self.compute_pressure_gradient_flow(state)
+        
+        # 2. THERMODYNAMIC (energetic)
+        thermal_term = self.compute_thermal_fluctuations(state)
+        entropy_term = self.compute_entropy_production(state)
+        
+        # 3. CRITICAL (phase transitions)
+        critical_term = self.compute_critical_dynamics(state)
+        
+        # 4. NETWORK (topology)
+        network_term = self.compute_network_coupling(state)
+        
+        # Combined evolution
+        d_state = (
+            flow_term +
+            thermal_term +
+            entropy_term +
+            critical_term +
+            network_term
+        )
+        
+        return state + d_state * dt
+    
+    def detect_universal_signatures(self, time_series):
+        """
+        Detect regime from universal signatures
+        
+        ALL systems near catastrophe show:
+        1. Increasing variance
+        2. Increasing autocorrelation
+        3. Critical slowing down
+        4. Power law fluctuations
+        
+        These are SUBSTRATE-INDEPENDENT
+        """
+        signatures = {}
+        
+        # 1. Variance trend
+        window = 100
+        variances = [
+            np.var(time_series[i:i+window])
+            for i in range(len(time_series) - window)
+        ]
+        signatures['variance_trend'] = np.polyfit(range(len(variances)), variances, 1)[0]
+        
+        # 2. Autocorrelation at lag-1
+        signatures['autocorrelation'] = np.corrcoef(
+            time_series[:-1], time_series[1:]
+        )[0,1]
+        
+        # 3. Recovery rate (from perturbations)
+        # Fit: dx/dt = -λx
+        # λ → 0 means critical slowing down
+        perturbations = np.diff(time_series)
+        recovery_rates = -perturbations[:-1] / time_series[1:-1]
+        signatures['recovery_rate'] = np.mean(recovery_rates)
+        
+        # 4. Power spectrum (check for 1/f)
+        fft = np.fft.fft(time_series)
+        power_spectrum = np.abs(fft)**2
+        freq = np.fft.fftfreq(len(time_series))
+        
+        # Fit: P(f) ~ f^(-α)
+        log_power = np.log(power_spectrum[1:len(power_spectrum)//2])
+        log_freq = np.log(freq[1:len(freq)//2])
+        alpha = -np.polyfit(log_freq, log_power, 1)[0]
+        signatures['spectral_exponent'] = alpha
+        
+        # INTERPRET
+        if (signatures['variance_trend'] > 0.1 and
+            signatures['autocorrelation'] > 0.7 and
+            signatures['recovery_rate'] < 0.1 and
+            signatures['spectral_exponent'] > 0.5):
+            return "APPROACHING CRITICAL TRANSITION"
+        else:
+            return "STABLE REGIME"
+```
+
+---
+
+## 📊 COMPARATIVE TABLE: Viral Media | Nations | Institutions
+
+| Primitive | Viral Social Media | Nation Failure | Institution Decline |
+|-----------|-------------------|----------------|---------------------|
+| **Pressure Gradient** | Attention flows to novel content | Legitimacy drains from corrupt state | Talent/capital leaves declining org |
+| **Reynolds Number** | Low: Steady growth<br>High: Viral explosion | Low: Stable rule<br>High: Revolution | Low: Predictable operations<br>High: Crisis management |
+| **Conservation** | Attention (finite) | Legitimacy (slow to build) | Trust (hard to rebuild) |
+| **Temperature** | Low: Civil discourse<br>High: Outrage mobs | Low: Civil society<br>High: Violence | Low: Professional culture<br>High: Toxic workplace |
+| **Entropy** | Low: Coherent narrative<br>High: Information chaos | Low: Rule of law<br>High: Failed state | Low: Clear mission<br>High: Mission drift |
+| **Free Energy** | Engagement capacity | State capacity | Organizational slack |
+| **Order Parameter** | Consensus level | Regime stability | Cultural alignment |
+| **Hysteresis** | Easy to go viral<br>Hard to fade | Easy to lose trust<br>Hard to rebuild | Easy to lose culture<br>Hard to restore |
+| **Cascade** | Few posts → millions | Few protests → revolution | Few resignations → exodus |
+| **Percolation** | Connectivity enables viral spread | Infrastructure enables coordination | Relationships enable collaboration |
+
+**KEY INSIGHT:** Same equations. Different substrate. Universal dynamics.
+
+---
+
+## 🔬 EXTRACTING THE PURE MATHEMATICS
+
+### **The Minimal Set of Scheme-Indifferent Primitives**
+
+```python
+# ==================================
+# COMPLETE UNIVERSAL PRIMITIVE SET
+# ==================================
+
+# 1. STATE VECTOR (substrate-agnostic)
+ψ(t) = [ψ₁, ψ₂, ..., ψₙ]  # Could be neurons, people, nations, stocks
+
+# 2. POTENTIAL LANDSCAPE (determines equilibria)
+V(ψ, λ) where λ = control parameters
+
+# 3. FLOW DYNAMICS (moves through state space)
+dψ/dt = -∇V + D·∇²ψ + η(t)
+#       ↑      ↑        ↑
+#     Force  Diffusion  Noise
+
+# 4. THERMODYNAMIC STATE (internal energy)
+E = ⟨V(ψ)⟩  # Average potential
+T = ⟨(δψ)²⟩  # Variance (temperature)
+S = -Σ p(ψ) log p(ψ)  # Entropy
+
+# 5. ORDER PARAMETER (collective coordination)
+φ = |⟨ψ⟩|  # Magnitude of mean field
+
+# 6. CRITICAL POINT (catastrophic transition)
+∂²V/∂ψ² = 0  # Vanishing curvature
+λ = λ_c  # At critical control parameter
+
+# 7. NETWORK COUPLING (interaction topology)
+dψᵢ/dt = f(

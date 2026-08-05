@@ -1,0 +1,61 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    classDef stock fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px;
+    classDef flow fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px;
+    classDef failure fill:#ffebee,stroke:#b71c1c,stroke-width:2px,stroke-dasharray:5,5;
+    classDef audit fill:#fff8e1,stroke:#f57f17,stroke-width:2px;
+    classDef output fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+
+    subgraph Stocks [STOCKS - System State]
+        B["B: Unresolved Backlog<br/>(Vague charges, unresponded facts)"]:::stock
+        G["G: Grounded Common Ground<br/>(Admitted/Agreed facts)"]:::stock
+        I["I: Interpreter Independence<br/>(Distinctness of parties/raters)"]:::stock
+    end
+
+    subgraph Flows [FLOWS - Dynamics]
+        E["E: Incoming Exchanges<br/>(Reprimand, Affidavit, Filings)"]:::flow
+        r["r: Grounding Events<br/>(Attempts to resolve to criterion C)"]:::flow
+        a["⚡ a: AUDIT FLOW<br/>(Do Both Affidavit / Reeves / Safdi)<br/>Tests if G is real"]:::audit
+        c["c: Collapse Flow<br/>(Capitulation - adopting other's frame)"]:::flow
+    end
+
+    subgraph Modes [FAILURE MODES Without Audit]
+        M1["Mode 1: Adversarial<br/>B grows. Detectable."]:::failure
+        M2["Mode 2: Capitulation<br/>I drops to 0. κ rises.<br/>B appears drained. UNDETECTABLE."]:::failure
+        M3["Mode 3: Illusion<br/>I intact. G is false.<br/>B appears drained. UNDETECTABLE."]:::failure
+    end
+
+    subgraph AuditAction [THE DO BOTH AUDIT STRATEGY]
+        A1["Step 1: Lock Specificity (κ₁, κ₂)<br/>Section 1: EEO/MSPB facts"]:::audit
+        A2["Step 2: Insert Pretext (κ₃, κ₄)<br/>Section 3: Reeves Comparison"]:::audit
+        A3["Step 3: Verify Independence I<br/>Section 4: Safdi §552a(e)(2)<br/>She never asked you"]:::audit
+        A4["Step 4: Collide the Lanes<br/>Dual sweep of her timeline vs. Outlook<br/>Exposes Mode 3 Illusion"]:::audit
+    end
+
+    subgraph Output [AUDITED OUTCOME]
+        O1["κ-Vector Produced:<br/>[HIGH, MEDIUM, LOW, ZERO, ZERO]"]:::output
+        O2["P survive SJ = 0.91<br/>Genuine dispute on κ₂-κ₅<br/>Mode 2 & 3 exposed"]:::output
+        O3["Independence Preserved I > threshold<br/>No capitulation in record"]:::output
+    end
+
+    E --> B
+    B --> r
+    r --> G
+
+    r --> M1
+    r --> M2
+    r --> M3
+
+    M2 --> c
+    c --> I
+
+    M2 -.->|Undetected without a| a
+    M3 -.->|Undetected without a| a
+    a --> A1 --> A2 --> A3 --> A4
+
+    A4 -->|Collision detected: December 6 vs Outlook| O1
+    A4 -->|Reeves flips standard → pretext| O2
+    A4 -->|Safdi: she never asked → independence test| O3

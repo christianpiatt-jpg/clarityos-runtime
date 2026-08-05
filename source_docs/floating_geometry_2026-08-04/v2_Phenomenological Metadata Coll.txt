@@ -1,0 +1,836 @@
+# 📚 Phenomenological Metadata Collection & Dewey Integration System
+## Google Cloud Architecture for Universal System Dynamics
+
+---
+
+## 🎯 Executive Overview
+
+**System Purpose:** Capture, classify, and store universal system dynamics data using Dewey Decimal Classification as the organizing ontology, enabling cross-domain pattern recognition and phenomenological analysis.
+
+**Key Innovation:** Map computational primitives (Godhard curves, flow dynamics, catastrophe metrics) to Dewey categories, making patterns discoverable across disciplines.
+
+---
+
+## 📊 Dewey Decimal Mapping for System Dynamics
+
+### **Core Classification Schema**
+
+```python
+"""
+dewey_system_dynamics_ontology.py
+Maps universal primitives to Dewey Decimal Classification
+"""
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Set
+from datetime import datetime
+from enum import Enum
+
+class DeweyClass(Enum):
+    """
+    Dewey Decimal Classification adapted for system dynamics
+    
+    000-099: Computer science, information & general works
+    100-199: Philosophy & psychology (individual dynamics)
+    200-299: Religion (belief systems, collective meaning)
+    300-399: Social sciences (group dynamics, institutions)
+    400-499: Language (communication flows, semiotics)
+    500-599: Science (physical laws, natural systems)
+    600-699: Technology & applied sciences (interventions)
+    700-799: Arts & recreation (cultural dynamics)
+    800-899: Literature (narrative patterns)
+    900-999: History & geography (temporal-spatial patterns)
+    """
+    
+    # 000 - COMPUTATIONAL & INFORMATION SYSTEMS
+    INFORMATION_THEORY = "003.54"  # Information theory, entropy
+    SYSTEMS_THEORY = "003.7"  # Systems analysis
+    DATA_PROCESSING = "004"  # Computer systems
+    NETWORK_TOPOLOGY = "004.6"  # Network architecture
+    
+    # 100 - INDIVIDUAL PSYCHOLOGY & COGNITION
+    CONSCIOUSNESS = "126"  # Self and identity
+    EPISTEMOLOGY = "121"  # Knowledge and belief
+    EMOTIONS = "152.4"  # Emotional dynamics
+    COGNITION = "153"  # Mental processes
+    PERSONALITY = "155.2"  # Individual differences
+    DEVELOPMENTAL_PSYCH = "155.4"  # Life stages
+    ABNORMAL_PSYCH = "157"  # Pathology, breakdown
+    STRESS_PSYCHOLOGY = "155.9042"  # Stress responses
+    
+    # 200 - BELIEF SYSTEMS & COLLECTIVE MEANING
+    PHILOSOPHY_OF_RELIGION = "210"  # Meaning-making
+    MYTHOLOGY = "291.13"  # Collective narratives
+    SOCIAL_THEOLOGY = "261"  # Religion and society
+    
+    # 300 - SOCIAL SCIENCES & GROUP DYNAMICS
+    SOCIOLOGY_GENERAL = "301"  # Social dynamics
+    SOCIAL_INTERACTION = "302"  # Interpersonal dynamics
+    COMMUNITIES = "307"  # Community structure
+    POLITICAL_SCIENCE = "320"  # Governance systems
+    ECONOMICS = "330"  # Resource flows
+    PUBLIC_ADMINISTRATION = "351"  # Institutional management
+    SOCIAL_PROBLEMS = "362"  # Social pathology
+    ASSOCIATIONS = "369"  # Organizations
+    EDUCATION = "370"  # Learning systems
+    COMMERCE = "380"  # Trade and communication
+    
+    # 400 - LANGUAGE & COMMUNICATION
+    SEMANTICS = "401.43"  # Meaning systems
+    LINGUISTICS = "410"  # Language structure
+    COMMUNICATION = "302.2"  # Information exchange
+    
+    # 500 - NATURAL SCIENCES & PHYSICAL LAWS
+    MATHEMATICS = "510"  # Mathematical foundations
+    STATISTICS = "519.5"  # Statistical methods
+    PHYSICS = "530"  # Physical laws
+    THERMODYNAMICS = "536"  # Energy and entropy
+    FLUID_DYNAMICS = "532"  # Flow systems
+    CHEMISTRY = "540"  # Chemical reactions
+    EARTH_SCIENCES = "550"  # Planetary systems
+    BIOLOGY = "570"  # Living systems
+    ECOLOGY = "577"  # Ecosystem dynamics
+    NEUROSCIENCE = "612.8"  # Neural dynamics
+    
+    # 600 - APPLIED SCIENCES & INTERVENTIONS
+    MEDICINE = "610"  # Health interventions
+    PSYCHIATRY = "616.89"  # Mental health treatment
+    ENGINEERING = "620"  # System design
+    MANAGEMENT = "658"  # Organizational interventions
+    CHEMICAL_ENGINEERING = "660"  # Process control
+    
+    # 700 - ARTS & CULTURE
+    ARTS_GENERAL = "700"  # Aesthetic systems
+    MUSIC = "780"  # Rhythmic patterns
+    PERFORMING_ARTS = "790"  # Performance dynamics
+    
+    # 800 - LITERATURE & NARRATIVE
+    LITERATURE = "800"  # Story patterns
+    RHETORIC = "808"  # Persuasion dynamics
+    
+    # 900 - HISTORY & GEOGRAPHY
+    HISTORY_GENERAL = "900"  # Temporal patterns
+    GEOGRAPHY = "910"  # Spatial patterns
+    BIOGRAPHY = "920"  # Individual trajectories
+    ANCIENT_HISTORY = "930"  # Historical cycles
+    
+    def __init__(self, dewey_code: str):
+        self.code = dewey_code
+        self.major_class = int(dewey_code.split('.')[0]) // 100 * 100
+        self.division = int(dewey_code.split('.')[0]) // 10 * 10
+        self.section = int(dewey_code.split('.')[0])
+
+
+@dataclass
+class PhenomenologicalMetadata:
+    """
+    Metadata structure for system dynamics observations
+    Organized phenomenologically (as experienced/observed)
+    """
+    
+    # IDENTIFICATION
+    observation_id: str  # Unique identifier
+    timestamp: datetime
+    observer_id: Optional[str] = None  # Who/what observed
+    
+    # DEWEY CLASSIFICATION
+    primary_dewey: str = "003.7"  # Primary classification
+    secondary_dewey: List[str] = field(default_factory=list)  # Cross-references
+    
+    # PHENOMENOLOGICAL DESCRIPTORS
+    substrate_type: str = ""  # individual | team | organization | nation | platform
+    scale: str = ""  # micro | meso | macro | meta
+    temporal_scale: str = ""  # seconds | minutes | hours | days | weeks | months | years
+    
+    # SYSTEM IDENTIFICATION
+    system_id: str = ""  # Unique system identifier
+    system_name: str = ""  # Human-readable name
+    system_type: str = ""  # Type classification
+    
+    # OBSERVED PRIMITIVES (what was actually measured)
+    primitives_observed: Dict[str, float] = field(default_factory=dict)
+    # e.g., {"pressure": 8.5, "temperature": 7.2, "coherence": 0.3}
+    
+    # CONTEXTUAL INFORMATION
+    environmental_factors: Dict[str, str] = field(default_factory=dict)
+    historical_context: str = ""
+    
+    # CROSS-DOMAIN LINKAGES
+    analogous_systems: List[str] = field(default_factory=list)  # Similar patterns elsewhere
+    related_observations: List[str] = field(default_factory=list)  # Connected data
+    
+    # ANALYTICAL RESULTS
+    catastrophe_metrics: Dict[str, float] = field(default_factory=dict)
+    early_warnings: Dict[str, float] = field(default_factory=dict)
+    predictions: Dict[str, any] = field(default_factory=dict)
+    
+    # INTERVENTION TRACKING
+    interventions_applied: List[Dict] = field(default_factory=list)
+    intervention_outcomes: List[Dict] = field(default_factory=list)
+    
+    # NARRATIVE DESCRIPTION
+    phenomenological_description: str = ""  # How it was experienced
+    observer_notes: str = ""
+    
+    # VALIDATION
+    confidence_level: float = 0.5  # [0-1]
+    validation_status: str = "unvalidated"  # unvalidated | peer_reviewed | replicated
+    
+    # ETHICS & PRIVACY
+    anonymized: bool = True
+    consent_obtained: bool = False
+    sensitivity_level: str = "public"  # public | sensitive | confidential
+
+
+class DeweyMapper:
+    """
+    Maps system dynamics primitives to Dewey classifications
+    Enables cross-domain pattern discovery
+    """
+    
+    def __init__(self):
+        self.primitive_to_dewey = self._build_mapping()
+    
+    def _build_mapping(self) -> Dict[str, List[str]]:
+        """
+        Map each universal primitive to relevant Dewey categories
+        Multiple classifications enable cross-domain discovery
+        """
+        return {
+            # FLOW PRIMITIVES
+            "pressure_gradient": [
+                "532.051",  # Fluid dynamics (primary physical)
+                "152.4",    # Emotions (psychological pressure)
+                "302.12",   # Social pressure
+                "330.01",   # Economic pressure
+            ],
+            
+            "reynolds_number": [
+                "532.0527",  # Turbulent flow (primary)
+                "003.857",   # Chaos theory
+                "302.3",     # Social turbulence
+                "330.9",     # Economic cycles/crises
+            ],
+            
+            "conservation_law": [
+                "531.6",    # Energy conservation (primary)
+                "155.9042", # Psychological resources
+                "650.1",    # Personal resource management
+                "658.15",   # Financial management
+            ],
+            
+            # THERMODYNAMIC PRIMITIVES
+            "temperature": [
+                "536.5",    # Temperature (primary physical)
+                "152.4",    # Emotional arousal
+                "302.17",   # Social climate/tension
+                "658.3145", # Organizational climate
+            ],
+            
+            "entropy": [
+                "536.73",   # Statistical thermodynamics (primary)
+                "003.54",   # Information entropy
+                "302.23",   # Social disorganization
+                "658.402",  # Organizational disorder
+            ],
+            
+            "free_energy": [
+                "536.7",    # Thermodynamics (primary)
+                "153.15",   # Cognitive capacity
+                "658.3",    # Human resource capacity
+                "330.1",    # Economic capacity
+            ],
+            
+            # CATASTROPHE THEORY PRIMITIVES
+            "catastrophic_fold": [
+                "514.74",   # Catastrophe theory (primary)
+                "616.89",   # Mental breakdown
+                "302.545",  # Social collapse
+                "320.9",    # Political revolution
+                "330.9",    # Economic crash
+            ],
+            
+            "hysteresis": [
+                "538.3",    # Magnetic hysteresis (primary)
+                "153.12",   # Memory and learning
+                "302.14",   # Social path dependence
+                "658.4063", # Organizational change resistance
+            ],
+            
+            "order_parameter": [
+                "530.474",  # Phase transitions (primary)
+                "302.3",    # Social order
+                "658.4",    # Organizational structure
+                "320.011",  # Political order
+            ],
+            
+            "bistability": [
+                "003.75",   # Nonlinear systems (primary)
+                "155.2",    # Personality states
+                "302.12",   # Social dynamics
+                "320.01",   # Political regimes
+            ],
+            
+            # COHERENCE PRIMITIVES
+            "phase_coherence": [
+                "530.124",  # Quantum coherence (primary)
+                "152.3",    # Consciousness integration
+                "302.3",    # Social coordination
+                "658.4022", # Organizational alignment
+            ],
+            
+            "alignment": [
+                "521",      # Celestial mechanics (primary)
+                "158.2",    # Interpersonal alignment
+                "658.4012", # Strategic alignment
+                "320.011",  # Political consensus
+            ],
+            
+            # NETWORK PRIMITIVES
+            "cascade": [
+                "003.857",  # Complex systems (primary)
+                "302.3",    # Social contagion
+                "332.63",   # Financial cascades
+                "614.4",    # Epidemic spread
+            ],
+            
+            "percolation": [
+                "530.417",  # Percolation theory (primary)
+                "302.3",    # Social connectivity
+                "658.4038", # Information flow
+                "320.011",  # Political connectivity
+            ],
+            
+            "network_centrality": [
+                "511.5",    # Graph theory (primary)
+                "302.4",    # Social networks
+                "658.4038", # Organizational networks
+                "384.3",    # Communication networks
+            ],
+            
+            # COOPERATION PRIMITIVES
+            "cooperation_level": [
+                "519.3",    # Game theory (primary)
+                "158.2",    # Social psychology
+                "302.14",   # Cooperation
+                "658.4022", # Teamwork
+            ],
+            
+            "trust": [
+                "177.5",    # Trust (ethics) (primary)
+                "158.2",    # Interpersonal trust
+                "302.14",   # Social trust
+                "658.3145", # Organizational trust
+            ],
+            
+            # RESILIENCE PRIMITIVES
+            "resilience": [
+                "003.7",    # System resilience (primary)
+                "155.24",   # Psychological resilience
+                "577.27",   # Ecological resilience
+                "658.4013", # Organizational resilience
+            ],
+            
+            "margin": [
+                "620.1",    # Engineering safety factors (primary)
+                "155.9042", # Psychological margin
+                "658.15",   # Financial margin
+                "362.1",    # Social safety net
+            ],
+        }
+    
+    def classify_observation(
+        self,
+        observation_data: Dict[str, any]
+    ) -> PhenomenologicalMetadata:
+        """
+        Automatically classify an observation using Dewey system
+        """
+        metadata = PhenomenologicalMetadata(
+            observation_id=self._generate_observation_id(),
+            timestamp=datetime.now()
+        )
+        
+        # Determine substrate type
+        substrate = observation_data.get('substrate_type', 'unknown')
+        metadata.substrate_type = substrate
+        
+        # Determine primary Dewey classification based on substrate
+        primary_dewey_map = {
+            'individual': DeweyClass.STRESS_PSYCHOLOGY.value,
+            'relationship': DeweyClass.SOCIAL_INTERACTION.value,
+            'team': DeweyClass.ASSOCIATIONS.value,
+            'organization': DeweyClass.MANAGEMENT.value,
+            'institution': DeweyClass.PUBLIC_ADMINISTRATION.value,
+            'nation': DeweyClass.POLITICAL_SCIENCE.value,
+            'platform': DeweyClass.NETWORK_TOPOLOGY.value,
+            'market': DeweyClass.ECONOMICS.value,
+        }
+        
+        metadata.primary_dewey = primary_dewey_map.get(substrate, "003.7")
+        
+        # Add secondary classifications based on observed primitives
+        for primitive, value in observation_data.get('primitives', {}).items():
+            if primitive in self.primitive_to_dewey:
+                metadata.secondary_dewey.extend(
+                    self.primitive_to_dewey[primitive]
+                )
+        
+        # Remove duplicates, keep primary separate
+        metadata.secondary_dewey = list(set(metadata.secondary_dewey))
+        if metadata.primary_dewey in metadata.secondary_dewey:
+            metadata.secondary_dewey.remove(metadata.primary_dewey)
+        
+        # Populate primitive observations
+        metadata.primitives_observed = observation_data.get('primitives', {})
+        
+        # Add contextual information
+        metadata.system_id = observation_data.get('system_id', '')
+        metadata.system_name = observation_data.get('system_name', '')
+        metadata.scale = observation_data.get('scale', 'meso')
+        metadata.temporal_scale = observation_data.get('temporal_scale', 'days')
+        
+        return metadata
+    
+    def _generate_observation_id(self) -> str:
+        """Generate unique observation ID"""
+        from uuid import uuid4
+        return f"OBS-{datetime.now().strftime('%Y%m%d')}-{uuid4().hex[:8]}"
+    
+    def find_cross_domain_patterns(
+        self,
+        dewey_code: str,
+        observations: List[PhenomenologicalMetadata]
+    ) -> List[PhenomenologicalMetadata]:
+        """
+        Find patterns across different domains with same Dewey classification
+        
+        E.g., "catastrophic fold" appears in:
+        - 616.89 (mental breakdown)
+        - 330.9 (economic crash)
+        - 320.9 (revolution)
+        
+        Returns observations from all domains sharing this pattern
+        """
+        matching = []
+        
+        for obs in observations:
+            if (obs.primary_dewey.startswith(dewey_code) or
+                any(d.startswith(dewey_code) for d in obs.secondary_dewey)):
+                matching.append(obs)
+        
+        return matching
+```
+
+---
+
+## 🏗️ Google Cloud Architecture
+
+### **Complete Infrastructure Design**
+
+```python
+"""
+google_cloud_architecture.py
+Complete GCP infrastructure for phenomenological data collection
+"""
+
+from google.cloud import firestore, bigquery, storage, pubsub_v1
+from google.cloud import monitoring_v3
+from google.cloud import aiplatform
+import json
+from typing import Dict, List, Optional
+from datetime import datetime
+
+# ==============================================
+# 1. DATA INGESTION LAYER (Cloud Functions)
+# ==============================================
+
+class SystemDynamicsIngestion:
+    """
+    Cloud Function triggered by HTTP requests or Pub/Sub
+    Receives system dynamics data and begins processing pipeline
+    """
+    
+    def __init__(self):
+        self.firestore_client = firestore.Client()
+        self.pubsub_publisher = pubsub_v1.PublisherClient()
+        self.dewey_mapper = DeweyMapper()
+        
+        # Topic names
+        self.raw_topic = "projects/YOUR_PROJECT/topics/raw-observations"
+        self.classified_topic = "projects/YOUR_PROJECT/topics/classified-observations"
+        self.analysis_topic = "projects/YOUR_PROJECT/topics/analysis-requests"
+    
+    def ingest_observation(self, request_data: Dict) -> Dict:
+        """
+        Entry point for all observations
+        Triggered by: HTTP POST or Pub/Sub message
+        
+        Flow:
+        1. Validate and sanitize input
+        2. Generate metadata
+        3. Store in Firestore (real-time access)
+        4. Publish to Pub/Sub (async processing)
+        5. Return observation ID
+        """
+        
+        # 1. Validate
+        validated = self._validate_observation(request_data)
+        
+        # 2. Generate Dewey metadata
+        metadata = self.dewey_mapper.classify_observation(validated)
+        
+        # 3. Store in Firestore (document database for real-time queries)
+        doc_ref = self.firestore_client.collection('observations').document(
+            metadata.observation_id
+        )
+        
+        doc_data = self._metadata_to_dict(metadata)
+        doc_data['raw_data'] = validated
+        doc_data['ingestion_timestamp'] = firestore.SERVER_TIMESTAMP
+        
+        doc_ref.set(doc_data)
+        
+        # 4. Publish to Pub/Sub for async processing
+        message_data = json.dumps({
+            'observation_id': metadata.observation_id,
+            'primary_dewey': metadata.primary_dewey,
+            'substrate_type': metadata.substrate_type,
+            'timestamp': metadata.timestamp.isoformat()
+        }).encode('utf-8')
+        
+        self.pubsub_publisher.publish(self.classified_topic, message_data)
+        
+        # 5. Return confirmation
+        return {
+            'status': 'success',
+            'observation_id': metadata.observation_id,
+            'primary_classification': metadata.primary_dewey,
+            'secondary_classifications': metadata.secondary_dewey
+        }
+    
+    def _validate_observation(self, data: Dict) -> Dict:
+        """Validate and sanitize input data"""
+        required_fields = ['substrate_type', 'primitives']
+        
+        for field in required_fields:
+            if field not in data:
+                raise ValueError(f"Missing required field: {field}")
+        
+        # Sanitize: remove PII, validate ranges, etc.
+        # ... (implementation details)
+        
+        return data
+    
+    def _metadata_to_dict(self, metadata: PhenomenologicalMetadata) -> Dict:
+        """Convert metadata to Firestore-compatible dict"""
+        return {
+            'observation_id': metadata.observation_id,
+            'timestamp': metadata.timestamp,
+            'primary_dewey': metadata.primary_dewey,
+            'secondary_dewey': metadata.secondary_dewey,
+            'substrate_type': metadata.substrate_type,
+            'scale': metadata.scale,
+            'temporal_scale': metadata.temporal_scale,
+            'system_id': metadata.system_id,
+            'primitives_observed': metadata.primitives_observed,
+            'confidence_level': metadata.confidence_level,
+            'anonymized': metadata.anonymized
+        }
+
+
+# ==============================================
+# 2. ANALYSIS LAYER (Cloud Run / Cloud Functions)
+# ==============================================
+
+class SystemDynamicsAnalyzer:
+    """
+    Subscribes to classified observations
+    Runs universal dynamics analysis
+    Stores results in BigQuery for analytics
+    """
+    
+    def __init__(self):
+        self.bigquery_client = bigquery.Client()
+        self.firestore_client = firestore.Client()
+        self.storage_client = storage.Client()
+        
+        # BigQuery dataset and tables
+        self.dataset_id = "system_dynamics"
+        self.observations_table = "observations"
+        self.catastrophe_predictions_table = "catastrophe_predictions"
+        self.intervention_outcomes_table = "intervention_outcomes"
+        self.cross_domain_patterns_table = "cross_domain_patterns"
+    
+    def analyze_observation(self, observation_id: str):
+        """
+        Run complete analysis pipeline on observation
+        
+        1. Load data from Firestore
+        2. Run Godhard curve analysis
+        3. Compute early warning signals
+        4. Generate predictions
+        5. Store results in BigQuery
+        6. Update Firestore with analysis
+        """
+        
+        # 1. Load observation
+        doc_ref = self.firestore_client.collection('observations').document(observation_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise ValueError(f"Observation {observation_id} not found")
+        
+        data = doc.to_dict()
+        
+        # 2. Run analysis (using previous modules)
+        from individual_support_ml_extended import GodhardDynamicsEngine
+        from multi_agent_support_ml import CollectiveCatastrophePredictor
+        
+        engine = GodhardDynamicsEngine()
+        
+        # Create state from primitives
+        primitives = data['raw_data']['primitives']
+        state = self._primitives_to_state(primitives)
+        
+        # Run Godhard analysis
+        godhard_state, warnings = engine.evolve_with_godhard(
+            state,
+            ControlInput(),
+            dt=1.0
+        )
+        
+        # 3. Compute early warning signals
+        if 'historical_states' in data['raw_data']:
+            history = data['raw_data']['historical_states']
+            early_warnings = self._compute_early_warnings(history)
+        else:
+            early_warnings = {}
+        
+        # 4. Generate predictions
+        predictions = self._generate_predictions(godhard_state, early_warnings)
+        
+        # 5. Store in BigQuery (analytical database)
+        self._store_analysis_bigquery(observation_id, godhard_state, early_warnings, predictions)
+        
+        # 6. Update Firestore (real-time database)
+        doc_ref.update({
+            'analysis_completed': True,
+            'analysis_timestamp': firestore.SERVER_TIMESTAMP,
+            'catastrophe_metrics': {
+                'distance_to_fold': godhard_state.distance_to_fold,
+                'resilience': godhard_state.resilience,
+                'in_critical_zone': godhard_state.in_critical_zone
+            },
+            'early_warnings': early_warnings,
+            'predictions': predictions,
+            'warnings': warnings
+        })
+        
+        return {
+            'observation_id': observation_id,
+            'analysis_complete': True,
+            'warnings_count': len(warnings)
+        }
+    
+    def _store_analysis_bigquery(
+        self,
+        observation_id: str,
+        godhard_state,
+        early_warnings: Dict,
+        predictions: Dict
+    ):
+        """Store analysis results in BigQuery for long-term analytics"""
+        
+        # Prepare row for BigQuery
+        row = {
+            'observation_id': observation_id,
+            'timestamp': datetime.now().isoformat(),
+            'curve_position': float(godhard_state.curve_position),
+            'distance_to_fold': float(godhard_state.distance_to_fold),
+            'resilience': float(godhard_state.resilience),
+            'in_critical_zone': bool(godhard_state.in_critical_zone),
+            'sensitivity': float(godhard_state.sensitivity),
+            'on_upper_branch': bool(godhard_state.on_upper_branch),
+            
+            # Early warnings
+            'variance_trend': early_warnings.get('variance_trend', 0.0),
+            'autocorrelation': early_warnings.get('autocorrelation', 0.0),
+            'recovery_rate': early_warnings.get('recovery_rate', 0.0),
+            'warning_level': early_warnings.get('warning_level', 0.0),
+            
+            # Predictions
+            'predicted_catastrophe': predictions.get('catastrophe_predicted', False),
+            'time_to_catastrophe': predictions.get('time_to_catastrophe', None),
+            'confidence': predictions.get('confidence', 0.5)
+        }
+        
+        # Insert into BigQuery
+        table_ref = self.bigquery_client.dataset(self.dataset_id).table(
+            self.catastrophe_predictions_table
+        )
+        
+        errors = self.bigquery_client.insert_rows_json(table_ref, [row])
+        
+        if errors:
+            print(f"BigQuery insert errors: {errors}")
+    
+    def _primitives_to_state(self, primitives: Dict):
+        """Convert primitive observations to SystemState"""
+        # Implementation to create state object from primitives
+        pass
+    
+    def _compute_early_warnings(self, history: List) -> Dict:
+        """Compute early warning signals from historical data"""
+        # Implementation using LargeNumberTheory methods
+        pass
+    
+    def _generate_predictions(self, state, early_warnings: Dict) -> Dict:
+        """Generate catastrophe predictions"""
+        # Implementation using prediction models
+        pass
+
+
+# ==============================================
+# 3. DEWEY INDEXING LAYER
+# ==============================================
+
+class DeweyIndexingService:
+    """
+    Maintains Dewey Decimal index across all observations
+    Enables cross-domain pattern discovery
+    """
+    
+    def __init__(self):
+        self.firestore_client = firestore.Client()
+        self.bigquery_client = bigquery.Client()
+    
+    def index_by_dewey(self, observation_id: str, dewey_codes: List[str]):
+        """
+        Create bidirectional index:
+        - Observation → Dewey codes
+        - Dewey code → Observations
+        """
+        
+        # Store in dedicated Dewey index collection
+        for dewey_code in dewey_codes:
+            # Get or create Dewey code document
+            dewey_ref = self.firestore_client.collection('dewey_index').document(
+                dewey_code.replace('.', '_')  # Firestore-safe key
+            )
+            
+            # Use array union to add observation (avoids duplicates)
+            dewey_ref.set({
+                'dewey_code': dewey_code,
+                'observation_ids': firestore.ArrayUnion([observation_id]),
+                'last_updated': firestore.SERVER_TIMESTAMP,
+                'observation_count': firestore.Increment(1)
+            }, merge=True)
+    
+    def find_cross_domain_analogues(
+        self,
+        observation_id: str,
+        max_results: int = 10
+    ) -> List[Dict]:
+        """
+        Find analogous patterns in different domains
+        
+        E.g., if observing individual breakdown (Dewey 157),
+        also retrieve:
+        - Team dissolution (Dewey 302.3)
+        - Company bankruptcy (Dewey 330.9)
+        - Nation collapse (Dewey 320.9)
+        
+        All sharing "catastrophic fold" primitive
+        """
+        
+        # Get observation's Dewey codes
+        obs_ref = self.firestore_client.collection('observations').document(observation_id)
+        obs = obs_ref.get().to_dict()
+        
+        primary_dewey = obs['primary_dewey']
+        secondary_dewey = obs['secondary_dewey']
+        
+        analogues = []
+        
+        # For each Dewey code, find other observations
+        for dewey_code in secondary_dewey:
+            # Query Dewey index
+            dewey_ref = self.firestore_client.collection('dewey_index').document(
+                dewey_code.replace('.', '_')
+            )
+            
+            dewey_doc = dewey_ref.get()
+            
+            if dewey_doc.exists:
+                related_ids = dewey_doc.to_dict().get('observation_ids', [])
+                
+                # Retrieve those observations (exclude self)
+                for related_id in related_ids[:max_results]:
+                    if related_id != observation_id:
+                        related_ref = self.firestore_client.collection('observations').document(related_id)
+                        related = related_ref.get()
+                        
+                        if related.exists:
+                            related_data = related.to_dict()
+                            
+                            # Only include if different substrate (cross-domain)
+                            if related_data['substrate_type'] != obs['substrate_type']:
+                                analogues.append({
+                                    'observation_id': related_id,
+                                    'substrate_type': related_data['substrate_type'],
+                                    'shared_dewey': dewey_code,
+                                    'shared_primitive': self._dewey_to_primitive(dewey_code),
+                                    'similarity_score': self._compute_similarity(obs, related_data)
+                                })
+        
+        # Sort by similarity
+        analogues.sort(key=lambda x: x['similarity_score'], reverse=True)
+        
+        return analogues[:max_results]
+    
+    def _dewey_to_primitive(self, dewey_code: str) -> str:
+        """Map Dewey code back to primitive name"""
+        # Reverse lookup in DeweyMapper
+        mapper = DeweyMapper()
+        for primitive, codes in mapper.primitive_to_dewey.items():
+            if dewey_code in codes:
+                return primitive
+        return "unknown"
+    
+    def _compute_similarity(self, obs1: Dict, obs2: Dict) -> float:
+        """Compute similarity score between observations"""
+        # Compare primitives, compute cosine similarity or other metric
+        primitives1 = obs1.get('primitives_observed', {})
+        primitives2 = obs2.get('primitives_observed', {})
+        
+        # Simple Jaccard similarity on keys
+        keys1 = set(primitives1.keys())
+        keys2 = set(primitives2.keys())
+        
+        if not keys1 or not keys2:
+            return 0.0
+        
+        intersection = len(keys1 & keys2)
+        union = len(keys1 | keys2)
+        
+        return intersection / union if union > 0 else 0.0
+
+
+# ==============================================
+# 4. QUERY & RETRIEVAL LAYER
+# ==============================================
+
+class PhenomenologicalQueryService:
+    """
+    High-level query interface for retrieving observations
+    Supports queries by:
+    - Dewey classification
+    - Substrate type
+    - Primitive values
+    - Time range
+    - Cross-domain patterns
+    """
+    
+    def __init__(self):
+        self.firestore_client = firestore.

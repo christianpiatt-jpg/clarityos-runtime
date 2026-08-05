@@ -1,0 +1,40 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    subgraph Surfaces
+        VAULT["GET /vault/list"]
+        LIB["GET /library/list"]
+        TL["GET /timeline/list"]
+    end
+    subgraph Stores
+        VAULT_STORE["vault_store.list_for_user"]
+        LIB_STORE["library_store.list_for_user"]
+        TL_STORE["timeline_store.list_for_user"]
+    end
+    subgraph FirestoreCollections["Firestore Collections"]
+        VAULT_COLL[("vault<br/>(Firestore collection)")]
+        LIB_COLL[("library_user<br/>(Firestore collection)")]
+        TL_COLL[("timeline<br/>(Firestore collection)")]
+    end
+    subgraph CompositeIndexes["Composite Indexes"]
+        VAULT_IDX[("(user ASC, created_at DESC)<br/>Index")]
+        LIB_IDX[("(user ASC, created_at DESC)<br/>Index")]
+        TL_IDX[("(user ASC, created_at DESC)<br/>Index")]
+    end
+    VAULT -->|route| VAULT_STORE
+    LIB -->|route| LIB_STORE
+    TL -->|route| TL_STORE
+    VAULT_STORE -->|where user order_by created_at| VAULT_COLL
+    LIB_STORE -->|where user order_by created_at| LIB_COLL
+    TL_STORE -->|where user order_by created_at| TL_COLL
+    VAULT_COLL -->|index READY| VAULT_IDX
+    LIB_COLL -->|index MISSING| LIB_IDX
+    TL_COLL -->|index MISSING| TL_IDX
+    classDef surfaceStyle stroke:#38bdf8,fill:#f0f9ff
+    classDef storeStyle stroke:#a78bfa,fill:#f5f3ff
+    classDef datastoreStyle stroke:#4ade80,fill:#f0fdf4
+    class VAULT,LIB,TL surfaceStyle
+    class VAULT_STORE,LIB_STORE,TL_STORE storeStyle
+    class VAULT_COLL,LIB_COLL,TL_COLL,VAULT_IDX,LIB_IDX,TL_IDX datastoreStyle

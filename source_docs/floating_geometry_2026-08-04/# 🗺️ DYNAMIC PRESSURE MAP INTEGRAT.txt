@@ -1,0 +1,925 @@
+# 🗺️ DYNAMIC PRESSURE MAP INTEGRATION SYSTEM
+
+---
+
+# **OVERVIEW**
+
+This system creates an **interactive, time-series pressure mapping tool** that:
+
+1. **Compiles multi-source information** → unified pressure snapshot
+2. **Stores historical pressure maps** → temporal database
+3. **Ingests news/events** → updates current state
+4. **Tracks dynamic change** → computes derivatives
+5. **Maps specifics ↔ generalities** → hierarchical abstraction
+6. **Visualizes movement** → interactive interface
+
+---
+
+## **ARCHITECTURE**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  DATA INGESTION LAYER                   │
+│  • News feeds  • Social signals  • Market data          │
+│  • Manual inputs  • API sources                         │
+└────────────────────┬────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│              PRESSURE MAP COMPILER                      │
+│  • Extract entities  • Score pressure  • Timestamp      │
+└────────────────────┬────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│            TEMPORAL DATABASE (Time Series)              │
+│  • Historical snapshots  • Version control              │
+└────────────────────┬────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│           DERIVATIVE COMPUTATION ENGINE                 │
+│  • ∂P/∂t (pressure velocity)                           │
+│  • ∂²P/∂t² (acceleration)                              │
+│  • Trajectory prediction                                │
+└────────────────────┬────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│         ABSTRACTION HIERARCHY MAPPER                    │
+│  Specific ← Entity → Sector → Domain → Universal        │
+└────────────────────┬────────────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│          INTERACTIVE VISUALIZATION LAYER                │
+│  • 3D pressure field  • Time slider  • Drill-down       │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+# **PART I: DATA MODELS**
+
+```python
+"""
+pressure_map_models.py
+
+Core data structures for dynamic pressure mapping system.
+"""
+
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Set, Tuple
+from datetime import datetime, timedelta
+from enum import Enum
+import numpy as np
+from uuid import uuid4
+
+
+class PressureType(Enum):
+    """Types of pressure sources"""
+    ECONOMIC = "economic"
+    POLITICAL = "political"
+    SOCIAL = "social"
+    TECHNOLOGICAL = "technological"
+    REGULATORY = "regulatory"
+    COMPETITIVE = "competitive"
+    ENVIRONMENTAL = "environmental"
+    TEMPORAL = "temporal"  # Time-based pressure (deadlines, windows)
+
+
+class AbstractionLevel(Enum):
+    """Hierarchy of abstraction"""
+    SPECIFIC = 1      # Individual entity/event
+    ENTITY = 2        # Company, person, place
+    SECTOR = 3        # Industry, domain
+    DOMAIN = 4        # Broader category
+    UNIVERSAL = 5     # Abstract principle
+
+
+@dataclass
+class PressureVector:
+    """Single pressure measurement"""
+    id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    # Core metrics
+    magnitude: float  # 0-10 intensity
+    direction: str    # "increasing" | "decreasing" | "stable" | "oscillating"
+    velocity: float   # Rate of change (computed from history)
+    acceleration: float  # Rate of velocity change
+    
+    # Classification
+    type: PressureType
+    source: str       # What's causing the pressure
+    target: str       # What's being pressured
+    
+    # Context
+    evidence: List[str] = field(default_factory=list)
+    metadata: Dict[str, any] = field(default_factory=dict)
+
+
+@dataclass
+class AbstractionNode:
+    """Node in abstraction hierarchy"""
+    id: str = field(default_factory=lambda: str(uuid4()))
+    name: str
+    level: AbstractionLevel
+    
+    # Relationships
+    parent: Optional[str] = None  # ID of parent node (more general)
+    children: List[str] = field(default_factory=list)  # IDs of children (more specific)
+    
+    # Aggregated pressure
+    pressures: List[PressureVector] = field(default_factory=list)
+    aggregated_magnitude: float = 0.0
+    
+    # Metadata
+    description: str = ""
+    tags: List[str] = field(default_factory=list)
+
+
+@dataclass
+class PressureMap:
+    """Complete pressure state at a point in time"""
+    id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
+    version: int = 1
+    
+    # Pressure data
+    vectors: List[PressureVector] = field(default_factory=list)
+    nodes: Dict[str, AbstractionNode] = field(default_factory=dict)  # id → node
+    
+    # Metadata
+    title: str = ""
+    description: str = ""
+    sources: List[str] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
+    
+    # Computed fields
+    global_pressure: float = 0.0
+    hotspots: List[str] = field(default_factory=list)  # Node IDs with highest pressure
+    
+    def compute_global_pressure(self) -> float:
+        """Aggregate all pressure vectors"""
+        if not self.vectors:
+            return 0.0
+        magnitudes = [v.magnitude for v in self.vectors]
+        self.global_pressure = np.mean(magnitudes)
+        return self.global_pressure
+    
+    def identify_hotspots(self, threshold: float = 7.0, limit: int = 10) -> List[str]:
+        """Find nodes with highest pressure"""
+        hotspots = [
+            (node_id, node.aggregated_magnitude)
+            for node_id, node in self.nodes.items()
+            if node.aggregated_magnitude >= threshold
+        ]
+        hotspots.sort(key=lambda x: x[1], reverse=True)
+        self.hotspots = [node_id for node_id, _ in hotspots[:limit]]
+        return self.hotspots
+
+
+@dataclass
+class PressureDerivative:
+    """Change in pressure over time"""
+    node_id: str
+    node_name: str
+    
+    # Time span
+    start_time: datetime
+    end_time: datetime
+    duration: timedelta
+    
+    # First derivative (velocity)
+    delta_pressure: float  # Change in magnitude
+    velocity: float        # ΔP/Δt
+    
+    # Second derivative (acceleration)
+    delta_velocity: float
+    acceleration: float    # Δ²P/Δt²
+    
+    # Classification
+    trend: str  # "accelerating_increase" | "decelerating_increase" | "accelerating_decrease" | etc.
+    
+    # Prediction
+    predicted_pressure_next: float  # Linear extrapolation
+    confidence: float
+
+
+@dataclass
+class NewsEvent:
+    """News item that affects pressure"""
+    id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    # Content
+    headline: str
+    content: str
+    source: str
+    url: Optional[str] = None
+    
+    # Extracted entities
+    entities: List[str] = field(default_factory=list)
+    pressure_types: List[PressureType] = field(default_factory=list)
+    
+    # Impact assessment
+    estimated_pressure_delta: float = 0.0
+    affected_nodes: List[str] = field(default_factory=list)
+```
+
+---
+
+# **PART II: DATA INGESTION & COMPILATION**
+
+```python
+"""
+pressure_compiler.py
+
+Compiles information from multiple sources into unified pressure map.
+"""
+
+from typing import List, Dict, Optional, Tuple
+from datetime import datetime
+import re
+from collections import defaultdict
+
+from pressure_map_models import (
+    PressureMap, PressureVector, AbstractionNode, NewsEvent,
+    PressureType, AbstractionLevel
+)
+
+
+class PressureMapCompiler:
+    """
+    📊 PRESSURE MAP COMPILER
+    
+    Ingests raw information and compiles into structured pressure map.
+    """
+    
+    def __init__(self):
+        self.current_map: Optional[PressureMap] = None
+        self.entity_extractor = EntityExtractor()
+        self.pressure_scorer = PressureScorer()
+    
+    def compile_from_sources(
+        self,
+        news_events: List[NewsEvent] = None,
+        manual_inputs: List[Dict] = None,
+        market_data: Dict = None,
+        timestamp: Optional[datetime] = None
+    ) -> PressureMap:
+        """
+        Compile pressure map from multiple sources.
+        
+        Args:
+            news_events: Recent news items
+            manual_inputs: User-provided pressure observations
+            market_data: Market signals (prices, volatility, etc.)
+            timestamp: When this map represents (default: now)
+        """
+        if timestamp is None:
+            timestamp = datetime.now()
+        
+        pressure_map = PressureMap(
+            timestamp=timestamp,
+            title=f"Pressure Map - {timestamp.strftime('%Y-%m-%d %H:%M')}"
+        )
+        
+        # Process news events
+        if news_events:
+            news_vectors = self._process_news_events(news_events)
+            pressure_map.vectors.extend(news_vectors)
+            pressure_map.sources.append(f"{len(news_events)} news events")
+        
+        # Process manual inputs
+        if manual_inputs:
+            manual_vectors = self._process_manual_inputs(manual_inputs)
+            pressure_map.vectors.extend(manual_vectors)
+            pressure_map.sources.append(f"{len(manual_inputs)} manual observations")
+        
+        # Process market data
+        if market_data:
+            market_vectors = self._process_market_data(market_data)
+            pressure_map.vectors.extend(market_vectors)
+            pressure_map.sources.append("Market data")
+        
+        # Build abstraction hierarchy
+        pressure_map.nodes = self._build_abstraction_hierarchy(pressure_map.vectors)
+        
+        # Compute aggregates
+        pressure_map.compute_global_pressure()
+        pressure_map.identify_hotspots()
+        
+        self.current_map = pressure_map
+        return pressure_map
+    
+    def _process_news_events(self, events: List[NewsEvent]) -> List[PressureVector]:
+        """Extract pressure vectors from news"""
+        vectors = []
+        
+        for event in events:
+            # Extract entities and pressure types
+            entities = self.entity_extractor.extract_entities(event.content)
+            pressure_types = self.pressure_scorer.identify_pressure_types(event.content)
+            
+            # Create vector for each entity-pressure combination
+            for entity in entities:
+                for ptype in pressure_types:
+                    magnitude = self.pressure_scorer.score_pressure(
+                        event.content,
+                        entity,
+                        ptype
+                    )
+                    
+                    vector = PressureVector(
+                        timestamp=event.timestamp,
+                        magnitude=magnitude,
+                        direction="increasing",  # Assumption for new news
+                        velocity=0.0,  # Will compute from history
+                        acceleration=0.0,
+                        type=ptype,
+                        source=event.headline,
+                        target=entity,
+                        evidence=[event.headline, event.url or ""],
+                        metadata={"event_id": event.id}
+                    )
+                    vectors.append(vector)
+        
+        return vectors
+    
+    def _process_manual_inputs(self, inputs: List[Dict]) -> List[PressureVector]:
+        """Process user-provided observations"""
+        vectors = []
+        
+        for inp in inputs:
+            vector = PressureVector(
+                magnitude=inp.get("magnitude", 5.0),
+                direction=inp.get("direction", "stable"),
+                velocity=0.0,
+                acceleration=0.0,
+                type=PressureType(inp.get("type", "economic")),
+                source=inp.get("source", "Manual input"),
+                target=inp.get("target", "Unknown"),
+                evidence=inp.get("evidence", []),
+                metadata={"manual": True}
+            )
+            vectors.append(vector)
+        
+        return vectors
+    
+    def _process_market_data(self, data: Dict) -> List[PressureVector]:
+        """Extract pressure from market signals"""
+        vectors = []
+        
+        # Example: volatility → pressure
+        if "volatility" in data:
+            vol = data["volatility"]
+            magnitude = min(10, vol * 10)  # Scale to 0-10
+            
+            vector = PressureVector(
+                magnitude=magnitude,
+                direction="increasing" if vol > 0.5 else "stable",
+                velocity=0.0,
+                acceleration=0.0,
+                type=PressureType.ECONOMIC,
+                source="Market volatility",
+                target=data.get("symbol", "Market"),
+                evidence=[f"Volatility: {vol:.2%}"],
+                metadata=data
+            )
+            vectors.append(vector)
+        
+        return vectors
+    
+    def _build_abstraction_hierarchy(
+        self,
+        vectors: List[PressureVector]
+    ) -> Dict[str, AbstractionNode]:
+        """
+        Build hierarchy: Specific → Entity → Sector → Domain → Universal
+        """
+        nodes = {}
+        
+        # Extract unique targets (entities)
+        targets = set(v.target for v in vectors)
+        
+        for target in targets:
+            # Create entity node (level 2)
+            entity_node = AbstractionNode(
+                name=target,
+                level=AbstractionLevel.ENTITY,
+                description=f"Entity: {target}"
+            )
+            
+            # Attach relevant vectors
+            entity_node.pressures = [v for v in vectors if v.target == target]
+            entity_node.aggregated_magnitude = np.mean([
+                v.magnitude for v in entity_node.pressures
+            ]) if entity_node.pressures else 0.0
+            
+            nodes[entity_node.id] = entity_node
+            
+            # Infer sector (level 3)
+            sector = self._infer_sector(target)
+            sector_id = f"sector_{sector}"
+            
+            if sector_id not in nodes:
+                sector_node = AbstractionNode(
+                    name=sector,
+                    level=AbstractionLevel.SECTOR,
+                    description=f"Sector: {sector}"
+                )
+                nodes[sector_id] = sector_node
+            
+            # Link entity → sector
+            entity_node.parent = sector_id
+            nodes[sector_id].children.append(entity_node.id)
+            
+            # Infer domain (level 4)
+            domain = self._infer_domain(sector)
+            domain_id = f"domain_{domain}"
+            
+            if domain_id not in nodes:
+                domain_node = AbstractionNode(
+                    name=domain,
+                    level=AbstractionLevel.DOMAIN,
+                    description=f"Domain: {domain}"
+                )
+                nodes[domain_id] = domain_node
+            
+            # Link sector → domain
+            nodes[sector_id].parent = domain_id
+            nodes[domain_id].children.append(sector_id)
+        
+        # Aggregate pressure up the hierarchy
+        self._aggregate_pressure_upward(nodes)
+        
+        return nodes
+    
+    def _infer_sector(self, entity: str) -> str:
+        """Infer sector from entity name (placeholder logic)"""
+        # In production, use NLP/knowledge base
+        entity_lower = entity.lower()
+        
+        if any(kw in entity_lower for kw in ["tech", "software", "ai", "cloud"]):
+            return "Technology"
+        elif any(kw in entity_lower for kw in ["bank", "finance", "capital"]):
+            return "Finance"
+        elif any(kw in entity_lower for kw in ["energy", "oil", "gas"]):
+            return "Energy"
+        elif any(kw in entity_lower for kw in ["health", "pharma", "bio"]):
+            return "Healthcare"
+        else:
+            return "General"
+    
+    def _infer_domain(self, sector: str) -> str:
+        """Infer domain from sector"""
+        sector_to_domain = {
+            "Technology": "Innovation",
+            "Finance": "Capital",
+            "Energy": "Resources",
+            "Healthcare": "Human Welfare",
+            "General": "Economy"
+        }
+        return sector_to_domain.get(sector, "Unknown")
+    
+    def _aggregate_pressure_upward(self, nodes: Dict[str, AbstractionNode]):
+        """Propagate pressure from children to parents"""
+        # Process in reverse level order (specific → general)
+        levels = sorted(
+            set(node.level.value for node in nodes.values()),
+            reverse=True
+        )
+        
+        for level_val in levels:
+            level_nodes = [n for n in nodes.values() if n.level.value == level_val]
+            
+            for node in level_nodes:
+                if node.children:
+                    # Aggregate from children
+                    child_magnitudes = [
+                        nodes[child_id].aggregated_magnitude
+                        for child_id in node.children
+                        if child_id in nodes
+                    ]
+                    if child_magnitudes:
+                        node.aggregated_magnitude = np.mean(child_magnitudes)
+
+
+class EntityExtractor:
+    """Extract named entities from text"""
+    
+    def extract_entities(self, text: str) -> List[str]:
+        """Simple regex-based entity extraction (replace with NLP in production)"""
+        # Placeholder: extract capitalized words/phrases
+        pattern = r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b'
+        entities = re.findall(pattern, text)
+        return list(set(entities))
+
+
+class PressureScorer:
+    """Score pressure magnitude from text"""
+    
+    def identify_pressure_types(self, text: str) -> List[PressureType]:
+        """Identify which pressure types are mentioned"""
+        text_lower = text.lower()
+        types = []
+        
+        keywords = {
+            PressureType.ECONOMIC: ["economic", "financial", "revenue", "cost", "market"],
+            PressureType.POLITICAL: ["political", "government", "policy", "regulation", "law"],
+            PressureType.SOCIAL: ["social", "public", "protest", "movement", "sentiment"],
+            PressureType.TECHNOLOGICAL: ["technology", "innovation", "disruption", "digital"],
+            PressureType.REGULATORY: ["regulatory", "compliance", "legal", "oversight"],
+            PressureType.COMPETITIVE: ["competitive", "competitor", "rivalry", "market share"],
+            PressureType.ENVIRONMENTAL: ["environmental", "climate", "sustainability", "green"],
+            PressureType.TEMPORAL: ["deadline", "urgent", "window", "timing", "expiring"]
+        }
+        
+        for ptype, keywords_list in keywords.items():
+            if any(kw in text_lower for kw in keywords_list):
+                types.append(ptype)
+        
+        return types if types else [PressureType.ECONOMIC]  # Default
+    
+    def score_pressure(self, text: str, entity: str, ptype: PressureType) -> float:
+        """Score pressure magnitude 0-10"""
+        text_lower = text.lower()
+        
+        # Intensity keywords
+        high_intensity = ["crisis", "collapse", "surge", "soar", "plummet", "emergency"]
+        medium_intensity = ["increase", "rise", "concern", "challenge", "pressure"]
+        low_intensity = ["slight", "minor", "moderate", "gradual"]
+        
+        if any(kw in text_lower for kw in high_intensity):
+            base_score = 8.0
+        elif any(kw in text_lower for kw in medium_intensity):
+            base_score = 5.0
+        elif any(kw in text_lower for kw in low_intensity):
+            base_score = 3.0
+        else:
+            base_score = 5.0  # Neutral
+        
+        # Adjust based on entity mention frequency
+        entity_mentions = text_lower.count(entity.lower())
+        adjustment = min(2.0, entity_mentions * 0.5)
+        
+        score = min(10.0, base_score + adjustment)
+        return round(score, 1)
+```
+
+---
+
+# **PART III: TEMPORAL DATABASE & HISTORY**
+
+```python
+"""
+pressure_database.py
+
+Time-series storage and retrieval for pressure maps.
+"""
+
+from typing import List, Dict, Optional
+from datetime import datetime, timedelta
+import json
+import sqlite3
+from pathlib import Path
+
+from pressure_map_models import PressureMap, PressureVector, AbstractionNode
+
+
+class PressureMapDatabase:
+    """
+    🗄️ TEMPORAL DATABASE
+    
+    Stores historical pressure maps with version control.
+    """
+    
+    def __init__(self, db_path: str = "pressure_maps.db"):
+        self.db_path = db_path
+        self.conn = sqlite3.connect(db_path)
+        self._initialize_schema()
+    
+    def _initialize_schema(self):
+        """Create database tables"""
+        cursor = self.conn.cursor()
+        
+        # Maps table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS maps (
+                id TEXT PRIMARY KEY,
+                timestamp TEXT NOT NULL,
+                version INTEGER,
+                title TEXT,
+                description TEXT,
+                global_pressure REAL,
+                data_json TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Vectors table (for efficient querying)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS vectors (
+                id TEXT PRIMARY KEY,
+                map_id TEXT,
+                timestamp TEXT,
+                magnitude REAL,
+                direction TEXT,
+                velocity REAL,
+                acceleration REAL,
+                type TEXT,
+                source TEXT,
+                target TEXT,
+                FOREIGN KEY (map_id) REFERENCES maps(id)
+            )
+        """)
+        
+        # Nodes table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS nodes (
+                id TEXT PRIMARY KEY,
+                map_id TEXT,
+                name TEXT,
+                level INTEGER,
+                aggregated_magnitude REAL,
+                parent_id TEXT,
+                FOREIGN KEY (map_id) REFERENCES maps(id)
+            )
+        """)
+        
+        # Create indexes
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_maps_timestamp ON maps(timestamp)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_vectors_target ON vectors(target)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_nodes_name ON nodes(name)")
+        
+        self.conn.commit()
+    
+    def save_map(self, pressure_map: PressureMap) -> str:
+        """Save pressure map to database"""
+        cursor = self.conn.cursor()
+        
+        # Serialize full map as JSON
+        map_json = json.dumps(self._map_to_dict(pressure_map))
+        
+        # Insert map record
+        cursor.execute("""
+            INSERT INTO maps (id, timestamp, version, title, description, global_pressure, data_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            pressure_map.id,
+            pressure_map.timestamp.isoformat(),
+            pressure_map.version,
+            pressure_map.title,
+            pressure_map.description,
+            pressure_map.global_pressure,
+            map_json
+        ))
+        
+        # Insert vectors
+        for vector in pressure_map.vectors:
+            cursor.execute("""
+                INSERT INTO vectors (id, map_id, timestamp, magnitude, direction, velocity, 
+                                    acceleration, type, source, target)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                vector.id,
+                pressure_map.id,
+                vector.timestamp.isoformat(),
+                vector.magnitude,
+                vector.direction,
+                vector.velocity,
+                vector.acceleration,
+                vector.type.value,
+                vector.source,
+                vector.target
+            ))
+        
+        # Insert nodes
+        for node in pressure_map.nodes.values():
+            cursor.execute("""
+                INSERT INTO nodes (id, map_id, name, level, aggregated_magnitude, parent_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                node.id,
+                pressure_map.id,
+                node.name,
+                node.level.value,
+                node.aggregated_magnitude,
+                node.parent
+            ))
+        
+        self.conn.commit()
+        return pressure_map.id
+    
+    def load_map(self, map_id: str) -> Optional[PressureMap]:
+        """Load pressure map by ID"""
+        cursor = self.conn.cursor()
+        
+        cursor.execute("SELECT data_json FROM maps WHERE id = ?", (map_id,))
+        row = cursor.fetchone()
+        
+        if not row:
+            return None
+        
+        map_dict = json.loads(row[0])
+        return self._dict_to_map(map_dict)
+    
+    def get_maps_in_range(
+        self,
+        start_time: datetime,
+        end_time: datetime
+    ) -> List[PressureMap]:
+        """Retrieve all maps in time range"""
+        cursor = self.conn.cursor()
+        
+        cursor.execute("""
+            SELECT data_json FROM maps
+            WHERE timestamp BETWEEN ? AND ?
+            ORDER BY timestamp ASC
+        """, (start_time.isoformat(), end_time.isoformat()))
+        
+        maps = []
+        for row in cursor.fetchall():
+            map_dict = json.loads(row[0])
+            maps.append(self._dict_to_map(map_dict))
+        
+        return maps
+    
+    def get_latest_map(self) -> Optional[PressureMap]:
+        """Get most recent pressure map"""
+        cursor = self.conn.cursor()
+        
+        cursor.execute("""
+            SELECT data_json FROM maps
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """)
+        
+        row = cursor.fetchone()
+        if not row:
+            return None
+        
+        map_dict = json.loads(row[0])
+        return self._dict_to_map(map_dict)
+    
+    def get_entity_history(
+        self,
+        entity_name: str,
+        days_back: int = 30
+    ) -> List[Tuple[datetime, float]]:
+        """Get pressure history for specific entity"""
+        cursor = self.conn.cursor()
+        
+        start_time = datetime.now() - timedelta(days=days_back)
+        
+        cursor.execute("""
+            SELECT v.timestamp, AVG(v.magnitude)
+            FROM vectors v
+            WHERE v.target = ? AND v.timestamp >= ?
+            GROUP BY DATE(v.timestamp)
+            ORDER BY v.timestamp ASC
+        """, (entity_name, start_time.isoformat()))
+        
+        history = [
+            (datetime.fromisoformat(row[0]), row[1])
+            for row in cursor.fetchall()
+        ]
+        
+        return history
+    
+    def _map_to_dict(self, pressure_map: PressureMap) -> dict:
+        """Serialize pressure map to dict"""
+        return {
+            "id": pressure_map.id,
+            "timestamp": pressure_map.timestamp.isoformat(),
+            "version": pressure_map.version,
+            "title": pressure_map.title,
+            "description": pressure_map.description,
+            "global_pressure": pressure_map.global_pressure,
+            "vectors": [
+                {
+                    "id": v.id,
+                    "timestamp": v.timestamp.isoformat(),
+                    "magnitude": v.magnitude,
+                    "direction": v.direction,
+                    "velocity": v.velocity,
+                    "acceleration": v.acceleration,
+                    "type": v.type.value,
+                    "source": v.source,
+                    "target": v.target,
+                    "evidence": v.evidence,
+                    "metadata": v.metadata
+                }
+                for v in pressure_map.vectors
+            ],
+            "nodes": {
+                node_id: {
+                    "id": node.id,
+                    "name": node.name,
+                    "level": node.level.value,
+                    "parent": node.parent,
+                    "children": node.children,
+                    "aggregated_magnitude": node.aggregated_magnitude,
+                    "description": node.description,
+                    "tags": node.tags
+                }
+                for node_id, node in pressure_map.nodes.items()
+            }
+        }
+    
+    def _dict_to_map(self, data: dict) -> PressureMap:
+        """Deserialize dict to pressure map"""
+        # Reconstruct vectors
+        vectors = [
+            PressureVector(
+                id=v["id"],
+                timestamp=datetime.fromisoformat(v["timestamp"]),
+                magnitude=v["magnitude"],
+                direction=v["direction"],
+                velocity=v["velocity"],
+                acceleration=v["acceleration"],
+                type=PressureType(v["type"]),
+                source=v["source"],
+                target=v["target"],
+                evidence=v["evidence"],
+                metadata=v["metadata"]
+            )
+            for v in data["vectors"]
+        ]
+        
+        # Reconstruct nodes
+        nodes = {
+            node_id: AbstractionNode(
+                id=n["id"],
+                name=n["name"],
+                level=AbstractionLevel(n["level"]),
+                parent=n["parent"],
+                children=n["children"],
+                aggregated_magnitude=n["aggregated_magnitude"],
+                description=n["description"],
+                tags=n["tags"]
+            )
+            for node_id, n in data["nodes"].items()
+        }
+        
+        return PressureMap(
+            id=data["id"],
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            version=data["version"],
+            title=data["title"],
+            description=data["description"],
+            vectors=vectors,
+            nodes=nodes,
+            global_pressure=data["global_pressure"]
+        )
+```
+
+---
+
+# **PART IV: DERIVATIVE COMPUTATION ENGINE**
+
+```python
+"""
+derivative_engine.py
+
+Computes pressure derivatives (velocity, acceleration) from time series.
+"""
+
+from typing import List, Tuple, Optional
+from datetime import datetime, timedelta
+import numpy as np
+from scipy.interpolate import interp1d
+
+from pressure_map_models import PressureDerivative, PressureMap, AbstractionNode
+from pressure_database import PressureMapDatabase
+
+
+class DerivativeEngine:
+    """
+    📈 DERIVATIVE COMPUTATION ENGINE
+    
+    Computes ∂P/∂t (velocity) and ∂²P/∂t² (acceleration) for pressure dynamics.
+    """
+    
+    def __init__(self, database: PressureMapDatabase):
+        self.db = database
+    
+    def compute_derivatives_for_entity(
+        self,
+        entity_name: str,
+        lookback_days: int = 7
+    ) -> Optional[PressureDerivative]:
+        """
+        Compute derivatives for specific entity using recent history.
+        """
+        # Get historical data
+        history = self.db.get_entity_history(entity_name, days_back=lookback_days)
+        
+        if len(history) < 2:
+            return None  # Need at least 2 points
+        
+        # Extract timestamps and pressures
+        times = [t for t, p in history]
+        pressures = [p for t, p in history]
+        
+        # Convert times to numeric (seconds since first point)
+        t0 = times[0]
+        t_numeric = [(t - t0).total_seconds() for t in times]
+        

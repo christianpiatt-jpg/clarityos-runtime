@@ -1,0 +1,158 @@
+---
+config:
+  layout: elk
+---
+graph TD
+    subgraph Constitutional["Constitutional Layer"]
+        CommsBoot["Comms Boot Contract"]
+        CoreLaw["Core Law"]
+        CALRule["CAL Rule Engine"]
+        VerifyScale["Verification Scaling"]
+    end
+
+    subgraph Bootloader["Bootloader Layer"]
+        BootSys["boot.sys"]
+    end
+
+    subgraph SubstrateTyping["Substrate Typing"]
+        TypeA["Type A"]
+        TypeB["Type B"]
+        TypeC["Type C"]
+        TypeD["Type D"]
+    end
+
+    subgraph ModuleMapLayer["Module Map"]
+        ModA["Module A"]
+        ModB["Module B"]
+        ModC1["Module C1"]
+        ModC2["Module C2"]
+        ModC3["Module C3"]
+        ModC4["Module C4"]
+        ModC5["Module C5"]
+        ModC6["Module C6"]
+        ModD["Module D"]
+    end
+
+    subgraph ModuleA["Module A: Interaction Geometry"]
+        AmbientTrust["Ambient Trust"]
+        DirectiveEngine["Directive Engine"]
+        CiteMode["Cite Mode"]
+    end
+
+    subgraph ModuleB["Module B: Phenomenological Preservation"]
+        EmotionalAlign["Emotional Alignment"]
+        FEAInteg["FEA Integration"]
+        AzimuthTrans["Azimuth Transition"]
+    end
+
+    subgraph ModuleC1["Module C1: Structural Mapping"]
+        PrimExtract["Primitives Extract"]
+    end
+
+    subgraph ModuleC2["Module C2: Dynamic Assessment"]
+        RegrTrace["Regression Trace"]
+        DeweyPipe["Dewey Pipeline"]
+    end
+
+    subgraph ModuleC3["Module C3: Predictive/Criticality"]
+        GodhardCurve["Godhard Curve"]
+        UniDiagAlgo["Universal Diagnostic Algorithm"]
+        CompressIdx["Compression Index"]
+    end
+
+    subgraph ModuleC4["Module C4: Operational Command"]
+        IntelKernel["Intelligence Kernel"]
+        ModelRouter["Model Router"]
+        OpState["Operator State"]
+    end
+
+    subgraph ModuleC5["Module C5: Wave Transport Dynamics"]
+        WaveImpl["Wave Transport Implementation"]
+    end
+
+    subgraph ModuleC6["Module C6: Four-Path Survey Engine"]
+        SurveyImpl["Four-Path Survey Implementation"]
+    end
+
+    subgraph ModuleD["Module D: Calibration"]
+        MemVault["Memory Vault"]
+        RuntimePriv["Runtime Privacy"]
+    end
+
+    subgraph RuntimeLayer["Runtime Layer"]
+        RuntimeCore["Runtime Core"]
+    end
+
+    subgraph CalibrationLayer["Calibration Layer"]
+        SnapContract["Snapshot Contract"]
+    end
+
+    BootSys -->|"bootstrap"| Constitutional
+    CommsBoot --> CoreLaw
+    CoreLaw --> CALRule
+    CALRule --> VerifyScale
+    
+    Constitutional -->|"dispatch"| ModuleMapLayer
+    
+    ModA --> ModuleA
+    ModB --> ModuleB
+    ModC1 --> ModuleC1
+    ModC2 --> ModuleC2
+    ModC3 --> ModuleC3
+    ModC4 --> ModuleC4
+    ModC5 --> ModuleC5
+    ModC6 --> ModuleC6
+    ModD --> ModuleD
+    
+    CALRule -->|"adjudication"| AmbientTrust
+    CALRule -->|"adjudication"| EmotionalAlign
+    CALRule -->|"adjudication"| RegrTrace
+    CALRule -->|"adjudication"| IntelKernel
+    
+    VerifyScale -->|"scrutiny level"| AmbientTrust
+    VerifyScale -->|"scrutiny level"| FEAInteg
+    VerifyScale -->|"scrutiny level"| GodhardCurve
+    VerifyScale -->|"scrutiny level"| ModelRouter
+    
+    AmbientTrust --> RuntimeCore
+    DirectiveEngine --> RuntimeCore
+    CiteMode --> RuntimeCore
+    EmotionalAlign --> RuntimeCore
+    FEAInteg --> RuntimeCore
+    AzimuthTrans --> RuntimeCore
+    PrimExtract --> RuntimeCore
+    RegrTrace --> RuntimeCore
+    DeweyPipe --> RuntimeCore
+    GodhardCurve --> RuntimeCore
+    UniDiagAlgo --> RuntimeCore
+    CompressIdx --> RuntimeCore
+    IntelKernel --> RuntimeCore
+    ModelRouter --> RuntimeCore
+    OpState --> RuntimeCore
+    WaveImpl --> RuntimeCore
+    SurveyImpl --> RuntimeCore
+    
+    RuntimeCore --> MemVault
+    RuntimeCore --> RuntimePriv
+    
+    MemVault --> SnapContract
+    RuntimePriv --> SnapContract
+    
+    SnapContract -->|"feedback loop"| BootSys
+    SnapContract -->|"state update"| Constitutional
+    
+    style Constitutional fill:#eef2ff,stroke:#818cf8
+    style Bootloader fill:#f0fdfa,stroke:#2dd4bf
+    style SubstrateTyping fill:#f5f3ff,stroke:#a78bfa
+    style ModuleMapLayer fill:#fff7ed,stroke:#fb923c
+    style RuntimeLayer fill:#f0f9ff,stroke:#38bdf8
+    style CalibrationLayer fill:#fef2f2,stroke:#f87171
+    style ModuleA fill:#ecfeff,stroke:#22d3ee
+    style ModuleB fill:#f7fee7,stroke:#a3e635
+    style ModuleC1 fill:#fff1f2,stroke:#fb7185
+    style ModuleC2 fill:#f0fdf4,stroke:#4ade80
+    style ModuleC3 fill:#fefce8,stroke:#facc15
+    style ModuleC4 fill:#fdf4ff,stroke:#e879f9
+    style ModuleC5 fill:#ecfeff,stroke:#22d3ee
+    style ModuleC6 fill:#f0f9ff,stroke:#38bdf8
+    style ModuleD fill:#fef2f2,stroke:#f87171

@@ -1,0 +1,149 @@
+### Universal Primitive–Geometry–Terminal Compiler (UPGT)
+
+Below is a compact artifact you can drop into your resource stack and wire into the existing tools.
+
+---
+
+## 1. Conceptual spec
+
+**Purpose:**  
+Provide a domain‑agnostic spine that lets any tool map:
+
+> **Primitive → Geometry → Terminal → Burden → Next Move**
+
+across legal, organizational, emotional, infrastructural, or social systems.
+
+**Core ideas:**
+
+- **Primitive:** A universal failure mode or dynamic (boundary collapse, signal contamination, narrative gravity, etc.).
+- **Geometry:** The shape of the system under that primitive (curvature, coherence, agency vector, trend, jerk, temporal pull, frame origin).
+- **Terminal:** The system’s endpoint/failure state (boundary terminal, coherence terminal, authority terminal, flow terminal, temporal terminal, normalization terminal, identity terminal).
+- **Burden:** What must be shown, changed, or supplied to move out of that terminal.
+- **Next Move:** The concrete action in the relevant domain (e.g., FRCP move, org intervention, emotional regulation step, infra mitigation).
+
+---
+
+## 2. Data model (JSON artifact)
+
+```json
+{
+  "$schema": "https://clarityops/schema/upgt-compiler.json",
+  "name": "Universal Primitive-Geometry-Terminal Compiler",
+  "version": "1.0.0",
+  "description": "Domain-agnostic mapping from primitives to geometry to terminals, with burdens and next moves.",
+  "entities": {
+    "primitive": {
+      "id": "string",
+      "label": "string",
+      "category": "string",
+      "description": "string",
+      "tags": ["string"]
+    },
+    "geometry": {
+      "id": "string",
+      "primitive_id": "string",
+      "curvature": "number",
+      "coherence": "number",
+      "agency_vector": "string",
+      "trend": "string",
+      "jerk_boundary": "string",
+      "temporal_pull": "string",
+      "frame_origin": "string",
+      "notes": "string"
+    },
+    "terminal": {
+      "id": "string",
+      "primitive_id": "string",
+      "type": "string",
+      "description": "string",
+      "severity": "string",
+      "stability": "string"
+    },
+    "emotional_physics": {
+      "id": "string",
+      "primitive_id": "string",
+      "temperature": "number",
+      "entropy": "number",
+      "gravity_well_depth": "number",
+      "hysteresis_state": "string",
+      "pressure_gradient": "string"
+    },
+    "loop_conflict": {
+      "id": "string",
+      "primitive_id": "string",
+      "E_conflict": {
+        "source_bias": "string",
+        "archive_weight": "string"
+      },
+      "r_conflict": {
+        "gravity_lock": "string",
+        "noise_ratio": "string"
+      },
+      "X_conflict": {
+        "external_lambda": "string",
+        "doctrine_misalignment": "string"
+      },
+      "R_conflict": {
+        "flow_stall": "string",
+        "hysteresis_deepen": "string"
+      }
+    },
+    "domain_adapter": {
+      "id": "string",
+      "domain": "string",
+      "primitive_id": "string",
+      "terminal_id": "string",
+      "burden": "string",
+      "next_move": "string",
+      "tool_binding": ["string"]
+    }
+  }
+}
+```
+
+---
+
+## 3. Canonical primitive set (for shared use)
+
+You can store these as rows in your metadata layer:
+
+- **Boundary Collapse**
+- **Signal Contamination**
+- **Narrative Gravity**
+- **Flow Collapse**
+- **Normalization Sink**
+- **Archive Gravity**
+- **Authority Drift**
+
+Each tool (FRCP compiler, Organizational Godhard, CROSSREGRESSION, SOCIAL_SUM, etc.) attaches its own **domain_adapter** entries pointing to its specific terminals and moves.
+
+---
+
+## 4. Integration hooks with existing tools
+
+When you wire this into your stack, each tool should:
+
+- **Ingest primitives** from UPGT rather than defining its own ad‑hoc set.
+- **Write geometry fields** (curvature, coherence, agency vector, trend, temporal pull) back into UPGT.
+- **Register terminals**:
+  - FRCP tool → legal terminals (12(b)(6), Rule 56, etc.).
+  - Organizational tool → org terminals (catastrophic transition, coherence loss, authority hijack).
+  - CROSSREGRESSION → infra strain terminals (overload, failure, latent risk).
+  - Emotional‑reg tool → emotional terminals (shutdown, hypervigilance, dissociation, compulsive normalization).
+- **Bind tool actions** to `domain_adapter.next_move`.
+
+That gives you one shared spine instead of parallel, slightly‑different primitive sets.
+
+---
+
+## 5. Next step: sequencing tools in an analysis
+
+Once this artifact is in place, we can design a **tool sequence** like:
+
+1. **UPGT primitive extraction** (from narrative/evidence).
+2. **Geometry resolution** (ELINS / Godhard / traceback).
+3. **Terminal detection** (per domain via adapters).
+4. **Burden + next move selection** (per tool).
+5. **Cross‑tool reconciliation** (e.g., legal vs org vs emotional).
+
+If you want, next pass we can lay out that sequencing explicitly—tool by tool—so you know what returns to expect at each stage.

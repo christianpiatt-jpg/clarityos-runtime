@@ -1,0 +1,27 @@
+%%{init: {"layout": "elk"}}%%
+flowchart TD
+    classDef flow fill:#ecfeff,stroke:#22d3ee,color:#000;
+    classDef disorder fill:#fef2f2,stroke:#f87171,color:#000;
+    classDef control fill:#eef2ff,stroke:#818cf8,color:#000;
+    classDef stability fill:#f0fdf4,stroke:#4ade80,color:#000;
+
+    %% --- Reinforcing Loop R1 ---
+    subgraph R1["Reinforcing Loop (Pressure–Entropy Escalation)"]
+        PG["Pressure Gradient (ΔP)"]:::flow -->|+| RN["Reynolds Number (Re)"]:::flow -->|+| Temp["Temperature (Volatility)"]:::flow -->|+| Entropy["Entropy (Disorder)"]:::disorder -->|−| FE["Free Energy (Capacity)"]:::control -->|+| PG
+    end
+
+    %% --- Balancing Loop B1 ---
+    subgraph B1["Balancing Loop (Hysteresis / Institutional Brake)"]
+        OP["Order Parameter (Coherence)"]:::stability -->|+| Hyst["Hysteresis (Memory)"]:::stability ---|−| PG
+        Hyst -->|−| Entropy
+    end
+
+    %% --- Reinforcing Loop R2 ---
+    subgraph R2["Reinforcing Loop (Connectivity Cascade)"]
+        Entropy -->|+| Perc["Percolation (Connectivity)"]:::disorder -->|+| Casc["Cascade (Phase Shift)"]:::control -->|+| Entropy
+    end
+
+    %% --- Cross-loop coupling and delays with polarity ---
+    FE -.->|"− / Reallocation delay"| OP
+    Hyst -.->|"− / Memory decay delay"| Perc
+    Casc -.->|"+ / Shock feedback (delayed)"| Hyst

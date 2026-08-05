@@ -1,0 +1,104 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    classDef process fill:#1A1A2E,stroke:#4A9EFF,stroke-width:2px,color:#FFFFFF;
+    classDef decision fill:#2A1A1A,stroke:#FF4757,stroke-width:2px,color:#FF6B81;
+    classDef output fill:#1A2A1A,stroke:#2ED573,stroke-width:2px,color:#FFFFFF;
+    classDef datastore fill:#2A2A1A,stroke:#FFA502,stroke-width:2px,color:#FFA502;
+    classDef loop fill:#1A1A2E,stroke:#A29BFE,stroke-width:2px,stroke-dasharray:5 5,color:#A29BFE;
+
+    OBS1[(Real-Time Newsflow<br>NATO / Markets / Physical)]
+    OBS2[(Historical Archives<br>v2.0 → v2.15 States)]
+
+    MANIFOLD[Step 1: Build Manifold<br>9D State Vector<br>ΔP, Re, T, S, F, ψ, H, p, C<br>Bounded 0–1]
+    
+    ELINS[Step 2: Meta-Evaluator<br>ELINS PRO + PLUS<br>D = S × 1 − ψ_reality<br>SNR = ψ_reality / 1 − ψ_reality<br>Regime: Turbulent Critical]
+    
+    CLARITYOS[Step 3: ClarityOS Core<br>Archetype Scan Traps<br>System Classifier<br>Danger Score = 0.88]
+
+    GOV{Step 4: Governance Gate<br>Article XI / CAL §4.4<br>Posture Check}
+    
+    HOC{Step 5: HOC Decision<br>Cybernetic Recursion}
+
+    TERMINATE[Termination<br>OBSERVABILITY BREACH<br>Halt Pipeline<br>Escalate to Human]
+    ELEVATE[Elevation<br>BLACKOUT EDGE ALERT<br>Daily Monitoring<br>Run Scenarios]
+    NORMAL[Publish / Continue<br>NORMAL CYCLE<br>Weekly Monitoring]
+
+    FEEDBACK[(Calibration / Refined Input<br>Observer Validation)]
+    
+    SAVE[(State Persistence<br>v2.16 JSON State File<br>Event Annotations)]
+
+    LOOP_R1[Physical-Political Coupling<br>R1 Active]
+    LOOP_R2[Entropy-Cascade<br>R2 Active]
+    LOOP_B1[Hysteresis Dampening<br>B1 Weakening]
+    LOOP_B2[Energy Conservation<br>B2 Failing]
+
+    OBS1 --> MANIFOLD
+    OBS2 --> MANIFOLD
+    
+    MANIFOLD --> ELINS
+    ELINS --> CLARITYOS
+    
+    CLARITYOS -->|Danger Score + Traps| GOV
+    GOV -->|Posture: RESTRICTED| HOC
+    
+    HOC -->|D ≥ 0.90 OR SNR < 0.30| TERMINATE
+    HOC -->|D ≥ 0.85 OR Danger ≥ 0.85| ELEVATE
+    HOC -->|D < 0.85 AND SNR ≥ 0.30| NORMAL
+    
+    TERMINATE --> SAVE
+    ELEVATE --> SAVE
+    NORMAL --> SAVE
+
+    SAVE -.->|Next Cycle Iteration +1| FEEDBACK
+    FEEDBACK -.->|Refines State Vector| MANIFOLD
+
+    ELINS -.->|Informs| LOOP_R1
+    ELINS -.->|Informs| LOOP_R2
+    ELINS -.->|Informs| LOOP_B1
+    ELINS -.->|Informs| LOOP_B2
+
+    LOOP_R1 -.->|↑T, ↓F| MANIFOLD
+    LOOP_R2 -.->|↑S, ↑C| MANIFOLD
+    LOOP_B1 -.->|↓H eroding| MANIFOLD
+    LOOP_B2 -.->|↓F draining| MANIFOLD
+
+    HOC -- D_TERMINATION = 0.90 --> TERMINATE
+    HOC -- D_CRITICAL = 0.85<br>Danger = 0.88 --> ELEVATE
+    HOC -- D = 0.76<br>SNR = 0.316 --> NORMAL
+
+    subgraph InputLayer["Input Layer"]
+        OBS1
+        OBS2
+    end
+
+    subgraph AnalyticsPipeline["Analytics & Governance Pipeline"]
+        MANIFOLD
+        ELINS
+        CLARITYOS
+        GOV
+        HOC
+        TERMINATE
+        ELEVATE
+        NORMAL
+    end
+
+    subgraph PersistenceFeedback["Persistence & Feedback"]
+        SAVE
+        FEEDBACK
+    end
+
+    subgraph SystemDynamics["Active System Dynamics"]
+        LOOP_R1
+        LOOP_R2
+        LOOP_B1
+        LOOP_B2
+    end
+
+    class MANIFOLD,ELINS,CLARITYOS process;
+    class GOV,HOC decision;
+    class TERMINATE,ELEVATE,NORMAL output;
+    class SAVE,OBS1,OBS2 datastore;
+    class LOOP_R1,LOOP_R2,LOOP_B1,LOOP_B2 loop;

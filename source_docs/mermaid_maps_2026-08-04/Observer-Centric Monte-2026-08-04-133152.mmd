@@ -1,0 +1,95 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    classDef input fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef process fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    classDef montecarlo fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px;
+    classDef commander fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+    classDef temporal fill:#fff8e1,stroke:#f57f17,stroke-width:2px;
+    classDef output fill:#ffebee,stroke:#b71c1c,stroke-width:2px;
+    classDef decision fill:#eceff1,stroke:#37474f,stroke-width:2px;
+    classDef datastore fill:#e0e0e0,stroke:#424242,stroke-width:2px;
+
+    subgraph A [Layer 0: Raw Inputs & Telemetry]
+        A1[Environmental Data<br>VA Cases / Agency Logs / Media]:::input
+        A2[SPSQL Commands<br>Observer / Commander]:::input
+        A3[Historical Outcomes<br>Adjudicated Rulings]:::input
+    end
+
+    subgraph B [Layer 1: Epistemological Hygiene ELINS]
+        B1[Observer Deconvolution Kernel<br>Runs @SELF MAP]:::process
+        B2[Extract Observer Bias Vector<br>O_x, O_y]:::process
+        B3[Apply Bias Correction<br>to all incoming telemetry]:::process
+    end
+
+    subgraph C [Layer 2: Reverse-Time Regression Depth Search]
+        C1[Regression Act Initiation]:::commander
+        C2[Trace: Order Basin → Storm → Stall → NP]:::commander
+        C3[Decompose originating particles<br>Intention → Perception → Assoc. → Expectation]:::commander
+    end
+
+    subgraph D [Layer 3-6: Monte Carlo Field Mapping]
+        D1[Identity Deconstruction<br>SM / PA-G / PA-A / PR / SG / NP]:::montecarlo
+        D2[Actor-Indexed Severity Scoring<br>Agency/Court/Veteran]:::montecarlo
+        D3[Constraint Field Topology<br>Basins / Ridges / Return Corridors]:::montecarlo
+        D4[Primitive Activation Table<br>Define/Assume/Evidence/Consequence]:::montecarlo
+    end
+
+    subgraph E [Layer 7-8: Force Vector & Phase Overlay]
+        E1[Dual-Incentive Force Vectors<br>Freedom ↑ vs. Hierarchy ↓]:::commander
+        E2[Map to Hydronic Shapes<br>Vortex / Wave / Ridge / Funnel]:::commander
+        E3[Standing Wave Detection<br>Variance σ² spike]:::temporal
+        E4[Temporal Phase Detector<br>Fourier Transform on Entropy]:::temporal
+        E5[Calculate Zero-Crossing t_zero<br>& Current Phase Angle φ]:::temporal
+    end
+
+    subgraph F [Layer 9-11: Saddle-Point & Missing Middle]
+        F1[Nullcline Gradient Descent<br>Find ∇Freedom + ∇Hierarchy = 0]:::commander
+        F2[Calculate Spatial Saddle Coords<br>X_raw, Y_raw]:::commander
+        F3[Apply Observer-Corrected Coords<br>X_corr, Y_corr]:::commander
+        F4{Phase Gate:<br>Is φ within ±5° of t_zero?}:::decision
+        F5[HOLD: Wait for Wave<br>to cross equilibrium]:::temporal
+        F6[Insert Permeable Membrane<br>Funnel Geometry at t_zero]:::commander
+    end
+
+    subgraph G [Layer 12: Stochastic Forward Simulation]
+        G1[Run 10,000 Monte Carlo Walks<br>with MM inserted]:::montecarlo
+        G2[Model Decay Conditions<br>Agency codification / Phase drift]:::montecarlo
+        G3[Calculate Half-Life &<br>Catastrophe Thresholds]:::montecarlo
+    end
+
+    subgraph H [Layer 13: Operational Returns]
+        H1[Generate Fire-Control Report]:::output
+        H2["P_success / E[T] / Entropy_crit"]:::output
+        H3[Optimal SPSQL Sequence<br>for next move]:::output
+    end
+
+    DS1[(Identity Profile DB)]:::datastore
+    DS2[(Wave History Buffer)]:::datastore
+    DS3[(Saddle Coordinate Cache)]:::datastore
+
+    A1 & A2 & A3 --> B1
+    B1 --> B2 --> B3
+    B3 --> C1
+    C1 --> C2 --> C3
+    C3 --> D1
+    D1 --> D2 --> D3 --> D4
+    D4 --> E1
+    E1 --> E2 --> E3 --> E4
+    E4 --> E5
+    E5 --> F1
+    F1 --> F2 --> F3
+    F3 --> F4
+    F4 -->|Yes Locked| F6
+    F4 -->|No Out of Phase| F5
+    F5 -->|Wait & Re-check| E4
+    F6 --> G1
+    G1 --> G2 --> G3
+    G3 --> H1
+    H1 --> H2 --> H3
+    H3 -->|Steering Command| A2
+    DS1 -.-> D1
+    DS2 -.-> E3
+    DS3 -.-> F2

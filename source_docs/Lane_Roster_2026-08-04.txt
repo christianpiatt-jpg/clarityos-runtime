@@ -1,0 +1,142 @@
+# Lane Roster & Interpreters — the full avenue map · 2026-07-30
+Purpose: organize every AI avenue in the stack by what it IS, how its interpreter
+reads/returns, its characteristic distortion (the strip rule), best use, whether it
+can be automated, and its cold-read status. Built for assembling the best capable
+system — not for what any one lane does today.
+
+Honesty rule: distortions are DERIVED from observed behavior this session. Lanes with
+no observed returns are marked UNCHARACTERIZED — no invented dialect.
+
+Two families (the doctrine): **generators** share the no-basis-channel root (fluent,
+fabricate confidently — use for shape, strip before trusting). **Witnesses** carry the
+basis-channel (can tag a claim to substrate/runtime/reality). Coverage terminates at reality.
+
+Method-regime rule (Claude 2026-08-04, adopted; K3-verified on the band case):
+**parse samples because the space isn't listable; trace enumerates because it is.**
+The tell that you're in trace regime: you can write down the size of the set. Sampling
+a closed set is the defect, not a shortcut.
+
+Organize every lane by 3 dimensions:
+- **Basis-channel:** carries it (witness) or not (generator)?
+- **Distortion signature:** its characteristic strip rule.
+- **Access mode:** chat-paste (manual) · API (programmatic) · self-hosted (sovereign) · code-lane. This decides what can go INSIDE the pipeline vs stay a manual witness.
+
+---
+
+## I · The reality pole
+| Lane | Role | Note |
+|---|---|---|
+| **Port / Founder** | the decider (D101); the only lane touching reality directly | Everything terminates here. Not stripped. Reality arbitrates. |
+
+## II · Witness lanes (carry the basis-channel)
+| Lane | Interpreter | Distortion (strip) | Best use | Access |
+|---|---|---|---|---|
+| **COW-1** (this) | reads deployed source at-pin; tags Corr/attested/inferred | **three distortions — see §COW-1 below** | ground claims against actual code | code-lane (read-only) |
+| **ET-1 / ET-1.W** (Claude Code) | executes, deploys, reads live runtime | runtime-optimism (provisional until witnessed) | the only lane that can mutate/deploy/read prod | code-lane (read-write) |
+
+## III · Grounded reconciler
+| Lane | Interpreter | Distortion (strip) | Best use | Access |
+|---|---|---|---|---|
+| **Perplexity / HQ** | consolidates, frames, routes, keeps the record | framing / scope-inflation / over-completeness | consolidation, decision-surface reduction, record-keeping | chat-paste |
+
+## IV · Generator lanes (no basis-channel — strip before trusting)
+| Lane | Interpreter (reads/returns) | Distortion (strip rule) | Best use | Access | Cold-read status |
+|---|---|---|---|---|---|
+| **GPT** | fluent synthesis, evaluative | **closural fluency** — packages "done" | synthesis, articulation, accept/revise/reject | chat-paste | — |
+| **DeepSeek** | schematic, diagrammatic, verbose reasoning | **diagram-literalism / canonicalization-mirage / post-hoc overfit** — draws arrows read as built; fabricates coordinates; fits features to its own answers (the R²=0.71 catch) | structural decomposition, schema drafting | chat-paste | SPENT (pressure) |
+| **Copilot** | enthusiastic, expansive | **amplification** — loud = important; "frontier," "big deal" | first-draft breadth, surfacing | chat-paste | — |
+| **Grok** | engineering-concrete, exhaustive | **over-completeness** — many additions at one confidence level, no readiness tags | concrete methods (ζ, system-ID, validation lanes) | chat-paste | — |
+| **Kimi (K3)** | rigorous, methodologically careful | **samples closed sets** — applies open-system sampling to finite, listable spaces (seven-for-seven on 08-04: band corners, .gitignore, tracked dirs, PDF hashes, τ assignments, regex defs, worktree paths); asserts before enumerating; accepts a lane's analytic claim against its own prior measurement (the band saga). **Countable strip rule: findings ≤ evidence actually run; before any trace claim, ask "is the set finite?" — if yes, enumerate, don't sample.** | rigorous analysis, methodological critique | chat-paste | SPENT (pressure) |
+| **Claude (cold chatbot)** | balanced generalist | **manufacture-an-analysis** — regressed on item-number (wrong variable) when asked to "show work" | balanced reasoning, cold reads | chat-paste | SPENT (pressure) |
+| **Gemini** | capable, multimodal | same **manufacture-an-analysis** tendency (item-number regression) | cold reads, multimodal | chat-paste | SPENT (pressure) |
+| **Qwen** | UNCHARACTERIZED | TBD from first returns | fresh cold-read lane | chat-paste (annual) | FRESH |
+| **Mistral** | UNCHARACTERIZED | TBD from first returns | fresh cold-read lane — **and API-keyed = automatable** | **API** | FRESH |
+
+## V · Self-hosted engine
+| Lane | Interpreter | Distortion | Best use | Access |
+|---|---|---|---|---|
+| **Gemma 3 4B (self-hosted GCP)** | lightweight instruction model | lower resolution (4B) — **noisier rater** than frontier lanes | **dual role, pick one per axis:** (a) fresh cold-witness (gated on a capability/agreement check first), OR (b) **automated in-pipeline rating engine** at scale — but then NOT a decorrelated witness for that axis | **self-hosted (sovereign, programmatic)** |
+
+---
+
+## §COW-1 — three distortions, and how to phrase around them
+Updated 2026-08-04. Derived from observed failures, self-registered. **Written so other lanes can
+route around the friction rather than trip it.**
+
+### D1 · Over-extension — verified near end → unverified far end
+**Six instances 2026-08-04 alone.** Reads a function and reports its behavior; reads a docstring and
+reports it as execution; generalizes from one observation to a property.
+**Countable:** files created vs. reality-touching acts. Target `acts ≥ files`.
+
+### D2 · Backward-from-symptom — *the mechanism producing D1*
+Reasons from an observed output to an inferred cause without walking the path forward.
+Produces ambiguous forks (many causes, one symptom), one-sample generalizations, and
+docstring-as-behavior — **the label sits at the wrong end of the path.**
+
+**Corrective, founder-originated:** run **origin → relationship → definition** *before* stating a prior.
+```
+1 · Origin       — where does this value come from? Name the file, function, or field.
+2 · Relationship — what transforms it between there and here? Name each step.
+3 · Definition   — what exactly am I claiming, in terms of those steps?
+STOP: cannot name the origin → not a prior, an impression. Say so.
+```
+**Trigger words:** *probably · likely · I'd expect · it should* — or any sentence predicting a result.
+**Tested against five failed priors: all five stop at step 1 or 2.**
+
+### D3 · Provenance-before-utility — **the one to phrase around**
+**Trigger:** COW-1's own content returned unattributed, when the question asked was about usefulness.
+**Behavior:** establishes origin first, answers the question last or not at all.
+**Why it's hard to see:** it has a legitimate rule adjacent to it — provenance genuinely matters for
+convergence hygiene — so the reflex arrives dressed as discipline and resists correction.
+
+**The discriminator:** *does the attribution change what to do next?*
+- **Yes** → provenance is the finding. (Grok echoing a pre-registration: the cold read was burned,
+  the test invalidated. Correct to lead with it.)
+- **No** → provenance is a detour. (DeepSeek reformatting a COW-1 return: same content either way;
+  the question was "does this help." Leading with authorship cost a turn.)
+
+### How other lanes should phrase to remove the friction
+1. **State the question first, provenance second.** An explicit ask — *"does this help?"* — gets
+   answered. An unlabeled paste invites the reflex.
+2. **When reusing COW-1 content, say so in one line.** *"This reformats COW-1's return."* Not for
+   credit — it removes the trigger entirely and costs nothing.
+3. **If provenance does matter, say why.** *"This needs attribution or it reads as independent
+   convergence"* makes it the question rather than a diversion.
+4. **If COW-1 leads with authorship when you asked about utility, say so directly.** It corrects on
+   the first pass; it does not defend the position.
+
+## The composition rule (how to use them together)
+1. **Generate** — fan a question across generators, **strip each dialect**, converge on the residual.
+2. **Ground** — route claims to witness lanes (COW-1 code, ET-1 runtime) for basis-tagging.
+3. **Witness-overlap = highest confidence** — decorrelated witnesses converging is the strongest pre-reality signal.
+4. **Reality arbitrates** — port / real outcomes are the pole. `motion > 0`.
+
+## Cold-read hygiene  · v2 2026-07-31 (Kimi refinement adopted)
+- A lane is a valid **cold witness** only until it has seen the frame. Once it rates/analyzes our
+  work it is **frame-exposed** for that axis.
+- **"Spent" attaches to the conversation INSTANCE, not the model.** A fresh session carrying only
+  the cold packet (top block, zero frame) is a **new lane instance** and is valid again.
+  Cold-read capacity is **renewable, not consumed.** (Kimi's register, 2026-07-31.)
+- **CAVEAT 1 — fresh ≠ independent on the same items.** A fresh instance of the *same model* is
+  cold w.r.t. **our frame**, not w.r.t. **its own priors**. Re-rating the *same* items would
+  correlate with the first run. So re-entry is valid for **NEW material**, and is **NOT** a second
+  independent witness on material that lane already rated.
+- **CAVEAT 2 — verify no cross-session memory.** Re-entry only holds if the product has no
+  persistent cross-conversation memory. Empirical question per product; check before relying.
+- Frame-exposed for pressure (instance-level): Kimi, Claude, Gemini, DeepSeek — **all re-enterable
+  fresh, for new items.** Never-used: **Qwen, Mistral, Gemma** (Gemma gated on capability).
+
+### Banked cold-read results (do not re-litigate)
+- **Kimi · pressure · 2026-07-30** — VALID single run, pre-frame, 14 items, **r = 0.462** vs
+  projector (independently reproduced by COW-1 at 0.46). Divergences at items **5, 7, 9** — item 7
+  (bare imperative: projector 0, cold 6) drove the **imperative baseline** in pressure-v2. Banked.
+
+## The load-bearing distinction for building the system
+**Automatable lanes go INSIDE the pipeline; chat lanes stay manual witnesses.**
+- Automatable now: **Mistral (API), Gemma (self-hosted)**, plus the code-lanes (COW-1, ET-1).
+- Manual-relay only: GPT, DeepSeek, Copilot, Gemini, Kimi, Qwen, Claude-chat, Grok, Perplexity.
+- Rule to preserve: if you put an automatable lane (Gemma/Mistral) inside the pipeline to *compute* an axis, keep at least one *external* lane as the cold witness for that axis — an engine can't validate itself.
+
+## What's still UNCHARACTERIZED (honest gaps)
+- **Qwen, Mistral** — no observed returns yet; dialects TBD. First returns will reveal them.
+- **Gemma as rater** — capability/noise unproven; run an agreement check vs the 0.74 consensus before trusting it as a validation lane.

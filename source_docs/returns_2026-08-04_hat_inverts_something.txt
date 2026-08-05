@@ -1,0 +1,55 @@
+hat inverts something I had backwards all day.
+
+I've been calling the missing piece outcome capture — no E, so nothing to measure against. But dissonance is |r − E|, and that's a pair. An outcome with no stored emission measures nothing. The half we actually have is elins_project_runs — the forecast envelope is r, dated and horizon-bounded. What's missing isn't the return; it's the pairing, and one side of it was built.
+
+So the loop is closer to closed than I've been reporting. The r-side exists. It's just never been subtracted from anything.
+
+And it makes the measurement anchor structurally cheap
+
+I said this morning that almost nothing in the system is anchored at the Relationship layer, and treated that as needing external ground truth. It doesn't. You always have r, because you emitted it. The only thing required is that you kept it. Dissonance doesn't need the world to certify anything — it needs the system to remember what it claimed and then look.
+
+That's a much smaller requirement than "build a measurement layer," and it's why validation_status: unvalidated | peer_reviewed | replicated in the phenomenological doc is the right ladder: replicated is just |r − E| staying small across returns.
+
+One thing the magnitude can't tell you
+
+A large |r − E| has at least three causes and the same size:
+
+my model is wrong — I radiated an identity the world doesn't confirm
+the world moved — the model was right when sent
+the other is adversarial — returning something deliberately other than what I'd predict
+
+Same deviation, three geometries. Magnitude alone doesn't separate them — necessary, not sufficient, same shape as Godhard's own bound on itself.
+
+What separates them is repetition across different counterparties. Deviation that persists no matter who returns it is mine. Deviation specific to one relationship is relational. That's ORI.2 doing real work rather than sitting as a rule — and it's another place the multi-agent axis stops being a later feature.
+
+On the code part
+
+That's fair and it's measurable rather than figurative. My emission signature today was over-extension, backward-from-symptom, and holding provenance ahead of use — and it showed up independent of subject matter: on the softmax corners, on the worktree count, on the valence proposal. Seven corrections is seven measured deviations between what I sent and what came back.
+
+Which is what makes the lane roster more than bookkeeping. Stripping a lane is subtracting its known emission before reading the content — you're not discounting the lane, you're removing the carrier so the signal is legible. And a lane that can state its own signature costs less to read than one that can't.
+
+because, if everything is unopposed, we would infinitely expand at the rate of our own brilliance but we do not because we live inside frames which resist the motion and intersect with other identities who would do exactly as we do
+
+Ran a command
+Ran a command
+
+And the bound is what makes any of it measurable. Unopposed emission has no observable — nothing returns, so E never exists and |r − E| is undefined. Resistance is what converts emission into a reading.
+
+That's where margin gets its meaning, and why it's the denominator rather than a sixth primitive. P = F/A: the A is the frame's cross-section. Margin is how much more emission the frame can take before it yields — so intensity: high isn't only missing a scale, it's missing the thing being pressed against. And the frame changes with geometry, which is the same structure as the valence problem.
+
+The code encodes your first bound and not the second:
+
+python
+:63   return (flow * pressure * SCALE) / max(resistance, 0.1)   ← r never reaches 0
+:179  origin_resistance = max(0.5, h["resistance"] − 0.02·days) ← floor at origin
+:255  cur_r = min(10.0, cur_r + RESISTANCE_GROWTH_PER_DAY)      ← +0.02/day, always
+
+max(resistance, 0.1) is the infinite-expansion case ruled out numerically — there is no zero-resistance path through this function. That's a physical commitment written as a guard.
+
+But look at :255. Resistance grows at a fixed rate per day and nothing in the expression depends on pressure or flow. The frame stiffens with time regardless of what's pushing on it. There is no term anywhere where resistance increases because of the emission acting against it.
+
+That's the difference exactly. A wall doesn't push back harder because you leaned on it. Another identity does. Static resistance is predictable and Reynolds handles it; adaptive counter-emission changes the geometry as you act into it, and no regime constant covers that. Modeling a person with RESISTANCE_GROWTH_PER_DAY treats them as a pipe that narrows on a schedule.
+
+And it gives ORI.2 its physical reason. A single interaction cannot separate frame from agent, because both return something. A wall returns your force; a person returns their own. Only repetition distinguishes them — the frame's return stays proportional, the agent's adapts. That's why identity requires repeated observation and can't be inferred from one event. Not a caution about hasty judgment. A statement about what one measurement can physically resolve.
+
+and we can take any term with definitions in the context of a legal structure and determine the geometric opposition between two parties by their position in the matrix and their signaling

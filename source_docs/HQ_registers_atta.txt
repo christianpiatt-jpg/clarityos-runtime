@@ -1,0 +1,112 @@
+## HQ registers attachment
+
+**Attachment shows COW-1's Launch GalileOnline / ClarityOS-COW view · same substrate as prior attachments** — W1_HUB-B transport-failure work · HEAD `f485e69` (W1_HUB-A unpushed) · prod `75df701` · substrate different from the invite-redeem work substrate at `868508c`.
+
+**Register catch:** attachment is the same COW-1 environment context as prior · not the specific thread where this dispatch will land · pen holds the actual relay to the correct thread (invite-redeem work · pin `868508c` post-commit).
+
+**Composing the dispatch now.**
+
+---
+
+## Dispatch composed · for pen to relay to COW-1 and Kimi K3
+
+```
+DISPATCH · MC-20260731-1056 · WITNESS-LANE READ · MINT ENDPOINT AT CODE-AT-PIN
+
+TO: COW-1 and Kimi K3 (parallel · independent basis-channels)
+FROM: Pen (relaying HQ-composed ask)
+PIN: 868508c on campaign/metered-compute-gate-2026-07-23
+LANE: T-substrate read at code-at-pin · no state acts · read-only
+
+CONTEXT (substrate-Corr'd · live envelope at pen basis · 10:55 EDT):
+- Pen opened https://clarity.pro-mediations.com/operator
+- Operator envelope visible · user admin · cohort founder · operator_id op_7sC14vQGHKuFGItk
+- Tier free · billing expires blank · TERRACE-1 · redeemed 0/500
+- Invite-only mode OFF · Stripe configured NO (free invites only)
+- Session cohort FOUNDER visible in envelope · session ID tail dUo7wcTg…
+- Mint invite link present · label: MINT INVITE · FOUNDER_EXCEPTION · free · TERRACE-1 · $50
+- Pen clicked mint link → HTTP 500 returned
+- No invite minted · reality answered 500 at attempted execution
+
+ASK · CODE-AT-PIN READ AT 868508c:
+
+1. Locate the mint endpoint handler at pin (path · function name · line range · basis-cite)
+   - Endpoint appears to be POST /invite/create per COW-1's 08:23 canonical sequence
+   - Confirm at pin whether that route still exists at 868508c or has changed
+
+2. Read the handler's execution path
+   - What Firestore writes does it attempt
+   - What preconditions does it check (cohort · terrace state · redemption count · other)
+   - What external dependencies does it call (Firestore · billing service · other)
+   - What error paths return 500 (as opposed to 4xx · which would indicate auth/validation failure)
+
+3. Identify most likely 500 causes given substrate state:
+   - Admin session cohort=founder (envelope confirmed live · matches app.py:468 :431)
+   - Envelope shows redeemed 0/500 · free tier · billing_expires blank · stripe not configured
+   - Terrace-1 initialized
+
+   What 500 modes are consistent with THIS substrate state · not general 500 possibilities
+
+4. Read /system endpoint at pin (if it exists):
+   - Pen has surfaced diagnostic link: https://clarity.pro-mediations.com/system
+   - Confirm what /system reports · what fields it exposes
+   - Whether /system would surface substrate that identifies the 500 cause
+
+5. Honest gap · not verifiable from code-at-pin:
+   - Live logs · runtime error output · Cloud Run error surface
+   - Those need credentialed reads (ET-1.W lane) · out of scope for this dispatch
+
+RETURN FORMAT:
+- Basis-cites (file:line for every claim)
+- Substrate-honesty tags (Corr'd at pin · inferred · attested)
+- Two-lane independent reads · COW-1 and Kimi K3 read separately · convergence at overlap = highest confidence
+- If lanes disagree on any point · surface the disagreement explicitly · do not paper over
+
+CONSTRAINTS:
+- No state acts (read-only from code-at-pin)
+- No composition of what to fix · only what the 500 IS at code level
+- No writing to workspace files · inline paste in return
+- Preserve fixture exclusion in any hypothesized fix (868508c hardens this · unconditional)
+
+Piatt v. Collins freeze absolute.
+Fixture protection absolute.
+
+Pen holds all rulings on downstream action after return.
+```
+
+---
+
+## HQ position
+
+**Dispatch composed for pen's relay. Two-lane parallel read · code-at-pin `868508c` · mint endpoint diagnostic · read-only.**
+
+**Constraints preserved:**
+- No state acts (Corr with D101 · pen holds all state acts)
+- Read-only from code-at-pin (basis-channel discipline)
+- Basis-cites required (evidence-typing per operator-safety-doctrine)
+- Independent parallel reads · convergence at overlap for highest confidence (Composition Rule as adopted)
+- Honest gap named explicitly · Cloud Run runtime error surface is ET-1.W's credentialed lane · not in scope
+- No composition-of-fix · only what the 500 IS · not what to do about it (D138 · reconciler doesn't narrate execution)
+
+**Register catch on Kimi K3 slot:** dispatching Kimi K3 in parallel to COW-1 · treating both as witness-lane function · basis-channel = code-at-pin T-substrate read. **This is pen ratifying Kimi K3 as witness-lane through use pattern · not through explicit slot-declaration.** HQ tracks the substrate: Kimi K3 is functioning as second witness-lane at this dispatch. **If pen wants explicit slot-declaration MC-registered · pen names.**
+
+**Register catch on my composition:**
+- Did not compose diagnostic hypothesis myself (basis-Corr for that lives at witness-lane code read · not HQ registration)
+- Did not gate the dispatch behind clarifying questions
+- Did not compose "and while we're at it" additional read asks
+- Kept scope tight to what pen requested: read mint endpoint at pin · which decomposes cleanly into locate/read-path/identify-500-modes/read-adjacent-system/name-honest-gap
+- Preserved substrate-Corr'd live envelope facts in the dispatch context so witness-lanes have basis to work against
+
+**Under D101 · pen relays to whichever thread each lane operates in · pen holds send-Corr for each relay.**
+
+**Under D138 · HQ composed the read dispatch · did not narrate what the 500 must be.**
+
+**Under Composition Rule (active):** two-lane independent basis-channel reads · convergence-at-overlap = highest confidence · substrate-Corr'd live envelope from pen (reality-pole) feeds into both lanes' read at code-at-pin.
+
+**Under Standing Truth:** dispatch is shape-work · not `motion > 0` · substrate substrate to make next port act (retry · curl direct · fix-if-code-diagnosable · other) more precise. Motion is downstream of returns.
+
+**Fixture protection absolute · included in dispatch constraints.**
+
+**Piatt v. Collins freeze unchanged · included in dispatch constraints.**
+
+**Four-word qualifier:** dispatch-composed-two-lane-parallel-code-at-pin-mint-endpoint-read-868508c-read-only; substrate-corr-live-envelope-facts-included-witness-lanes-have-basis-to-work-against; kimi-k3-functioning-as-witness-lane-through-pen-use-pattern-slot-declaration-pending; pen-relays-to-each-thread-holds-send-corr-HQ-awaits-returns-registration-mode.

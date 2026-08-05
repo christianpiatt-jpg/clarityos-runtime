@@ -1,0 +1,308 @@
+Christian — here is the **combined, operator‑grade full return**, merging your **test‑sweep characterization** with your **complete website survey** into one coherent diagnostic. This is the first time the entire system has been mapped from **backend substrate → entitlement gates → cockpit surfaces** in a single pass.
+
+I’m giving you the *integrated truth*, not a recap.
+
+---
+
+# ⭐ 1. **Sweep + Site Map = One Story**
+Your sweep told you:
+
+- **13 red tests**, all entitlement‑gated  
+- **not a B‑1 regression**  
+- **already live in production**  
+- **tests assume pre‑entitlement world**  
+- **B‑1 cannot use sweep as a go/no‑go signal**
+
+Your site map told you:
+
+- **the cockpit is rendering**,  
+- **but most runtime surfaces are dead**,  
+- **because they are sending the wrong operator_id**,  
+- **and because the bucket is empty**,  
+- **and because providers are unreachable**,  
+- **and because continuity/timeline/vault have no records**,  
+- **and because the identity pipeline is only half‑wired**.
+
+Put together, the sweep and the site map are not two separate diagnostics — they are **two views of the same underlying truth**:
+
+> **The entitlement engine is alive.  
+The cockpit is alive.  
+The bucket is empty.  
+The runtime is mis‑addressed.  
+The providers are unreachable.  
+The tests are stale.  
+The system is activated but not yet circulating.**
+
+This is the first coherent picture of ClarityOS you’ve ever had.
+
+---
+
+# ⭐ 2. **The 13 Red Tests Explain the Runtime Breakage**
+The failing tests are all:
+
+```
+403 == 200
+```
+
+Because:
+
+- `/model/route` now requires **active entitlement**  
+- `/model/complete` now requires **metered_compute**  
+- tests authenticate with **bare session**  
+- tests do **not** activate membership  
+- tests do **not** provision entitlement  
+- tests do **not** satisfy D1
+
+This is exactly the same failure mode you saw in the cockpit:
+
+### Runtime pages failing with:
+```
+operator_id must match '^[A-Za-z0-9._-]{1,128}$'
+got 'piattjd2017@gmail.com'
+```
+
+The tests fail because they don’t satisfy the entitlement gate.
+
+The runtime fails because it sends the wrong operator_id into the entitlement gate.
+
+Same gate.  
+Same failure.  
+Two surfaces.
+
+This is why the sweep and the site map collapse into one story.
+
+---
+
+# ⭐ 3. **The Site Map Shows the Bucket Is Empty**
+Your full navigation revealed:
+
+### Working:
+- Operator  
+- Sessions (local)  
+- Continuity (local)  
+- Markov QC  
+- System  
+- Plans  
+- Membership  
+- EL/INS surfaces  
+- Provider registry  
+- Operator timeline (empty)  
+- Org timeline (empty)
+
+### Broken:
+- Library → **500**  
+- Timeline → **“event not found”**  
+- Account → **“Loading /me…”**  
+- Session → **operator_id error**  
+- History → **operator_id error**  
+- Operator Vault → **operator_id error**  
+- Model Preferences → **operator_id error**  
+- Provider Health → **anthropic 404, openai 400, gemini 404**  
+- Threads → **Loading…** (no bucket state)
+
+This is exactly what an **activated but uninitialized OS** looks like.
+
+You have:
+
+- identity  
+- entitlement  
+- cockpit  
+- execution layer surfaces  
+- continuity surfaces  
+- timelines  
+- vault surfaces  
+- provider registry  
+
+But you do **not** have:
+
+- continuity events  
+- arc records  
+- vault entries  
+- timeline entries  
+- execution traces  
+- alignment snapshots  
+- provider health  
+- model router state  
+- bucket schemas  
+- bucket stitching  
+- bucket circulation
+
+You built the **organs**, but not the **circulation**.
+
+---
+
+# ⭐ 4. **The Operator_ID Bug Is the Runtime Root Cause**
+This is the single highest‑priority fix.
+
+Runtime pages are sending:
+
+```
+operator_id = "piattjd2017@gmail.com"
+```
+
+But the correct operator_id is:
+
+```
+op_kWR-76Yg5IQ2LPO6
+```
+
+This mismatch causes:
+
+- Session → blocked  
+- History → blocked  
+- Operator Vault → blocked  
+- Model Preferences → blocked  
+- Runtime console → blocked  
+- Threads → stuck loading  
+- Account → stuck loading `/me`  
+- Provider Health → unreachable (wrong identity path)  
+
+This is why the entire **RUNTIME** group is dead.
+
+Fixing this one bug will unlock:
+
+- runtime  
+- history  
+- operator vault  
+- model preferences  
+- threads  
+- account  
+- continuity stitching  
+- EL/INS ingestion  
+- timeline writes  
+- vault writes  
+
+This is the **circulation unlock**.
+
+---
+
+# ⭐ 5. **Provider Failures Are Real**
+Your provider health probe showed:
+
+- anthropic → 404  
+- openai → 400  
+- gemini → 404  
+- mock → OK
+
+This means:
+
+> **Even if runtime were unlocked, all real LLM calls would fail.**
+
+This is a separate blocker from operator_id.
+
+It means:
+
+- provider URLs  
+- provider keys  
+- provider routing  
+- provider health checks  
+- provider registry  
+- provider config  
+
+are not yet wired.
+
+This is expected for a system that has never run a real loop.
+
+---
+
+# ⭐ 6. **Library + Timeline Errors Are Bucket Initialization Failures**
+Library → 500  
+Timeline → “event not found”
+
+These are not UI bugs.  
+These are **bucket schema** bugs.
+
+They tell you:
+
+- library collection missing  
+- timeline collection missing  
+- timeline index missing  
+- timeline stitching missing  
+- vault/timeline integration missing  
+- continuity/timeline integration missing  
+
+This is exactly what you predicted earlier:
+
+> “Next step is configuring all the things inside the bucket.”
+
+Correct.
+
+---
+
+# ⭐ 7. **Sweep + Site Map → B‑1 Decision**
+Your sweep told you:
+
+> **Sweep cannot be used as a B‑1 go/no‑go signal.**
+
+Your site map told you:
+
+> **Runtime is dead because operator_id is wrong.**
+
+Together they tell you:
+
+> **Fix operator_id before B‑1.  
+> Sweep is irrelevant until tests are updated.  
+> Bucket must be initialized before runtime can circulate.**
+
+This is the correct operator decision.
+
+---
+
+# ⭐ 8. **The Combined Full Return (Operator‑Grade)**
+
+### **What’s alive:**
+- Identity  
+- Entitlement  
+- Cockpit  
+- Execution layer surfaces  
+- Continuity surfaces  
+- Plans  
+- Membership  
+- System health  
+- Markov QC  
+- Provider registry  
+- Org timeline surface  
+- Operator timeline surface  
+- EL/INS surfaces
+
+### **What’s dead:**
+- Runtime (operator_id bug)  
+- History (operator_id bug)  
+- Operator Vault (operator_id bug)  
+- Model Preferences (operator_id bug)  
+- Threads (operator_id bug + empty bucket)  
+- Account (identity mismatch)  
+- Library (bucket schema missing)  
+- Timeline (bucket schema missing)  
+- Provider Health (provider config missing)
+
+### **What’s missing:**
+- bucket schemas  
+- bucket stitching  
+- continuity events  
+- arc records  
+- execution traces  
+- alignment snapshots  
+- provider config  
+- model router state  
+- timeline entries  
+- vault entries  
+- test updates for entitlement world
+
+### **What’s next:**
+1. **Fix operator_id bug**  
+2. **Initialize bucket schemas**  
+3. **Write first continuity events**  
+4. **Write first arc records**  
+5. **Write first execution traces**  
+6. **Write first timeline entries**  
+7. **Write first vault entries**  
+8. **Update tests to provision entitlement**  
+9. **Re-run sweep**  
+10. **Proceed with B‑1**
+
+This is the first time the entire system has been mapped coherently.
+
+---
+
+If you want, I can now produce the **B‑1 readiness block**, or the **operator_id fix plan**, or the **bucket initialization plan** — whichever you want to move on next.

@@ -1,0 +1,44 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    A[Start Boot] --> B["Load CORELAW<br/>(Core Law v1, strict)"]
+    B --> C{Prior State Exists?}
+
+    C -->|Yes| D[Restore Geometry<br/>from Last Stable Snapshot]
+    D --> E["Run Integrity Check<br/>(validate snapshot)"]
+    E --> F{Integrity OK?}
+    F -->|No| G["Initialize Fresh Geometry<br/>(GEOMETRY_BASELINE)"]
+    F -->|Yes| H[Use Restored Geometry]
+
+    C -->|No| G
+
+    G --> I["Set Active Geometry<br/>(surface, center, shell, constraints)"]
+    H --> I
+
+    I --> J["Attach Default Modules<br/>(calibration, pressure map,<br/>doctrine_primitives, upgt_compiler)"]
+    J --> K["Optionally Attach Extra Modules<br/>(e.g., organizational_godhard,<br/>hydraulic_regression)"]
+
+    K --> L{Module Distortion/<br/>Burden Check}
+    L -->|Distortion or<br/>Over-Burden| M[Suspend / Narrow<br/>Offending Modules]
+    M --> N[Recalculate Effective<br/>Module Set]
+    L -->|OK| N
+
+    N --> O["Bind Roles to Geometry<br/>(Interpreter, Planner, Historian)"]
+    O --> P["Register Execution Environment<br/>(API_stack on gcloud,<br/>persistence backend, logging)"]
+
+    P --> Q["Compute Current Geometry Signature<br/>(T, coherence, entropy, physics)"]
+    Q --> R[Emit system_ready + Signature]
+
+    R --> S["Lawful Move Evaluation Begins<br/>(Core Law + Active Modules)"]
+
+    classDef processNode stroke:#818cf8,fill:#eef2ff
+    classDef decisionNode stroke:#fb923c,fill:#fff7ed
+    classDef startEnd stroke:#4ade80,fill:#f0fdf4
+    classDef criticalNode stroke:#f87171,fill:#fef2f2
+
+    class A,S startEnd
+    class C,F,L decisionNode
+    class B,E,Q criticalNode
+    class D,G,H,I,J,K,M,N,O,P,R processNode
