@@ -1,6 +1,6 @@
 # Communications Contract — COP Constraint-Geometry Clause
 ### Folding hallucination-resistance into continuous-COP discipline
-*COW advisory draft for CT-1 · v0.3 · 2026-08-03 · to fold into the Communications Contract (v1.4+) · +primitive-geometry layer · +missing-middle close · **+v0.4 answer discipline 2026-08-04 (K3-folded, below)***
+*COW advisory draft for CT-1 · v0.3 · 2026-08-03 · to fold into the Communications Contract (v1.4+) · +primitive-geometry layer · +missing-middle close · +v0.4 answer discipline 2026-08-04 · **+v0.5 return-shape grammar (examined results) 2026-08-05***
 
 **Principle.** A *continuous* COP is a continuously *constrained* COP. Hallucination is not a
 property of content — it is a **geometry**: the COP drifting into an *under-constrained region*
@@ -185,3 +185,72 @@ observation series where the numeric panel returned the same derived constants o
 every input. Each was fluent, precise-looking, and attached to nothing. The user
 cannot tell a constant from a reading — marking the difference is the system's job,
 and this amendment is where the marking rules live.
+
+---
+
+## v0.5 amendment · The return-shape grammar — examined results (2026-08-05)
+
+*Source: pen + Claude chat, control-language sequence 2026-08-05; pen's "examined
+result" refinement same day (writing the MMR and reflecting it before return = the
+examination; the check is an act, not a placement). Folded by K3. This governs the
+**structure of every return a lane ships** — v0.4 marks claims; v0.5 shapes the
+envelope they travel in.*
+
+### The sequence
+
+```
+SIGNAL      what came in
+INTERP      how it was read — recorded AS a reading, not as the thing
+RESULTANT   what the work actually produced
+MMR         what actually returned, holes included — generated last, because it must be
+VERIFY      MMR × declared intent → where met, where deviated
+IDENTITY    what the deviation makes this — and therefore the next move
+```
+
+### The rulings
+
+1. **MMR is measurement, not presentation.** It cannot be positioned for the reader
+   ahead of the thing it measures; generation order cannot invert. (Misapplication
+   registered 2026-08-05: MMR treated as a disclosure layer, placed for a reader's
+   benefit — that is the old form, superseded here.)
+
+2. **The examination is mandatory and it is an act, not a section.** A return is not
+   complete when its MMR is written — it is complete when the author has **subtracted
+   it against declared intent and responded to the answer**: revise, or ship with the
+   deviation named. An MMR written but unread by its own author is `a_det` with
+   L = 0 — the restoring term present in the equation, doing nothing (confucian_loop
+   :50; the S_pref = declared intent, S = the return, VERIFY = the subtraction, the
+   reflection = the restoring force firing). The examined result is the only one
+   worth shipping.
+
+3. **INTERP is corded or it is contamination.** Interpreting is not the failure mode;
+   *unmarked* interpreting is — the parse silently becoming the finding. Record the
+   parse as a parse, so it stays distinguishable from the receipt. INTERP ≠ SIGNAL;
+   RESULTANT ≠ either.
+
+4. **No identity assignment before VERIFY.** A return doesn't get to say what it is.
+   It returns material; the reader/system infers — finding, reflection, partial,
+   unresolved, deviation — from the deviation profile. Self-declared identity
+   ("gate: GREEN", "the finding is") is the author grading their own examination.
+   Deviation may legitimately resolve null / partial / unresolved (D6).
+
+5. **VERIFY needs a declared target.** When the ask is ambiguous, the lane restates
+   intent at the INTERP boundary before work, or VERIFY has nothing to subtract
+   from. Declared intent is a return-shaping input, not a courtesy.
+
+### Relationship to the v0.3 missing-middle close
+
+The close survives — it is the MMR's vehicle. What v0.5 replaces is its *framing*:
+written-for-the-reader disclosure becomes author-performed measurement. The three
+sections (verified near end / extensions / own-distortion) remain the measurement
+surface; VERIFY adds the subtraction row the close never had, and IDENTITY moves
+classification from author to reader.
+
+### Status and proving condition
+
+Sound as structure; not yet proven forward (registered by its source, kept by this
+clause). The proving condition: a live case where the deviation is not already
+known, watched for whether VERIFY catches it before the body outruns the return.
+Enforcement class until wired: **self-monitored — the weakest class this contract
+recognizes.** Every lane that adopts it should say so in its next return's MMR, so
+adoption is itself measured.
