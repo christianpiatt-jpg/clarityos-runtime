@@ -1562,9 +1562,9 @@ Given the user's text describing a situation, produce a four-layer structural an
 
 LAYER 1 — field_curvature
 {
-  "intensity": "low | medium | high",
+  "intensity": "low | medium | high | unclear",
   "gradient_direction": "inward | outward | mixed | unclear",
-  "stability": "stable | unstable | oscillating",
+  "stability": "stable | unstable | oscillating | unclear",
   "dominant_forces": [
     // subset of: "uncertainty", "time_pressure", "role_confusion",
     //   "conflict_avoidance", "over_responsibility"
@@ -1576,13 +1576,13 @@ LAYER 1 — field_curvature
 LAYER 2 — edge_pressure
 {
   "signal_clarity": "clear | mixed | unclear",
-  "signal_intensity": "low | medium | high",
-  "coherence": "coherent | fragmented | contradictory",
+  "signal_intensity": "low | medium | high | unclear",
+  "coherence": "coherent | fragmented | contradictory | unclear",
   "perceived_posture": [
     // subset of: "pursuing", "withdrawing", "defensive",
     //   "compliant", "confrontational", "ambivalent"
   ],
-  "risk_of_misread": "low | medium | high",
+  "risk_of_misread": "low | medium | high | unclear",
   "notes": "how this is likely to land on the other party"
 }
 
@@ -1590,9 +1590,9 @@ LAYER 3 — relational_primitives
 {
   "trust": "low | medium | high | fluctuating | unclear",
   "alignment": "aligned | partially_aligned | misaligned | unclear",
-  "boundary": "clear | soft | collapsed | rigid | contested",
-  "agency": "full | partial | constrained | outsourced",
-  "distance": "close | moderate | distant | increasing | decreasing",
+  "boundary": "clear | soft | collapsed | rigid | contested | unclear",
+  "agency": "full | partial | constrained | outsourced | unclear",
+  "distance": "close | moderate | distant | increasing | decreasing | unclear",
   "dominant_pattern": [
     // subset of: "pressure_asymmetry", "boundary_uncertainty",
     //   "role_confusion", "narrative_drift", "identity_compression",
@@ -1693,6 +1693,101 @@ def _emotional_physics_skeleton() -> dict:
     return {k: {} for k in _EMOTIONAL_PHYSICS_KEYS}
 
 
+# ---------------------------------------------------------------------------
+# Substantive-fields counter — how many output fields took a value that
+# carries information. Derived from the parsed body only: metadata about
+# structure, never about content, so no user text reaches the log.
+#
+# A field is substantive unless it is:
+#   * "unclear"                      — the reader declined
+#   * the floor member of an ordinal enum — ambiguous between a real low
+#     reading and nothing to see; counted conservatively as non-substantive
+#   * an empty array                 — for the four subset-arrays
+# ---------------------------------------------------------------------------
+
+# Only these enums are ordinal, i.e. have a degenerate bottom. Every other
+# enum is nominal: each member is a positive claim and no floor exists, so
+# any non-"unclear" value counts.
+_ORDINAL_FLOOR: dict = {
+    "intensity":        "low",
+    "signal_intensity": "low",
+    "risk_of_misread":  "low",
+    "trust":            "low",
+}
+
+# ``signal_clarity`` is deliberately excluded and logged on its own. Its
+# "unclear" is semantic — it predates the null-member work and means the
+# signal itself reads as unclear — so scoring it as an abstention would
+# misread a correct answer as a shrug.
+_SUBSTANTIVE_ENUMS: tuple = (
+    ("field_curvature",       "intensity"),
+    ("field_curvature",       "gradient_direction"),
+    ("field_curvature",       "stability"),
+    ("edge_pressure",         "signal_intensity"),
+    ("edge_pressure",         "coherence"),
+    ("edge_pressure",         "risk_of_misread"),
+    ("relational_primitives", "trust"),
+    ("relational_primitives", "alignment"),
+    ("relational_primitives", "boundary"),
+    ("relational_primitives", "agency"),
+    ("relational_primitives", "distance"),
+)
+
+# Layer-4 free-text fields are not enum-shaped and are not counted.
+_SUBSTANTIVE_ARRAYS: tuple = (
+    ("field_curvature",       "dominant_forces"),
+    ("edge_pressure",         "perceived_posture"),
+    ("relational_primitives", "dominant_pattern"),
+    ("external_expression",   "recommended_posture"),
+)
+
+SUBSTANTIVE_DENOMINATOR: int = (
+    len(_SUBSTANTIVE_ENUMS) + len(_SUBSTANTIVE_ARRAYS)
+)
+
+
+def _count_substantive_fields(body: dict) -> int:
+    """Count output fields taking a substantive value. Never raises: a
+    malformed or degraded body simply scores low."""
+    if not isinstance(body, dict):
+        return 0
+    n = 0
+    for layer, field in _SUBSTANTIVE_ENUMS:
+        section = body.get(layer)
+        if not isinstance(section, dict):
+            continue
+        raw = section.get(field)
+        if not isinstance(raw, str):
+            continue
+        value = raw.strip().lower()
+        if not value or value == "unclear":
+            continue
+        if _ORDINAL_FLOOR.get(field) == value:
+            continue
+        n += 1
+    for layer, field in _SUBSTANTIVE_ARRAYS:
+        section = body.get(layer)
+        if not isinstance(section, dict):
+            continue
+        if isinstance(section.get(field), list) and section[field]:
+            n += 1
+    return n
+
+
+def _signal_clarity_value(body: dict) -> str:
+    """``signal_clarity`` verbatim, logged beside the count rather than
+    inside it. "absent" when the field is missing or unparseable."""
+    if not isinstance(body, dict):
+        return "absent"
+    section = body.get("edge_pressure")
+    if not isinstance(section, dict):
+        return "absent"
+    raw = section.get("signal_clarity")
+    if not isinstance(raw, str) or not raw.strip():
+        return "absent"
+    return raw.strip().lower()
+
+
 def run_emotional_physics(user_id: str, text: str) -> dict:
     """v52 — structural-not-sentimental analysis of a situation.
 
@@ -1789,6 +1884,9 @@ def run_emotional_physics(user_id: str, text: str) -> dict:
             "input_len":   len(cleaned),
             "raw_len":     len(raw_text),
             "parse_error": parse_error,
+            "substantive_fields":      _count_substantive_fields(result_body),
+            "substantive_denominator": SUBSTANTIVE_DENOMINATOR,
+            "signal_clarity_value":    _signal_clarity_value(result_body),
         },
         error=parse_error,
     )
