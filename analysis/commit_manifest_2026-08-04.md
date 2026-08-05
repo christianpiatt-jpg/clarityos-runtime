@@ -38,10 +38,13 @@
 |---|---|
 | `intelligence_kernel.py` | 106 insertions / 8 deletions = R6's 8 enum appends + ~98-line substantive-fields counter |
 
-**Gate:** v52 tests 21-pass + CI 667/13-pre-existing — both ET-1-attested with
-clean-pin isolation; recommend one re-run at commit time since the counter landed
-after that attestation. Commit messages cite **symbols, not lines**
-(`run_emotional_physics`, `_EMOTIONAL_PHYSICS_PROMPT`), per cite-by-symbol doctrine.
+**Gate:** v52 tests 21-pass + CI **688/13**-pre-existing — re-run at commit time
+2026-08-05 (K3): 21/21 and 688+13 confirmed against the committed tree. [Corr
+2026-08-05: this line read 667/13 — ET-1's pre-counter attestation. The counter
+test carries `pytestmark = runtime_spine` (`tests/test_substantive_fields_counter.py:37`),
+so the subset is 688/13 from `2fb4928` onward.] Commit messages cite **symbols,
+not lines** (`run_emotional_physics`, `_EMOTIONAL_PHYSICS_PROMPT`), per
+cite-by-symbol doctrine.
 
 ## Ruling queue — NOT staged; per-item or batch ruling needed
 
@@ -109,8 +112,10 @@ git commit -m "test(analysis): enum census + EP field interrogator instruments, 
 # Gate: counter landed after ET-1's clean-pin attestation, so re-run:
 python -m pytest tests/test_v52_emotional_physics.py -q          # expect 21 passed
 python -m pytest -m "runtime_spine or privacy_surface or determinism_surface" -q
-#   expect 667 passed + the same 13 pre-existing test_v44_model_router 403s
+#   expect 688 passed + the same 13 pre-existing test_v44_model_router 403s
 #   (entitlement-gate fixture gap, PL-Bravo B-1 — NOT R6; clean-pin isolated)
+#   [Corr 2026-08-05: was 667 — the counter test joined the subset via its own
+#    pytestmark at 2fb4928; actual gate result 688+13, EXECUTED 2026-08-05 ✓]
 git add intelligence_kernel.py
 git commit -m "feat(kernel): R6 — add | unclear null member to the 8 forced enums in _EMOTIONAL_PHYSICS_PROMPT; substantive-fields counter in run_emotional_physics meta (see analysis/R6_UNCLEAR_PREREG.md)"
 ```
