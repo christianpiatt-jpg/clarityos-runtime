@@ -278,11 +278,24 @@ def update_ep_baseline(user: str, run: dict, *, alpha: float = 0.2) -> dict:
         existing = ref.get().to_dict() if ref.get().exists else None
     else:
         existing = _MEM_BASELINE.get(user)
+    # Delta — the measured difference between the stored prior and this
+    # observation. Must be taken BEFORE the smoothing loop below, which
+    # overwrites ``existing`` in place; after it the prior is gone.
+    #
+    # A first observation has no prior, so the delta is None and never
+    # 0.0: no reference is not the same claim as no change. Both branches
+    # below leave this defined, so every return carries the key.
+    delta_intensity_mean: Optional[float] = None
     if not existing:
         existing = dict(new_obs)
         existing["sample_count"] = 1
         existing["last_ts"] = time.time()
     else:
+        delta_intensity_mean = round(
+            new_obs["intensity_mean"]
+            - float(existing.get("intensity_mean", 0.0)),
+            4,
+        )
         for k in ("stress_total", "relief_total", "net", "intensity_mean"):
             existing[k] = round(
                 (1.0 - alpha) * float(existing.get(k, 0.0)) + alpha * new_obs[k],
@@ -294,7 +307,12 @@ def update_ep_baseline(user: str, run: dict, *, alpha: float = 0.2) -> dict:
         _get_firestore().collection(_BASELINE_COLL).document(user).set(existing)
     else:
         _MEM_BASELINE[user] = dict(existing)
-    return existing
+    # The delta rides the return only. ``existing`` is the persisted record,
+    # so attaching it there would change the storage schema; the stored
+    # shape is unchanged and the delta is recomputed per call.
+    out = dict(existing)
+    out["delta"] = {"intensity_mean": delta_intensity_mean}
+    return out
 
 
 def get_baseline(user: str) -> Optional[dict]:
