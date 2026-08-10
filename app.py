@@ -8313,11 +8313,16 @@ def markov_chat(
     )
     curvatures = [abs(float(nb["curvature"])) for nb in top_for_final if nb.get("curvature") is not None]
     qc_pressure_new = float(sum(curvatures) / len(curvatures)) if curvatures else 0.0
+    curvatures_signed = [float(nb["curvature"]) for nb in top_for_final if nb.get("curvature") is not None]
+    qc_pressure_grad_new = (
+        float(sum(curvatures_signed) / len(curvatures_signed)) if curvatures_signed else None
+    )
     new_qc = {
         "qc_stability": qc_stability_new,
         "qc_drift": qc_drift_new,
         "qc_predictive": qc_predictive_new,
         "qc_pressure": qc_pressure_new,
+        "qc_pressure_grad": qc_pressure_grad_new,
     }
 
     # SURFACES ──────────────────────────────────────────────────────────────
@@ -8686,6 +8691,12 @@ def _run_g_elins(scenario_text: str, user: str) -> dict:
         abs(float(nb["curvature"])) for nb in top5 if nb.get("curvature") is not None
     ]
     qc_pressure = (sum(curvatures) / len(curvatures)) if curvatures else 0.0
+    curvatures_signed = [
+        float(nb["curvature"]) for nb in top5 if nb.get("curvature") is not None
+    ]
+    qc_pressure_grad = (
+        sum(curvatures_signed) / len(curvatures_signed) if curvatures_signed else None
+    )
     # Pull the cached ELINS physics_block + universal block from the user's
     # envelope (read-only). Both are deterministic; safe to surface.
     env_doc = envelopes_store.get(user) or {}
@@ -8723,7 +8734,7 @@ def _run_g_elins(scenario_text: str, user: str) -> dict:
         "ok": True,
         "analysis": {
             "neighborhoods": nb_summary,
-            "qc_summary": {"pressure": float(qc_pressure)},
+            "qc_summary": {"pressure": float(qc_pressure), "pressure_grad": qc_pressure_grad},
             "elins_physics": elins_physics_block,
             "universal_physics": universal,
             "persisted_membership_id": persisted_membership_id,

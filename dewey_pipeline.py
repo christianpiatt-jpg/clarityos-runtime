@@ -666,6 +666,7 @@ def step_state_forward(
         return list(current_state_vector or []), {
             "qc_stability": 1.0, "qc_drift": 0.0,
             "qc_predictive": 1.0, "qc_pressure": 0.0,
+            "qc_pressure_grad": None,
         }, []
 
     v_next = predict_next_state(current_state_vector, user_neighborhoods, top_n=5)
@@ -680,6 +681,10 @@ def step_state_forward(
     top3 = top_neighborhoods_with_curvature(v_next, user_neighborhoods, k=3)
     curvs = [abs(float(nb["curvature"])) for nb in top3 if nb.get("curvature") is not None]
     qc_pressure = float(sum(curvs) / len(curvs)) if curvs else 0.0
+    curvs_signed = [float(nb["curvature"]) for nb in top3 if nb.get("curvature") is not None]
+    qc_pressure_grad = (
+        float(sum(curvs_signed) / len(curvs_signed)) if curvs_signed else None
+    )
 
     dominant = [
         {
@@ -694,6 +699,7 @@ def step_state_forward(
         "qc_drift": float(qc_drift),
         "qc_predictive": qc_predictive,
         "qc_pressure": qc_pressure,
+        "qc_pressure_grad": qc_pressure_grad,
     }
     return v_next, qc_envelope, dominant
 
@@ -729,12 +735,12 @@ def generate_trajectory(
     else:
         stability_score = 0.0
         drift_score = 0.0
-        pressure_score = 0.0
+        pressure_score = None
 
     return steps, {
         "stability_score": float(stability_score),
         "drift_score": float(drift_score),
-        "pressure_score": float(pressure_score),
+        "pressure_score": float(pressure_score) if pressure_score is not None else None,
     }
 
 
@@ -905,15 +911,24 @@ def compute_envelope_metrics(
         return {"stability_trend": 0.0, "drift_trend": 0.0, "pressure_trend": 0.0}
     p = prev_state.get("qc_envelope") or {}
     n = new_state.get("qc_envelope") or {}
-    def _g(d: dict, k: str) -> float:
+    def _g(d: dict, k: str):
+        v = d.get(k)
+        if v is None:
+            return None
         try:
-            return float(d.get(k, 0.0) or 0.0)
+            return float(v)
         except (TypeError, ValueError):
-            return 0.0
+            return None
+
+    def _trend(new_v, prev_v):
+        if new_v is None or prev_v is None:
+            return None
+        return new_v - prev_v
+
     return {
-        "stability_trend": _g(n, "qc_stability") - _g(p, "qc_stability"),
-        "drift_trend": _g(n, "qc_drift") - _g(p, "qc_drift"),
-        "pressure_trend": _g(n, "qc_pressure") - _g(p, "qc_pressure"),
+        "stability_trend": _trend(_g(n, "qc_stability"), _g(p, "qc_stability")),
+        "drift_trend": _trend(_g(n, "qc_drift"), _g(p, "qc_drift")),
+        "pressure_trend": _trend(_g(n, "qc_pressure"), _g(p, "qc_pressure")),
     }
 
 
