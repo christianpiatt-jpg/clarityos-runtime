@@ -780,7 +780,7 @@ export interface V33ELINSObject {
     days: number;
     version: string;
   };
-  synthesis: { top_primitive: string | null; top_primitive_intensity: number | null; domain: string | null; signal: string | null; trend: string | null; stress_score: number; relief_score: number; external_anchors?: string[] };
+  synthesis: { top_primitive: string | null; top_primitive_intensity: number | null; domain: string | null; signal: string | null; trend: string | null; stress_score: number; relief_score: number; no_signal: boolean; external_anchors?: string[] };
   qc_s_elins: { self_check: string; max_delta: number; deltas: Record<string, number> };
   output_object: { scenario_id: string; summary: Record<string, unknown>; ts: number; version: string };
   layer_names: string[];
