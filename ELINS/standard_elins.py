@@ -85,7 +85,9 @@ _PRIMITIVE_LEXICON: dict[str, list[tuple[str, float]]] = {
                       ("oppos*", 0.3), ("argu", 0.2), ("clash", 0.3),
                       ("stand-off", 0.4), ("standoff", 0.4)],
     "trust":         [("trust", 0.4), ("confidence", 0.3), ("loyalt*", 0.3),
-                      ("integrity", 0.3), ("bond", 0.2), ("good faith", 0.4),
+                      # ("bond", 0.2) retired (B-2): DR-1 measured it firing
+                      # on 2 of 8 noise cases with no trust content.
+                      ("integrity", 0.3), ("good faith", 0.4),
                       ("reliable", 0.3), ("credibilit*", 0.3)],
     "drift":         [("drift", 0.4), ("erod*", 0.3), ("shift", 0.3),
                       ("slid*", 0.3), ("deteriorat*", 0.4), ("decline", 0.3),
@@ -95,7 +97,9 @@ _PRIMITIVE_LEXICON: dict[str, list[tuple[str, float]]] = {
                       ("at odds", 0.3), ("doublethink", 0.4)],
     "alignment":     [("align*", 0.4), ("agree", 0.3), ("converg*", 0.3),
                       ("cooperat*", 0.3), ("consensus", 0.3), ("shared", 0.2),
-                      ("united", 0.3), ("partner", 0.2)],
+                      # ("partner", 0.2) retired (B-2): rides with bond per
+                      # the original B-2 scope; measured trivial by DR-1.
+                      ("united", 0.3)],
 }
 
 # Domain heuristic — same lexical pattern, mapped to the canonical
