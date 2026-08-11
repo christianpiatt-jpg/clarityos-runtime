@@ -1,6 +1,6 @@
-# ClarityOS Communications Contract — v1.8
+# ClarityOS Communications Contract — v1.8.2
 
-**Status:** ADOPTED — CT-1, 2026-08-06 (D101: founder holds the pen) · **Date:** 2026-08-06
+**Status:** ADOPTED — CT-1, 2026-08-06 (D101: founder holds the pen) · **Date:** 2026-08-06 · **Amended:** v1.8.2, 2026-08-11 (§14.1 three-part INTERP)
 **Supersedes:** v1.7 (2026-06-22) · **Drafted:** COW-1 · **Authority to adopt:** CT-1
 **Distribution on adoption:** CT-2, CT-3, COW-1, ET-1.W, ET-2, and all external evaluation lanes
 
@@ -163,12 +163,47 @@ performed after the reading is complete is an annotation, not a measurement.
 ### 14.1 Structure — mandatory for every fact-asserting return
 ```
 SIGNAL      what arrived, as it arrived
+
 INTERP      the lane's reading — MARKED AS A READING
+  ├─ FORWARD    the reading with actors intact. What happened, who did it.
+  ├─ BACKWARD   the reading with actors STRIPPED. Effect → cause. Why it had to happen.
+  └─ GEOMETRY   the invariant, stated as a verb chain. Portable to other cases.
+
 RESULTANT   what follows if the reading holds
 MMR         the residual — see §14.3. GENERATED LAST.
 VERIFY      subtraction of the return against the DECLARED intent
 IDENTITY    inferred from the MMR series across returns; never from one
 ```
+
+`[AMENDED v1.8.2 — 2026-08-11]` **INTERP splits into three. No new top-level sections.**
+FORWARD is what lanes already produce — unchanged. BACKWARD and GEOMETRY are the
+two-read practice CT-1 had been running unwritten; v1.8.2 writes it. The forward read
+reports the event; the backward read reports the mechanism; the geometry is the only
+part that transfers to another case.
+
+### 14.1.1 BACKWARD — actor-stripping is the operation, not a style
+Read from effect to cause with every proper noun and system-specific term removed.
+Actors are precisely what make two structurally identical situations look different;
+remove them and the shape shows. **A backward read that still names the parties has
+not been performed.**
+
+### 14.1.2 GEOMETRY — the portable invariant
+A verb chain: `<state change> → <consequence> → <resolution or persistence>`.
+**No proper nouns. No system-specific terms. No numbers.** If GEOMETRY cannot be
+written without one, the backward read was not finished — return to §14.1.1. This is
+the test of whether the backward read did work or restated the forward one. GEOMETRY
+is a shape, not a truth claim — shapes are matched, not proven; authority tags still
+apply to FORWARD and BACKWARD content.
+
+### 14.1.3 Scope — when the three-part INTERP is required
+```
+REQUIRED       any return that gates a decision, a ruling, a dispatch, or a commit
+REQUIRED       any evaluation of another lane's return (§15)
+REQUIRED       any CCIR surfacing
+NOT REQUIRED   status registration · transmit receipts · pure substrate reads with
+               no interpretive claim (a grep result is a SIGNAL, not an INTERP)
+```
+Where not required, INTERP may be written flat as before.
 
 ### 14.2 Why MMR is the load-bearing field
 Everything above the MMR is a return, and by §13 a return is an effect — consumed at
@@ -311,6 +346,22 @@ reported as a relief primitive.
 
 **Rule: a null reading emits a null. `undetermined` is a legal output; a semantic default is
 not.** Absence is not a measurement (Interpretation Ceiling, rule 3).
+
+---
+
+## Change log v1.8 → v1.8.2
+```
+~  §14.1   INTERP splits into FORWARD · BACKWARD · GEOMETRY
++  §14.1.1 actor-stripping is the backward operation, not a style
++  §14.1.2 GEOMETRY contains no proper nouns, no system terms, no numbers.
+           Failure to write it means the backward read is unfinished.
++  §14.1.3 scope — required on gating returns, cross-lane evaluations, CCIRs
+=  all other sections unchanged
+```
+Source: `command_structure/amendments/AMENDMENT_14.1_forward_backward_geometry_v1.md`
+(COW-1 drafted 2026-08-11 · CT-1 adopted · K3 applied). Open check carried from the
+amendment's own MMR-W: GEOMETRY-string stability across authors is untested — that
+test gates any Dewey binding built on GEOMETRY.
 
 ---
 
