@@ -1,6 +1,6 @@
 # ClarityOS Communications Contract — v1.8.2
 
-**Status:** ADOPTED — CT-1, 2026-08-06 (D101: founder holds the pen) · **Date:** 2026-08-06 · **Amended:** v1.8.2, 2026-08-11 (§14.1 three-part INTERP)
+**Status:** ADOPTED — CT-1, 2026-08-06 (D101: founder holds the pen) · **Date:** 2026-08-06 · **Amended:** v1.8.2, 2026-08-11 (§14.1 three-part INTERP) · v1.8.3, 2026-08-11 (§8.3 frame-relative measurement · §9 discriminator)
 **Supersedes:** v1.7 (2026-06-22) · **Drafted:** COW-1 · **Authority to adopt:** CT-1
 **Distribution on adoption:** CT-2, CT-3, COW-1, ET-1.W, ET-2, and all external evaluation lanes
 
@@ -99,8 +99,44 @@ remains uncorroborated.
 author are one measurement, not N. A lane citing multiple sources in agreement must state
 whether those sources are independent. **Where `validator_overlap ≈ 1.0`, say so.**
 
-## 9. Propagation halt `[carried v1.7]`
-CT-2 halts propagation on any unverified contradiction. A claim does not advance the COP until it is T-SUBSTRATE or independently corroborated per §8. Single-executor findings are not self-verifying.
+### 8.3 Frame-relative measurement  `[new v1.8.3 — 2026-08-11]`
+
+A claim derived from a lane's own field state — file stat, trust store, object
+store, reachable path, or any property of the mount rather than of the content —
+is a FRAME-RELATIVE MEASUREMENT.
+
+It is reported as `undetermined(window: <field>)`. It is NEVER reported as absence.
+
+**A negative from one mount is not evidence of absence.** An unpushed commit is
+definitionally absent from a fetch-only clone; its absence there carries no
+information about whether it exists.
+
+#### 8.3.1 Divergence is a measurement, not an error
+A divergence between two lanes on the same question measures the BOUNDARY between
+their frames. It is RECORDED, not adjudicated.
+
+Observed instances, 2026-08-11:
+```
+stat     1322 modified (mount) vs 0 (host)        → different filesystems, mtimes
+trust    U (no keyring) vs G (keyring present)     → trust-store location
+object   absent (fetch-only) vs present (worktree) → clone type
+temporal one lane, two readings 06:54 / 08:20      → measured the other lane's
+                                                      work interval
+```
+Each divergence was locally correct and carried real information about the
+boundary. None was a defect in either reading.
+
+#### 8.3.2 Timeouts
+A read that times out returns UNKNOWN, never "clean." An unfinished check is not
+a passing check.
+
+#### 8.3.3 Corrections chase the copies
+A lane that transmits a claim records who received it. When the claim's state
+changes, the correction goes to those recipients. One line in MMR-W:
+`told: <lanes>`. Not a subsystem.
+
+## 9. Propagation halt `[carried v1.7 · AMENDED v1.8.3]`
+CT-2 halts propagation on any unverified contradiction. A claim does not advance the COP until it is T-SUBSTRATE or independently corroborated per §8. Single-executor findings are not self-verifying. **A contradiction about a SHARED fact halts propagation. A divergence about FRAME-RELATIVE state (§8.3) registers and does not halt.**
 
 ## 10. Mutation & push discipline `[carried v1.7]`
 - Scoped staging only: `git add <explicit paths>` — never `git add -A`.
@@ -346,6 +382,18 @@ reported as a relief primitive.
 
 **Rule: a null reading emits a null. `undetermined` is a legal output; a semantic default is
 not.** Absence is not a measurement (Interpretation Ceiling, rule 3).
+
+---
+
+## Change log v1.8.2 → v1.8.3  (CT-1, 2026-08-11)
+```
++  §8.3    frame-relative measurement · undetermined(window:) · never absence
++  §8.3.1  divergence is a boundary measurement, recorded not adjudicated
++  §8.3.2  timeouts return UNKNOWN
++  §8.3.3  corrections chase the copies — one MMR-W line, not a bus
+~  §9      contradiction-on-shared-fact halts · frame-relative divergence registers
+=  all other sections unchanged
+```
 
 ---
 
