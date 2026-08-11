@@ -97,7 +97,7 @@ export default function RegionalDetailScreen() {
             ? "—"
             : `${elins.synthesis.top_primitive} (${elins.synthesis.top_primitive_intensity.toFixed(3)})`} />
           <Row k="Domain" v={elins.synthesis.domain || "—"} />
-          <Row k="Trend" v={elins.synthesis.trend} />
+          <Row k="Trend" v={elins.synthesis.trend || "—"} />
 
           <Text style={[styles.h3, { marginTop: space.s3 }]}>Primitives</Text>
           {Object.entries(elins.primitives.intensities)

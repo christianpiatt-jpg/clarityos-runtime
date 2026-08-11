@@ -79,7 +79,7 @@ export default function ELINSInspectorScreen() {
           <Row k="Top primitive" v={obj.synthesis.top_primitive || "—"} />
           <Row k="Domain" v={obj.synthesis.domain || "—"} />
           <Row k="Signal" v={obj.synthesis.signal || "—"} />
-          <Row k="Trend" v={obj.synthesis.trend} />
+          <Row k="Trend" v={obj.synthesis.trend || "—"} />
           <Row k="Stress / Relief" v={`${obj.synthesis.stress_score} / ${obj.synthesis.relief_score}`} />
           <Text style={[styles.h2, { marginTop: space.s4 }]}>Primitives</Text>
           {Object.entries(obj.primitives.intensities).map(([k, v]) => (

@@ -537,7 +537,7 @@ export interface V33ELINSObject {
   ep_field_summary: { stress_total: number; relief_total: number; net: number; intensity_mean: number };
   causal_chain: { edges: Array<{ from: string; to: string; weight: number }>; edge_count: number; threshold: number };
   stress_relief: { signal: string | null; net_pressure: number; edge_count: number };
-  forecast_5day: { days: Array<{ day: number; projected_net: number; phase: string }>; starting_net: number; ending_net: number; trend: string };
+  forecast_5day: { days: Array<{ day: number; projected_net: number; phase: string }>; starting_net: number; ending_net: number; trend: string | null };
   forecast_engine?: {
     primitive_envelopes: Record<string, number[]>;
     multi_envelope: number[];
@@ -547,7 +547,7 @@ export interface V33ELINSObject {
     days: number;
     version: string;
   };
-  synthesis: { top_primitive: string | null; top_primitive_intensity: number | null; domain: string | null; signal: string | null; trend: string; stress_score: number; relief_score: number; external_anchors?: string[] };
+  synthesis: { top_primitive: string | null; top_primitive_intensity: number | null; domain: string | null; signal: string | null; trend: string | null; stress_score: number; relief_score: number; external_anchors?: string[] };
   qc_s_elins: { self_check: string; max_delta: number; deltas: Record<string, number> };
   output_object: { scenario_id: string; summary: Record<string, unknown>; ts: number; version: string };
   layer_names: string[];
