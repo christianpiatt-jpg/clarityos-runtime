@@ -261,23 +261,33 @@ def _recompute_dependent_layers(elins_obj: dict, region_code: str) -> dict:
     intensities = primitives["intensities"]
 
     # Layer 3 — EP field summary
+    # B-1 (Line B spec §2): all-zero after regional recompute is absence,
+    # not balance. Spec named only :323; :272/:285 re-emit dominant/signal
+    # fresh in this recompute, so the null must propagate here too
+    # (in-scope-by-consequence — declared in the commit message).
     stress_keys = ("pressure", "tension", "drift", "contradiction")
     relief_keys = ("trust", "alignment")
+    no_signal = all(float(v) == 0.0 for v in intensities.values())
     pos = sum(intensities.get(k, 0.0) for k in relief_keys)
     neg = sum(intensities.get(k, 0.0) for k in stress_keys)
     elins_obj["ep_field_summary"] = {
         "stress_total": round(neg, 4),
         "relief_total": round(pos, 4),
         "net": round(pos - neg, 4),
-        "dominant": "relief" if pos > neg else ("stress" if neg > pos else "balanced"),
+        "dominant": None if no_signal else (
+            "relief" if pos > neg else ("stress" if neg > pos else "balanced")
+        ),
         "intensity_mean": round(
             sum(intensities.values()) / max(1, len(intensities)), 4,
         ),
+        "no_signal": no_signal,
     }
 
     # Layer 5 — stress/relief signal
     net = float(elins_obj["ep_field_summary"]["net"])
-    if net > 0.15:
+    if no_signal:
+        signal = None
+    elif net > 0.15:
         signal = "relief_dominant"
     elif net < -0.15:
         signal = "stress_dominant"
@@ -320,16 +330,22 @@ def _recompute_dependent_layers(elins_obj: dict, region_code: str) -> dict:
     elins_obj["forecast_engine"]["region_code"] = region_code
 
     # Synthesis — copy + extend with regional anchor info
-    top_prim = sorted(intensities.items(), key=lambda kv: (-kv[1], kv[0]))[0]
+    # B-1 (Line B spec §2): all-zero vector → null, not a tiebreak winner.
+    if no_signal:
+        top_name, top_intensity = None, None
+    else:
+        top_prim = sorted(intensities.items(), key=lambda kv: (-kv[1], kv[0]))[0]
+        top_name, top_intensity = top_prim[0], round(top_prim[1], 4)
     domain_top = (elins_obj.get("domain_mapping") or {}).get("effective_top")
     syn = {
-        "top_primitive": top_prim[0],
-        "top_primitive_intensity": round(top_prim[1], 4),
+        "top_primitive": top_name,
+        "top_primitive_intensity": top_intensity,
         "domain": domain_top,
         "signal": elins_obj["stress_relief"]["signal"],
         "trend": (elins_obj.get("forecast_5day") or {}).get("trend", "flat"),
         "stress_score": elins_obj["ep_field_summary"]["stress_total"],
         "relief_score": elins_obj["ep_field_summary"]["relief_total"],
+        "no_signal": no_signal,
         "region_code": region_code,
         "external_anchors": list(
             (elins_obj.get("external_signals") or {}).get("anchors") or []

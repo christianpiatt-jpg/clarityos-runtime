@@ -287,6 +287,9 @@ def _layer_2_domains(text: str, hint: Optional[str]) -> dict:
 
 def _layer_3_ep_summary(primitives: dict) -> dict:
     intensities = primitives["intensities"]
+    # B-1 (Line B spec §2): an all-zero intensity vector is ABSENCE, not
+    # balance. "balanced" must mean measured-and-even, not nothing-found.
+    no_signal = all(v == 0.0 for v in intensities.values())
     # Net signed value: relief primitives count positive; stress primitives
     # count negative. Bounded by the count of primitive groups.
     pos = sum(intensities[k] for k in RELIEF_PRIMITIVES)
@@ -295,8 +298,11 @@ def _layer_3_ep_summary(primitives: dict) -> dict:
         "stress_total": round(neg, 4),
         "relief_total": round(pos, 4),
         "net": round(pos - neg, 4),
-        "dominant": "relief" if pos > neg else ("stress" if neg > pos else "balanced"),
+        "dominant": None if no_signal else (
+            "relief" if pos > neg else ("stress" if neg > pos else "balanced")
+        ),
         "intensity_mean": round(sum(intensities.values()) / len(intensities), 4),
+        "no_signal": no_signal,
     }
 
 
@@ -326,7 +332,10 @@ def _layer_4_causal_chain(primitives: dict) -> dict:
 
 def _layer_5_stress_relief(ep_summary: dict, causal: dict) -> dict:
     net = float(ep_summary["net"])
-    if net > 0.15:
+    if ep_summary.get("no_signal"):
+        # B-1 (Line B spec §2): absence is not balance — null propagates.
+        signal = None
+    elif net > 0.15:
         signal = "relief_dominant"
     elif net < -0.15:
         signal = "stress_dominant"
@@ -376,15 +385,23 @@ def _layer_7_synthesis(layers: dict) -> dict:
     sr = layers["stress_relief"]
     forecast = layers["forecast_5day"]
     # Top-1 primitive (alphabetical tiebreak for determinism).
-    top_prim = sorted(primitives.items(), key=lambda kv: (-kv[1], kv[0]))[0]
+    # B-1 (Line B spec §2): on an all-zero vector the alphabetical tiebreak
+    # fabricates a winner ("alignment") — emit null instead.
+    no_signal = bool(ep.get("no_signal"))
+    if no_signal:
+        top_name, top_intensity = None, None
+    else:
+        top_prim = sorted(primitives.items(), key=lambda kv: (-kv[1], kv[0]))[0]
+        top_name, top_intensity = top_prim[0], round(top_prim[1], 4)
     return {
-        "top_primitive": top_prim[0],
-        "top_primitive_intensity": round(top_prim[1], 4),
+        "top_primitive": top_name,
+        "top_primitive_intensity": top_intensity,
         "domain": domain.get("effective_top"),
         "signal": sr["signal"],
         "trend": forecast["trend"],
         "stress_score": round(ep["stress_total"], 4),
         "relief_score": round(ep["relief_total"], 4),
+        "no_signal": no_signal,
     }
 
 

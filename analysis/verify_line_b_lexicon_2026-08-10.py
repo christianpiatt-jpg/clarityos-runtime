@@ -55,4 +55,22 @@ check("suppression is NOT inversion -> all six 0.0", all(v == 0.0 for v in i.val
 
 print("SMOKE OK — commit 1 asserts hold")
 
-print("Line B commit 2 — B-1 null emits null (asserts land with that commit)")
+print("Line B commit 2 — B-1 null emits null")
+
+obj = se.generate_ELINS("The candle flickered gently beside the windowsill.")
+syn = obj["synthesis"]
+check("all-zero -> synthesis.top_primitive None", syn["top_primitive"] is None)
+check("all-zero -> top_primitive_intensity None", syn["top_primitive_intensity"] is None)
+check("all-zero -> synthesis.no_signal True", syn["no_signal"] is True)
+check("all-zero -> ep.dominant None (not 'balanced')",
+      obj["ep_field_summary"]["dominant"] is None)
+check("all-zero -> stress_relief.signal None (not 'balanced')",
+      obj["stress_relief"]["signal"] is None)
+
+obj = se.generate_ELINS("The crisis is escalating and trust is fading.")
+check("non-zero -> top_primitive present", obj["synthesis"]["top_primitive"] is not None)
+check("non-zero -> synthesis.no_signal False", obj["synthesis"]["no_signal"] is False)
+check("non-zero -> dominant resolves",
+      obj["ep_field_summary"]["dominant"] in ("relief", "stress", "balanced"))
+
+print("SMOKE OK — commit 2 asserts hold")
