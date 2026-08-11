@@ -127,7 +127,15 @@ def orientation_lambdas(
 
 def orientation_score(runs: Iterable[dict]) -> float:
     """relief / (relief + stress) over a set of runs. Bounded [0, 1].
-    Empty input returns 0.0."""
+    Empty input returns 0.0.
+
+    RETIRED WITH RELIEF (B-2): the relief lexicons are empty, so relief mass
+    is structurally 0.0 and this returns the constant 0.0 on every input. It
+    does not crash — the ``total > 0`` guard holds — but it carries no
+    information until relief has a two-frame source. Consumers treating it as
+    a variable are reading a constant: build_regions_dataset.py:270 (dataset
+    column), region_metrics.py:499, and diagnostic_up_alternator.py:28, where
+    VAR_ORIENT is a regressor and zero variance makes the fit meaningless."""
     runs = list(runs or [])
     if not runs:
         return 0.0

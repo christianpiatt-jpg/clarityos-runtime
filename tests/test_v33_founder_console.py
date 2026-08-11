@@ -76,10 +76,15 @@ def test_generate_ELINS_primitive_extraction(reset_stores):
         "between the agencies, but trust between partners remains high."
     )
     p = out["primitives"]["intensities"]
-    # Pressure + tension + trust should all light up; alignment lower.
+    # Pressure + tension light up. `trust` is asserted ZERO post-B-2:
+    # the text makes a CLAIM about trust ("trust between partners
+    # remains high") and the pre-B-2 lexicon scored the word. Naming
+    # similarity is not measurement — that substitution is what B-2
+    # retires. Restore a positive assert only when relief has a
+    # two-frame source.
     assert p["pressure"] > 0
     assert p["tension"] > 0
-    assert p["trust"] > 0
+    assert p["trust"] == 0.0
 
 
 def test_generate_ELINS_domain_mapping(reset_stores):
