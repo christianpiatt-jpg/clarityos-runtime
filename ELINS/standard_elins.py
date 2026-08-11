@@ -298,9 +298,11 @@ def _layer_3_ep_summary(primitives: dict) -> dict:
         "stress_total": round(neg, 4),
         "relief_total": round(pos, 4),
         "net": round(pos - neg, 4),
-        "dominant": None if no_signal else (
-            "relief" if pos > neg else ("stress" if neg > pos else "balanced")
-        ),
+        # `dominant` removed (v1.8.3 §14.7): it derived a categorical claim
+        # from a strict inequality (pos > neg) where only a magnitude exists —
+        # a rank, not an option-delta. `signal` already carries the
+        # thresholded read, and the two disagreed on 17 of 19 non-null
+        # segments.
         "intensity_mean": round(sum(intensities.values()) / len(intensities), 4),
         "no_signal": no_signal,
     }
@@ -368,7 +370,9 @@ def _layer_6_forecast_5day(ep_summary: dict, stress_relief: dict) -> dict:
         "days": days,
         "starting_net": round(base, 4),
         "ending_net": days[-1]["projected_net"],
-        "trend": (
+        # B-1 class (§17.3): "flat" is a measured claim about a trajectory;
+        # absence of signal is not. Emit null rather than defaulting.
+        "trend": None if ep_summary.get("no_signal") else (
             "easing" if days[-1]["projected_net"] > base + 0.01
             else "tightening" if days[-1]["projected_net"] < base - 0.01
             else "flat"

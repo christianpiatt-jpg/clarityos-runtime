@@ -93,7 +93,9 @@ export default function RegionalDetailScreen() {
           </View>
           <Row k="EP intensity mean" v={elins.ep_field_summary.intensity_mean.toFixed(3)} />
           <Row k="Stress / Relief" v={`${elins.ep_field_summary.stress_total.toFixed(3)} / ${elins.ep_field_summary.relief_total.toFixed(3)}`} />
-          <Row k="Top primitive" v={`${elins.synthesis.top_primitive} (${elins.synthesis.top_primitive_intensity.toFixed(3)})`} />
+          <Row k="Top primitive" v={elins.synthesis.top_primitive == null || elins.synthesis.top_primitive_intensity == null
+            ? "—"
+            : `${elins.synthesis.top_primitive} (${elins.synthesis.top_primitive_intensity.toFixed(3)})`} />
           <Row k="Domain" v={elins.synthesis.domain || "—"} />
           <Row k="Trend" v={elins.synthesis.trend} />
 

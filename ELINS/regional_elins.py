@@ -274,9 +274,7 @@ def _recompute_dependent_layers(elins_obj: dict, region_code: str) -> dict:
         "stress_total": round(neg, 4),
         "relief_total": round(pos, 4),
         "net": round(pos - neg, 4),
-        "dominant": None if no_signal else (
-            "relief" if pos > neg else ("stress" if neg > pos else "balanced")
-        ),
+        # `dominant` removed (v1.8.3 §14.7) — see standard_elins.py.
         "intensity_mean": round(
             sum(intensities.values()) / max(1, len(intensities)), 4,
         ),

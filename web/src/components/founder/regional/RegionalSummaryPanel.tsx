@@ -40,7 +40,9 @@ export default function RegionalSummaryPanel({ elins }: RegionalSummaryPanelProp
 
       <Row label="EP intensity mean" value={ep.intensity_mean.toFixed(3)} />
       <Row label="Stress / Relief" value={`${ep.stress_total.toFixed(3)} / ${ep.relief_total.toFixed(3)}`} />
-      <Row label="Top primitive" value={`${elins.synthesis.top_primitive} (${elins.synthesis.top_primitive_intensity.toFixed(3)})`} />
+      <Row label="Top primitive" value={elins.synthesis.top_primitive == null || elins.synthesis.top_primitive_intensity == null
+        ? "—"
+        : `${elins.synthesis.top_primitive} (${elins.synthesis.top_primitive_intensity.toFixed(3)})`} />
       <Row label="Domain" value={elins.synthesis.domain || "—"} />
 
       <h4 style={subHeader}>Top primitives</h4>

@@ -62,15 +62,15 @@ syn = obj["synthesis"]
 check("all-zero -> synthesis.top_primitive None", syn["top_primitive"] is None)
 check("all-zero -> top_primitive_intensity None", syn["top_primitive_intensity"] is None)
 check("all-zero -> synthesis.no_signal True", syn["no_signal"] is True)
-check("all-zero -> ep.dominant None (not 'balanced')",
-      obj["ep_field_summary"]["dominant"] is None)
+check("all-zero -> ep.no_signal True",
+      obj["ep_field_summary"]["no_signal"] is True)
 check("all-zero -> stress_relief.signal None (not 'balanced')",
       obj["stress_relief"]["signal"] is None)
 
 obj = se.generate_ELINS("The crisis is escalating and trust is fading.")
 check("non-zero -> top_primitive present", obj["synthesis"]["top_primitive"] is not None)
 check("non-zero -> synthesis.no_signal False", obj["synthesis"]["no_signal"] is False)
-check("non-zero -> dominant resolves",
-      obj["ep_field_summary"]["dominant"] in ("relief", "stress", "balanced"))
+check("non-zero -> signal resolves",
+      obj["stress_relief"]["signal"] in ("relief_dominant", "stress_dominant", "balanced"))
 
 print("SMOKE OK — commit 2 asserts hold")
