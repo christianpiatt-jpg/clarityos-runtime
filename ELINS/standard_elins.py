@@ -72,24 +72,29 @@ PRIMITIVE_KEYS: tuple = (
 # transparent. Keys are lowercase substrings; values are the primitive
 # they bump and the increment per match. Tunable; tests pin behavior on
 # specific inputs so changes here surface immediately.
+# Trailing ``*`` marks a PREFIX token (leading \b only, open right edge) —
+# see _compile_primitive_token. Unstarred tokens match as whole words.
+# ``argu`` is deliberately UNSTARRED: starred it would still match
+# "arguably" (spec §4 flags this); as a whole word it is a dead token,
+# which satisfies the spec §8 / FRAGO requirement that "arguably" scores 0.
 _PRIMITIVE_LEXICON: dict[str, list[tuple[str, float]]] = {
     "pressure":      [("pressure", 0.4), ("force", 0.3), ("strain", 0.3),
                       ("squeeze", 0.3), ("urgent", 0.2), ("crisis", 0.4),
-                      ("collapse", 0.5), ("escalat", 0.4)],
+                      ("collapse", 0.5), ("escalat*", 0.4)],
     "tension":       [("tension", 0.4), ("conflict", 0.3), ("dispute", 0.3),
-                      ("oppos", 0.3), ("argu", 0.2), ("clash", 0.3),
+                      ("oppos*", 0.3), ("argu", 0.2), ("clash", 0.3),
                       ("stand-off", 0.4), ("standoff", 0.4)],
-    "trust":         [("trust", 0.4), ("confidence", 0.3), ("loyalt", 0.3),
+    "trust":         [("trust", 0.4), ("confidence", 0.3), ("loyalt*", 0.3),
                       ("integrity", 0.3), ("bond", 0.2), ("good faith", 0.4),
-                      ("reliable", 0.3), ("credibilit", 0.3)],
-    "drift":         [("drift", 0.4), ("erod", 0.3), ("shift", 0.3),
-                      ("slid", 0.3), ("deteriorat", 0.4), ("decline", 0.3),
+                      ("reliable", 0.3), ("credibilit*", 0.3)],
+    "drift":         [("drift", 0.4), ("erod*", 0.3), ("shift", 0.3),
+                      ("slid*", 0.3), ("deteriorat*", 0.4), ("decline", 0.3),
                       ("trend toward", 0.4), ("away from", 0.3)],
-    "contradiction": [("contradict", 0.4), ("hypocris", 0.4), ("inconsis", 0.4),
+    "contradiction": [("contradict*", 0.4), ("hypocris*", 0.4), ("inconsis*", 0.4),
                       ("paradox", 0.3), ("but also", 0.2), ("yet", 0.1),
                       ("at odds", 0.3), ("doublethink", 0.4)],
-    "alignment":     [("align", 0.4), ("agree", 0.3), ("converg", 0.3),
-                      ("cooperat", 0.3), ("consensus", 0.3), ("shared", 0.2),
+    "alignment":     [("align*", 0.4), ("agree", 0.3), ("converg*", 0.3),
+                      ("cooperat*", 0.3), ("consensus", 0.3), ("shared", 0.2),
                       ("united", 0.3), ("partner", 0.2)],
 }
 
@@ -149,12 +154,64 @@ def _scenario_id(text: str) -> str:
     return f"sc_{h[:16]}"
 
 
+# B-4 negation window (Line B spec §5). SUPPRESS only — never invert.
+_NEGATORS = frozenset({
+    "no", "not", "never", "without", "lacks", "lacking", "absent",
+})
+_NEGATOR_PREFIXES = ("de-", "dis-", "mis-", "un-", "non-")
+_NEGATION_WINDOW = 3  # tokens preceding the match
+
+
+def _compile_primitive_token(token: str) -> "re.Pattern":
+    """Starred token (trailing ``*``) = prefix: leading boundary, open right
+    edge. Unstarred = whole word. (Line B spec §4.)"""
+    if token.endswith("*"):
+        return re.compile(r"\b" + re.escape(token[:-1]))
+    return re.compile(r"\b" + re.escape(token) + r"\b")
+
+
+_PRIMITIVE_PATTERNS: dict = {
+    key: [(_compile_primitive_token(tok), float(w)) for tok, w in entries]
+    for key, entries in _PRIMITIVE_LEXICON.items()
+}
+
+
+def _is_negated(text_lower: str, start: int) -> bool:
+    """True when the match at ``start`` is negated: a standalone negator
+    inside the 3-token window, the phrase 'free of', or a hyphenated
+    negator prefix attached to the match ('de-escalate'). Suppression
+    only — an inverted hit would be a direction claim this lexicon
+    cannot support (Line B spec §5)."""
+    head = text_lower[:start]
+    if head.endswith(_NEGATOR_PREFIXES):
+        return True
+    toks = [t.strip(".,;:!?()\"'") for t in head.split()[-_NEGATION_WINDOW:]]
+    if any(t in _NEGATORS for t in toks):
+        return True
+    return "free of" in " ".join(toks)
+
+
 def _count_matches(text_lower: str, lexicon: dict) -> dict:
     """For each key in ``lexicon``, sum match weights present in the
     text. Accepts both lexicon shapes used in this module:
     ``list[(token, weight)]`` (primitive lexicon) or plain
-    ``list[str]`` (domain lexicon — every match weighs 1.0)."""
+    ``list[str]`` (domain lexicon — every match weighs 1.0).
+
+    The primitive lexicon is matched via precompiled word-boundary
+    patterns with negation suppression (Line B spec §4-§5); all other
+    lexicons keep the original bare-substring behaviour
+    (_DOMAIN_LEXICON is explicitly out of scope, spec §7).
+    Cap min(5, hits) per token preserved unchanged."""
     out: dict[str, float] = {k: 0.0 for k in lexicon.keys()}
+    if lexicon is _PRIMITIVE_LEXICON:
+        for key, patterns in _PRIMITIVE_PATTERNS.items():
+            for pattern, weight in patterns:
+                hits = 0
+                for m in pattern.finditer(text_lower):
+                    if not _is_negated(text_lower, m.start()):
+                        hits += 1
+                out[key] += weight * min(5, hits)
+        return out
     for key, entries in lexicon.items():
         for entry in entries:
             if isinstance(entry, tuple) and len(entry) == 2:
