@@ -6,6 +6,7 @@ import MeBillingBadge from "../components/membership/MeBillingBadge";
 import ModelPreferences from "../components/settings/ModelPreferences";
 import LocalModelPanel from "../components/settings/LocalModelPanel";
 import MemoryVaultPanel from "../components/settings/MemoryVaultPanel";
+import SetPasswordPanel from "../components/settings/SetPasswordPanel";
 
 // A-WEB-CLARITY-3 §2 — presentation-only friendly names (UI mapping; no fetch,
 // no backend). Maps the app's REAL categoricals: cohort (the meaningful one —
@@ -94,6 +95,8 @@ export default function Account() {
           <Link className="btn btn-sm" to="/membership">View Membership</Link>
         </div>
       </div>
+
+      <SetPasswordPanel />
 
       <ModelPreferences />
 

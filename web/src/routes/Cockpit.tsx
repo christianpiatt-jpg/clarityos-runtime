@@ -27,6 +27,7 @@ import WhatsNewPanel from "../components/cockpit/WhatsNewPanel";
 import ElinsQuicklook from "../components/cockpit/ElinsQuicklook";
 import ElInsIndicator from "../components/cockpit/ElInsIndicator";
 import RegressionFirstPanel from "../components/cockpit/RegressionFirstPanel";
+import SetPasswordPrompt from "../components/settings/SetPasswordPrompt";
 
 export default function Cockpit() {
   const deviceId = useDeviceId();
@@ -92,6 +93,8 @@ export default function Cockpit() {
           )}
         </div>
       </header>
+
+      <SetPasswordPrompt />
 
       {showOnboarding && <OnboardingWizard />}
 

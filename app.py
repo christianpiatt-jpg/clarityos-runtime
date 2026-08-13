@@ -1240,6 +1240,56 @@ async def auth_verify(request: Request, token: str = Query(default="")):
     return resp
 
 
+class PasswordSetRequest(BaseModel):
+    new_password: str
+
+
+@app.post("/auth/password/set")
+def auth_password_set(
+    req: PasswordSetRequest,
+    session: dict = Depends(require_session),
+):
+    """Set a real password on the calling member's own account.
+
+    The session IS the security model. A session is only obtainable by
+    clicking a magic link sent to that address, so the link stays the root
+    of trust and the password is a convenience layer on top of it.
+
+    The account email is taken from the session and NEVER from the request
+    body. An email/username parameter here would make this an account-takeover
+    endpoint — that is why ``PasswordSetRequest`` carries exactly one field.
+    Any such key sent by a caller is ignored by the model.
+
+    There is no separate reset flow by design: a forgotten password is
+    /enter → magic link → new session → set a new one (v1.8.3 §2).
+    """
+    email = session["user"]
+    new_password = req.new_password or ""
+    if len(new_password) < 12:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_response(
+                "weak_password", "Password must be at least 12 characters"
+            ),
+        )
+    if new_password.strip().lower() == str(email).strip().lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_response(
+                "weak_password", "Password must not be your email address"
+            ),
+        )
+    pwd_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
+    users_store.update_user(
+        email, {"password_hash": pwd_hash, "auth_method": "password"}
+    )
+    v29_hardening.log_event(
+        "password_set", user=_user_ref(email),
+        route="/auth/password/set", success=True,
+    )
+    return {"status": "ok"}
+
+
 # ===========================================================================
 # Invite + billing — Terrace-1 onboarding
 # ===========================================================================

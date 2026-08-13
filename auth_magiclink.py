@@ -358,6 +358,16 @@ def _ensure_user(email: str, now: float) -> bool:
 
     The account gets an unusable random bcrypt password so the username/
     password path (/login) can never authenticate it — magic-link only.
+
+    AMENDED 2026-08-12 (pen ruling — members set their own password): the
+    sentence above still describes what happens HERE, at creation, and this
+    function is unchanged. It is no longer true for the account's whole life.
+    A member holding a session may set a real password via
+    ``POST /auth/password/set``, after which ``/login`` authenticates them.
+    The magic link remains the root of trust: a session is only obtainable by
+    clicking a link sent to that address, so the password is a convenience
+    layer on top of the link, never a way around it. There is deliberately no
+    separate reset flow — forgotten password is /enter → link → set a new one.
     """
     if users_store.user_exists(email):
         return False

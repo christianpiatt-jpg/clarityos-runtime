@@ -169,6 +169,16 @@ export async function logout() {
 }
 
 // ---------- Account ----------
+// Set a password on the caller's OWN account. The email is taken from the
+// session server-side and is deliberately not a parameter here — sending one
+// would be ignored, and offering one would invite an account-takeover call
+// shape. Forgotten password has no separate flow: /enter → link → set again.
+export const setPassword = (newPassword: string) =>
+  request<{ status: string }>("/auth/password/set", {
+    method: "POST",
+    body: { new_password: newPassword },
+  });
+
 export const me = () => request<MeResponse>("/me");
 export const config = () => request<ConfigResponse>("/config");
 
