@@ -14,6 +14,8 @@ import Vault from "./routes/Vault";
 import Library from "./routes/Library";
 import Timeline from "./routes/Timeline";
 import Plans from "./routes/Plans";
+import Success from "./routes/Success";
+import Cancel from "./routes/Cancel";
 import Account from "./routes/Account";
 import Cockpit from "./routes/Cockpit";   // v28 — surface composite
 import Elins from "./routes/Elins";       // v28 — ELINS feed + #G runner
@@ -84,6 +86,11 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/plans" element={<Plans />} />
+        {/* Post-checkout landings. Stripe redirects here; both are
+            unauthenticated — the buyer has paid but not yet clicked their
+            magic link. */}
+        <Route path="/success" element={<Success />} />
+        <Route path="/cancel" element={<Cancel />} />
         <Route path="/system" element={<System />} />
 
         {/* Authenticated */}

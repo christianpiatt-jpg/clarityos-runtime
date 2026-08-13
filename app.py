@@ -1897,6 +1897,15 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
         # The shell gets an unusable bcrypt password, so /login can't claim it;
         # the buyer claims the account later via magic-link. _ensure_user is
         # idempotent (no-ops when the user already exists).
+        #
+        # AMENDED 2026-08-12: "the buyer claims the account later" described a
+        # buyer who was never told the account existed — nothing sent them the
+        # link, so "later" meant "if they find /enter on their own". The paid
+        # branch below now sends the link at provision time. The sentence above
+        # still describes the account SHAPE (unusable hash, /login can't claim
+        # it); what changed is that the claim is now offered rather than waited
+        # for. A member may also set a real password afterwards via
+        # POST /auth/password/set — see auth_magiclink._ensure_user's docstring.
         newly_created = auth_magiclink._ensure_user(email_lower, time.time())
         if newly_created:
             users_store.update_user(
@@ -1949,6 +1958,41 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
             except Exception as e:  # pragma: no cover (defensive)
                 logger.warning(
                     "checkout transaction record failed user=%s err=%s",
+                    _user_ref(email_lower), e,
+                )
+            # Hand the buyer their way in. The account is provisioned and
+            # active by this point; nothing else tells them it exists.
+            # request_magic_link mints the token AND emails it, is
+            # enumeration-safe, and invalidates any prior unused link for the
+            # address (one live link at a time) — so no idempotency code is
+            # needed here. Replayed Stripe events short-circuit on the event-id
+            # dedup well above this line and never reach it.
+            #
+            # `ip` MUST be per-buyer. request_magic_link rate-limits per IP, so
+            # a constant string would make that bucket a GLOBAL throttle and
+            # silently suppress later buyers' links once the window filled.
+            #
+            # next_path is the bare KEY "app" (NEXT_KEYS -> /cockpit), not the
+            # path "/app" — that name was retired and is not an SPA route.
+            # "onboarding" resolves to /plans, which is wrong for a paid buyer.
+            try:
+                auth_magiclink.request_magic_link(
+                    email_lower,
+                    source="stripe_webhook",
+                    next_path="app",
+                    ip=f"stripe_webhook:{email_lower}",
+                    user_agent="stripe-webhook",
+                    now=time.time(),
+                )
+                v29_hardening.log_event(
+                    "billing_welcome_link_sent", route="/billing/webhook",
+                    user=_user_ref(email_lower), success=True,
+                )
+            except Exception as e:  # pragma: no cover — send is non-critical
+                # Never fail the webhook on a send hiccup; Stripe would retry
+                # the whole event and re-provisioning is not what we want.
+                logger.warning(
+                    "welcome magic-link send failed user=%s err=%s",
                     _user_ref(email_lower), e,
                 )
         logger.info(
@@ -9977,7 +10021,8 @@ def billing_checkout_link(req: CheckoutLinkRequest, request: Request):
         or os.environ.get("CLARITYOS_STRIPE_PRICE_FOUNDING")
         or "price_founding_mock"
     )
-    # Public landing URLs (env-driven; /success + /cancel SPA routes are C2.1).
+    # Public landing URLs (env-driven). /success + /cancel are live SPA routes
+    # as of 2026-08-12 — they were the "C2.1" work item and have landed.
     base = os.environ.get(
         "CLARITYOS_PUBLIC_BASE_URL", "https://clarity.pro-mediations.com",
     )
