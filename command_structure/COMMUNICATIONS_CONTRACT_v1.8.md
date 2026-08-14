@@ -1,6 +1,6 @@
-# ClarityOS Communications Contract — v1.8.2
+# ClarityOS Communications Contract — v1.8.4
 
-**Status:** ADOPTED — CT-1, 2026-08-06 (D101: founder holds the pen) · **Date:** 2026-08-06 · **Amended:** v1.8.2, 2026-08-11 (§14.1 three-part INTERP) · v1.8.3, 2026-08-11 (§8.3 frame-relative measurement · §9 discriminator)
+**Status:** ADOPTED — CT-1, 2026-08-06 (D101: founder holds the pen) · **Date:** 2026-08-06 · **Amended:** v1.8.2, 2026-08-11 (§14.1 three-part INTERP) · v1.8.3, 2026-08-11 (§8.3 frame-relative measurement · §9 discriminator) · v1.8.4, 2026-08-13 (§14.7 scope-and-counts replaces characterisation)
 **Supersedes:** v1.7 (2026-06-22) · **Drafted:** COW-1 · **Authority to adopt:** CT-1
 **Distribution on adoption:** CT-2, CT-3, COW-1, ET-1.W, ET-2, and all external evaluation lanes
 
@@ -275,10 +275,38 @@ defect rate: 20 of 66.)*
 **A label deposits nothing.** If the inferred identity does not change the return, it does
 not enter the chain that produces the next trait, and the series does not accumulate.
 
-### 14.7 Severity is option-delta, never rank
+### 14.7 Severity is option-delta, never rank `[AMENDED v1.8.4 — 2026-08-13]`
 State what a finding **enables, precludes, forbids, activates, or decreases.** The words
 *better*, *worse*, *critical*, *minor*, and *high/low priority* are not severity statements
 and are in breach of this section.
+
+**`[AMENDED v1.8.4]` Weight is carried by SCOPE OF WORK and COUNTS, never by
+characterisation.** The prohibition above says what may not be written; this says what
+must be written in its place. Where a return would convey how much a finding matters, it
+states:
+
+- **SCOPE** — what must change to close it: the files, functions, call sites, or
+  commands, **named**. "Three files" is not scope; `_etf_agg` at `elins_v2_view.py:406`
+  plus the `EtfPill` consumer in `web/` and `desktop/` is scope.
+- **COUNTS** — how many, **measured**. Entries, sites, revisions, days, hits. A count
+  that was estimated is marked as estimated or is not stated.
+
+A reader who disagrees with an adjective cannot check it. A reader who disagrees with a
+count can, and a reader who disagrees with a named scope can open the file. This is the
+same subtraction §14.3 performs on the MMR, applied to the weight of the finding rather
+than to the confidence in it.
+
+**Measured breach, 2026-08-13.** A return closed with *"the standing gate, with the number
+worse than stated."* `worse` is named in the prohibition above; the clause carried no
+scope, no count, and no option-delta, and reported the author's perception of a fact the
+reader already held. Corrected to: the serving revision and its traffic share, the latest
+ready revision and its traffic share, the four commits not built into any revision, and
+the two commands that change it. The correction is shorter than the breach.
+
+**Rank language is not made lawful by hedging.** *"Arguably critical"*, *"the more
+expensive unknown"*, and *"the one that bites"* are the same breach with a qualifier
+attached. If the cost is known, state it as scope and counts; if it is not known, say it
+is not known.
 
 ---
 
@@ -410,6 +438,28 @@ Source: `command_structure/amendments/AMENDMENT_14.1_forward_backward_geometry_v
 (COW-1 drafted 2026-08-11 · CT-1 adopted · K3 applied). Open check carried from the
 amendment's own MMR-W: GEOMETRY-string stability across authors is untested — that
 test gates any Dewey binding built on GEOMETRY.
+
+---
+
+## Change log v1.8.3 → v1.8.4
+```
+~  §14.7   weight is carried by SCOPE OF WORK and COUNTS, never by
+           characterisation. The prohibition on rank words is unchanged;
+           what is added is the positive requirement that replaces them.
++  §14.7   SCOPE = the files/functions/call sites/commands, NAMED.
+           COUNTS = measured, or marked estimated, or not stated.
++  §14.7   hedged rank ("arguably critical", "the one that bites") is the
+           same breach with a qualifier attached.
++  §14.7   measured breach 2026-08-13 recorded in-section, with the
+           correction that replaced it.
+~  title   bumped 1.8.2 -> 1.8.4. The title had not moved since v1.8.2
+           while the header recorded v1.8.3 amendments — a stale status
+           header of exactly the class §14.7's own breach example is about.
+=  all other sections unchanged
+```
+Pen ruling 2026-08-13, on a breach in an ET-1.W return the same day. The rule
+is not new — §14.7 already named `worse` — so this amendment adds the
+replacement rather than the prohibition.
 
 ---
 
