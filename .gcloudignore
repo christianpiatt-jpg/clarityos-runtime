@@ -52,3 +52,43 @@ phase5a_*.yaml
 # OPFOR-8: prevent durable audit docs + preflight artifacts from leaking into build context
 _audit/
 preflight-*
+
+# ---------------------------------------------------------------------------
+# 2026-08-14 — command-lane artifacts and corpora. Additive only; nothing
+# above this line was changed.
+#
+# `deploy.sh` ships `--source .`, which uploads UNTRACKED files too. These
+# 23 paths were entering the Cloud Build context for that reason alone, not
+# because anything wanted them there. `corpus/` (2.2 M) carries third-party
+# newsletter content under a standing no-upload constraint.
+#
+# Deliberately NOT globbed. `*.md` would drop ARCHITECTURE.md, README.md and
+# CHANGELOG.md; `*.txt` would drop requirements.txt, which the build needs.
+# Entries below name untracked paths only, so no tracked file leaves the
+# upload set. New untracked files under these trees are covered by the
+# directory entries; new ones beside a named file are not, and will ship
+# until named.
+# ---------------------------------------------------------------------------
+corpus/
+review_packets/
+drafts/
+command_structure/doctrine/
+command_structure/sop/
+command_structure/README.md
+command_structure/ROADMAP.md
+command_structure/VOCABULARY.md
+snapshots/K3_handoff_2026-08-05_1316EDT.md
+snapshots/K3_restore_point_2026-08-10_1524EDT.md
+snapshots/K3_restore_point_2026-08-10_2320EDT.md
+snapshots/K3_restore_point_2026-08-11_1628EDT.md
+snapshots/map_validation_2026-08-14.md
+snapshots/transport_map_2026-08-14.md
+snapshots/work_order_series_2026-08-14.md
+source_docs/ClarityOS_SOS_integrated_ops_map_2026-08-14.mmd
+source_docs/returns_2026-08-05_control_language_draft.txt
+specs/D1_CT2_REVIEW.md
+specs/SPEC_LINE_B_lexicon_v1_2026-08-10_COW1.md
+ClarityOS_ClarityEngine_Background_SocialThermodynamics.md
+SPEC_READER_GROUNDING_v0.1_DRAFT.md
+et1_prod_env_reads_return_2026-07-08_1220EDT_v1.md
+et1_public_base_url_reconciliation_return_2026-07-08_1526EDT_v1.md
