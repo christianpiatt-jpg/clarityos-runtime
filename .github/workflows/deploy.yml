@@ -126,6 +126,45 @@ jobs:
           echo "cloud_run_service = ${CLOUD_RUN_SERVICE}"
           echo "gcp_region        = ${GCP_REGION}"
 
+      # ======================================================================
+      # ⛔ STOP — DO NOT UNCOMMENT THE BLOCK BELOW WITHOUT READING THIS.
+      #
+      # This recipe declares 9 environment entries. The live clarity-engine
+      # service runs 43 (25 of them secret-backed). Measured 2026-08-13.
+      #
+      # ``deploy-cloudrun``'s ``env_vars:`` and ``secrets:`` inputs are
+      # DECLARATIVE — they state what the service's environment IS, they are
+      # not a patch applied on top of it. Activating this block as written
+      # replaces 43 entries with 9 and DELETES the other 34, including:
+      #
+      #     all SMTP + Postmark configuration
+      #       (CLARITYOS_EMAIL_MODE, CLARITYOS_SMTP_HOST/PORT/USER/PASSWORD/
+      #        FROM, POSTMARK_SERVER_TOKEN)
+      #     every model-provider key
+      #       (ANTHROPIC / OPENAI / GEMINI / MISTRAL / DEEPSEEK / PERPLEXITY /
+      #        XAI, in both CLARITYOS_*_KEY and bare *_API_KEY forms)
+      #     both Stripe secrets (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
+      #     INVITE_HMAC_SECRET
+      #     CLARITYOS_PUBLIC_BASE_URL, CLARITYOS_INVITE_BASE_URL
+      #
+      # The email consequence is the one that bites silently: with
+      # CLARITYOS_EMAIL_MODE deleted it DEFAULTS TO "log"
+      # (auth_magiclink.py:340, warning at :344). The service keeps serving,
+      # buyers receive nothing, and raw sign-in tokens are written to Cloud
+      # Run logs. Nothing fails loudly.
+      #
+      # PRODUCTION IS NOT DEPLOYED BY THIS FILE. It is deployed by
+      # ./deploy.sh, which runs ``gcloud run deploy --source .`` with
+      # ``--update-env-vars`` — a MERGE. That is why the 43 entries survive
+      # each release: deploy.sh adds three build-stamp variables and inherits
+      # the rest. This workflow's only live step is a dry-run notice.
+      #
+      # BEFORE UNCOMMENTING: reconcile the full env set against
+      # ``.github/workflows/PRODUCTION_ENV_MANIFEST.md`` (names and Secret
+      # Manager paths for all 43). A recipe that declares fewer entries than
+      # the service runs is a deletion, not a deployment.
+      # ======================================================================
+      #
       # ----------------------------------------------------------------------
       # TODO(PASS-7) — Activate the real build + push + deploy stages.
       #
@@ -155,6 +194,9 @@ jobs:
       #      reviewers, then add ``environment: production`` to this job.
       #
       #   6. Uncomment the four step blocks below.
+      #      ⛔ NOT WITHOUT THE ENV RECONCILIATION — see the STOP block above.
+      #         env_vars:/secrets: below declare 9 entries; the live service
+      #         runs 43. Uncommenting as-written deletes 34, silently.
       #
       # ----------------------------------------------------------------------
       #
