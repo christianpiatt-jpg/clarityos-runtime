@@ -1225,8 +1225,13 @@ async def auth_verify(request: Request, token: str = Query(default="")):
             content=auth_magiclink.invalid_link_page(),
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+    # Session handoff: the SPA cannot read the HttpOnly cookie set below,
+    # so the session id also rides the redirect in the URL fragment.
+    # Fragment, not query — never sent to servers, never logged, never in
+    # referrers. The SPA adopts it via adoptSessionFromHash() on boot.
     resp = RedirectResponse(
-        url=result["redirect"], status_code=status.HTTP_303_SEE_OTHER
+        url=result["redirect"] + "#s=" + result["session_id"],
+        status_code=status.HTTP_303_SEE_OTHER,
     )
     resp.set_cookie(
         key="clarityos_session",

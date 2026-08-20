@@ -98,6 +98,22 @@ export function clearSession(): void {
   writeStorage(USER_KEY, null);
 }
 
+/** Adopt a session id passed in the URL fragment by /auth/verify.
+ *  The engine's session cookie is HttpOnly — invisible to JS — so the
+ *  verify redirect carries the SID as #s=<id>. Fragment, not query:
+ *  never sent to a server, never logged, never leaked via referrer.
+ *  Strips the fragment after adopting. Returns true if a SID was found. */
+export function adoptSessionFromHash(): boolean {
+  try {
+    const m = /(?:^|[#&])s=([A-Za-z0-9_-]+)/.exec(location.hash || "");
+    if (!m) return false;
+    memorySession = m[1];
+    writeStorage(SESSION_KEY, m[1]);
+    history.replaceState(null, "", location.pathname + location.search);
+    return true;
+  } catch { return false; }
+}
+
 // ---------- Core request ----------
 type ReqOpts = { method?: string; body?: unknown; auth?: boolean; idempotent?: boolean };
 
