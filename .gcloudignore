@@ -77,13 +77,11 @@ command_structure/sop/
 command_structure/README.md
 command_structure/ROADMAP.md
 command_structure/VOCABULARY.md
-snapshots/K3_handoff_2026-08-05_1316EDT.md
-snapshots/K3_restore_point_2026-08-10_1524EDT.md
-snapshots/K3_restore_point_2026-08-10_2320EDT.md
-snapshots/K3_restore_point_2026-08-11_1628EDT.md
-snapshots/map_validation_2026-08-14.md
-snapshots/transport_map_2026-08-14.md
-snapshots/work_order_series_2026-08-14.md
+# 2026-08-21 — snapshots/ promoted to a directory entry (was 7 named
+# files; 5 newer handoffs shipped into the build context before this —
+# the file's own "will ship until named" prediction). Whole tree is
+# command-lane artifacts, nothing runtime.
+snapshots/
 source_docs/ClarityOS_SOS_integrated_ops_map_2026-08-14.mmd
 source_docs/returns_2026-08-05_control_language_draft.txt
 specs/D1_CT2_REVIEW.md
@@ -92,3 +90,4 @@ ClarityOS_ClarityEngine_Background_SocialThermodynamics.md
 SPEC_READER_GROUNDING_v0.1_DRAFT.md
 et1_prod_env_reads_return_2026-07-08_1220EDT_v1.md
 et1_public_base_url_reconciliation_return_2026-07-08_1526EDT_v1.md
+kimi_endstate_walk_return_2026-08-20_1105EDT_v1.md
