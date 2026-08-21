@@ -55,7 +55,9 @@ def app_and_client(monkeypatch):
 
 def _seed_auth(user: str) -> str:
     """Seed sessions_store with a valid session for ``user`` and
-    return the X-Session-ID token. Mirrors what /login would do."""
+    return the X-Session-ID token. Mirrors what /login would do.
+    (conftest's autouse wrapper backfills the users_store doc with
+    operator_id == user — v87 resolver contract.)"""
     sid = f"auth-test-{user}"
     sessions_store.create_session(
         sid, user, expires_at=time.time() + 3600,

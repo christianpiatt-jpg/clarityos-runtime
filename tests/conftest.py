@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -117,6 +118,46 @@ def _allow_temp_evidence_dirs(monkeypatch):
         _al, "ALLOWED_EVIDENCE_DIRS",
         tuple(_al.ALLOWED_EVIDENCE_DIRS) + (tempfile.gettempdir(),),
     )
+
+
+@pytest.fixture(autouse=True)
+def _session_users_carry_operator_id(monkeypatch):
+    """v87 — require_operator resolves session → users_store doc →
+    operator_id (the minted ``op_…`` value, never the session's account
+    key). Dozens of suites seed sessions_store directly and treat the
+    user string AS the operator_id (``op_alice`` etc.); this wrapper
+    backfills a users doc with ``operator_id == user`` whenever one is
+    missing, so those tests exercise the real resolver unchanged.
+
+    Only fills when absent — a test that deliberately sets or strips
+    operator_id on the doc is not stomped."""
+    import sessions_store
+    import users_store
+    orig = sessions_store.create_session
+
+    def wrapper(*args, **kwargs):
+        # Transparent to both call shapes: tests pass positionally,
+        # app.py passes session_id=/username= as keywords.
+        bound = {"session_id": None, "username": None, "expires_at": None}
+        names = list(bound)
+        for i, v in enumerate(args):
+            if i < len(names):
+                bound[names[i]] = v
+        bound.update({k: v for k, v in kwargs.items() if k in bound})
+        user = bound["username"]
+        if user is not None:
+            doc = users_store.get_user(user)
+            if not doc:
+                users_store.create_user(
+                    user, password_hash=b"", salt="", tier="member",
+                    created_at=time.time(),
+                )
+                doc = users_store.get_user(user)
+            if not doc.get("operator_id"):
+                users_store.update_user(user, {"operator_id": user})
+        return orig(*args, **kwargs)
+
+    monkeypatch.setattr(sessions_store, "create_session", wrapper)
 
 
 @pytest.fixture

@@ -313,7 +313,10 @@ class TestRoutes:
         raw = _raw_token(box["link"])
         r = _get_noredirect(app_module.app, f"/auth/verify?token={raw}")
         assert r.status_code == 303
-        assert r.headers["location"] == "https://clarity.pro-mediations.com/plans"  # new user -> plans
+        # 8123c38 (session-handoff fix, live 2026-08-21) appends the
+        # session id as a URL fragment for the SPA's adoptSessionFromHash.
+        loc = r.headers["location"]
+        assert loc.startswith("https://clarity.pro-mediations.com/plans#s=")  # new user -> plans
         set_cookie = r.headers.get("set-cookie", "")
         assert "clarityos_session=" in set_cookie
         assert "HttpOnly" in set_cookie

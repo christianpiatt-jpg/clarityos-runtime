@@ -98,14 +98,19 @@ import session_loop
 # can start a session under any operator_id and inherit that
 # operator's vault) is a separate concern flagged in v64 memory.
 # ---------------------------------------------------------------------------
-def require_operator(
-    x_session_id: Optional[str] = Header(default=None),
-) -> str:
-    """Resolve the authed operator_id from X-Session-ID.
+def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
+    """Session → (user, operator_id). The single joint for operator
+    identity (2026-08-21 resolver envelope, COW-1).
 
-    Returns the user string from sessions_store. Raises 401 on
-    missing / invalid / expired session — same error contract as
-    app.py's ``require_session``.
+    The session carries the account EMAIL; the user doc carries the
+    minted ``op_…`` operator_id (auth_magiclink._ensure_user). Returning
+    the email as operator_id made every operator surface 400 for
+    email-keyed accounts (vault id regex, runtime_persistence._ID_RE).
+
+    HARD RULE — the v66 IDOR close survives: identity derives from the
+    SESSION ONLY. Never a path segment, query param, or request body; a
+    client-supplied operator_id is ignored, not honoured. Fail CLOSED on
+    a miss: no email fallback, no invented id, no null.
     """
     if not x_session_id:
         raise HTTPException(
@@ -128,7 +133,33 @@ def require_operator(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="session expired",
         )
-    return session["user"]
+    user = session["user"]
+    import users_store as _users
+    user_doc = _users.get_user(user) or {}
+    operator_id = user_doc.get("operator_id")
+    if not isinstance(operator_id, str) or not operator_id:
+        # Authenticated but unprovisioned — a server-side data state,
+        # not an auth failure. Reject; never fall back to the email.
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="operator identity unresolved",
+        )
+    return user, operator_id
+
+
+def require_operator(
+    x_session_id: Optional[str] = Header(default=None),
+) -> str:
+    """Resolve the authed operator_id from X-Session-ID.
+
+    Session → user doc → operator_id (the minted ``op_…`` value, never
+    the email). Raises 401 on missing / invalid / expired session —
+    same error contract as app.py's ``require_session`` — and 500 when
+    the authed account carries no operator_id (fail closed; no
+    fallback).
+    """
+    _, operator_id = _resolve_authed_identity(x_session_id)
+    return operator_id
 
 
 runtime_router = APIRouter(
@@ -188,14 +219,18 @@ _FOUNDER_COHORTS: frozenset[str] = frozenset({"founder", "founder_exception"})
 
 
 def require_founder(
-    operator_id: str = Depends(require_operator),
+    x_session_id: Optional[str] = Header(default=None),
 ) -> str:
     """Cohort-based gate. Returns the authed operator_id when the user
     is in the ``founder`` or ``founder_exception`` cohort; otherwise
     raises 403 — same status code as app.py's ``_require_founder``.
+
+    v87 — goes through ``_resolve_authed_identity`` so the users doc is
+    looked up by EMAIL (its key), not by the minted operator_id.
     """
     import users_store as _users  # lazy — matches the require_operator pattern
-    user_doc = _users.get_user(operator_id) or {}
+    user, operator_id = _resolve_authed_identity(x_session_id)
+    user_doc = _users.get_user(user) or {}
     if user_doc.get("cohort") not in _FOUNDER_COHORTS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
