@@ -138,10 +138,12 @@ def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
     user_doc = _users.get_user(user) or {}
     operator_id = user_doc.get("operator_id")
     if not isinstance(operator_id, str) or not operator_id:
-        # Authenticated but unprovisioned — a server-side data state,
-        # not an auth failure. Reject; never fall back to the email.
+        # Authenticated but unprovisioned — the request cannot be
+        # satisfied in the account's current state. 409 (not 500):
+        # a named conflict is actionable and doesn't spend the error
+        # budget as a phantom outage. Reject; never fall back to email.
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_409_CONFLICT,
             detail="operator identity unresolved",
         )
     return user, operator_id
@@ -154,7 +156,7 @@ def require_operator(
 
     Session → user doc → operator_id (the minted ``op_…`` value, never
     the email). Raises 401 on missing / invalid / expired session —
-    same error contract as app.py's ``require_session`` — and 500 when
+    same error contract as app.py's ``require_session`` — and 409 when
     the authed account carries no operator_id (fail closed; no
     fallback).
     """

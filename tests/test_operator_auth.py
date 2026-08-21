@@ -112,8 +112,10 @@ class TestUnauthenticated:
 
 
 # ===========================================================================
-# A2. Authed but no operator_id on the user doc → 500, fail CLOSED
-#     (v87 resolver; the ten machine accounts in prod have this shape)
+# A2. Authed but no operator_id on the user doc → 409, fail CLOSED
+#     (v87 resolver; the ten machine accounts in prod have this shape.
+#     409 not 500: a named conflict, not a phantom outage — CT-1 ruling
+#     2026-08-21)
 # ===========================================================================
 class TestFailClosedNoOperatorId:
     def test_missing_operator_id_fails_closed(self, app_and_client):
@@ -124,7 +126,7 @@ class TestFailClosedNoOperatorId:
         # create_session) — prod shape: doc exists, field absent/None.
         users_store.update_user("op_noid", {"operator_id": None})
         r = c.get("/operator/sessions", headers=alice)
-        assert r.status_code == 500
+        assert r.status_code == 409
         assert r.json()["detail"] == "operator identity unresolved"
 
     def test_fail_closed_does_not_fall_back_to_email(self, app_and_client):
@@ -139,7 +141,7 @@ class TestFailClosedNoOperatorId:
             json={"operator_id": "op_noid2"},
             headers=alice,
         )
-        assert r.status_code == 500
+        assert r.status_code == 409
 
 
 # ===========================================================================
