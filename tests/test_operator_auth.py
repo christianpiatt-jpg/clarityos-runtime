@@ -112,6 +112,37 @@ class TestUnauthenticated:
 
 
 # ===========================================================================
+# A2. Authed but no operator_id on the user doc → 500, fail CLOSED
+#     (v87 resolver; the ten machine accounts in prod have this shape)
+# ===========================================================================
+class TestFailClosedNoOperatorId:
+    def test_missing_operator_id_fails_closed(self, app_and_client):
+        import users_store
+        _, c = app_and_client
+        alice = _auth_header("op_noid")
+        # Strip the field AFTER seeding (conftest backfills it on
+        # create_session) — prod shape: doc exists, field absent/None.
+        users_store.update_user("op_noid", {"operator_id": None})
+        r = c.get("/operator/sessions", headers=alice)
+        assert r.status_code == 500
+        assert r.json()["detail"] == "operator identity unresolved"
+
+    def test_fail_closed_does_not_fall_back_to_email(self, app_and_client):
+        """The failure must NOT silently proceed with the account key —
+        that fallback is the bug this resolver exists to kill."""
+        import users_store
+        _, c = app_and_client
+        alice = _auth_header("op_noid2")
+        users_store.update_user("op_noid2", {"operator_id": None})
+        r = c.post(
+            "/operator/session/start",
+            json={"operator_id": "op_noid2"},
+            headers=alice,
+        )
+        assert r.status_code == 500
+
+
+# ===========================================================================
 # B. Authed → 200 + ownership check
 # ===========================================================================
 class TestAuthedSuccessPath:
