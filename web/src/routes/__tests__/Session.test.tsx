@@ -16,6 +16,15 @@ import type {
 } from "../../lib/api";
 import Session from "../Session";
 
+// C1: the route reads operator_id from the auth snapshot (hydrated
+// profile) and re-reads getProfile() in manual-fire handlers. Tests
+// control hydration by assigning SNAP.profile before render.
+const SNAP = vi.hoisted(() => ({
+  session: "sid-test",
+  user: "u",
+  profile: null as null | { user: string; operator_id?: string | null },
+}));
+
 vi.mock("../../lib/api", async () => {
   const actual = await vi.importActual<typeof import("../../lib/api")>(
     "../../lib/api",
@@ -24,19 +33,22 @@ vi.mock("../../lib/api", async () => {
     ...actual,
     startSession: vi.fn(),
     stepSession:  vi.fn(),
-    getUser:      vi.fn(() => null),
+    getProfile:   vi.fn(() => SNAP.profile),
   };
 });
 
+vi.mock("../../lib/auth", () => ({
+  getAuthSnapshot: () => SNAP,
+  subscribeAuth:   () => () => {},
+}));
+
 import {
-  getUser,
   startSession,
   stepSession,
 } from "../../lib/api";
 
 const mockStartSession = vi.mocked(startSession);
 const mockStepSession  = vi.mocked(stepSession);
-const mockGetUser      = vi.mocked(getUser);
 
 // --------------------------------------------------------------------
 // Fixtures
@@ -130,8 +142,7 @@ function renderRoute() {
 beforeEach(() => {
   mockStartSession.mockReset();
   mockStepSession.mockReset();
-  mockGetUser.mockReset();
-  mockGetUser.mockReturnValue(null);
+  SNAP.profile = { user: "u", operator_id: "op_alice" };
   try { localStorage.clear(); } catch { /* noop */ }
 });
 
@@ -143,21 +154,21 @@ afterEach(() => {
 // Tests
 // --------------------------------------------------------------------
 describe("Session route", () => {
-  test("calls startSession on mount with op_anon default", async () => {
+  test("does not fire startSession before the profile hydrates", async () => {
+    SNAP.profile = null;  // C1 guard: no operator_id → do not fire
     mockStartSession.mockResolvedValueOnce(makeStartResponse());
     renderRoute();
-    await waitFor(() => expect(mockStartSession).toHaveBeenCalledTimes(1));
-    expect(mockStartSession).toHaveBeenCalledWith("op_anon");
+    await new Promise((r) => setTimeout(r, 50));
+    expect(mockStartSession).not.toHaveBeenCalled();
   });
 
-  test("uses authed user as operator_id when available", async () => {
-    mockGetUser.mockReturnValue("op_christian");
+  test("uses profile operator_id when hydrated", async () => {
     mockStartSession.mockResolvedValueOnce(
-      makeStartResponse(makeState({ operator_id: "op_christian" })),
+      makeStartResponse(makeState({ operator_id: "op_alice" })),
     );
     renderRoute();
     await waitFor(() => expect(mockStartSession).toHaveBeenCalled());
-    expect(mockStartSession).toHaveBeenCalledWith("op_christian");
+    expect(mockStartSession).toHaveBeenCalledWith("op_alice");
   });
 
   test("renders the session_id once started", async () => {
@@ -272,7 +283,7 @@ describe("Session route", () => {
     renderRoute();
     await waitFor(() => expect(mockStartSession).toHaveBeenCalled());
     const [opId, opts] = mockStartSession.mock.calls[0];
-    expect(opId).toBe("op_anon");
+    expect(opId).toBe("op_alice");
     expect(opts).toEqual({ resume: true, sessionId: "sess-from-storage" });
   });
 

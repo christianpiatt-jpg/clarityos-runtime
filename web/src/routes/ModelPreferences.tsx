@@ -4,14 +4,14 @@
 // at /operator/model_preferences. Auth-gated; the page assumes the
 // user is signed in (route is wrapped in RequireAuth in App.tsx).
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   ApiError,
   getModelPreferences,
-  getUser,
   setModelPreferences,
   type ModelPreferencesResponse,
 } from "../lib/api";
+import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
 
 // Operator-vocab providers, matching runtime_providers.PROVIDERS_ORDER.
 const PROVIDERS: readonly string[] = [
@@ -28,7 +28,9 @@ const DEFAULT_MODELS: Record<string, string> = {
 };
 
 export default function ModelPreferences() {
-  const operatorId = getUser() || "(not signed in)";
+  // C1 (2026-08-21): display the profile's operator_id — never the email.
+  const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
+  const operatorId = auth.profile?.operator_id ?? "";
   const [provider, setProvider] = useState("anthropic");
   const [model, setModel] = useState(DEFAULT_MODELS.anthropic);
   const [current, setCurrent] = useState<ModelPreferencesResponse | null>(null);
@@ -93,7 +95,7 @@ export default function ModelPreferences() {
         <div className="row" style={{ marginTop: 12, alignItems: "center" }}>
           <div style={{ flex: 1, fontSize: "0.85rem" }}>
             <span className="muted">authed as </span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId}</span>
+            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId || "loading profile…"}</span>
           </div>
         </div>
       </div>

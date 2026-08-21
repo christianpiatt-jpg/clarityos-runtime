@@ -13,22 +13,26 @@
 // the v59 lock that 7 versions of tests depend on. The UI labels map
 // the v59 names to operator-friendly text instead.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   ApiError,
   getSessionDetail,
-  getUser,
+  getProfile,
   listOperatorSessions,
   type SessionDetailResponse,
   type SessionSummary,
 } from "../lib/api";
+import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
 
 export default function SessionHistory() {
   // v64 / Unit 66 — operator_id is determined by the server from the
-  // authed session, not by user input. We still show getUser() as a
-  // read-only "authed as" badge so the user can see whose history
-  // they're inspecting.
-  const operatorId = getUser() || "(not signed in)";
+  // authed session, not by user input. C1 (2026-08-21): the badge shows
+  // the profile's operator_id (never the account email, which the
+  // engine rejects as an operator id).
+  // C1 (2026-08-21): operator_id from the hydrated profile only — never
+  // the account email (the engine rejects it). Effect guards on empty.
+  const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
+  const operatorId = auth.profile?.operator_id ?? "";
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SessionDetailResponse | null>(null);
@@ -38,6 +42,7 @@ export default function SessionHistory() {
 
   // ---- list -----------------------------------------------------------
   useEffect(() => {
+    if (!operatorId) return;  // C1: do not fire until profile hydrates
     let cancelled = false;
     (async () => {
       setLoadingList(true);
@@ -85,11 +90,17 @@ export default function SessionHistory() {
   }, [selectedId]);
 
   function refresh() {
+    // C1: re-read at call time, not mount-time.
+    const op = getProfile()?.operator_id ?? "";
+    if (!op) {
+      setError("Profile still loading — try again in a moment.");
+      return;
+    }
     setSessions(null);
     setLoadingList(true);
     void (async () => {
       try {
-        const r = await listOperatorSessions(operatorId);
+        const r = await listOperatorSessions(op);
         setSessions(r.sessions);
       } catch (e: unknown) {
         setError(formatError(e));
@@ -110,7 +121,7 @@ export default function SessionHistory() {
         <div className="row" style={{ marginTop: 12, gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1, fontSize: "0.85rem" }}>
             <span className="muted">authed as </span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId}</span>
+            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId || "loading profile…"}</span>
           </div>
           <button
             type="button"

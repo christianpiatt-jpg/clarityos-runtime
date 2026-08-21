@@ -8,16 +8,17 @@
 // session unless a session_id is found in localStorage from a prior
 // visit, in which case it tries to resume.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   ApiError,
-  getUser,
+  getProfile,
   startSession,
   stepSession,
   type SessionIntentType,
   type SessionState,
   type SessionStepResult,
 } from "../lib/api";
+import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
 
 const RESUME_KEY = "clarityos_session_resume_id";
 
@@ -36,16 +37,20 @@ export default function Session() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const operatorIdRef = useRef<string>("op_anon");
+  // C1 (2026-08-21): operator_id comes from the hydrated profile ONLY —
+  // never getUser() (that's the account email; the engine rejects it).
+  // Do not fire while empty: the effect re-runs when the profile lands,
+  // and the new-session handler re-reads at call time.
+  const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
+  const operatorId = auth.profile?.operator_id ?? "";
 
   // ---- Bootstrap ------------------------------------------------------
   useEffect(() => {
+    if (!operatorId) return;  // profile not hydrated yet — do not fire
     let cancelled = false;
     (async () => {
       setLoading(true);
       setError(null);
-      const operatorId = getUser() || "op_anon";
-      operatorIdRef.current = operatorId;
       try {
         let storedId: string | null = null;
         try {
@@ -74,7 +79,7 @@ export default function Session() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [operatorId]);
 
   // ---- Submit one step -----------------------------------------------
   async function handleSubmit(e?: React.FormEvent) {
@@ -107,8 +112,15 @@ export default function Session() {
     setError(null);
     setLoading(true);
     (async () => {
+      // C1: re-read at call time, not mount-time — profile may hydrate late.
+      const op = getProfile()?.operator_id ?? "";
+      if (!op) {
+        setError("Profile still loading — try again in a moment.");
+        setLoading(false);
+        return;
+      }
       try {
-        const r = await startSession(operatorIdRef.current);
+        const r = await startSession(op);
         setState(r.session_state);
         try {
           localStorage.setItem(RESUME_KEY, r.session_state.session_id);

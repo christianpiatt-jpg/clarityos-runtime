@@ -8,6 +8,14 @@ import { MemoryRouter } from "react-router-dom";
 import type { VaultInspectorResponse } from "../../lib/api";
 import OperatorVault from "../OperatorVault";
 
+// C1: operator_id comes from the auth snapshot (hydrated profile);
+// refresh() re-reads getProfile(). Tests assign SNAP.profile pre-render.
+const SNAP = vi.hoisted(() => ({
+  session: "sid-test",
+  user: "u",
+  profile: null as null | { user: string; operator_id?: string | null },
+}));
+
 vi.mock("../../lib/api", async () => {
   const actual = await vi.importActual<typeof import("../../lib/api")>(
     "../../lib/api",
@@ -15,14 +23,18 @@ vi.mock("../../lib/api", async () => {
   return {
     ...actual,
     getOperatorVault: vi.fn(),
-    getUser:          vi.fn(() => null),
+    getProfile:       vi.fn(() => SNAP.profile),
   };
 });
 
-import { getOperatorVault, getUser } from "../../lib/api";
+vi.mock("../../lib/auth", () => ({
+  getAuthSnapshot: () => SNAP,
+  subscribeAuth:   () => () => {},
+}));
+
+import { getOperatorVault } from "../../lib/api";
 
 const mockVault = vi.mocked(getOperatorVault);
-const mockUser  = vi.mocked(getUser);
 
 // --------------------------------------------------------------------
 // Fixtures
@@ -62,8 +74,7 @@ function renderRoute() {
 // --------------------------------------------------------------------
 beforeEach(() => {
   mockVault.mockReset();
-  mockUser.mockReset();
-  mockUser.mockReturnValue(null);
+  SNAP.profile = { user: "u", operator_id: "op_alice" };
 });
 
 afterEach(() => {
@@ -81,8 +92,8 @@ describe("OperatorVault route", () => {
     await waitFor(() => expect(mockVault).toHaveBeenCalledTimes(1));
   });
 
-  test("uses authed username when present", async () => {
-    mockUser.mockReturnValue("op_christian");
+  test("passes profile operator_id when hydrated", async () => {
+    SNAP.profile = { user: "u", operator_id: "op_christian" };
     mockVault.mockResolvedValueOnce(makeColdResponse("op_christian"));
     renderRoute();
     await waitFor(() => expect(mockVault).toHaveBeenCalledWith("op_christian"));
@@ -138,10 +149,10 @@ describe("OperatorVault route", () => {
     await screen.findByText(/3 keys/);
   });
 
-  test("authed-as badge renders the current user", async () => {
-    // v64 / Unit 66 — replaces the now-removed operator_id input.
-    // The route shows getUser() as a read-only badge above REFRESH.
-    mockUser.mockReturnValue("op_christian");
+  test("authed-as badge renders the profile operator_id", async () => {
+    // C1 (2026-08-21) — the badge shows the hydrated profile's
+    // operator_id (never the account email, which the engine rejects).
+    SNAP.profile = { user: "u", operator_id: "op_christian" };
     mockVault.mockResolvedValueOnce(makeColdResponse("op_christian"));
     renderRoute();
     await waitFor(() => expect(mockVault).toHaveBeenCalledTimes(1));

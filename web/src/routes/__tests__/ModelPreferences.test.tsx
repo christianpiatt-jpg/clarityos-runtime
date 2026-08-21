@@ -8,6 +8,14 @@ import { MemoryRouter } from "react-router-dom";
 import type { ModelPreferencesResponse } from "../../lib/api";
 import ModelPreferences from "../ModelPreferences";
 
+// C1: the badge reads operator_id from the auth snapshot (hydrated
+// profile). Tests control it by assigning SNAP.profile before render.
+const SNAP = vi.hoisted(() => ({
+  session: "sid-test",
+  user: "u",
+  profile: null as null | { user: string; operator_id?: string | null },
+}));
+
 vi.mock("../../lib/api", async () => {
   const actual = await vi.importActual<typeof import("../../lib/api")>(
     "../../lib/api",
@@ -16,19 +24,21 @@ vi.mock("../../lib/api", async () => {
     ...actual,
     getModelPreferences: vi.fn(),
     setModelPreferences: vi.fn(),
-    getUser:             vi.fn(() => null),
   };
 });
 
+vi.mock("../../lib/auth", () => ({
+  getAuthSnapshot: () => SNAP,
+  subscribeAuth:   () => () => {},
+}));
+
 import {
   getModelPreferences,
-  getUser,
   setModelPreferences,
 } from "../../lib/api";
 
 const mockGet = vi.mocked(getModelPreferences);
 const mockSet = vi.mocked(setModelPreferences);
-const mockUser = vi.mocked(getUser);
 
 function makeResponse(
   overrides: Partial<ModelPreferencesResponse> = {},
@@ -53,8 +63,7 @@ function renderRoute() {
 beforeEach(() => {
   mockGet.mockReset();
   mockSet.mockReset();
-  mockUser.mockReset();
-  mockUser.mockReturnValue("op_alice");
+  SNAP.profile = { user: "u", operator_id: "op_alice" };
 });
 
 afterEach(() => {
@@ -84,8 +93,8 @@ describe("ModelPreferences route", () => {
     await screen.findByText("default (chain)");
   });
 
-  test("authed-as badge renders the current user", async () => {
-    mockUser.mockReturnValue("op_christian");
+  test("authed-as badge renders the profile operator_id", async () => {
+    SNAP.profile = { user: "u", operator_id: "op_christian" };
     mockGet.mockResolvedValueOnce(makeResponse({ operator_id: "op_christian" }));
     renderRoute();
     await screen.findByText("op_christian");

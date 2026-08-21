@@ -12,6 +12,14 @@ import type {
 } from "../../lib/api";
 import SessionHistory from "../SessionHistory";
 
+// C1: operator_id comes from the auth snapshot (hydrated profile);
+// refresh() re-reads getProfile(). Tests assign SNAP.profile pre-render.
+const SNAP = vi.hoisted(() => ({
+  session: "sid-test",
+  user: "u",
+  profile: null as null | { user: string; operator_id?: string | null },
+}));
+
 vi.mock("../../lib/api", async () => {
   const actual = await vi.importActual<typeof import("../../lib/api")>(
     "../../lib/api",
@@ -20,19 +28,22 @@ vi.mock("../../lib/api", async () => {
     ...actual,
     listOperatorSessions: vi.fn(),
     getSessionDetail:     vi.fn(),
-    getUser:              vi.fn(() => null),
+    getProfile:           vi.fn(() => SNAP.profile),
   };
 });
 
+vi.mock("../../lib/auth", () => ({
+  getAuthSnapshot: () => SNAP,
+  subscribeAuth:   () => () => {},
+}));
+
 import {
   getSessionDetail,
-  getUser,
   listOperatorSessions,
 } from "../../lib/api";
 
 const mockList   = vi.mocked(listOperatorSessions);
 const mockDetail = vi.mocked(getSessionDetail);
-const mockUser   = vi.mocked(getUser);
 
 // --------------------------------------------------------------------
 // Fixtures
@@ -100,8 +111,7 @@ function renderRoute() {
 beforeEach(() => {
   mockList.mockReset();
   mockDetail.mockReset();
-  mockUser.mockReset();
-  mockUser.mockReturnValue(null);
+  SNAP.profile = { user: "u", operator_id: "op_alice" };
 });
 
 afterEach(() => {
@@ -120,8 +130,8 @@ describe("SessionHistory route", () => {
     await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1));
   });
 
-  test("uses authed username when present", async () => {
-    mockUser.mockReturnValue("op_christian");
+  test("passes profile operator_id when hydrated", async () => {
+    SNAP.profile = { user: "u", operator_id: "op_christian" };
     mockList.mockResolvedValueOnce(makeEmptyListResponse("op_christian"));
     renderRoute();
     await waitFor(() => expect(mockList).toHaveBeenCalledWith("op_christian"));

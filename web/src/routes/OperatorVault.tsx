@@ -8,23 +8,28 @@
 // UI: operator-id input + REFRESH + collapsible JSON viewer +
 // last_updated stamp. No mutation, no save.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   ApiError,
   getOperatorVault,
-  getUser,
+  getProfile,
   type VaultInspectorResponse,
 } from "../lib/api";
+import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
 
 export default function OperatorVault() {
   // v64 / Unit 66 — operator_id determined server-side from authed
   // session. Shown read-only.
-  const operatorId = getUser() || "(not signed in)";
+  // C1 (2026-08-21): operator_id from the hydrated profile only — never
+  // the account email (the engine rejects it). Effect guards on empty.
+  const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
+  const operatorId = auth.profile?.operator_id ?? "";
   const [data, setData] = useState<VaultInspectorResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!operatorId) return;  // C1: do not fire until profile hydrates
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -42,10 +47,16 @@ export default function OperatorVault() {
   }, [operatorId]);
 
   function refresh() {
+    // C1: re-read at call time, not mount-time.
+    const op = getProfile()?.operator_id ?? "";
+    if (!op) {
+      setError("Profile still loading — try again in a moment.");
+      return;
+    }
     setLoading(true);
     void (async () => {
       try {
-        const r = await getOperatorVault(operatorId);
+        const r = await getOperatorVault(op);
         setData(r);
       } catch (e: unknown) {
         setError(formatError(e));
@@ -68,7 +79,7 @@ export default function OperatorVault() {
         <div className="row" style={{ marginTop: 12, gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1, fontSize: "0.85rem" }}>
             <span className="muted">authed as </span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId}</span>
+            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId || "loading profile…"}</span>
           </div>
           <button
             type="button"
