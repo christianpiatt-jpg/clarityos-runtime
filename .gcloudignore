@@ -1,6 +1,10 @@
 # Bulk-allow repo root .py files and ELINS/, denylist non-runtime trees.
 
 .git/
+# Board #52 (confirmed 2026-08-21): .claude/ = 338 MB / 2,974 files —
+# agent worktrees + local settings. Rode every --source build context
+# until this line. Not runtime; never belongs in the upload.
+.claude/
 __pycache__/
 _scratch/
 tests/
