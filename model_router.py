@@ -1015,8 +1015,17 @@ def get_model_status() -> dict:
     display where the on-device model would load from without a second
     round-trip to ``get_local_runtime_status``.
     """
+    # Derived from _PROVIDER_HANDLERS, never a literal tuple. The
+    # hardcoded five omitted deepseek, mistral and ollama - three
+    # providers wired in every registry with real handlers, invisible
+    # in the health table. A provider that can be dispatched to must
+    # be visible here; the dispatch table is the only correct source.
+    #
+    # NOT MODEL_REGISTRY: it is keyed by vendor namespace and says
+    # "google" where the handler, env key and vault all say "gemini".
+    # Deriving from it would emit a row no consumer can resolve.
     out: dict[str, dict] = {}
-    for provider in ("openai", "anthropic", "gemini", "xai", "local"):
+    for provider in _PROVIDER_HANDLERS:
         out[provider] = {"configured": _provider_configured(provider)}
     local_path = (os.environ.get("CLARITYOS_LOCAL_MODEL_PATH") or "").strip()
     out["local"]["path"] = local_path or None
