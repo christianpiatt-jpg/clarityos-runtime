@@ -343,6 +343,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_v44_model_router.py": {
         "runtime_spine", "determinism_surface",
     },
+    # D1 — paid compute requires entitlement. Added 2026-08-24: this
+    # suite was outside the gate, so the check that metered work cannot
+    # be invoked without an active entitlement was unguarded while
+    # CLARITYOS_BILLING_MODE=stripe and STRIPE_MODE=live in production.
+    "test_d1_entitlement_credit.py": {
+        "runtime_spine",
+    },
     "test_v46_memory_vault.py": {
         "runtime_spine",
     },
