@@ -1,0 +1,78 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/build-enable-automatic-updates: 'false'
+    run.googleapis.com/build-id: c22c5a98-436c-47e0-9e38-f8d53e40cef6
+    run.googleapis.com/build-image-uri: us-east4-docker.pkg.dev/project-afdae2c0-0f5c-454d-a4d/cloud-run-source-deploy/clarity-engine
+    run.googleapis.com/build-name: projects/1013523799586/locations/us-east4/builds/c22c5a98-436c-47e0-9e38-f8d53e40cef6
+    run.googleapis.com/build-source-location: gs://run-sources-project-afdae2c0-0f5c-454d-a4d-us-east4/services/clarity-engine/1779039469.873984-c6cb73c120764a7c8560b5a3a99b7e59.zip#1779039483021772
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '3'
+    run.googleapis.com/urls: '["https://clarity-engine-1013523799586.us-east4.run.app","https://clarity-engine-aa5jm5kqra-uk.a.run.app"]'
+  labels:
+    cloud.googleapis.com/location: us-east4
+    durability: test
+    run.googleapis.com/satisfiesPzs: 'true'
+  name: clarity-engine
+  namespace: '1013523799586'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '3'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 565.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: ggunmnzgms
+        durability: test
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+        - name: INVITE_HMAC_SECRET
+          value: "<redacted - east4 INVITE_HMAC_SECRET; lives in Secret Manager, project-afdae2c0-0f5c-454d-a4d>"
+        - name: CLARITYOS_INVITE_BASE_URL
+          value: https://clarity-engine-1013523799586.us-east4.run.app/
+        - name: CLARITYOS_BACKEND
+          value: firestore
+        - name: CLARITYOS_VAULT_BACKEND
+          value: firestore
+        - name: CLARITYOS_OPENAI_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: openai-api-key
+        - name: CLARITYOS_GEMINI_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: gemini-api-key
+        - name: CLARITYOS_VAULT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: CLARITYOS_VAULT_SECRET
+        image: us-east4-docker.pkg.dev/project-afdae2c0-0f5c-454d-a4d/cloud-run-source-deploy/clarity-engine@sha256:8034d02331297d8dee23e261b05a78bf44ee28f3e4b37b3167d0ca5b83f291e5
+        name: clarity-engine-1
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: 1013523799586-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
