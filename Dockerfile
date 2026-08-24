@@ -15,6 +15,7 @@ COPY *.py /app/
 COPY ELINS/ /app/ELINS/
 COPY el_ins/ /app/el_ins/
 COPY problem_solver/ /app/problem_solver/
+COPY canon/ /app/canon/
 
 COPY BUILD_VERSION /app/BUILD_VERSION
 ENV BUILD_VERSION_FILE=/app/BUILD_VERSION
