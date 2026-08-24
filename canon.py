@@ -65,6 +65,7 @@ class CanonEntry(TypedDict):
     concepts: list[str]
     body: str
     xrefs: list[Xref]
+    sections: dict         # every parsed section, verbatim
     path: str              # repo-relative source path
     empty: bool            # True for the known 0-byte twin (430)
 
@@ -131,7 +132,7 @@ def _parse_entry(path: Path, rel: str) -> CanonEntry:
         return {
             "number": m.group(1), "title": path.stem, "summary": "",
             "concepts": [], "body": "", "xrefs": [],
-            "path": rel, "empty": True,
+            "sections": {}, "path": rel, "empty": True,
         }
 
     text = _unescape(raw)
@@ -213,8 +214,21 @@ def _parse_entry(path: Path, rel: str) -> CanonEntry:
     # rendered WITH its header so structure survives.
     consumed = {"summary", "preamble", "overview", "core concepts",
                 "cross-references"}
+    # An entry may carry sections BEYOND the canonical five (see
+    # 900.C Constitution: Preamble/Articles/Closing; 220 Diagnostic
+    # Sequences: a protocol in numbered steps). Those sections are
+    # CONTENT. Earlier this function returned only "body" when a Body
+    # section was present and silently discarded everything after it —
+    # a file could carry a full protocol that get() would never show,
+    # with no raise. Extras are now appended to body WITH their
+    # headers, and every section is exposed on the entry.
     if "body" in sections:
-        body = "\n\n".join(sections["body"]).strip()
+        parts = ["\n\n".join(sections["body"]).strip()]
+        for name, lines in ordered_sections:
+            if name in consumed or name == "body" or not lines:
+                continue
+            parts.append("## " + name + "\n" + "\n".join(lines))
+        body = "\n\n".join(p for p in parts if p).strip()
     else:
         parts = []
         for name, lines in ordered_sections:
@@ -236,6 +250,7 @@ def _parse_entry(path: Path, rel: str) -> CanonEntry:
         "concepts": _bullets(_section("core concepts")),
         "body": body,
         "xrefs": xrefs,
+        "sections": {k: list(v) for k, v in sections.items()},
         "path": rel,
         "empty": False,
     }
