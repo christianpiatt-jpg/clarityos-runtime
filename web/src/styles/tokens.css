@@ -4,6 +4,10 @@
    intent (high contrast, geometric, minimal) with the cockpit accent set. */
 
 :root {
+  /* Native controls (select, date, scrollbars) follow the dark shell.
+     Scoped light re-declaration lives on .cos-mod — see OperatorWelcome. */
+  color-scheme: dark;
+
   /* Surface */
   --os-void: #000000;
   --os-deep: #0a0a0a;

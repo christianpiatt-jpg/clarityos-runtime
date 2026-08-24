@@ -28,6 +28,7 @@ import ElinsQuicklook from "../components/cockpit/ElinsQuicklook";
 import ElInsIndicator from "../components/cockpit/ElInsIndicator";
 import RegressionFirstPanel from "../components/cockpit/RegressionFirstPanel";
 import SetPasswordPrompt from "../components/settings/SetPasswordPrompt";
+import OperatorWelcome from "../components/cockpit/OperatorWelcome";
 
 export default function Cockpit() {
   const deviceId = useDeviceId();
@@ -59,6 +60,8 @@ export default function Cockpit() {
 
   return (
     <div className="cockpit">
+      <OperatorWelcome />
+
       <header style={{
         display: "flex",
         justifyContent: "space-between",

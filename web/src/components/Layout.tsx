@@ -88,7 +88,7 @@ export default function Layout() {
   return (
     <div className="cockpit">
       <header className="topbar">
-        <Link to="/" className="brand">
+        <Link to={auth.session ? "/cockpit" : "/"} className="brand">
           <span className="brand-icon">▲</span>
           <span>ClarityOS</span>
         </Link>
@@ -96,9 +96,9 @@ export default function Layout() {
           {APP_CONFIG.IS_PLACEHOLDER && (
             <span style={{ color: "var(--os-warn)" }}>API URL: PLACEHOLDER</span>
           )}
-          {auth.user ? (
+          {auth.session ? (
             <>
-              <span>{auth.user}</span>
+              <span>{auth.user ?? auth.profile?.user ?? "OPERATOR"}</span>
               <button className="btn btn-sm btn-secondary" onClick={signOut}>SIGN OUT</button>
             </>
           ) : (
@@ -108,6 +108,11 @@ export default function Layout() {
       </header>
 
       <nav className="rail">
+        <RailSection label="HOME">
+          <RailLink to="/cockpit">Cockpit</RailLink>
+          <RailLink to="/dashboard">Dashboard</RailLink>
+          <RailLink to="/elins">EL/INS Overview</RailLink>
+        </RailSection>
         <RailSection label="OPERATOR">
           <RailLink to="/operator">Operator</RailLink>
           <RailLink to="/sessions">Sessions</RailLink>
