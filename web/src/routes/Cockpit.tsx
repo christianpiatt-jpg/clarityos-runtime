@@ -59,7 +59,7 @@ export default function Cockpit() {
   const showWhatsNew = flags.whats_new_v28 === true;
 
   return (
-    <div className="cockpit">
+    <div className="cockpit-page">
       <OperatorWelcome />
 
       <header style={{
