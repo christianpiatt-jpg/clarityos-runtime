@@ -54,11 +54,30 @@ def _make_user(app_module, username, cohort="founder"):
         users_store.update_user(username, {"cohort": cohort})
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
+    # v44 gate-alignment: /model/route sits behind require_active_entitlement
+    # since 8ea13b5 (2026-07-23) — one month after these tests were written.
+    # Seed entitlement through the PRODUCTION billing writer so the gate is
+    # satisfied, not bypassed: requests still traverse the real gate.
+    users_store.set_billing_state(username, billing_state="active")
+    # /model/complete sits behind metered_compute (also 8ea13b5): it debits
+    # one credit per call, so seed a balance via the production writer.
+    # 50 covers the rate-limit test's 11 debits with room to spare.
+    users_store.add_g_credits(username, 50)
     return username, sid
 
 
 def _auth(sid):
     return {"X-Session-ID": sid}
+
+
+def _auth_mc(sid):
+    """Session headers + a FRESH Idempotency-Key. metered_compute 400s
+    without the key, and a refunded key is terminal on replay — so every
+    /model/complete call mints its own."""
+    import secrets as _s
+    h = _auth(sid)
+    h["Idempotency-Key"] = "idem_" + _s.token_urlsafe(16)
+    return h
 
 
 # ---------------------------------------------------------------------------
@@ -591,7 +610,7 @@ def test_card_19_5_model_complete_returns_text(app_module, client):
     deterministic mock; ``mock`` is True and ``text`` is non-empty."""
     user, sid = _make_user(app_module, "mc_basic", cohort=None)
     r = client.post(
-        "/model/complete", headers=_auth(sid),
+        "/model/complete", headers=_auth_mc(sid),
         json={"model": "openai:gpt-5.4-mini", "prompt": "hello world"},
     )
     assert r.status_code == 200
@@ -609,7 +628,7 @@ def test_card_19_5_model_complete_rejects_unknown_model(app_module, client):
     adapter routes through v29_hardening.raise_validation)."""
     user, sid = _make_user(app_module, "mc_bad", cohort=None)
     r = client.post(
-        "/model/complete", headers=_auth(sid),
+        "/model/complete", headers=_auth_mc(sid),
         json={"model": "not_a_real_model", "prompt": "x"},
     )
     assert r.status_code == 400
@@ -638,7 +657,7 @@ def test_card_19_5_model_complete_dispatches_per_provider(app_module, client):
     ]
     for model_id, provider in cases:
         r = client.post(
-            "/model/complete", headers=_auth(sid),
+            "/model/complete", headers=_auth_mc(sid),
             json={"model": model_id, "prompt": "ping"},
         )
         assert r.status_code == 200, f"{model_id} → {r.status_code}"
@@ -657,7 +676,7 @@ def test_card_19_5_model_complete_rate_limit_enforced(app_module, client, monkey
     last_status = 200
     for i in range(11):
         r = client.post(
-            "/model/complete", headers=_auth(sid),
+            "/model/complete", headers=_auth_mc(sid),
             json={"model": "openai:gpt-5.4-mini", "prompt": f"p{i}"},
         )
         last_status = r.status_code
@@ -677,7 +696,7 @@ def test_card_19_5_model_complete_no_route_request_changes(app_module, client):
     user, sid = _make_user(app_module, "mc_pin", cohort=None)
     direct = mr.route_request("openai:gpt-5.4-mini", "anchor-text")
     r = client.post(
-        "/model/complete", headers=_auth(sid),
+        "/model/complete", headers=_auth_mc(sid),
         json={"model": "openai:gpt-5.4-mini", "prompt": "anchor-text"},
     )
     assert r.status_code == 200
