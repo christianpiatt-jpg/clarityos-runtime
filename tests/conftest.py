@@ -350,6 +350,10 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_d1_entitlement_credit.py": {
         "runtime_spine",
     },
+    # #59 — a paid checkout must seat the buyer, not just bill them.
+    "test_webhook_membership.py": {
+        "runtime_spine",
+    },
     "test_v46_memory_vault.py": {
         "runtime_spine",
     },

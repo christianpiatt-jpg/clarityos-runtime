@@ -1945,9 +1945,45 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
                 )
 
         if paid:
+            started_ts = time.time()
+            # #59 - SEAT BEFORE BILLING. add_member is the only thing that
+            # increments the cohort counter; without it a paid buyer ended
+            # up with billing_state="active" and no seat. That is the
+            # measured cause of #57 (cohort count vs user-doc count).
+            # Ordered ahead of set_billing_state so a failure here cannot
+            # leave active-billing-without-membership.
+            #
+            # Cohort is the FOUNDING_COHORT default, NOT derived from
+            # md["plan"]. CT-1 ruling A, 2026-08-25: at 3/500 every buyer
+            # is a founder. Plan-derivation is filed behind its guard -
+            # an allowlist of known cohort names must exist FIRST, because
+            # add_member:145 raises only for FOUNDING_COHORT and every
+            # other name is uncapped by construction. A mapping built from
+            # expectation would not fail loudly on a mistyped plan string;
+            # it would silently mint a new uncapped cohort.
+            try:
+                membership_store.add_member(email_lower)
+            except ValueError as e:
+                # DO NOT collapse this into a bare `except ValueError: pass`.
+                # Two raises are possible and they are NOT the same event:
+                #   already_member - benign replay, or a second purchase by
+                #                    the same address. Seat already held.
+                #   cohort_full    - a founding-price checkout after the
+                #                    cohort closed, e.g. a stale $50 link.
+                #                    Desired behaviour is LOUD. Cannot fire
+                #                    at 3/500 today; it must still raise.
+                if str(e) != "already_member":
+                    raise
+            users_store.set_membership(
+                email_lower,
+                tier=membership_store.FOUNDING_COHORT,
+                price=float(obj.get("amount_total") or 0) / 100.0,
+                status="active",
+                started_ts=started_ts,
+            )
             users_store.set_billing_state(
                 email_lower, billing_state="active",
-                renewal_ts=time.time() + 30 * 24 * 3600.0,
+                renewal_ts=billing_intents.calculate_next_renewal_ts(started_ts),
             )
             try:
                 membership_store.record_transaction(
