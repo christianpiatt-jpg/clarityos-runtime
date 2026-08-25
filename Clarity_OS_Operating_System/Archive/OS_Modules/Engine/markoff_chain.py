@@ -1,5 +1,10 @@
-# markoff_core.py
-# Operator‑grade Markoff Engine Core
+# markoff_chain.py
+# Operator‑grade Markoff Engine Core — CHAIN HALF (train/next/export).
+# Renamed from markoff_core.py 2026-08-25: two same-named files with
+# COMPLEMENTARY APIs caused a wrong-file read (K3, instrument #7).
+# The SEMANTIC half (classify · embeddings · Sun Tzu states) lives at
+# Clarity_OS_Operating_System/engine/markoff_core.py — do not reunite
+# the names.
 
 from collections import defaultdict
 import random

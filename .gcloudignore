@@ -95,3 +95,15 @@ SPEC_READER_GROUNDING_v0.1_DRAFT.md
 et1_prod_env_reads_return_2026-07-08_1220EDT_v1.md
 et1_public_base_url_reconciliation_return_2026-07-08_1526EDT_v1.md
 kimi_endstate_walk_return_2026-08-20_1105EDT_v1.md
+
+# ---------------------------------------------------------------------------
+# 2026-08-25 — #156: root-level files copied in by ET-1's migration sweep.
+# This file is a denylist; root *.txt ships unless named (:36-38), and
+# _scratch/ matches only that exact directory — _scratch_archive_engine/
+# rode builds until deleted today. tarlist.txt = 5.1 MB, MigrationLog =
+# 11 MB of build context, neither runtime.
+# ---------------------------------------------------------------------------
+_scratch_archive_engine/
+tarlist.txt
+MigrationLog_*.txt
+01_MIGRATE.ps1

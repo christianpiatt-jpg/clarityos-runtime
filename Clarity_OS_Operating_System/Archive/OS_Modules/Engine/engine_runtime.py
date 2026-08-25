@@ -5,12 +5,12 @@ from __future__ import annotations
 
 # Flexible imports: works both as package and as direct script.
 try:
-    from Engine.markoff_core import MarkoffModel
+    from Engine.markoff_chain import MarkoffModel
     from Engine.state.session_state import SessionState
     from Engine.somatic.somatic_register import SomaticRegister
     from Engine.utils.text_utils import tokenize
 except ImportError:
-    from markoff_core import MarkoffModel
+    from markoff_chain import MarkoffModel
     from state.session_state import SessionState
     from somatic.somatic_register import SomaticRegister
     from utils.text_utils import tokenize
