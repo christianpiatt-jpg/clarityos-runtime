@@ -37,6 +37,25 @@ code, pre, .mono { font-family: var(--font-mono); }
 .dim { color: var(--os-text-tertiary); }
 .muted { color: var(--os-text-secondary); }
 
+/* ---------------- Cockpit PAGE (not the shell) ----------------
+   .cockpit is the SHELL grid — topbar/rail/main/status, 100vw x 100vh.
+   A page container must never reuse it: nested inside .main, its
+   children auto-place into the shell's two-column template and pair
+   up (col 1 = --rail-w, col 2 = 1fr), while the 1fr row absorbs all
+   height and the rest collapse into overlapping implicit rows.
+
+   That collision shipped once and was fixed in fe2fcea. The page
+   container supplies stacking ONLY — .main already provides scroll
+   and padding. Guarded by Layout.shell-class.test.tsx, which asserts
+   .cockpit renders exactly once in the document.
+   ------------------------------------------------------------- */
+.cockpit-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+  min-width: 0;        /* stops grid children forcing horizontal overflow */
+}
+
 /* ---------------- Cockpit shell ---------------- */
 .cockpit {
   display: grid;
