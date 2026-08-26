@@ -365,7 +365,18 @@ app.add_middleware(
     allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Session-ID", "Authorization"],
+    # ★ Idempotency-Key is REQUIRED here, not optional. metered_compute
+    # rejects a metered call without it, and lib/api.ts:127 sends it -- but a
+    # browser asks permission for a non-simple header in the CORS preflight
+    # first. Omitted from this list, the OPTIONS fails and the POST is never
+    # sent: the request reads status 0 in the HAR and the DevTools Issues
+    # panel shows "blocked - HTTP status of preflight request didn't indicate
+    # success". That is the live /markov failure, and it would have hit the
+    # metered chat path identically the moment the meter went live. Neither
+    # deploy order nor a client change can work around it -- the browser
+    # never sends the request at all.
+    allow_headers=["Content-Type", "X-Session-ID", "Authorization",
+                   "Idempotency-Key"],
 )
 
 

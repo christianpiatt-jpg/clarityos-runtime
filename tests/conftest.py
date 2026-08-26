@@ -290,6 +290,12 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- v56 CORS preflight on metered routes ----
+    # runtime_spine: it gates app.py, and a trimmed allow-list silently
+    # blocks every metered route at the browser before the wire.
+    "test_cors_metered_preflight.py": {
+        "runtime_spine",
+    },
     # ---- v56 usage billing (GATE 0: the 1.20 invariant) ----
     # runtime_spine because it gates app.py + model_router.py; determinism
     # because the whole ledger is integer arithmetic with no float anywhere,
