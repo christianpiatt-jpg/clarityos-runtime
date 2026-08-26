@@ -9,7 +9,7 @@
  * Layout — CSS grid, fixed left/right columns, flexible center:
  *   left:   Session list · Engine selector · Vault status
  *   center: Chat
- *   right:  Envelope viewer · Runtime
+ *   right:  Thread insights · Envelope viewer · Runtime
  */
 import { useEffect } from "react";
 
@@ -21,6 +21,7 @@ import VaultStatusPanel from "../components/cockpitV2/VaultStatusPanel";
 import ChatPanel from "../components/cockpitV2/ChatPanel";
 import EnvelopeViewerPanel from "../components/cockpitV2/EnvelopeViewerPanel";
 import RuntimePanel from "../components/cockpitV2/RuntimePanel";
+import ThreadInsightsPanel from "../components/cockpitV2/ThreadInsightsPanel";
 import "../styles/cockpitV2.css";
 
 export default function CockpitV2() {
@@ -67,6 +68,7 @@ export default function CockpitV2() {
         </main>
 
         <aside className="cv2-col">
+          <ThreadInsightsPanel />
           <EnvelopeViewerPanel />
           <RuntimePanel />
         </aside>

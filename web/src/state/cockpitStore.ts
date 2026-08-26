@@ -19,10 +19,31 @@ import { fetchSessions, type SessionMeta } from "../services/sessions";
 import type { EngineId } from "../services/engines";
 import { fetchRuntimeEnvelope, type RuntimeEnvelope } from "../services/runtime";
 import { fetchContinuitySnapshot, type ContinuitySnapshot } from "../services/continuity";
+import {
+  listThreads,
+  createThread,
+  getThread,
+  postThreadMessage,
+  summarizeThread,
+  renameThread,
+  deleteThread,
+  type ThreadMeta,
+  type ThreadMessage,
+} from "../lib/api";
+import type { DirectiveSurface } from "../components/shared/DirectiveBadges";
+import type { ElinsV2Envelope } from "../lib/elinsV2";
+import type { EmotionalPhysicsResponse } from "../lib/emotionalPhysics";
 
 // ---------------------------------------------------------------- types ----
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
+type ThreadStatus = "loading" | "ready" | "sending" | "error";
+/** Which pane the cockpit InsightsPanel is showing. Mirrors Threads.tsx. */
+export type InsightsTab = "thread" | "elins" | "physics";
+
+/** A19/A30 — same view-model Threads.tsx uses: the stored message plus the
+ *  per-turn directive surface, which rides on the live POST response only. */
+export type CockpitChatMessage = ThreadMessage & DirectiveSurface;
 type AuthStatus = "anon" | "authing" | "authed" | "error";
 
 /** Per-session envelope returned by GET /markov/envelope/latest. */
@@ -35,6 +56,19 @@ export interface CockpitState {
   vault: { status: LoadStatus; snapshot: ContinuitySnapshot | null; error: string | null };
   runtime: { status: LoadStatus; envelope: RuntimeEnvelope | null; error: string | null };
   envelope: { status: LoadStatus; forSessionId: string | null; data: SessionEnvelope | null; error: string | null };
+  thread: {
+    status: ThreadStatus;
+    meta: ThreadMeta | null;
+    messages: CockpitChatMessage[];
+    error: string | null;
+    /** True while a summarize / rename / delete round-trip is in flight. */
+    busy: boolean;
+    tab: InsightsTab;
+    /** Cached insight results so switching tabs doesn't re-fire the kernel.
+     *  Cleared whenever the transcript changes. */
+    elins: ElinsV2Envelope | null;
+    physics: EmotionalPhysicsResponse | null;
+  };
 }
 
 // ----------------------------------------------------------- store core ----
@@ -47,6 +81,10 @@ function initialState(): CockpitState {
     vault: { status: "idle", snapshot: null, error: null },
     runtime: { status: "idle", envelope: null, error: null },
     envelope: { status: "idle", forSessionId: null, data: null, error: null },
+    thread: {
+      status: "loading", meta: null, messages: [], error: null,
+      busy: false, tab: "thread", elins: null, physics: null,
+    },
   };
 }
 
@@ -209,6 +247,124 @@ const sessionSlice = {
   },
 };
 
+// v55 — thread slice. Holds the cockpit's single working thread so that
+// ChatPanel (composer + transcript) and ThreadInsightsPanel (meta / summary /
+// ELINS / Physics) read the same state instead of each owning a copy.
+// Reuses lib/api's existing thread endpoints — no new endpoint, no backend
+// change.
+const threadSlice = {
+  state: (s: CockpitState) => s.thread,
+  selectors: {
+    meta: (s: CockpitState) => s.thread.meta,
+    messages: (s: CockpitState) => s.thread.messages,
+    status: (s: CockpitState) => s.thread.status,
+    tab: (s: CockpitState) => s.thread.tab,
+  },
+  actions: {
+    /** Adopt the newest existing thread, or create the cockpit's own.
+     *  Idempotent: a second call while one is in flight is a no-op, which is
+     *  what keeps StrictMode's double-invoked mount effect from creating two
+     *  "Cockpit" threads (the guard ChatPanel used to hold in a ref). */
+    async init(): Promise<void> {
+      if (initInFlight) return;
+      initInFlight = true;
+      setSlice("thread", { status: "loading", error: null });
+      try {
+        const threads = await listThreads();
+        const meta = threads[0] ?? (await createThread("Cockpit"));
+        const detail = await getThread(meta.thread_id);
+        setSlice("thread", {
+          status: "ready", meta: detail.meta, messages: detail.messages,
+          elins: null, physics: null,
+        });
+      } catch (e) {
+        setSlice("thread", { status: "error", error: errMessage(e) });
+      } finally {
+        initInFlight = false;
+      }
+    },
+
+    /** Send one turn. Attaches the A19/A30 directive surface from the live
+     *  POST response onto the assistant message — Threads.tsx:189-194. */
+    async send(text: string): Promise<void> {
+      const { meta, status } = current.thread;
+      const trimmed = text.trim();
+      if (!trimmed || !meta || status === "sending") return;
+      setSlice("thread", { status: "sending", error: null });
+      try {
+        const r = await postThreadMessage(meta.thread_id, trimmed);
+        setSlice("thread", {
+          status: "ready",
+          meta: r.meta,
+          messages: [
+            ...current.thread.messages,
+            r.user_message,
+            {
+              ...r.assistant_message,
+              grounding_status: r.grounding_status ?? null,
+              directive_metadata: r.directive_metadata ?? null,
+            },
+          ],
+          // The transcript changed, so cached insight results are stale.
+          elins: null,
+          physics: null,
+        });
+      } catch (e) {
+        setSlice("thread", { status: "error", error: errMessage(e) });
+      }
+    },
+
+    async summarize(): Promise<void> {
+      const meta = current.thread.meta;
+      if (!meta || current.thread.busy) return;
+      setSlice("thread", { busy: true, error: null });
+      try {
+        setSlice("thread", { meta: await summarizeThread(meta.thread_id) });
+      } catch (e) {
+        setSlice("thread", { error: errMessage(e) });
+      } finally {
+        setSlice("thread", { busy: false });
+      }
+    },
+
+    async rename(title: string): Promise<void> {
+      const meta = current.thread.meta;
+      if (!meta || current.thread.busy) return;
+      setSlice("thread", { busy: true, error: null });
+      try {
+        setSlice("thread", { meta: await renameThread(meta.thread_id, title) });
+      } catch (e) {
+        setSlice("thread", { error: errMessage(e) });
+      } finally {
+        setSlice("thread", { busy: false });
+      }
+    },
+
+    /** Delete the working thread, then re-init so the cockpit always has one. */
+    async remove(): Promise<void> {
+      const meta = current.thread.meta;
+      if (!meta || current.thread.busy) return;
+      setSlice("thread", { busy: true, error: null });
+      try {
+        await deleteThread(meta.thread_id);
+        setSlice("thread", { meta: null, messages: [], elins: null, physics: null });
+        await threadSlice.actions.init();
+      } catch (e) {
+        setSlice("thread", { error: errMessage(e) });
+      } finally {
+        setSlice("thread", { busy: false });
+      }
+    },
+
+    setTab(tab: InsightsTab): void { setSlice("thread", { tab }); },
+    setElins(elins: ElinsV2Envelope | null): void { setSlice("thread", { elins }); },
+    setPhysics(physics: EmotionalPhysicsResponse | null): void { setSlice("thread", { physics }); },
+  },
+};
+
+/** Guards threadSlice.actions.init against concurrent invocation. */
+let initInFlight = false;
+
 // --------------------------------------------------------- React binding ----
 
 /** Subscribe a component to a slice/primitive. Selectors must return a
@@ -226,6 +382,7 @@ export function useCockpit<T>(selector: (s: CockpitState) => T): T {
 export function bootstrapCockpit(): void {
   void sessionSlice.actions.load();
   void vaultSlice.actions.load();
+  void threadSlice.actions.init();
 }
 
 /** The six slices, each with { state, selectors, actions }. */
@@ -236,4 +393,5 @@ export const cockpit = {
   vault: vaultSlice,
   runtime: runtimeSlice,
   envelope: envelopeSlice,
+  thread: threadSlice,
 };

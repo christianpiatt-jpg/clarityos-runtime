@@ -307,3 +307,78 @@
   font-size: 13px;
   color: var(--os-err);
 }
+
+/* ---- v55: directive surface badges (A19/A30) row under an assistant turn --- */
+.cv2-msg-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cv2-msg-model {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+/* ---- v55: InsightsPanel tab strip ---------------------------------------- */
+.cv2-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+.cv2-tab {
+  flex: 1;
+  padding: 4px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--color-text-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.cv2-tab.is-active {
+  border-color: var(--color-accent-cyan);
+  color: var(--color-accent-cyan);
+}
+
+/* ---- v55: InsightsPanel summary / rename card + action stack ------------- */
+.cv2-card {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--color-bg-surface);
+  margin-bottom: 8px;
+}
+.cv2-card-head {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.cv2-card-body {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+.cv2-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cv2-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.cv2-btn-danger {
+  border-color: var(--color-accent-red, #E74C3C);
+  color: var(--color-accent-red, #E74C3C);
+}
