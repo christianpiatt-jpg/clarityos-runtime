@@ -209,6 +209,7 @@ function PersonalElinsView({
           value={seed}
           onChange={(e) => onSeedChange(e.target.value)}
           rows={2}
+          aria-describedby="seed-counter"
           style={{
             width: "100%",
             background: "var(--color-bg-surface-alt)",
@@ -223,6 +224,39 @@ function PersonalElinsView({
             boxSizing: "border-box",
           }}
         />
+        {/* ★★★ THE SILENT CLIFF AT 6,000 CHARACTERS.
+            intelligence_kernel.py:1845 does `cleaned = cleaned[:6000]` and
+            its own docstring says "Truncation is silent — the call still
+            succeeds." It is a HEAD slice: it keeps the beginning and drops
+            the end. In a narrative seed the current state is at the END, so
+            a long paste returns a confident read of its oldest half with
+            nothing anywhere signalling that the rest was never seen.
+            This is the frontend half — count and warn before sending. The
+            _meta half is backend and waits on the blocked deploy. */}
+        <div
+          id="seed-counter"
+          data-testid="seed-counter"
+          style={{
+            marginTop: 4,
+            fontFamily: "var(--font-mono)",
+            fontSize: 10,
+            letterSpacing: "0.03em",
+            color: seed.length > SEED_CHAR_LIMIT
+              ? "var(--color-accent-red, #E74C3C)"
+              : "var(--color-text-secondary)",
+          }}
+        >
+          {seed.length.toLocaleString()} / {SEED_CHAR_LIMIT.toLocaleString()} characters
+          {seed.length > SEED_CHAR_LIMIT ? (
+            <span data-testid="seed-overflow-warning" style={{ display: "block", marginTop: 2 }}>
+              ⚠ {(seed.length - SEED_CHAR_LIMIT).toLocaleString()} characters past the
+              limit will NOT be read. The engine keeps the first{" "}
+              {SEED_CHAR_LIMIT.toLocaleString()} and silently drops the rest — and the
+              end of a seed is usually the current state. Trim from the top, not
+              the bottom.
+            </span>
+          ) : null}
+        </div>
         <div style={{ marginTop: 8 }}>
           <button
             type="button"
@@ -282,12 +316,46 @@ function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
         <Muted>ELINS v2 unavailable.</Muted>
       ) : (
         <div>
-          <div style={{ fontSize: 14, color: "var(--color-text-primary)" }}>
-            <Tag tone="cyan">{elins.outputs.attractor}</Tag>
-            <span style={{ marginLeft: 8, color: "var(--color-text-secondary)" }}>
-              {attractorReading(elins.outputs.attractor)}
-            </span>
-          </div>
+          {(() => {
+            const v = attractorVerdict(
+              elins.outputs.state_distribution as Record<string, number>,
+              elins.outputs.attractor,
+            );
+            if (!v.determinate) {
+              return (
+                <div
+                  style={{ fontSize: 14, color: "var(--color-text-primary)" }}
+                  data-testid="attractor-indeterminate"
+                >
+                  <Tag tone="cyan">—</Tag>
+                  <span style={{ marginLeft: 8, color: "var(--color-text-secondary)" }}>
+                    indeterminate — no attractor leads
+                  </span>
+                  <div style={{
+                    marginTop: 4,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    color: "var(--color-text-secondary)",
+                  }}>
+                    {v.leaders.join(" / ")} are within{" "}
+                    {Math.round(ATTRACTOR_TIE_EPSILON * 100)} points. A level
+                    field does not name a state.
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div
+                style={{ fontSize: 14, color: "var(--color-text-primary)" }}
+                data-testid="attractor-determinate"
+              >
+                <Tag tone="cyan">{v.state}</Tag>
+                <span style={{ marginLeft: 8, color: "var(--color-text-secondary)" }}>
+                  {attractorReading(v.state)}
+                </span>
+              </div>
+            );
+          })()}
           <div style={{
             display: "flex",
             gap: 12,
@@ -312,6 +380,23 @@ function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
   return (
     <section data-testid="section-collapse-risk">
       <SectionHeader>3. Collapse Risk (P0–P3)</SectionHeader>
+      {/* ★ These are INDEPENDENT probabilities, not shares of a whole.
+          Measured live: 33/0/0/22 = 55%, and 10/21/1/15 = 47%. Neither sums
+          to 100 because neither should. Rendering them as adjacent cells of
+          equal width invites the reader to total them, so the framing says
+          outright that there is no total. The numbers were never wrong. */}
+      <div
+        data-testid="collapse-risk-caption"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          color: "var(--color-text-secondary)",
+          marginBottom: 6,
+          letterSpacing: "0.03em",
+        }}
+      >
+        Independent risks — each is its own probability. These do not sum to 100%.
+      </div>
       {!elins ? (
         <Muted>ELINS v2 unavailable.</Muted>
       ) : (
@@ -328,7 +413,9 @@ function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
               padding: 8,
               background: "var(--color-bg-surface)",
             }}>
-              <div style={{ color: "var(--color-accent-cyan)", fontSize: 11 }}>{p}</div>
+              <div style={{ color: "var(--color-accent-cyan)", fontSize: 11 }}>
+                {p} risk
+              </div>
               <div style={{ color: "var(--color-text-primary)", marginTop: 2 }}>
                 {fmtPct(elins.outputs.P0_P8[p] ?? 0)}
               </div>
@@ -453,6 +540,61 @@ function renderValue(v: unknown): string {
   return String(v).slice(0, 40);
 }
 
+// ★★★ A FLAT FIELD IS NOT "STABLE COHERENCE".
+//
+// The backend picks the attractor with argmax over the four state weights,
+// and argmax on a tie silently returns the FIRST bucket -- S1. So a
+// perfectly balanced field renders as "S1 stable coherence", which is the
+// one state the system exists to produce. Measured on two consecutive live
+// reads:
+//
+//   25/25/25/25 FLAT  -> "S1 stable coherence", while Emotional Physics
+//                        reported stability: unstable, gradient: inward.
+//                        The panel contradicted itself in view.
+//   21/21/36/21       -> "S3 pressured incoherence", while EP reported
+//                        intensity: high, posture: pursuing. AGREES.
+//
+// The engine discriminates correctly when there IS a winner. The label was
+// the defect. When the top two weights are within EPSILON we decline to
+// name an attractor and say why.
+//
+// EPSILON = 0.05 (5 percentage points). The real discriminating read had a
+// 15pp gap between first and second, so 5pp sits comfortably below a
+// genuine signal while catching exact and near ties. Chosen from the
+// measurement, not from taste.
+export const ATTRACTOR_TIE_EPSILON = 0.05;
+
+// Mirrors intelligence_kernel.EMOTIONAL_PHYSICS_INPUT_CHAR_CAP (6_000). Kept
+// as a literal because web/ and the runtime share no code; if the backend cap
+// moves, this must move with it.
+export const SEED_CHAR_LIMIT = 6000;
+
+export type AttractorVerdict =
+  | { determinate: true; state: "S1" | "S2" | "S3" | "S4"; gap: number }
+  | { determinate: false; gap: number; leaders: string[] };
+
+/** Decide whether the distribution actually names an attractor. Exported so
+ *  the test can assert the flat case directly. */
+export function attractorVerdict(
+  dist: Record<string, number> | null | undefined,
+  fallback: "S1" | "S2" | "S3" | "S4",
+): AttractorVerdict {
+  const states = ["S1", "S2", "S3", "S4"] as const;
+  const pairs = states
+    .map((s) => ({ s, w: Number(dist?.[s]) }))
+    .filter((p) => Number.isFinite(p.w));
+  if (pairs.length < 2) return { determinate: true, state: fallback, gap: 1 };
+  pairs.sort((a, b) => b.w - a.w);
+  const gap = pairs[0].w - pairs[1].w;
+  if (gap < ATTRACTOR_TIE_EPSILON) {
+    const leaders = pairs
+      .filter((p) => pairs[0].w - p.w < ATTRACTOR_TIE_EPSILON)
+      .map((p) => p.s);
+    return { determinate: false, gap, leaders };
+  }
+  return { determinate: true, state: pairs[0].s, gap };
+}
+
 function attractorReading(a: "S1" | "S2" | "S3" | "S4"): string {
   switch (a) {
     case "S1": return "stable coherence";
@@ -465,6 +607,15 @@ function attractorReading(a: "S1" | "S2" | "S3" | "S4"): string {
 function deriveFieldWeather(elins: ElinsV2Envelope | null): string {
   if (!elins) return "Awaiting deeper analysis…";
   const { attractor, collapse_state, multiplier } = elins.outputs;
+  // ★ The same tie applies here. "Field is calm" on a level distribution is
+  // the same false reassurance as the S1 label, in prose.
+  const verdict = attractorVerdict(
+    elins.outputs.state_distribution as Record<string, number>, attractor,
+  );
+  if (!verdict.determinate && collapse_state !== "hard" && collapse_state !== "soft") {
+    return "No attractor leads. The field is level rather than settled — "
+      + "read the pressure and collapse figures directly.";
+  }
   if (collapse_state === "hard") {
     return "Hard collapse trajectory. Field is unstable; intervention warranted.";
   }
