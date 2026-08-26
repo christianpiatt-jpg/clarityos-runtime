@@ -172,3 +172,84 @@ def test_signup_grant_is_idempotent(reset_stores):
     assert first == users_store.SIGNUP_GRANT_MICRO
     assert users_store.grant_signup_credits("g1") == first
     assert users_store.grant_signup_credits("g1") == first
+
+
+# --------------------------------------------------------------------------
+# The two money bugs found wiring the threads endpoint. Both paid the MEMBER.
+# --------------------------------------------------------------------------
+def _fresh_user(name, micro=15_000_000):
+    users_store.create_user(username=name, password_hash=b"x", salt="",
+                            tier="free", created_at=0.0)
+    users_store.update_user(name, {"balance_micro": micro})
+
+
+def test_preflight_peek_does_not_claim_the_idempotency_key(reset_stores):
+    """A zero-cost debit in the dependency claims the key, so the handler's
+    reserve returns replay=True and debits NOTHING -- while settle still
+    refunds against it. Net: every metered call pays the member."""
+    _fresh_user("peek1")
+    key = "k-peek"
+    peek = users_store.peek_debit(key)
+    assert peek == {"exists": False, "replay": False, "terminal": False}
+    assert users_store.get_g_credit_balance("peek1") == 15_000_000, "peek must not write"
+
+    res = users_store.consume_g_credit_tx("peek1", key, cost=500)
+    assert res["replay"] is False
+    assert users_store.get_g_credit_balance("peek1") == 15_000_000 - 500
+    assert users_store.peek_debit(key)["replay"] is True
+
+
+def test_replay_is_a_financial_no_op(reset_stores):
+    """A replayed key must neither charge nor refund. Recording a reserve
+    that the ledger refused makes settle see a large negative delta and pay
+    the member to retry."""
+    _fresh_user("rep1")
+    m1 = compute_meter.ComputeMeter(user="rep1", request_id="k-rep", endpoint="/t")
+    m1.reserve(M, "x" * 4000)
+    m1.add_vendor_usage({"model_id": M, "provider": "openai", "mock": False,
+                         "usage": {"prompt_tokens": 100, "completion_tokens": 20,
+                                   "cached_tokens": 0}})
+    m1.settle()
+    settled = users_store.get_g_credit_balance("rep1")
+    assert settled < 15_000_000, "the first pass must charge"
+
+    m2 = compute_meter.ComputeMeter(user="rep1", request_id="k-rep", endpoint="/t")
+    m2.reserve(M, "x" * 4000)
+    assert m2.replayed and m2.reserved_micro == 0
+    m2.add_vendor_usage({"model_id": M, "provider": "openai", "mock": False,
+                         "usage": {"prompt_tokens": 100, "completion_tokens": 20,
+                                   "cached_tokens": 0}})
+    m2.settle()
+    assert users_store.get_g_credit_balance("rep1") == settled, "replay moved money"
+
+
+def test_a_metered_call_never_increases_the_balance(reset_stores):
+    """The property both bugs violated. Whatever else happens, a metered
+    call must not leave the member richer."""
+    _fresh_user("nb1")
+    for i in range(3):
+        before = users_store.get_g_credit_balance("nb1")
+        m = compute_meter.ComputeMeter(user="nb1", request_id=f"k-nb-{i}", endpoint="/t")
+        m.reserve(M, "prompt text " * 50)
+        m.add_vendor_usage({"model_id": M, "provider": "openai", "mock": False,
+                            "usage": {"prompt_tokens": 120, "completion_tokens": 30,
+                                      "cached_tokens": 0}})
+        m.settle()
+        after = users_store.get_g_credit_balance("nb1")
+        assert after < before, f"pass {i}: balance rose {before} -> {after}"
+
+
+def test_retry_folds_both_vendor_calls_through_the_meter(reset_stores):
+    """The endpoint hands the meter every entry in the kernel's
+    `vendor_calls`. Two entries must settle as ONE turn on the sum."""
+    _fresh_user("rt1")
+    m = compute_meter.ComputeMeter(user="rt1", request_id="k-rt", endpoint="/t")
+    m.reserve(M, "x" * 2000)
+    call = {"model_id": M, "provider": "openai", "mock": False,
+            "usage": {"prompt_tokens": 500, "completion_tokens": 120, "cached_tokens": 0}}
+    for _ in range(2):                     # primary + the #cite re-query
+        m.add_vendor_usage(call)
+    b = m.settle()
+    assert m.calls == 2
+    assert b["prompt_tokens"] == 1000 and b["completion_tokens"] == 240
+    assert b["invariant_holds"]

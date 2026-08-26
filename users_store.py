@@ -374,6 +374,35 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
     return _txn(client.transaction())
 
 
+def peek_debit(request_id: str) -> dict:
+    """READ-ONLY view of a debit key. Never writes, never claims.
+
+    ★ Exists because claiming the key twice is a money bug. The metered
+    dependency runs before the handler and needs to know whether a key is
+    fresh, already charged, or terminal -- but if it *claims* the key with a
+    zero-cost debit, the handler's later reserve sees ``replay: True`` and
+    silently debits NOTHING, while settle still refunds against a reserve
+    that was never taken. Net effect: every metered call PAYS the member.
+    Measured before this existed: -48,780 micro-dollars per call.
+
+    Returns ``{"exists": bool, "replay": bool, "terminal": bool}``.
+    """
+    if not request_id:
+        return {"exists": False, "replay": False, "terminal": False}
+    if _backend() != "firestore":
+        rec = _MEMORY_DEBITS.get(request_id)
+        if not rec:
+            return {"exists": False, "replay": False, "terminal": False}
+        st = rec.get("status")
+        return {"exists": True, "replay": True, "terminal": st == "refunded"}
+    client = _get_firestore()
+    snap = client.collection(_DEBITS_COLLECTION).document(request_id).get()
+    if not snap.exists:
+        return {"exists": False, "replay": False, "terminal": False}
+    st = (snap.to_dict() or {}).get("status")
+    return {"exists": True, "replay": True, "terminal": st == "refunded"}
+
+
 def refund_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> None:
     """Void a prior debit after a failed compute call. Idempotent: only a
     ``charged`` debit is refunded, then flipped to ``refunded`` so it can

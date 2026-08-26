@@ -651,20 +651,19 @@ def metered_compute(
     # now and an insufficient balance 402s at reserve. Same status, same
     # error code, two places -- because cost is not knowable this early.
     #
-    # cost=0 still runs the transaction, so the idempotency key is claimed
-    # and a replayed/refunded key is still detected here exactly as before.
-    try:
-        if users_store.get_g_credit_balance(user) <= 0:
-            raise ValueError("no_credits")
-        res = users_store.consume_g_credit_tx(user, idempotency_key, cost=0)
-    except ValueError as exc:
-        if str(exc) == "no_credits":
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=error_response("no_credits",
-                                      "Out of compute credits. Recharge to continue."),
-            )
-        raise
+    # ★★ THE KEY IS CLAIMED BY THE RESERVE, NOT HERE. Claiming it with a
+    # zero-cost debit makes the handler's reserve look like a replay, so it
+    # debits nothing -- while settle still refunds against a reserve that was
+    # never taken, and every metered call PAYS the member. Measured at
+    # -48,780 micro per call before this was a read-only peek.
+    if users_store.get_g_credit_balance(user) <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=error_response("no_credits",
+                                  "Out of compute credits. Recharge to continue."),
+        )
+    res = users_store.peek_debit(idempotency_key)
+    res.setdefault("remaining", users_store.get_g_credit_balance(user))
     # D2 (R5) — a refunded Idempotency-Key is terminal: no charge occurred and
     # no compute runs. Return 409 so the client mints a fresh key. The balance
     # header is attached to the exception (not `response`) because the envelope
@@ -681,7 +680,8 @@ def metered_compute(
     # reading it must divide by 10,000 for cents or 1,000,000 for dollars.
     # X-Credit-Unit is emitted alongside so a client can detect the change
     # rather than silently mis-scaling a number that still looks plausible.
-    response.headers["X-Remaining-Credits"] = str(res["remaining"])
+    response.headers["X-Remaining-Credits"] = str(
+        res.get("remaining", users_store.get_g_credit_balance(user)))
     response.headers["X-Credit-Unit"] = "micro_dollars"
     meter = compute_meter.ComputeMeter(
         user=user, request_id=idempotency_key,
@@ -12665,10 +12665,21 @@ def me_threads_get(
 @app.post("/me/threads/{thread_id}/message", response_model=V47PostMessageResponse)
 def me_threads_post_message(
     thread_id: str, req: V47PostMessageRequest,
-    session: dict = Depends(require_session),
+    session: dict = Depends(metered_compute),
 ):
     """v47 — append a user message + dispatch the assistant reply
-    through the kernel. Returns both messages plus the updated meta."""
+    through the kernel. Returns both messages plus the updated meta.
+
+    ★★★ v56 — METERED. This is the member-facing chat path and the largest
+    single source of vendor spend in the system; until now it ran on
+    ``require_session`` and was billed nothing at all. The seven endpoints
+    that carried ``metered_compute`` were engine and adapter routes; the
+    road the traffic actually uses bypassed the toll booth entirely.
+
+    Reserve is taken from the composed prompt before dispatch; settle runs
+    on the VENDOR-REPORTED usage of every call the turn made, so a #cite
+    retry (two billed calls, one member turn) settles once at cost+20%.
+    """
     user = session["user"]
     thread_id = _validate_thread_id_path(thread_id)
     if not isinstance(req.content, str) or not req.content.strip():
@@ -12683,6 +12694,33 @@ def me_threads_post_message(
                 "bad_input", f"content must be <= {_THREAD_MESSAGE_MAX} chars",
             ),
         )
+    # v56 — RESERVE. The kernel composes the real prompt from the thread
+    # transcript, which we cannot see from here, so the reserve is taken
+    # against the incoming turn plus a transcript allowance. It is an
+    # over-reserve either way and the settle below corrects it exactly from
+    # the vendor's numbers.
+    meter = session.get("_meter")
+    if meter is not None:
+        try:
+            # task="thread" mirrors intelligence_kernel.run_thread_message's
+            # own routing call, so the reserve is priced against the model
+            # that will actually be dispatched -- not a guess that could sit
+            # on the wrong rate row.
+            meter.reserve(
+                model_router.select_model(user, task="thread"),
+                req.content,
+            )
+        except ValueError as exc:
+            if str(exc) == "no_credits":
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail=error_response(
+                        "no_credits",
+                        "Out of compute credits. Recharge to continue."),
+                )
+            raise
+        except Exception as exc:  # pragma: no cover — routing must not 500 here
+            logger.warning("v56 reserve skipped user=%s err=%s", _user_ref(user), exc)
     try:
         out = intelligence_kernel.run_thread_message(
             user, thread_id, req.content,
@@ -12694,6 +12732,11 @@ def me_threads_post_message(
         v29_hardening.raise_validation(
             v29_hardening.ValidationError("bad_input", str(e)),
         )
+    # v56 — fold EVERY vendor call this turn made. The #cite retry path
+    # contributes a second entry; both are billed as one turn.
+    if meter is not None:
+        for _call in (out.get("vendor_calls") or []):
+            meter.add_vendor_usage(_call)
     return V47PostMessageResponse(
         meta=_meta_to_model(out["meta"]),
         user_message=_msg_to_model(out["user_message"]),

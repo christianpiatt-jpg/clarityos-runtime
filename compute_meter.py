@@ -109,6 +109,9 @@ class ComputeMeter:
         # refund is suppressed. Our OWN failures -- validation, auth, a 5xx
         # raised before dispatch -- leave it False and do refund.
         self.vendor_billed = False
+        # True when the idempotency key had already been charged. A replay
+        # settles nothing and refunds nothing -- see reserve().
+        self.replayed = False
         self._usage: Optional[usage_billing.Usage] = None
         self._model_id = ""
 
@@ -122,10 +125,23 @@ class ComputeMeter:
         tokens = estimate_input_tokens(prompt_text)
         amount = usage_billing.reserve_for(model_id, tokens, max_output_tokens)
         res = users_store.consume_g_credit_tx(self.user, self.request_id, cost=amount)
-        if not res.get("replay"):
-            self.reserved_micro = amount
+        if res.get("replay"):
+            # ★★ A REPLAY MUST BE A FINANCIAL NO-OP, END TO END.
+            #
+            # The original call already reserved AND settled. The debit
+            # ledger correctly refuses to charge again -- but if we still
+            # record `reserved_micro = amount`, settle computes
+            # `delta = settle - reserve` against a reserve that was never
+            # taken on THIS pass, sees a large negative, and REFUNDS it.
+            # The member is paid to retry. Measured at +48,702 micro per
+            # replay before this branch existed.
+            #
+            # Zero the reserve and mark the meter settled so the teardown
+            # settle cannot move money.
+            self.reserved_micro = 0
+            self.replayed = True
+            self.settled = True
         else:
-            # A replayed key already paid; do not double-reserve.
             self.reserved_micro = amount
         logger.info(
             "meter reserve user=%s req=%s model=%s est_in=%d max_out=%d "

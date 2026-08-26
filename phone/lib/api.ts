@@ -77,14 +77,17 @@ export class ApiError extends Error {
   }
 }
 
-type ReqOpts = { method?: string; body?: unknown; auth?: boolean };
+type ReqOpts = { method?: string; body?: unknown; auth?: boolean; idempotent?: boolean };
 
 export async function request<T = any>(path: string, opts: ReqOpts = {}): Promise<T> {
-  const { method = "GET", body, auth = true } = opts;
+  const { method = "GET", body, auth = true, idempotent = false } = opts;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
     if (!memorySession) throw new ApiError("missing_session", "Not signed in", 401);
     headers["X-Session-ID"] = memorySession;
+  }
+  if (idempotent) {
+    headers["Idempotency-Key"] = crypto.randomUUID();
   }
   const base = await getApiBase();
   let res: Response;
@@ -1196,7 +1199,8 @@ export async function postThreadMessage(
 ): Promise<ThreadMessageResult> {
   return request<ThreadMessageResult>(
     `/me/threads/${encodeURIComponent(thread_id)}/message`,
-    { method: "POST", body: { content } },
+    // ★ v56 — metered route: an Idempotency-Key is required.
+    { method: "POST", body: { content }, idempotent: true },
   );
 }
 

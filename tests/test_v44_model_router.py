@@ -59,10 +59,14 @@ def _make_user(app_module, username, cohort="founder"):
     # Seed entitlement through the PRODUCTION billing writer so the gate is
     # satisfied, not bypassed: requests still traverse the real gate.
     users_store.set_billing_state(username, billing_state="active")
-    # /model/complete sits behind metered_compute (also 8ea13b5): it debits
-    # one credit per call, so seed a balance via the production writer.
-    # 50 covers the rate-limit test's 11 debits with room to spare.
-    users_store.add_g_credits(username, 50)
+    # /model/complete sits behind metered_compute (also 8ea13b5), so seed a
+    # balance via the production writer.
+    # v56: the ledger is MICRO-DOLLARS and the debit is no longer a flat 1 --
+    # each call reserves against the prompt plus the output ceiling, which is
+    # ~8,300 micro for gpt-5.4-mini. The old literal 50 is now 50 micro-dollars
+    # ($0.00005) and 402s on the first call. $5 covers the rate-limit test's
+    # 11 reserves with a wide margin.
+    users_store.add_g_credits(username, 5_000_000)
     return username, sid
 
 

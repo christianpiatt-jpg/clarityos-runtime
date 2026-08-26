@@ -1675,7 +1675,9 @@ export async function postThreadMessage(
 ): Promise<ThreadMessageResult> {
   return request<ThreadMessageResult>(
     `/me/threads/${encodeURIComponent(thread_id)}/message`,
-    { method: "POST", body: { content } },
+    // ★ v56 — this route is metered. Without an Idempotency-Key the server
+    // rejects the call with 400 missing_idempotency_key.
+    { method: "POST", body: { content }, idempotent: true },
   );
 }
 

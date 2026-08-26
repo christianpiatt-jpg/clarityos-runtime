@@ -1026,7 +1026,14 @@ def run_thread_message(
         raise
     prompt = _format_thread_context(full_messages, latest=text)
 
+    # v56 — collect EVERY vendor dispatch for this turn so the caller can
+    # meter the turn's total. ★ A #cite retry fires a second billed call
+    # below; both land in this list and settle as one turn, which is what
+    # stops the retry path from being billed at a loss.
+    vendor_calls: list[dict] = []
+
     response = model_router.route_request(model_id, prompt)
+    vendor_calls.append(response)
     assistant_text = str(response.get("text") or "").strip()
 
     # A28 — unified directive post-enforcement. The engine validates/transforms
@@ -1049,6 +1056,7 @@ def run_thread_message(
             if dmeta.retry_instruction:
                 retry_prompt = f"{prompt}\n\n{dmeta.retry_instruction}"
             retry_response = model_router.route_request(model_id, retry_prompt)
+            vendor_calls.append(retry_response)   # v56 — billed, so metered
             retry_output = str(retry_response.get("text") or "").strip() or final_output
             final_output, dmeta = directive_engine.apply_post_enforcement(
                 directives, retry_output, retry_used=True,
@@ -1234,6 +1242,12 @@ def run_thread_message(
         # (functional payload; [] / {} on non-directive turns).
         "directives":        directives.directives,
         "directive_metadata": directive_metadata,
+        # v56 — additive. Every vendor dispatch this turn made, in order,
+        # each carrying the provider's own reported `usage` block. The HTTP
+        # layer folds these into the compute meter and settles ONCE for the
+        # turn. A #cite retry contributes two entries; a mock contributes an
+        # entry whose `usage` is None (nothing was consumed, nothing billed).
+        "vendor_calls":      vendor_calls,
     }
 
 

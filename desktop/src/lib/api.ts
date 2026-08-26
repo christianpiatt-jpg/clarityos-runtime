@@ -100,16 +100,22 @@ export function setLastActiveThreadId(
 }
 
 // ---------- Core request ----------
-type ReqOpts = { method?: string; body?: unknown; auth?: boolean };
+type ReqOpts = { method?: string; body?: unknown; auth?: boolean; idempotent?: boolean };
 
 async function request<T = unknown>(path: string, opts: ReqOpts = {}): Promise<T> {
-  const { method = "GET", body, auth = true } = opts;
+  const { method = "GET", body, auth = true, idempotent = false } = opts;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
     if (!memorySession) {
       throw new ApiError("missing_session", "Not signed in", 401);
     }
     headers["X-Session-ID"] = memorySession;
+  }
+  // ★ v56 — metered compute routes require an Idempotency-Key. The server
+  // reserves against it, settles under a derived key, and never
+  // double-charges a replay.
+  if (idempotent) {
+    headers["Idempotency-Key"] = crypto.randomUUID();
   }
   const url = API_BASE + path;
   let res: Response;
@@ -318,7 +324,8 @@ export async function postThreadMessage(
   if (project_id) body.project_id = project_id;
   return request<ThreadMessageResult>(
     `/me/threads/${encodeURIComponent(thread_id)}/message`,
-    { method: "POST", body },
+    // ★ v56 — metered route: an Idempotency-Key is required.
+    { method: "POST", body, idempotent: true },
   );
 }
 
