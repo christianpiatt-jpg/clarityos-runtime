@@ -290,6 +290,13 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- what-if cone spikes (nudge table + physics mapper) ----
+    # determinism_surface: both mappers are pure functions over recorded
+    # readings, so every figure must reproduce exactly. Not runtime_spine --
+    # nothing here is wired into a route yet.
+    "test_whatif_cone.py": {
+        "determinism_surface",
+    },
     # ---- v73 timeline route shadowing ----
     # runtime_spine: it gates app.py's router registration order, which is
     # invisible in review and silently 404s a live endpoint when re-broken.
