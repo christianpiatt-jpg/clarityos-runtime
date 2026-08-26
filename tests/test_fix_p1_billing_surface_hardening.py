@@ -89,7 +89,7 @@ class TestConfirmRedaction:
         import billing_intents
         user, sid = _make_user(app_module, "p1_confirm_a", cohort="founder")
         intent = billing_intents.create_payment_intent(
-            user, 1.0, "single credit", kind="g_credit_single",
+            user, 1.0, "single credit", kind="g_credit_pack",
         )
         # Sanity: the underlying record DOES have a client_secret —
         # this is what makes the redaction load-bearing.
@@ -117,7 +117,7 @@ class TestConfirmRedaction:
         import billing_intents
         user, sid = _make_user(app_module, "p1_confirm_b", cohort="founder")
         intent = billing_intents.create_payment_intent(
-            user, 1.0, "single credit", kind="g_credit_single",
+            user, 1.0, "single credit", kind="g_credit_pack",
             metadata={"campaign": "spring-2026", "internal_note": "test"},
         )
         r = client.post(
@@ -142,7 +142,7 @@ class TestConfirmRedaction:
         import billing_intents
         user, sid = _make_user(app_module, "p1_confirm_c", cohort="founder")
         intent = billing_intents.create_payment_intent(
-            user, 1.0, "single credit", kind="g_credit_single",
+            user, 1.0, "single credit", kind="g_credit_pack",
         )
         r = client.post(
             "/billing/intent/confirm", headers=_auth(sid),
@@ -160,7 +160,7 @@ class TestConfirmRedaction:
 
         assert out["intent_id"] == intent["intent_id"]
         assert out["status"] == "succeeded"
-        assert out["kind"] == "g_credit_single"
+        assert out["kind"] == "g_credit_pack"
 
     def test_confirm_response_route_shape_unchanged(self, app_module, client, manual_confirm):
         """The top-level shape (``ok`` + ``intent``) is preserved.
@@ -168,7 +168,7 @@ class TestConfirmRedaction:
         import billing_intents
         user, sid = _make_user(app_module, "p1_confirm_d", cohort="founder")
         intent = billing_intents.create_payment_intent(
-            user, 1.0, "x", kind="g_credit_single",
+            user, 1.0, "x", kind="g_credit_pack",
         )
         r = client.post(
             "/billing/intent/confirm", headers=_auth(sid),
@@ -267,7 +267,7 @@ class TestNoSensitiveLogging:
         import billing_intents
         user, sid = _make_user(app_module, "p1_log_a", cohort="founder")
         intent = billing_intents.create_payment_intent(
-            user, 1.0, "x", kind="g_credit_single",
+            user, 1.0, "x", kind="g_credit_pack",
             metadata={"campaign": "spring-2026"},
         )
         secret_val = intent["client_secret"]

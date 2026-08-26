@@ -204,7 +204,12 @@ def update_user(username: str, data: dict) -> None:
 #     membership_started_ts   float
 #     membership_status       str   ("active", "cancelled", None)
 #     membership_cancelled_ts float (when status flipped to cancelled)
-#     g_credits               int   (current balance, never < 0)
+#     balance_micro           int   (current balance in MICRO-DOLLARS, never < 0)
+#     g_credits               int   FROZEN. The retired cent-resolution field.
+#                                   Never read, never written by this module.
+#                                   No conversion code exists or may be added:
+#                                   the two live balances were set by hand under
+#                                   CT-1 before the unit change landed.
 #     g_credit_history        list  (compact metadata; full history is in
 #                                    membership_store)
 #
@@ -214,10 +219,18 @@ USER_DOC_HISTORY_TAIL = 50
 
 
 def get_g_credit_balance(user: str) -> int:
-    """Return current balance (0 for unknown users)."""
+    """Return the current balance in MICRO-DOLLARS (0 for unknown users).
+
+    Reads ``balance_micro`` and nothing else. There is deliberately NO
+    fallback to the retired ``g_credits`` field and no multiply anywhere in
+    this module: with no conversion code, no code path exists that can
+    inflate a balance. An account whose balance was never set reads zero --
+    visible, recoverable, one ``add_g_credits`` away -- rather than silently
+    reading 10,000x low or high.
+    """
     doc = get_user(user) or {}
     try:
-        return int(doc.get("g_credits") or 0)
+        return int(doc.get("balance_micro") or 0)
     except (TypeError, ValueError):
         return 0
 
@@ -229,21 +242,21 @@ def add_g_credits(user: str, amount: int, *, history_entry: Optional[dict] = Non
     if not isinstance(amount, int):
         amount = int(amount)
     doc = get_user(user) or {}
-    current = int(doc.get("g_credits") or 0)
+    current = int(doc.get("balance_micro") or 0)
     new_balance = current + amount
     history = list(doc.get("g_credit_history") or [])
     if history_entry is not None:
         history.append(dict(history_entry))
     if len(history) > USER_DOC_HISTORY_TAIL:
         history = history[-USER_DOC_HISTORY_TAIL:]
-    update_user(user, {"g_credits": new_balance, "g_credit_history": history})
+    update_user(user, {"balance_micro": new_balance, "g_credit_history": history})
     return new_balance
 
 
 def consume_g_credit(user: str, *, history_entry: Optional[dict] = None) -> int:
     """Decrement the balance by 1. Raises ValueError if the balance is 0."""
     doc = get_user(user) or {}
-    current = int(doc.get("g_credits") or 0)
+    current = int(doc.get("balance_micro") or 0)
     if current <= 0:
         raise ValueError("no_credits")
     new_balance = current - 1
@@ -252,8 +265,49 @@ def consume_g_credit(user: str, *, history_entry: Optional[dict] = None) -> int:
         history.append(dict(history_entry))
     if len(history) > USER_DOC_HISTORY_TAIL:
         history = history[-USER_DOC_HISTORY_TAIL:]
-    update_user(user, {"g_credits": new_balance, "g_credit_history": history})
+    update_user(user, {"balance_micro": new_balance, "g_credit_history": history})
     return new_balance
+
+
+# ---------------------------------------------------------------------------
+# Signup grant — CT-1 2026-08-26.
+#
+# 1500 credits at account creation. "One credit is one penny paid", so 1500
+# credits is $15.00, which is 15,000,000 micro-dollars.
+# ---------------------------------------------------------------------------
+SIGNUP_GRANT_MICRO = 15_000_000
+
+
+def grant_signup_credits(user: str, *, source: str = "account_creation") -> int:
+    """Idempotently grant the signup balance. Returns the balance after.
+
+    ★ The guard is the DATA, not a flag we have to remember to set: the
+    grant writes ``signup_grant_ts`` in the same update as the balance, and
+    a second call sees that field and no-ops. There is no version marker to
+    forget and no script that can be re-run by accident -- the same shape
+    CT-1 required of the (now deleted) conversion path.
+    """
+    doc = get_user(user) or {}
+    if doc.get("signup_grant_ts"):
+        return int(doc.get("balance_micro") or 0)
+    current = int(doc.get("balance_micro") or 0)
+    history = list(doc.get("g_credit_history") or [])
+    history.append({
+        "type": "signup_grant",
+        "credits_delta": SIGNUP_GRANT_MICRO,
+        "source": source,
+        "ts": time.time(),
+    })
+    if len(history) > USER_DOC_HISTORY_TAIL:
+        history = history[-USER_DOC_HISTORY_TAIL:]
+    update_user(user, {
+        "balance_micro": current + SIGNUP_GRANT_MICRO,
+        "signup_grant_ts": time.time(),
+        "g_credit_history": history,
+    })
+    logger.info("signup grant user=%s micro=%d source=%s",
+                user, SIGNUP_GRANT_MICRO, source)
+    return current + SIGNUP_GRANT_MICRO
 
 
 _DEBITS_COLLECTION = "g_debits"
@@ -288,7 +342,7 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
         bal = get_g_credit_balance(user)
         if bal < cost:
             raise ValueError("no_credits")
-        update_user(user, {"g_credits": bal - cost})
+        update_user(user, {"balance_micro": bal - cost})
         _MEMORY_DEBITS[request_id] = {"user": user, "cost": cost, "status": "charged"}
         return {"remaining": bal - cost, "replay": False, "terminal": False}
 
@@ -301,7 +355,7 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
     def _txn(txn):
         debit_snap = debit_ref.get(transaction=txn)   # all reads before writes
         user_snap = user_ref.get(transaction=txn)
-        bal = int((user_snap.to_dict() or {}).get("g_credits") or 0)
+        bal = int((user_snap.to_dict() or {}).get("balance_micro") or 0)
         if debit_snap.exists:
             status = (debit_snap.to_dict() or {}).get("status")
             if status == "charged":
@@ -310,7 +364,7 @@ def consume_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> dict:
                 return {"remaining": bal, "replay": True, "terminal": True}    # R5 — terminal key
         if bal < cost:
             raise ValueError("no_credits")
-        txn.update(user_ref, {"g_credits": bal - cost})
+        txn.update(user_ref, {"balance_micro": bal - cost})
         txn.set(debit_ref, {
             "user": user, "cost": cost, "status": "charged",
             "request_id": request_id, "ts": time.time(),
@@ -331,7 +385,7 @@ def refund_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> None:
     if _backend() != "firestore":
         rec = _MEMORY_DEBITS.get(request_id)
         if rec and rec.get("status") == "charged":
-            update_user(user, {"g_credits": get_g_credit_balance(user) + cost})
+            update_user(user, {"balance_micro": get_g_credit_balance(user) + cost})
             rec["status"] = "refunded"
         return
 
@@ -346,8 +400,8 @@ def refund_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> None:
         user_snap = user_ref.get(transaction=txn)
         if not debit_snap.exists or (debit_snap.to_dict() or {}).get("status") != "charged":
             return
-        bal = int((user_snap.to_dict() or {}).get("g_credits") or 0)
-        txn.update(user_ref, {"g_credits": bal + cost})
+        bal = int((user_snap.to_dict() or {}).get("balance_micro") or 0)
+        txn.update(user_ref, {"balance_micro": bal + cost})
         txn.update(debit_ref, {"status": "refunded", "refunded_ts": time.time()})
 
     _txn(client.transaction())
@@ -387,7 +441,7 @@ def get_membership_view(user: str) -> dict:
         "status": doc.get("membership_status"),
         "started_ts": doc.get("membership_started_ts"),
         "cancelled_ts": doc.get("membership_cancelled_ts"),
-        "g_credits": int(doc.get("g_credits") or 0),
+        "balance_micro": int(doc.get("balance_micro") or 0),
         # v31 — billing state machine fields
         "billing_state": doc.get("billing_state"),
         "renewal_ts": doc.get("renewal_ts"),

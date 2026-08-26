@@ -411,7 +411,7 @@ class TestB4LoggingSurfaceUnderDeployment:
         )
 
         intent = billing_intents.create_payment_intent(
-            username, 1.0, "x", kind="g_credit_single",
+            username, 1.0, "x", kind="g_credit_pack",
             metadata={"campaign": "b4-marker-leak-test"},
         )
         secret_val = intent["client_secret"]

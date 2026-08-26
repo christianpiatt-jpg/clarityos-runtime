@@ -79,6 +79,10 @@ import vault_store
 import library_store
 import timeline_store
 import usage_store
+import usage_billing
+import usage_rates
+import usage_records
+import compute_meter
 import dewey_neighborhoods_store
 import dewey_memberships_store
 import dewey_worker
@@ -402,6 +406,14 @@ def _create_user(
         extras["billing_subscription_id"] = billing_subscription_id
     if extras:
         users_store.update_user(username, extras)
+    # v56 — signup grant. ★ Placed here, at the single choke point every
+    # creation path funnels through (/register:1203, invite redeem:1589,
+    # the Stripe-backed redeem:1708, and the admin bootstrap), rather than
+    # wired separately into each. One call site cannot drift out of sync
+    # with another, and a future fifth path gets the grant for free.
+    # Idempotent on `signup_grant_ts`, so a retried creation cannot
+    # double-grant.
+    users_store.grant_signup_credits(username, source="account_creation")
 
 
 def _new_operator_id() -> str:
@@ -633,8 +645,18 @@ def metered_compute(
                                   "Idempotency-Key header required for compute calls."),
         )
     user = session["user"]
+    # v56 — PRE-FLIGHT ONLY. The real debit is the meter's reserve, which
+    # the handler fires once the prompt exists. Here we can only answer
+    # "does this account have anything at all?", so a zero balance 402s
+    # now and an insufficient balance 402s at reserve. Same status, same
+    # error code, two places -- because cost is not knowable this early.
+    #
+    # cost=0 still runs the transaction, so the idempotency key is claimed
+    # and a replayed/refunded key is still detected here exactly as before.
     try:
-        res = users_store.consume_g_credit_tx(user, idempotency_key)
+        if users_store.get_g_credit_balance(user) <= 0:
+            raise ValueError("no_credits")
+        res = users_store.consume_g_credit_tx(user, idempotency_key, cost=0)
     except ValueError as exc:
         if str(exc) == "no_credits":
             raise HTTPException(
@@ -655,13 +677,48 @@ def metered_compute(
                                   "Generate a fresh key and retry."),
             headers={"X-Remaining-Credits": str(res["remaining"])},
         )
+    # ★ X-Remaining-Credits is now MICRO-DOLLARS, not cents. Any client
+    # reading it must divide by 10,000 for cents or 1,000,000 for dollars.
+    # X-Credit-Unit is emitted alongside so a client can detect the change
+    # rather than silently mis-scaling a number that still looks plausible.
     response.headers["X-Remaining-Credits"] = str(res["remaining"])
+    response.headers["X-Credit-Unit"] = "micro_dollars"
+    meter = compute_meter.ComputeMeter(
+        user=user, request_id=idempotency_key,
+        endpoint=str(getattr(response, "_clarityos_route", "") or ""),
+    )
+    # Handlers reach the meter through the session dict, so the seven
+    # existing `session: dict = Depends(metered_compute)` signatures are
+    # unchanged. A handler that never touches it settles to service cost.
+    session["_meter"] = meter
     try:
         yield session
     except Exception:
-        if not res["replay"]:
-            users_store.refund_g_credit_tx(user, idempotency_key)
+        # ★★ LEAK 2 — refund OUR errors only. If the vendor already
+        # consumed tokens, a refund means WE eat a bill we have been
+        # charged. meter.should_refund() is False the moment any vendor
+        # call reports usage.
+        if not res["replay"] and meter.should_refund():
+            users_store.refund_g_credit_tx(user, idempotency_key, cost=meter.reserved_micro)
+        else:
+            # Vendor-billed failure: keep the reserve and settle what the
+            # vendor actually consumed, so the loss is bounded by the real
+            # cost rather than absorbed whole.
+            try:
+                meter.settle()
+            except Exception:  # pragma: no cover — never mask the original
+                logger.warning("meter settle failed during error teardown req=%s",
+                               idempotency_key)
         raise
+    else:
+        # Normal completion: settle whatever the handler metered. A handler
+        # that never called reserve() has nothing to settle and this is a
+        # no-op.
+        try:
+            meter.settle()
+        except Exception:  # pragma: no cover — billing must not fail a
+            # delivered response; the debit ledger remains the source of truth.
+            logger.warning("meter settle failed req=%s", idempotency_key)
 
 
 def _assert_prod_firestore_backend() -> None:
@@ -9753,8 +9810,18 @@ def _membership_view(user: str) -> dict:
         },
         "cohort": cohort_state,
         "waitlist_position": on_waitlist_pos,
+        # v56 — the ledger is micro-dollars. ``balance_micro`` is the raw
+        # integer; ``balance_display`` is the dollar string the member sees.
+        # "One credit is one penny paid" is unchanged -- a penny is exactly
+        # 10,000 units -- so the promise is about value, not storage.
+        # ``balance`` is retained as an alias of the raw micro figure so no
+        # client reading it silently gets a number in the wrong unit.
         "g_credits": {
-            "balance": int(user_doc.get("g_credits") or 0),
+            "balance": int(user_doc.get("balance_micro") or 0),
+            "balance_micro": int(user_doc.get("balance_micro") or 0),
+            "balance_display": usage_billing.micro_to_dollars(
+                int(user_doc.get("balance_micro") or 0)),
+            "unit": "micro_dollars",
             "history_tail": list(user_doc.get("g_credit_history") or [])[-USER_DOC_HISTORY_TAIL:],
         },
     }
@@ -11715,12 +11782,32 @@ def model_complete(
         capacity=10, window_s=60.0,
     )
     started = time.time()
+    # v56 — RESERVE. The prompt exists now, which is the earliest point a
+    # cost estimate is possible; the dependency ran before it did. 402 here
+    # is the same 402 the flat-fee gate raised, just against a real number.
+    meter = session.get("_meter")
+    if meter is not None:
+        try:
+            meter.reserve(req.model, req.prompt)
+        except ValueError as exc:
+            if str(exc) == "no_credits":
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail=error_response(
+                        "no_credits",
+                        "Out of compute credits. Recharge to continue."),
+                )
+            raise
     try:
         result = model_router.route_request(req.model, req.prompt)
     except ValueError as e:
         v29_hardening.raise_validation(
             v29_hardening.ValidationError("bad_input", str(e))
         )
+    # v56 — fold this call's VENDOR-REPORTED usage in. Call once per vendor
+    # call; a retry path calls it again and settle bills the turn's total.
+    if meter is not None:
+        meter.add_vendor_usage(result)
     elapsed_ms = int((time.time() - started) * 1000)
     return {
         "ok": True,
@@ -11729,6 +11816,7 @@ def model_complete(
         "elapsed_ms": elapsed_ms,
         "mock": bool(result.get("mock", False)),
         "provider": result.get("provider"),
+        "usage": result.get("usage"),
     }
 
 

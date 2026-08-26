@@ -290,6 +290,13 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- v56 usage billing (GATE 0: the 1.20 invariant) ----
+    # runtime_spine because it gates app.py + model_router.py; determinism
+    # because the whole ledger is integer arithmetic with no float anywhere,
+    # so every figure must reproduce exactly.
+    "test_usage_billing_invariant.py": {
+        "runtime_spine", "determinism_surface",
+    },
     # ---- Locked PASS-4 fix tests (existing) ----
     "test_founder_default_vault_persistence.py": {
         "runtime_spine", "determinism_surface",

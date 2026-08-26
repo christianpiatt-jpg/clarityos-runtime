@@ -38,6 +38,14 @@ import type { EmotionalPhysicsResponse } from "../lib/emotionalPhysics";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type ThreadStatus = "loading" | "ready" | "sending" | "error";
+
+/** ★ CT-1 ruling 2026-08-26: N = 5.
+ *  Emotional Physics runs a metered vendor call, so it does not re-analyse
+ *  on every turn. It refreshes automatically every 5th turn and on demand
+ *  from the view's Re-run button. Batching was rejected outright -- a
+ *  minutes-to-24h latency makes the panel useless as a live read -- so this
+ *  is a per-turn throttle, not a queue. */
+export const PHYSICS_AUTO_EVERY_N = 5;
 /** Which pane the cockpit InsightsPanel is showing. Mirrors Threads.tsx. */
 export type InsightsTab = "thread" | "elins" | "physics";
 
@@ -65,9 +73,15 @@ export interface CockpitState {
     busy: boolean;
     tab: InsightsTab;
     /** Cached insight results so switching tabs doesn't re-fire the kernel.
-     *  Cleared whenever the transcript changes. */
+     *  ELINS clears on every turn -- it is ten deterministic stages with no
+     *  vendor behind them, so re-running is free. */
     elins: ElinsV2Envelope | null;
+    /** Physics dispatches a real vendor call (anthropic:claude-haiku-4-5),
+     *  so it is THROTTLED: auto-refreshed every PHYSICS_AUTO_EVERY_N turns,
+     *  on demand at any time via the view's own Re-run control. Between
+     *  those points the last result is held rather than re-fetched. */
     physics: EmotionalPhysicsResponse | null;
+    turnsSincePhysics: number;
   };
 }
 
@@ -84,6 +98,7 @@ function initialState(): CockpitState {
     thread: {
       status: "loading", meta: null, messages: [], error: null,
       busy: false, tab: "thread", elins: null, physics: null,
+      turnsSincePhysics: 0,
     },
   };
 }
@@ -275,7 +290,7 @@ const threadSlice = {
         const detail = await getThread(meta.thread_id);
         setSlice("thread", {
           status: "ready", meta: detail.meta, messages: detail.messages,
-          elins: null, physics: null,
+          elins: null, physics: null, turnsSincePhysics: 0,
         });
       } catch (e) {
         setSlice("thread", { status: "error", error: errMessage(e) });
@@ -291,6 +306,7 @@ const threadSlice = {
       const trimmed = text.trim();
       if (!trimmed || !meta || status === "sending") return;
       setSlice("thread", { status: "sending", error: null });
+      const nextTurns = current.thread.turnsSincePhysics + 1;
       try {
         const r = await postThreadMessage(meta.thread_id, trimmed);
         setSlice("thread", {
@@ -305,9 +321,16 @@ const threadSlice = {
               directive_metadata: r.directive_metadata ?? null,
             },
           ],
-          // The transcript changed, so cached insight results are stale.
+          // The transcript changed, so the ELINS envelope is stale. It is
+          // deterministic and vendorless, so clearing it costs nothing.
           elins: null,
-          physics: null,
+          // ★ Physics is throttled: only every Nth turn drops the cached
+          // response, which is what lets the view auto-run again. On the
+          // other turns the previous reading is held and the operator can
+          // still force a fresh one with Re-run.
+          ...(nextTurns >= PHYSICS_AUTO_EVERY_N
+            ? { physics: null, turnsSincePhysics: 0 }
+            : { turnsSincePhysics: nextTurns }),
         });
       } catch (e) {
         setSlice("thread", { status: "error", error: errMessage(e) });

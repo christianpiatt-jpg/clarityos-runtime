@@ -308,7 +308,7 @@ def test_history_returns_recent_first(app_module, client):
     types = [t["type"] for t in txs]
     # v31 — transaction types reflect PaymentIntent kinds, newest first.
     assert types[0] == "g_credit_pack"
-    assert "g_credit_single" in types
+    assert "g_credit_pack" in types
 
 
 # ---------------------------------------------------------------------------

@@ -26,8 +26,15 @@ Side effects per kind:
                              membership_tier/price/status/started_ts,
                              billing_state=active, renewal_ts=now+30d.
     "membership_renewal":    extends renewal_ts by 30d, resets retry count.
-    "g_credit_single":       adds 1 #G credit + tx record.
-    "g_credit_pack":         adds 20 #G credits + tx record.
+    "g_credit_pack":         adds a $10 top-up (10,000,000 micro-dollars).
+
+    ★ RETIRED 2026-08-26: "g_credit_single". Under the micro-dollar ledger
+      that SKU sold 1 unit = $0.000001 -- someone could have paid a dollar
+      for a millionth of a dollar. It also could not survive the $10 top-up
+      floor: break-even against Stripe (2.9% + $0.30) is $2.18, so a $0.01
+      or even a $5 top-up burns the margin in fees. The kind is rejected at
+      creation and left in the apply/fail paths only so intents already in
+      flight settle cleanly rather than erroring.
 
 Failures don't mutate user state beyond the intent record + a
 "failed_payment" transaction, except for ``membership_renewal`` which
@@ -64,9 +71,21 @@ logger = logging.getLogger("clarityos.billing_intents")
 VALID_KINDS = (
     "membership_activation",
     "membership_renewal",
-    "g_credit_single",
     "g_credit_pack",
 )
+
+# ★ Retired SKUs. Rejected at creation, still honoured on apply so any
+# intent already created before the retirement settles instead of stranding
+# a member's money mid-flight.
+RETIRED_KINDS = (
+    "g_credit_single",
+)
+
+# Top-up SKU sizes, in MICRO-DOLLARS. $10 = 10,000,000 micro-dollars.
+# ★ The $10 floor is a margin floor, not a UX preference: Stripe takes
+# 2.9% + $0.30, so break-even is $2.18 and a $5 top-up spends half the
+# markup on fees.
+G_CREDIT_PACK_MICRO = 10_000_000
 
 # Renewal cadence + retry policy. Module-level so tests can monkey-patch.
 RENEWAL_PERIOD_DAYS = 30
@@ -358,28 +377,33 @@ def _apply_succeeded(user: str, kind: str, intent: dict) -> None:
     intent_id = intent["intent_id"]
     amount = float(intent["amount"])
     if kind == "g_credit_single":
-        users_store.add_g_credits(user, 1, history_entry={
-            "type": "g_credit_single",
-            "credits_delta": 1,
+        # RETIRED — creation rejects this kind. Retained so an in-flight
+        # intent settles. Credit the dollar amount actually paid, converted
+        # to micro-dollars, rather than the old "1 credit" literal, which
+        # under this ledger would be $0.000001.
+        micro = int(round(amount * 1_000_000))
+        users_store.add_g_credits(user, micro, history_entry={
+            "type": "g_credit_single_retired",
+            "credits_delta": micro,
             "amount": amount,
             "intent_id": intent_id,
             "ts": time.time(),
         })
         membership_store.record_transaction(
-            user, type="g_credit_single", amount=amount, credits_delta=1,
-            metadata={"intent_id": intent_id},
+            user, type="g_credit_single_retired", amount=amount, credits_delta=micro,
+            metadata={"intent_id": intent_id, "retired": True},
         )
         return
     if kind == "g_credit_pack":
-        users_store.add_g_credits(user, 20, history_entry={
+        users_store.add_g_credits(user, G_CREDIT_PACK_MICRO, history_entry={
             "type": "g_credit_pack",
-            "credits_delta": 20,
+            "credits_delta": G_CREDIT_PACK_MICRO,
             "amount": amount,
             "intent_id": intent_id,
             "ts": time.time(),
         })
         membership_store.record_transaction(
-            user, type="g_credit_pack", amount=amount, credits_delta=20,
+            user, type="g_credit_pack", amount=amount, credits_delta=G_CREDIT_PACK_MICRO,
             metadata={"intent_id": intent_id},
         )
         return

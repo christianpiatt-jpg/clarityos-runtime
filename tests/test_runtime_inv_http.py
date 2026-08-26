@@ -130,7 +130,7 @@ class TestINV_H3_BillingConfirmFieldProjection:
         import billing_intents
         user, sid = self._make_user("inv_h3_a")
         intent = billing_intents.create_payment_intent(
-            user, 1.0, "x", kind="g_credit_single",
+            user, 1.0, "x", kind="g_credit_pack",
             metadata={"secret_marker": "should-never-leak"},
         )
 

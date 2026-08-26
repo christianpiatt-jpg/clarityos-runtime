@@ -51,6 +51,7 @@ from typing import Any, Optional
 
 import runtime_http_config
 import runtime_privacy
+import usage_billing
 
 logger = logging.getLogger("clarityos.model_router")
 
@@ -493,6 +494,10 @@ def _mock_result(
         "text": f"[mock {model_id}] {preview}".rstrip(),
         "mock": True,
         "ts": started,
+        # v56 — a mock consumed no vendor tokens, so there is no usage to
+        # report. Explicitly None rather than zeros: the meter must be able
+        # to tell "the vendor billed us nothing" from "we never asked".
+        "usage": None,
     }
     if error:
         out["fallback_error"] = error[:200]
@@ -625,9 +630,15 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
         text = out.get("choices", [{}])[0].get("message", {}).get("content")
         if not isinstance(text, str):
             raise ValueError("openai response missing choices[0].message.content")
+        # v56 — carry the VENDOR's own usage block out to the meter. Read
+        # from the response, never from our estimate: this is the number
+        # the vendor bills us on, so it is the number the member is
+        # metered against. ``usage`` is None if the vendor omitted it.
+        _usage = usage_billing.extract_usage(out, "openai", model_id)
         return {
             "ok": True, "model_id": model_id, "provider": "openai",
             "text": text, "mock": False, "ts": started,
+            "usage": _usage.as_dict() if _usage else None,
         }
     except Exception as e:  # pragma: no cover (real-network path)
         if isinstance(e, urllib.error.HTTPError):
@@ -673,9 +684,14 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
         text = "".join(text_parts)
         if not text:
             raise ValueError("anthropic response had no text blocks")
+        # v56 — same as the openai path. NOTE: Anthropic's usage shape is
+        # parsed from the published API and is UNVERIFIED against a live
+        # response (no Anthropic key in the build environment).
+        _usage = usage_billing.extract_usage(out, "anthropic", model_id)
         return {
             "ok": True, "model_id": model_id, "provider": "anthropic",
             "text": text, "mock": False, "ts": started,
+            "usage": _usage.as_dict() if _usage else None,
         }
     except Exception as e:  # pragma: no cover
         if isinstance(e, urllib.error.HTTPError):

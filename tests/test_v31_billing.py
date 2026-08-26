@@ -72,19 +72,19 @@ def _auth(sid):
 def test_create_intent_validation(reset_stores):
     import billing_intents as bi
     with pytest.raises(bi.BillingError) as exc:
-        bi.create_payment_intent("", 50.0, "test", kind="g_credit_single")
+        bi.create_payment_intent("", 50.0, "test", kind="g_credit_pack")
     assert exc.value.code == "bad_user"
 
     with pytest.raises(bi.BillingError) as exc:
-        bi.create_payment_intent("u1", -1.0, "test", kind="g_credit_single")
+        bi.create_payment_intent("u1", -1.0, "test", kind="g_credit_pack")
     assert exc.value.code == "bad_amount"
 
     with pytest.raises(bi.BillingError) as exc:
-        bi.create_payment_intent("u1", 0.10, "test", kind="g_credit_single")
+        bi.create_payment_intent("u1", 0.10, "test", kind="g_credit_pack")
     assert exc.value.code == "bad_amount"
 
     with pytest.raises(bi.BillingError) as exc:
-        bi.create_payment_intent("u1", 1.0, "", kind="g_credit_single")
+        bi.create_payment_intent("u1", 1.0, "", kind="g_credit_pack")
     assert exc.value.code == "bad_description"
 
     with pytest.raises(bi.BillingError) as exc:
@@ -95,14 +95,14 @@ def test_create_intent_validation(reset_stores):
 def test_create_intent_auto_confirm_default(reset_stores):
     """In default mock mode the intent immediately reports succeeded."""
     import billing_intents as bi
-    intent = bi.create_payment_intent("u1", 1.0, "single", kind="g_credit_single")
+    intent = bi.create_payment_intent("u1", 1.0, "single", kind="g_credit_pack")
     assert intent["status"] == "succeeded"
     assert intent["side_effect_applied"] is True
 
 
 def test_create_intent_pending_when_manual(reset_stores, manual_confirm):
     import billing_intents as bi
-    intent = bi.create_payment_intent("u1", 1.0, "single", kind="g_credit_single")
+    intent = bi.create_payment_intent("u1", 1.0, "single", kind="g_credit_pack")
     assert intent["status"] == "requires_payment_method"
     assert intent["side_effect_applied"] is False
 
@@ -111,7 +111,7 @@ def test_confirm_payment_intent_lands_credits(reset_stores, manual_confirm):
     import billing_intents as bi
     import users_store
     users_store.create_user("u2", b"x", "", "free", time.time())
-    intent = bi.create_payment_intent("u2", 1.0, "single", kind="g_credit_single")
+    intent = bi.create_payment_intent("u2", 1.0, "single", kind="g_credit_pack")
     assert users_store.get_g_credit_balance("u2") == 0
     confirmed = bi.confirm_payment_intent(intent["intent_id"])
     assert confirmed["status"] == "succeeded"
@@ -325,7 +325,7 @@ def test_billing_intent_endpoint(app_module, client):
     user, sid = _make_user(app_module, "ben31", cohort="founder")
     r = client.post(
         "/billing/intent", headers=_auth(sid),
-        json={"amount": 1.0, "description": "single credit", "kind": "g_credit_single"},
+        json={"amount": 1.0, "description": "single credit", "kind": "g_credit_pack"},
     )
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -347,7 +347,7 @@ def test_billing_confirm_belongs_to_user(app_module, client, manual_confirm):
     u1, sid1 = _make_user(app_module, "carl31", cohort="founder")
     u2, sid2 = _make_user(app_module, "dee31", cohort="founder")
     intent = billing_intents.create_payment_intent(
-        u1, 1.0, "x", kind="g_credit_single",
+        u1, 1.0, "x", kind="g_credit_pack",
     )
     r = client.post(
         "/billing/intent/confirm", headers=_auth(sid2),
@@ -364,7 +364,7 @@ def test_billing_history_combines_transactions_and_intents(app_module, client):
     assert r.status_code == 200
     body = r.json()
     assert len(body["intents"]) == 1
-    assert any(t["type"] == "g_credit_single" for t in body["transactions"])
+    assert any(t["type"] == "g_credit_pack" for t in body["transactions"])
 
 
 # ---------------------------------------------------------------------------
@@ -422,7 +422,7 @@ def test_cancel_flips_billing_state(app_module, client):
 # Auth + flag-gate contract
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize("path,method,body", [
-    ("/billing/intent", "POST", {"amount": 1.0, "description": "x", "kind": "g_credit_single"}),
+    ("/billing/intent", "POST", {"amount": 1.0, "description": "x", "kind": "g_credit_pack"}),
     ("/billing/intent/confirm", "POST", {"intent_id": "x"}),
     ("/billing/history", "GET", None),
 ])

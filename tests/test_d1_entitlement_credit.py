@@ -24,7 +24,11 @@ client = TestClient(appmod.app)
 
 
 def _mk_session(user, *, active=True, credits=0, cohort="founder"):
-    """Create a user (+ optional active membership + N credits); return a session id.
+    """Create a user (+ optional active membership + a balance); return a session id.
+
+    v56 — ``credits`` is now MICRO-DOLLARS, the ledger unit, not cents.
+    1 credit == 1 penny paid == 10,000 micro-dollars. Callers that want
+    "a few dollars of balance" pass millions, not single digits.
     Wired to repo helpers per D1-APPLY-01.AMEND.1 §3.1 (mirrors test_v30_membership._make_user)."""
     users_store.create_user(
         username=user,
@@ -76,15 +80,23 @@ class TestD1:
         assert r.json()["error"] == "no_credits"
 
     def test_3_active_with_credits_200_and_debit(self):
-        sid = _mk_session("u_ok", active=True, credits=5)  # active, N credits
+        sid = _mk_session("u_ok", active=True, credits=5_000_000)  # active, $5.00 of balance
         before = users_store.get_g_credit_balance("u_ok")
         r = client.post("/markov", json={"text": "x"}, headers=_hdr(sid, uuid.uuid4().hex))
         assert r.status_code == 200
-        assert users_store.get_g_credit_balance("u_ok") == before - 1
-        assert r.headers.get("X-Remaining-Credits") == str(before - 1)
+        # v56 — the debit is the SETTLED price of the call, not a flat 1.
+        # /markov dispatches no vendor, so it settles to the service cost
+        # plus the 20% markup. What matters here is that a debit happened
+        # and that it is bounded, not that it equals any single constant.
+        after = users_store.get_g_credit_balance("u_ok")
+        assert after < before, "metered call must debit something"
+        assert before - after <= 10_000, "a vendorless call must not cost a cent"
+        # The header is emitted at reserve time, before the settle debit, so
+        # it reflects the pre-settle balance. Unit is micro-dollars.
+        assert r.headers.get("X-Credit-Unit") == "micro_dollars"
 
     def test_4_replay_same_key_no_double_charge(self):
-        sid = _mk_session("u_replay", active=True, credits=5)
+        sid = _mk_session("u_replay", active=True, credits=5_000_000)
         key = uuid.uuid4().hex
         client.post("/markov", json={"text": "x"}, headers=_hdr(sid, key))
         mid = users_store.get_g_credit_balance("u_replay")
@@ -92,7 +104,7 @@ class TestD1:
         assert users_store.get_g_credit_balance("u_replay") == mid  # unchanged
 
     def test_5_compute_failure_refunds(self, monkeypatch):
-        sid = _mk_session("u_fail", active=True, credits=5)
+        sid = _mk_session("u_fail", active=True, credits=5_000_000)
         before = users_store.get_g_credit_balance("u_fail")
         monkeypatch.setattr(appmod, "markov_adapter",
                             lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
@@ -101,7 +113,7 @@ class TestD1:
         assert users_store.get_g_credit_balance("u_fail") == before  # refunded
 
     def test_6_missing_idempotency_key_400(self):
-        sid = _mk_session("u_nokey", active=True, credits=5)
+        sid = _mk_session("u_nokey", active=True, credits=5_000_000)
         r = client.post("/markov", json={"text": "x"}, headers=_hdr(sid))  # no key
         assert r.status_code == 400
         assert r.json()["error"] == "missing_idempotency_key"
@@ -123,6 +135,8 @@ def test_concurrent_same_balance_distinct_keys():
     Validates Firestore-transactional consume_g_credit_tx atomicity (D1_SPEC.md §4.3).
     Skip-gated on FIRESTORE_EMULATOR_HOST per D1-APPLY-01.AMEND.1 Ruling 2 (Path C)."""
     import threading
+    # 1 micro-dollar: enough to pass the pre-flight "balance > 0" check but
+    # far below the settled price, so this exercises the never-negative floor.
     sid = _mk_session("u_conc", active=True, credits=1)
     results = []
 

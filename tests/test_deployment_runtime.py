@@ -757,7 +757,7 @@ class TestE3ObservabilitySurface:
         import billing_intents
         username = _register_user("e3_secret_canary_user")
         intent = billing_intents.create_payment_intent(
-            username, 1.0, "x", kind="g_credit_single",
+            username, 1.0, "x", kind="g_credit_pack",
             metadata={"e3_marker": "e3-metadata-canary-NEVER-LOG"},
         )
         client_secret = intent["client_secret"]
