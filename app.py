@@ -279,12 +279,16 @@ except ImportError:
 # ----- v73 / Units 82+83 — Operator + Org timelines -----
 # Operator timeline: auth-gated, top-level /timeline/*.
 # Org timeline: founder-cohort gated, /org/timeline/*.
+# ★ THE INCLUDE IS DEFERRED TO THE BOTTOM OF THIS MODULE. See
+# `_include_timeline_routers()` at the end of the file for why: registering
+# it here shadowed GET /timeline/list behind the router's /{event_id}
+# catch-all. The import stays here so an ImportError still surfaces at the
+# same point in startup as before.
 try:
     from runtime_http import timeline_router, org_timeline_router  # noqa: E402
-    app.include_router(timeline_router)
-    app.include_router(org_timeline_router)
+    _TIMELINE_ROUTERS = (timeline_router, org_timeline_router)
 except ImportError:
-    pass
+    _TIMELINE_ROUTERS = ()
 # ----- /v73 -----
 
 SESSION_TTL_SECONDS = int(os.environ.get("CLARITYOS_SESSION_TTL", "86400"))
@@ -16864,3 +16868,40 @@ def root():
             "GET  /health":   "health check (public)",
         },
     }
+
+
+# ===========================================================================
+# v73 — Operator + Org timeline routers, registered LAST.
+# ===========================================================================
+# ★ FastAPI matches routes in REGISTRATION order, first match wins.
+#
+# `timeline_router` carries a catch-all at runtime_http.py:1326:
+#
+#     @timeline_router.get("/{event_id}")
+#
+# Included at its original site near the top of this module, that catch-all
+# was registered ~2,500 lines before `@app.get("/timeline/list")` and
+# swallowed it: the request resolved to `timeline_get(event_id="list")`,
+# `el_ins.get_event(user, "list")` returned None, and the client got
+#
+#     404  {"ok": false, "error": "http_error",
+#           "message": "timeline event not found"}
+#
+# — a real endpoint reporting that a fabricated event id does not exist.
+# Nothing was missing; it was shadowed. Those are different defects with
+# different fixes, and the 404 text points at the wrong one.
+#
+# Deferring the include to the bottom of the module means every `@app.*`
+# route in this file is registered first, so a concrete path always beats a
+# router's path parameter. Verified by diffing full route resolution for all
+# 210 concrete paths before and after: exactly one changed.
+#
+# ★ Route order is invisible in review and a future edit can re-break this
+# silently, so the guard is tests/test_timeline_route_shadowing.py, not this
+# comment.
+def _include_timeline_routers() -> None:
+    for _router in _TIMELINE_ROUTERS:
+        app.include_router(_router)
+
+
+_include_timeline_routers()

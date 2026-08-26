@@ -290,6 +290,12 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- v73 timeline route shadowing ----
+    # runtime_spine: it gates app.py's router registration order, which is
+    # invisible in review and silently 404s a live endpoint when re-broken.
+    "test_timeline_route_shadowing.py": {
+        "runtime_spine",
+    },
     # ---- v56 CORS preflight on metered routes ----
     # runtime_spine: it gates app.py, and a trimmed allow-list silently
     # blocks every metered route at the browser before the wire.
