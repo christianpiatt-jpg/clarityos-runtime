@@ -107,3 +107,13 @@ _scratch_archive_engine/
 tarlist.txt
 MigrationLog_*.txt
 01_MIGRATE.ps1
+
+# 2026-08-26 — url-map state records. CT-1 ruled KEEP ALL THREE: pre-404fix is
+# the rollback target, 404fix is what was applied, post-fail-check is what was
+# observed after. Keeping the target without the record of the fix is how you
+# end up reconstructing url-map state from memory, which this lane has already
+# burned itself doing. They are working-lane artifacts, not runtime, so they
+# are denylisted from the build context rather than deleted.
+clarityos-web-map.pre-404fix.yaml
+clarityos-web-map.404fix.yaml
+clarityos-web-map.post-fail-check.yaml
