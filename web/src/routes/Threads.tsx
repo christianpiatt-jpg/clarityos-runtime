@@ -9,7 +9,7 @@
 // implementation; only the return JSX has been restructured to feed
 // WebShell's three slot props (sidebar / center / insights).
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ApiError,
@@ -111,10 +111,18 @@ export default function Threads() {
     if (label === "Personal ELINS") navigate("/personal-elins");
   }, [navigate]);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  function scrollToBottom() {
-    messagesEndRef.current?.scrollIntoView({ block: "end" });
-  }
+  // ★★ THE SCROLL IS GONE, NOT REPOINTED. This is the move that bites.
+  //
+  // scrollToBottom() existed to chase the newest message to the far end of
+  // an oldest-first list. With newest-first AND the composer at the top,
+  // the newest message and the input are both already at scroll position
+  // zero -- there is nothing to scroll to. Repointing it to scroll-to-top
+  // would fire a scroll to where the browser already is.
+  //
+  // Inverting the list while leaving the scroll would have opened every
+  // thread on its OLDEST message: a worse scroll, arrived at by fixing the
+  // scroll. Deleted with both call sites (thread load, message send) and
+  // the sentinel div they targeted.
 
   // ---------------- Thread list ----------------
   const refreshList = useCallback(async () => {
@@ -143,7 +151,6 @@ export default function Threads() {
       const r = await getThread(thread_id);
       setActiveMeta(r.meta);
       setMessages(r.messages);
-      setTimeout(scrollToBottom, 0);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
       setActiveMeta(null);
@@ -218,7 +225,6 @@ export default function Threads() {
         const others = cur.filter((t) => t.thread_id !== r.meta.thread_id);
         return [r.meta, ...others];
       });
-      setTimeout(scrollToBottom, 0);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
     } finally {
@@ -295,6 +301,19 @@ export default function Threads() {
       setBusy(false);
     }
   }
+
+  // ★ NEWEST FIRST. The reading direction is inverted HERE, in one derived
+  // value, and nowhere else.
+  //
+  // `messages` stays in server order (oldest -> newest) because the append
+  // at handleSend depends on it and because that is the order the transcript
+  // is composed in for ELINS and Physics. Reversing the STATE would have
+  // meant rewriting both, for a change that is purely about reading
+  // direction.
+  const displayMessages = useMemo(
+    () => [...messages].reverse(),
+    [messages],
+  );
 
   // Compose the active thread's transcript once per messages change.
   // Cap to 6KB so we don't blow the backend's text limit. Empty string
@@ -496,24 +515,12 @@ export default function Threads() {
         </div>
       ) : null}
 
-      {/* Message log */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "12px 16px",
-      }}>
-        {messages.length === 0 ? (
-          <div style={{ color: "var(--color-text-secondary)", fontSize: 13, padding: 12 }}>
-            No messages yet — say something below to start.
-          </div>
-        ) : (
-          messages.map((m, idx) => (
-            <Bubble key={`${m.ts_ms}-${idx}`} message={m} />
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
+      {/* ★ COMPOSER ABOVE THE LOG.
+          Newest-first with the input still at the bottom would make the
+          member type at one end and read at the other -- worse than the
+          scroll being removed. Input and newest message now sit together
+          at the top, which is also where a failed send would need to
+          appear to be seen. */}
       {/* Composer */}
       <div style={{
         borderTop: "1px solid rgba(255,255,255,0.15)",
@@ -571,6 +578,23 @@ export default function Threads() {
           </button>
         </div>
       </div>
+      {/* Message log — newest first (see displayMessages) */}
+      <div style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: "12px 16px",
+      }}>
+        {messages.length === 0 ? (
+          <div style={{ color: "var(--color-text-secondary)", fontSize: 13, padding: 12 }}>
+            No messages yet — say something below to start.
+          </div>
+        ) : (
+          displayMessages.map((m, idx) => (
+            <Bubble key={`${m.ts_ms}-${idx}`} message={m} />
+          ))
+        )}
+      </div>
+
     </>
   );
 

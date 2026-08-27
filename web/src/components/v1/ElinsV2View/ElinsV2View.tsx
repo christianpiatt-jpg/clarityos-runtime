@@ -29,6 +29,11 @@ import {
 } from "../../../lib/elinsV2";
 import { ApiError } from "../../../lib/api";
 import styles from "./ElinsV2View.module.css";
+import {
+  attractorVerdict,
+  INDETERMINATE_LABEL,
+  indeterminateDetail,
+} from "../../../lib/attractor";
 
 interface Props {
   /** Pre-computed envelope (e.g., already-stored ingestion-bus output). */
@@ -202,13 +207,24 @@ function AttractorBlock({
   attractor: Attractor;
 }) {
   const states: Attractor[] = ["S1", "S2", "S3", "S4"];
+  // ★★ THE SECOND CONSUMER. The tie-break shipped to PersonalElins in
+  // cdae4ba and missed this view, which kept printing the raw backend
+  // value -- so CT-1's 2026-08-27 walk saw "attractor: S1 · aligned
+  // coherence" rendered directly beneath a 25/25/25/25 distribution.
+  // Same threshold, same copy, same testid: imported, not reimplemented.
+  const verdict = attractorVerdict(
+    distribution as unknown as Record<string, number>, attractor,
+  );
   return (
     <div className={styles.section}>
       <div className={styles.sectionLabel}>Attractor</div>
       <div className={styles.attractorRow}>
         {states.map((s) => {
           const v = clamp01(distribution[s] ?? 0);
-          const isAttractor = s === attractor;
+          // ★ On a tie no column is "the" attractor -- highlighting one
+          // would re-assert in the bars exactly what the caption declines
+          // to say in words.
+          const isAttractor = verdict.determinate && s === verdict.state;
           return (
             <div
               key={s}
@@ -231,9 +247,17 @@ function AttractorBlock({
           );
         })}
       </div>
-      <div className={styles.subtle}>
-        attractor: <strong>{attractor}</strong> · {stateDescriptor(attractor)}
-      </div>
+      {verdict.determinate ? (
+        <div className={styles.subtle} data-testid="attractor-determinate">
+          attractor: <strong>{verdict.state}</strong> ·{" "}
+          {stateDescriptor(verdict.state)}
+        </div>
+      ) : (
+        <div className={styles.subtle} data-testid="attractor-indeterminate">
+          <strong>{INDETERMINATE_LABEL}</strong>
+          <div>{indeterminateDetail(verdict.leaders)}</div>
+        </div>
+      )}
     </div>
   );
 }

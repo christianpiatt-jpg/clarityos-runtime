@@ -26,6 +26,11 @@ import {
 } from "../lib/auth";
 import { useSyncExternalStore } from "react";
 import WebShell from "../components/WebShell";
+import {
+  attractorVerdict,
+  INDETERMINATE_LABEL,
+  indeterminateDetail,
+} from "../lib/attractor";
 
 const DEFAULT_SEED = "Personal current state — open snapshot for analysis.";
 
@@ -338,7 +343,7 @@ function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
                 >
                   <Tag tone="cyan">—</Tag>
                   <span style={{ marginLeft: 8, color: "var(--color-text-secondary)" }}>
-                    indeterminate — no attractor leads
+                    {INDETERMINATE_LABEL}
                   </span>
                   <div style={{
                     marginTop: 4,
@@ -346,9 +351,7 @@ function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
                     fontSize: 11,
                     color: "var(--color-text-secondary)",
                   }}>
-                    {v.leaders.join(" / ")} are within{" "}
-                    {Math.round(ATTRACTOR_TIE_EPSILON * 100)} points. A level
-                    field does not name a state.
+                    {indeterminateDetail(v.leaders)}
                   </div>
                 </div>
               );
@@ -545,60 +548,20 @@ function renderValue(v: unknown): string {
   return String(v).slice(0, 40);
 }
 
-// ★★★ A FLAT FIELD IS NOT "STABLE COHERENCE".
-//
-// The backend picks the attractor with argmax over the four state weights,
-// and argmax on a tie silently returns the FIRST bucket -- S1. So a
-// perfectly balanced field renders as "S1 stable coherence", which is the
-// one state the system exists to produce. Measured on two consecutive live
-// reads:
-//
-//   25/25/25/25 FLAT  -> "S1 stable coherence", while Emotional Physics
-//                        reported stability: unstable, gradient: inward.
-//                        The panel contradicted itself in view.
-//   21/21/36/21       -> "S3 pressured incoherence", while EP reported
-//                        intensity: high, posture: pursuing. AGREES.
-//
-// The engine discriminates correctly when there IS a winner. The label was
-// the defect. When the top two weights are within EPSILON we decline to
-// name an attractor and say why.
-//
-// EPSILON = 0.05 (5 percentage points). The real discriminating read had a
-// 15pp gap between first and second, so 5pp sits comfortably below a
-// genuine signal while catching exact and near ties. Chosen from the
-// measurement, not from taste.
-export const ATTRACTOR_TIE_EPSILON = 0.05;
-
+// ★ The tie-break moved to lib/attractor.ts so ElinsV2View could import the
+// SAME implementation. It shipped here in cdae4ba and missed that consumer,
+// which kept rendering the raw backend value. Re-exported so existing
+// importers (and the test suite) keep working unchanged.
 // Mirrors intelligence_kernel.EMOTIONAL_PHYSICS_INPUT_CHAR_CAP (6_000). Kept
 // as a literal because web/ and the runtime share no code; if the backend cap
 // moves, this must move with it.
 export const SEED_CHAR_LIMIT = 6000;
 
-export type AttractorVerdict =
-  | { determinate: true; state: "S1" | "S2" | "S3" | "S4"; gap: number }
-  | { determinate: false; gap: number; leaders: string[] };
-
-/** Decide whether the distribution actually names an attractor. Exported so
- *  the test can assert the flat case directly. */
-export function attractorVerdict(
-  dist: Record<string, number> | null | undefined,
-  fallback: "S1" | "S2" | "S3" | "S4",
-): AttractorVerdict {
-  const states = ["S1", "S2", "S3", "S4"] as const;
-  const pairs = states
-    .map((s) => ({ s, w: Number(dist?.[s]) }))
-    .filter((p) => Number.isFinite(p.w));
-  if (pairs.length < 2) return { determinate: true, state: fallback, gap: 1 };
-  pairs.sort((a, b) => b.w - a.w);
-  const gap = pairs[0].w - pairs[1].w;
-  if (gap < ATTRACTOR_TIE_EPSILON) {
-    const leaders = pairs
-      .filter((p) => pairs[0].w - p.w < ATTRACTOR_TIE_EPSILON)
-      .map((p) => p.s);
-    return { determinate: false, gap, leaders };
-  }
-  return { determinate: true, state: pairs[0].s, gap };
-}
+export {
+  attractorVerdict,
+  ATTRACTOR_TIE_EPSILON,
+  type AttractorVerdict,
+} from "../lib/attractor";
 
 function attractorReading(a: "S1" | "S2" | "S3" | "S4"): string {
   switch (a) {
