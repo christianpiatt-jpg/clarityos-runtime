@@ -29,7 +29,7 @@ export default function ChatPanel() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { status, messages, meta, error } = thread;
+  const { status, messages, meta, error, failedSend } = thread;
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -52,7 +52,12 @@ export default function ChatPanel() {
 
       <div className="cv2-chat-scroll" ref={scrollRef}>
         {status === "loading" && <p className="cv2-muted">Loading…</p>}
-        {status === "error" && <p className="cv2-err">{error}</p>}
+        {/* ★ The bare banner used to be the ONLY failure signal, and it sat
+            at the TOP of the pane, detached from the message it referred
+            to -- which had already been erased from the composer. It is
+            kept only for non-send failures (load, delete); a failed SEND
+            renders inline below, attached to the words that did not go. */}
+        {status === "error" && !failedSend && <p className="cv2-err">{error}</p>}
         {status !== "loading" &&
           messages.map((m, i) => {
             // Mirrors Threads.tsx:823-825 — the model footer and the badges
@@ -86,7 +91,45 @@ export default function ChatPanel() {
               </div>
             );
           })}
-        {status === "ready" && messages.length === 0 && (
+        {/* ★★ THE FAILED SEND, RENDERED WHERE IT HAPPENED.
+            Visually distinct from persisted history, carrying the member's
+            actual text and the reason, with a retry. Before this a failed
+            message simply vanished. */}
+        {failedSend ? (
+          <div className="cv2-msg cv2-msg-failed" data-testid="failed-send">
+            <span className="cv2-msg-role">not sent</span>
+            <p className="cv2-msg-body">{failedSend.text}</p>
+            <div className="cv2-msg-meta">
+              <span className="cv2-err" data-testid="failed-send-error">
+                {failedSend.error}
+              </span>
+              <button
+                type="button"
+                className="cv2-btn"
+                data-testid="failed-send-retry"
+                onClick={() => {
+                  const text = failedSend.text;
+                  cockpit.thread.actions.clearFailedSend();
+                  void cockpit.thread.actions.send(text);
+                }}
+              >
+                Retry
+              </button>
+              <button
+                type="button"
+                className="cv2-btn"
+                data-testid="failed-send-edit"
+                onClick={() => {
+                  setInput(failedSend.text);
+                  cockpit.thread.actions.clearFailedSend();
+                }}
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {status === "ready" && messages.length === 0 && !failedSend && (
           <p className="cv2-muted">No messages yet.</p>
         )}
       </div>

@@ -1,7 +1,8 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import RequireAuth from "./components/RequireAuth";
+import RequireAdmin from "./components/RequireAdmin";
 import Home from "./routes/Home";
 import Login from "./routes/Login";
 import Operator from "./routes/Operator";
@@ -62,16 +63,30 @@ export default function App() {
   return (
     <ErrorBoundary label="Application error">
     <Routes>
-      {/* CockpitV2 — consolidated operator cockpit. Additive + self-gated
-          (renders its own login panel); bypasses Layout + RequireAuth so
-          it owns the viewport. */}
-      <Route path="/cockpit-v2" element={<CockpitV2 />} />
+      {/* /cockpit-v2 — kept as a REDIRECT rather than removed. It is the
+          path every operator bookmarked while V2 was the experiment, and a
+          dead bookmark is a support ticket. Chosen over deletion. */}
+      <Route path="/cockpit-v2" element={<Navigate to="/cockpit" replace />} />
 
       {/* Surface 4 — v1 surface owns the full viewport for /threads.   */}
       {/* Bypasses Layout so its cockpit chrome (topbar/rail/footer)    */}
       {/* doesn't nest inside the v1 surface's own chrome.              */}
       {/* v54-followup — /personal-elins follows the same pattern.       */}
       <Route element={<RequireAuth />}>
+        {/* ★ /cockpit IS THE MEMBER PRODUCT. Swapped, not rewired: every
+            existing pointer already says /cockpit (auth_magiclink
+            DEFAULT_NEXT_PATH, [My Account], the magic link), so changing
+            what is mounted lands all of them on V2 with no other edit.
+
+            It sits HERE, beside /threads, and not in the <Layout> block
+            below, because CockpitV2 owns the full viewport and renders its
+            own topbar -- nesting it inside Layout would stack two sets of
+            chrome. It is inside RequireAuth: V2's own login panel is a
+            fallback, not the gate.
+
+            This also ends V2's orphan status. Nothing linked to it, which
+            is how 9fd1109 broke its chat send unnoticed. */}
+        <Route path="/cockpit" element={<CockpitV2 />} />
         <Route path="/threads" element={<Threads />} />
         <Route path="/personal-elins" element={<PersonalElins />} />
         {/* v74 / Unit 84 — Founding 500 Subscription Gate. Owns the
@@ -156,7 +171,19 @@ export default function App() {
 
         {/* v28 — Surface + Distribution layer; require auth */}
         <Route element={<RequireAuth />}>
-          <Route path="/cockpit" element={<Cockpit />} />
+          {/* ★ V1 lives on here for the admin account. NOT PORTED -- it
+              keeps working exactly as it did, and panels graduate to V2 one
+              at a time.
+
+              ★★ RequireAdmin is UX, NOT SECURITY. V1's panels call
+              /operator/*, /el_ins/* and /founder/*, all of which are
+              cohort-gated server-side; a member who reaches this route sees
+              403s, not privileged data. The gate exists so they do not
+              wander into a console full of errors. The real boundary is the
+              backend and stays there. */}
+          <Route element={<RequireAdmin />}>
+            <Route path="/admin/cockpit" element={<Cockpit />} />
+          </Route>
           <Route path="/elins" element={<Elins />} />
         </Route>
 

@@ -11,7 +11,10 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const from = (location.state as { from?: string } | null)?.from || "/operator";
+  // ★ /cockpit, not /operator. A member signing in with no redirect state
+  // lands on the member product. /operator is the V1 console and is now
+  // admin-only -- sending members there was sending them to 403s.
+  const from = (location.state as { from?: string } | null)?.from || "/cockpit";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,7 +44,9 @@ export default function Login() {
       <div className="panel">
         <h2>SIGN IN</h2>
         <p className="muted" style={{ marginTop: 4, marginBottom: 16 }}>
-          ClarityOS operator credentials. Founders + invited operators only.
+          {/* ★ A paying member reads this while signing in. The old copy
+              told them they were not welcome. */}
+          Sign in to ClarityOS.
         </p>
 
         {error ? <div className="banner err">{error}</div> : null}

@@ -82,6 +82,9 @@ export interface CockpitState {
      *  those points the last result is held rather than re-fetched. */
     physics: EmotionalPhysicsResponse | null;
     turnsSincePhysics: number;
+    /** ★ The text of a send that FAILED, plus why. Held so a failed request
+     *  does not destroy what the member typed -- see send(). */
+    failedSend: { text: string; error: string } | null;
   };
 }
 
@@ -98,7 +101,7 @@ function initialState(): CockpitState {
     thread: {
       status: "loading", meta: null, messages: [], error: null,
       busy: false, tab: "thread", elins: null, physics: null,
-      turnsSincePhysics: 0,
+      turnsSincePhysics: 0, failedSend: null,
     },
   };
 }
@@ -305,7 +308,7 @@ const threadSlice = {
       const { meta, status } = current.thread;
       const trimmed = text.trim();
       if (!trimmed || !meta || status === "sending") return;
-      setSlice("thread", { status: "sending", error: null });
+      setSlice("thread", { status: "sending", error: null, failedSend: null });
       const nextTurns = current.thread.turnsSincePhysics + 1;
       try {
         const r = await postThreadMessage(meta.thread_id, trimmed);
@@ -331,9 +334,22 @@ const threadSlice = {
           ...(nextTurns >= PHYSICS_AUTO_EVERY_N
             ? { physics: null, turnsSincePhysics: 0 }
             : { turnsSincePhysics: nextTurns }),
+          failedSend: null,
         });
       } catch (e) {
-        setSlice("thread", { status: "error", error: errMessage(e) });
+        // ★★ DO NOT DESTROY THE MEMBER'S WORDS.
+        //
+        // ChatPanel clears the composer the moment send() is called, and a
+        // failed send never reaches `messages`. Before this, a failure
+        // deleted what the member typed and left a detached error banner at
+        // the top of a pane full of successfully-persisted history -- no
+        // visual difference between "sent" and "gone", and nothing to retry
+        // from. The 400 was one half of the defect; this was the other.
+        setSlice("thread", {
+          status: "error",
+          error: errMessage(e),
+          failedSend: { text: trimmed, error: errMessage(e) },
+        });
       }
     },
 
@@ -379,6 +395,8 @@ const threadSlice = {
       }
     },
 
+    /** Drop a failed attempt once the member has retried or edited it. */
+    clearFailedSend(): void { setSlice("thread", { failedSend: null }); },
     setTab(tab: InsightsTab): void { setSlice("thread", { tab }); },
     setElins(elins: ElinsV2Envelope | null): void { setSlice("thread", { elins }); },
     setPhysics(physics: EmotionalPhysicsResponse | null): void { setSlice("thread", { physics }); },

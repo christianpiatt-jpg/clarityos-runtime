@@ -382,3 +382,13 @@
   border-color: var(--color-accent-red, #E74C3C);
   color: var(--color-accent-red, #E74C3C);
 }
+
+/* ---- v57: a send that FAILED. Must not look like persisted history ------ */
+.cv2-msg-failed {
+  border-left: 2px solid var(--color-accent-red, #E74C3C);
+  background: rgba(231, 76, 60, 0.06);
+  opacity: 0.85;
+}
+.cv2-msg-failed .cv2-msg-role {
+  color: var(--color-accent-red, #E74C3C);
+}

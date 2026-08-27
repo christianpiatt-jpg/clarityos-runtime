@@ -75,9 +75,24 @@ export default function PersonalElins() {
   }, [run, seed]);
 
   const onNavigate = useCallback((label: string) => {
+    // ★ THE MISSING EDGE. /threads and /personal-elins each own the full
+    // viewport, and until now the only handled nav labels were those two --
+    // so a member inside a thread could not reach the cockpit without
+    // typing the URL.
+    //
+    // ★★ "Home" is the cockpit destination. OperatorSidebar renders SEVEN
+    // static NAV_ITEMS (Home, Threads, Projects, Emotional Physics,
+    // Personal ELINS, Library, Settings) and there is no "Cockpit" entry;
+    // adding one would edit a shared v1 component the harness and
+    // ClarityOSSurface also render. Home is the natural destination for the
+    // member product and needs no shared-component change.
+    //
+    // ★ Projects / Emotional Physics / Settings remain DEAD CLICKS -- they
+    // render, they are clickable, and nothing happens. Reported, not fixed
+    // here: out of scope for this order.
+    if (label === "Home") navigate("/cockpit");
     if (label === "Threads") navigate("/threads");
     if (label === "Personal ELINS") navigate("/personal-elins");
-    // Other nav items are static for now (B1 spec).
   }, [navigate]);
 
   return (
