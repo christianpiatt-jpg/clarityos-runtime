@@ -308,6 +308,11 @@ ADMIN_USER = os.environ.get("CLARITYOS_ADMIN_USER", "admin")
 COHORT_FOUNDER = "founder"
 COHORT_FOUNDER_EXCEPTION = "founder_exception"
 COHORT_TERRACE_1 = "terrace_1"
+# v43 — CT-1 ruling 2026-08-27: one cohort, "member", plus "admin".
+# Additive: the legacy strings above stay valid and age out as aliases;
+# nothing is renamed, nothing migrated.
+COHORT_MEMBER = "member"
+COHORT_ADMIN = "admin"
 VALID_COHORTS = {COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_TERRACE_1}
 
 # Storage Layer v1 — per-object envelope sizes (bytes)
@@ -325,7 +330,7 @@ ALLOWED_VAULT_TYPES = ("note", "session", "elins_raw")
 # tight limits" per spec; tighter tiers can ride on top later.
 QUOTA_FOUNDER_BYTES = 1_000_000_000   # 1 GB
 QUOTA_DEFAULT_BYTES = 500_000_000     # 500 MB
-FOUNDER_LIKE_COHORTS = {COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION}
+FOUNDER_LIKE_COHORTS = {COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_ADMIN}
 THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60
 
 # CORS — comma-separated list of allowed origins. Browsers will refuse to
@@ -391,7 +396,7 @@ def _create_user(
     username: str,
     password: str,
     tier: str = "free",
-    cohort: Optional[str] = None,
+    cohort: Optional[str] = COHORT_MEMBER,
     operator_id: Optional[str] = None,
     billing_expires_at: Optional[float] = None,
     billing_subscription_id: Optional[str] = None,
@@ -501,7 +506,12 @@ _admin_pwd_source = _bootstrap_admin()
 # v29 — Cohort 1 default flag overrides. Founders + Terrace 1 see v28
 # surfaces by default; everyone else stays default-off until a server-side
 # operator toggles them on per-user. Idempotent on every process boot.
-for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_TERRACE_1):
+# v43 (CT-1 2026-08-27): member + admin + founding_500 added — the paying
+# cohort was locked out of surfaces the free invite pool had. founding_500
+# names membership_store.FOUNDING_COHORT (user docs carry it as
+# membership_tier; see require_session cohort hop for the read path).
+for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_TERRACE_1,
+             COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT):
     v29_hardening.set_flag("v28_surfaces", True, cohort=_coh)
     v29_hardening.set_flag("onboarding_v1", True, cohort=_coh)
     v29_hardening.set_flag("whats_new_v28", True, cohort=_coh)

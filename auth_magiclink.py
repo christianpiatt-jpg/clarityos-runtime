@@ -382,7 +382,13 @@ def _ensure_user(email: str, now: float) -> bool:
     )
     try:
         users_store.update_user(
-            email, {"operator_id": "op_" + secrets.token_urlsafe(12), "auth_method": "magic_link"}
+            email, {"operator_id": "op_" + secrets.token_urlsafe(12), "auth_method": "magic_link",
+                    # v43 — CT-1 ruling 2026-08-27: every new account is cohort
+                    # "member" (= app.py COHORT_MEMBER; literal here because
+                    # app.py imports this module — the constant cannot be
+                    # imported without a cycle). This is the birth path for
+                    # both magic-link sign-ups and Stripe-webhook buyers.
+                    "cohort": "member"}
         )
     except Exception:  # pragma: no cover — defensive against backend hiccups
         pass
