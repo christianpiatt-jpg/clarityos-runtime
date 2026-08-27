@@ -7,6 +7,10 @@
 .claude/
 __pycache__/
 _scratch/
+# 2026-08-26: `_scratch/` above does NOT match `_scratchphase0lite_venv/`
+# (literal prefix, no slash boundary). Named explicitly so a lane-thrown
+# venv can never ride the build context again.
+_scratchphase0lite_venv/
 tests/
 web/
 phone/
