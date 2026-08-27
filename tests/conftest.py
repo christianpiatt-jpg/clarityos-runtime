@@ -297,6 +297,12 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_whatif_cone.py": {
         "determinism_surface",
     },
+    # ---- memory_vault: vault_get must cost one Firestore read ----
+    # runtime_spine: a regression here silently multiplies every vault read
+    # by the member's key count and is invisible in Query Insights.
+    "test_memory_vault_get_one_read.py": {
+        "runtime_spine",
+    },
     # ---- A1+A2 envelope bootstrap + thread cascade ----
     # runtime_spine: it gates whether the 60-step cascade ever runs at all.
     "test_envelope_bootstrap_cascade.py": {

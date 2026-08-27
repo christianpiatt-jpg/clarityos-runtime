@@ -566,6 +566,44 @@ def _fire_load_user(user_id: str) -> dict[str, dict]:
     return out
 
 
+def _fire_get_one(user_id: str, key: str) -> Optional[dict]:
+    """Fetch ONE entry as a single Firestore document read.
+
+    ★ WHY THIS EXISTS. ``vault_get`` used to call ``_load_user``, and the
+    Firestore implementation of that STREAMS THE WHOLE ENTRIES COLLECTION --
+    so one logical get cost N reads, where N is the member's total key
+    count, and got worse the more they used the product. Measured
+    2026-08-27 on the live project: 14,670 reads on one account against 37
+    keys, roughly 37x amplification, 65% of the daily free quota on a single
+    member. Point-gets do not appear in Query Insights, so the most
+    expensive operation in the database was invisible on the page built to
+    show cost.
+
+    ★★ RETURNS THE SAME PER-KEY SHAPE ``_fire_load_user`` PRODUCES --
+    ``{"v": ..., "ts": float}`` -- because ``_decrypt_value`` reads
+    ``rec["v"]`` and anything else silently breaks decryption rather than
+    failing loudly.
+
+    ★★★ AND None ON A MISSING KEY, NOT A SNAPSHOT. ``entries.get(key)`` on
+    a dict returns None; ``document(key).get()`` returns a snapshot object
+    whose ``.exists`` is False, which is truthy. Returning that unchecked
+    would turn "missing key" into an integrity error on a member's first
+    read of anything they have not written yet.
+
+    Doc id == key is guaranteed by ``_fire_save_user``, which writes
+    ``entries_coll.document(key)`` with a matching ``key`` field, and
+    ``_validate_key`` bars "/" and null bytes and caps length at 256 -- so
+    every key is a legal document id.
+    """
+    snap = _fire_user_doc(user_id).collection("entries").document(key).get()
+    if not getattr(snap, "exists", False):
+        return None
+    d = snap.to_dict() or {}
+    if "v" not in d:  # pragma: no cover - mirrors _fire_load_user's guard
+        return None
+    return {"v": d["v"], "ts": float(d.get("ts") or 0.0)}
+
+
 def _fire_commit(client: Any, ops: list) -> None:
     """Apply (op, ref[, data]) tuples in batches under the 500-op cap."""
     for i in range(0, len(ops), _FIRE_BATCH_LIMIT):
@@ -700,8 +738,15 @@ def vault_get(user_id: str, key: str, default: Any = None) -> Any:
     user_id = _validate_user(user_id)
     key = _validate_key(key)
     with _LOCK:
-        entries = _load_user(user_id)
-    rec = entries.get(key)
+        if _backend() == "firestore":
+            # One document read instead of streaming the whole collection.
+            rec = _fire_get_one(user_id, key)
+        else:
+            # mock / sqlite / fs load a whole file or row regardless, so
+            # there is no amplification to remove and no reason to add a
+            # second code path. vault_list legitimately needs _load_user
+            # on every backend and is untouched.
+            rec = _load_user(user_id).get(key)
     if rec is None:
         return default
     try:
