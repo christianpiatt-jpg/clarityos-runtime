@@ -297,6 +297,11 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_whatif_cone.py": {
         "determinism_surface",
     },
+    # ---- A1+A2 envelope bootstrap + thread cascade ----
+    # runtime_spine: it gates whether the 60-step cascade ever runs at all.
+    "test_envelope_bootstrap_cascade.py": {
+        "runtime_spine",
+    },
     # ---- v73 timeline route shadowing ----
     # runtime_spine: it gates app.py's router registration order, which is
     # invisible in review and silently 404s a live endpoint when re-broken.

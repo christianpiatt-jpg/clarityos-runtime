@@ -6003,6 +6003,137 @@ def _coerce_timescale(value) -> str:
     return _DEFAULT_TIMESCALE
 
 
+# ===========================================================================
+# A1 — envelope bootstrap. The cause, not the symptom.
+# ===========================================================================
+def _ensure_envelope(user: str) -> dict:
+    """Create the user's envelope document if it does not exist. Idempotent,
+    safe to call on every read, returns the current document either way.
+
+    ★ THE CHICKEN AND EGG, AND WHICH HALF WAS ACTUALLY MISSING.
+
+    ``_evolve_envelope`` evolves an envelope and explicitly refuses to create
+    one (":6024 return {}, {}" -- "we don't create one implicitly"). That
+    guard is CORRECT and is left untouched: a cascade that silently
+    conjured its own input would be unable to tell "new user" from "load
+    failed". The defect was never the guard; it was that nothing upstream
+    created the document.
+
+    ★ AND SOMETHING ALREADY DID. POST /envelope/update (app.py:8706-8716)
+    builds exactly this five-key payload and sets it unconditionally --
+    creating when absent. It has simply never had a client on any surface
+    (web, phone, desktop: zero callers, enumerated 2026-08-27). So the
+    creator existed, was correct, and was unreachable.
+
+    This helper therefore reuses that shape VERBATIM rather than inventing a
+    second one. Two creation shapes for one document is how the field-drift
+    in ENVELOPE_AUDIT.md section 3b starts.
+
+    The 22 layer fields are deliberately NOT seeded. Every one of them is
+    read defensively by _evolve_envelope (`.get(...) or []`,
+    `isinstance(...) else {}`), so absent is a valid starting state and the
+    first cascade populates whatever it can. Seeding empty containers here
+    would fabricate the same "0 items" / "(absent)" ambiguity the runtime
+    panel already suffers from.
+    """
+    existing = envelopes_store.get(user)
+    if existing is not None:
+        return existing
+    now = time.time()
+    payload = {
+        "user": user,
+        "elins_briefs": [],
+        "envelope_vector": None,
+        "envelope_decay_ts": now,
+        "updated_at": now,
+    }
+    envelopes_store.set_envelope(user, payload)
+    logger.info("envelope bootstrap created user=%s", _user_ref(user))
+    return payload
+
+
+# ===========================================================================
+# A2 — run the 60-step cascade from a thread message.
+# ===========================================================================
+def _run_envelope_cascade(user: str, text: str) -> dict:
+    """Embed one message, walk the Markov v3 arithmetic, evolve the envelope.
+
+    Mirrors the OBSERVER -> INTERPRETER -> REGULATOR -> PROJECTOR ->
+    SUBTRACTIVE chain in ``markov_chat`` (app.py:8489-8508). Measured
+    2026-08-27 to be free of Markov-specific coupling: every operator is
+    either a pure vector helper (``_vec_add`` / ``_vec_lincomb`` /
+    ``_vec_sub`` / ``_normalize``) or a ``dewey_pipeline`` function taking
+    vectors plus neighborhoods. The whole chain was run cold with zero prior
+    state and zero neighborhoods and produced a unit-norm, non-zero
+    ``v_final``.
+
+    ★ NO MARKOV PRIOR. ``markov_chat`` seeds ``prev_state`` from
+    ``markov_states_store``. This path deliberately does not: nothing on the
+    threads plane WRITES Markov state, so that read is a Firestore
+    round-trip guaranteed to return None. ``_evolve_envelope`` stays
+    "passive on Markov state", as documented.
+
+    ★★ AND THE VECTOR PRIOR IS CURRENTLY INERT -- MEASURED, NOT ASSUMED.
+    ``prev_state`` reads ``envelope_vector`` and falls back to ``v_obs``.
+    Measured 2026-08-27: it falls back EVERY time. ``_evolve_envelope``
+    computes ``new_vector = compute_multilayer_envelope_vector(briefs)``
+    (app.py:6607), which is empty when ``elins_briefs`` is empty -- and
+    nothing on the threads plane creates briefs; those come from ELINS
+    ingest. So ``envelope_vector`` and ``envelope_centroid`` stay None until
+    a member has briefs, and every turn is cold on the vector axis.
+
+    That is recorded rather than worked around. The line is written to
+    become live the moment briefs exist, and continuity today is real but
+    runs through the PERSISTED LAYERS instead: the v6 event list, episodes,
+    narratives and the rest accumulate turn over turn, which is what makes
+    the panel counts move. Pinned by
+    tests/test_envelope_bootstrap_cascade.py.
+
+    Returns the evolved envelope document ({} if the cascade declined).
+    """
+    envelope = _ensure_envelope(user)
+
+    # OBSERVER
+    v_obs = dewey_pipeline.embed_text_cached(text)
+    if not v_obs:
+        logger.warning("envelope cascade skipped user=%s reason=embed_returned_empty",
+                       _user_ref(user))
+        return {}
+
+    # INTERPRETER — prior from the envelope, dimension-guarded exactly as
+    # markov_chat guards its own (app.py:8487).
+    prev_state = list(envelope.get("envelope_vector") or v_obs)
+    if len(prev_state) != len(v_obs):
+        prev_state = list(v_obs)
+    prev_qc = dict(_IDENTITY_QC_ENVELOPE)
+    v_interp = dewey_pipeline._normalize(_vec_add(v_obs, prev_state))
+
+    # REGULATOR
+    v_reg = dewey_pipeline._normalize(_vec_lincomb(
+        v_interp, float(prev_qc.get("qc_stability", 1.0)),
+        v_obs, float(prev_qc.get("qc_drift", 0.0)),
+    ))
+
+    # PROJECTOR
+    user_neighborhoods = dewey_neighborhoods_store.list_for_user(user, limit=500)
+    v_pred = dewey_pipeline.predict_next_state(prev_state, user_neighborhoods)
+    v_proj = dewey_pipeline._normalize(_vec_lincomb(v_reg, 0.7, v_pred, 0.3))
+
+    # -1 SUBTRACTIVE CONSTRAINT
+    top_for_proj = dewey_pipeline.top_neighborhoods_with_curvature(
+        v_proj, user_neighborhoods, k=5,
+    )
+    noise = dewey_pipeline.compute_noise_component(
+        v_proj, v_obs, prev_state, top_for_proj,
+    )
+    v_final = dewey_pipeline._normalize(_vec_sub(v_proj, noise))
+
+    # v_obs + text are passed so v6 event creation runs (see the signature
+    # note on _evolve_envelope) -- omitting them silently skips that phase.
+    evolved, _sims = _evolve_envelope(user, v_final, v_obs=v_obs, user_message=text)
+    return evolved or {}
+
+
 def _evolve_envelope(
     user: str,
     v_final: list[float],
@@ -9287,7 +9418,10 @@ def runtime_envelope(session: dict = Depends(require_session)):
     those instead. Original envelope is unchanged on disk."""
     user = session["user"]
     v29_hardening.enforce_rate_limit(user, "/runtime/envelope")
-    env = envelopes_store.get(user) or {}
+    # A1 — a member who only ever opens the panel still gets a real, valid
+    # (empty-but-present) document rather than the five fabricated
+    # containers this handler used to synthesise from nothing.
+    env = _ensure_envelope(user) or {}
 
     def _strip_vector(v):
         # Replace large vectors with a small descriptor so the UI can show
@@ -12752,6 +12886,33 @@ def me_threads_post_message(
     if meter is not None:
         for _call in (out.get("vendor_calls") or []):
             meter.add_vendor_usage(_call)
+
+    # A2 — run the envelope cascade on the member's message.
+    #
+    # ★ AFTER PERSISTENCE, AND IT MUST NEVER BLOCK THE MESSAGE.
+    # run_thread_message has already written both messages by this point, so
+    # a failure here costs the member an envelope update, not their turn.
+    #
+    # ★ THE CATCH IS LOUD ON PURPOSE. It logs the user, the exception type
+    # AND the message, and it re-raises nothing. A bare `except: pass` here
+    # is exactly the defect this lane has spent three days cataloguing: the
+    # cascade would stop running, the panel would keep reading "(absent)",
+    # and no signal would exist anywhere to say why.
+    #
+    # ★ UNBOUNDED EXTERNAL CALL, KNOWN AND ACCEPTED. embed_text_cached ->
+    # _real_embed has NO timeout (dewey_pipeline.py:105-126). Measured
+    # 2026-08-27: when Vertex is unreachable the first call in a process
+    # costs ~12s while _init_vertex_once fails, then memoizes -- subsequent
+    # uncached embeds are ~0ms on the hash fallback. So the exposure is one
+    # slow request per container instance, not per message. Worth a timeout
+    # in a later order; not worth blocking this one.
+    try:
+        _run_envelope_cascade(user, req.content)
+    except Exception as exc:                      # noqa: BLE001 - see above
+        logger.warning(
+            "envelope cascade FAILED user=%s thread=%s err=%s: %s",
+            _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
+        )
     return V47PostMessageResponse(
         meta=_meta_to_model(out["meta"]),
         user_message=_msg_to_model(out["user_message"]),
