@@ -528,6 +528,14 @@ for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION):
     v29_hardening.set_flag("membership_ui_enabled", True, cohort=_coh)
 v29_hardening.set_flag("g_credits_enabled", True, cohort=COHORT_TERRACE_1)
 v29_hardening.set_flag("membership_ui_enabled", True, cohort=COHORT_TERRACE_1)
+# v43b (CT-1 2026-08-27, order pin c4eb719): the paying cohort gets
+# g_credits + membership UI by default — measured live 17:57:14Z as a 403
+# feature_disabled on /elins/daily/feed for a real member account while the
+# free invite pool had it. founder_tier_enabled deliberately NOT extended:
+# that is a sales offer, not a member feature.
+for _coh in (COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT):
+    v29_hardening.set_flag("g_credits_enabled", True, cohort=_coh)
+    v29_hardening.set_flag("membership_ui_enabled", True, cohort=_coh)
 
 # Startup configuration log line (no secrets).
 logger.info(
