@@ -124,7 +124,7 @@
   /* 0.5Hz = 2s cycle. */
   animation: founding500BadgePulse 2s ease-in-out infinite;
   /* The only allowed glow in the Somatic system. */
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.55);
+  box-shadow: 0 0 15px var(--os-backlight-strong);
 }
 
 .badgeHeader {

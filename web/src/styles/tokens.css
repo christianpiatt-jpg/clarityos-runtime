@@ -23,15 +23,32 @@
 
   /* Accents */
   --os-boundary: #E23B3B;  /* red -- frame, danger, discard */
-  --os-focus: #34E0E0;     /* cyan -- the door's */
+  --os-focus: #0B3B3B;     /* accent INK -- near-black, cyan soul. See below. */
   --os-focus-deep: #2563eb;
   --os-focus-violet: #8b5cf6;
 
-  /* CYAN IS A FILL ON LIGHT, NEVER TEXT AND NEVER A HAIRLINE.
-     #34E0E0 on #FFFFFF is ~1.6:1 -- it fails as text or a 1px border. The
-     door works because its button is a SOLID cyan fill with #02151A text
-     (~13:1). Use these two together, always. */
-  --os-on-focus: #02151A;    /* text/icon ON a cyan fill */
+  /* The cyan IDENTITY lives here now -- the door's exact #34E0E0, as a wash. */
+  --os-backlight: rgba(52, 224, 224, 0.14);        /* resting backlight */
+  --os-backlight-strong: rgba(52, 224, 224, 0.28); /* active state / glow */
+
+  /* CREAM AND BLACK SCRIPT, CYAN AS A BACKLIGHT -- measured, not chosen.
+     Cyan is consumed here as INK at 36 sites and as a border at 25, against
+     only 7 fills (measured 2026-08-28). Ink outnumbers fill 5:1, so --os-focus
+     must hold an ink value. #0B3B3B reads as black with a cyan soul:
+       on cream #F4F1EA  10.93     on white #FFFFFF  12.33
+       on elev  #EDE9E0  10.18     as the focus ring 10.93
+     Zero call sites change: every --os-focus fill site already pairs with
+     color: var(--os-void), so a near-black fill carries cream text at 10.93:1.
+
+     THE BACKLIGHT CANNOT CARRY STATE MEANING, and no alpha fixes that.
+     #34E0E0 over cream measures 1.03 / 1.07 / 1.14 / 1.20 at alpha
+     0.06 / 0.14 / 0.28 / 0.40 -- light on light cannot make luminance
+     contrast. It is the same wall the old focus ring hit. The wash reads as
+     a hue because chroma does that work, but the accessible signal is always
+     the ink or the border. Ink over the backlight stays ~10:1 at every
+     alpha, so text on a backlit surface is never at risk. */
+  --os-on-focus: #F4F1EA;    /* ink ON an --os-focus fill -- 10.93:1. NOTE: 0
+                                consumers; call sites use --os-void direct. */
   --os-on-boundary: #1A0405; /* text/icon ON a red fill */
 
   /* Text */
@@ -84,6 +101,10 @@
 
   --shadow-card: 0 1px 3px rgba(20, 24, 28, 0.06),
                  0 8px 24px rgba(20, 24, 28, 0.06);
-  --focus-ring: 0 0 0 3px rgba(52, 224, 224, 0.15);
+  /* Ink ring, cyan halo. The RING is what passes: 2px #0B3B3B is 10.93:1 on
+     cream, well over the WCAG 3.0 non-text bar. The old wash was 1.08:1 and
+     no alpha could save it -- #34E0E0 at alpha 1.0 is still 1.44:1 on cream.
+     The halo is decoration and is not load-bearing. */
+  --focus-ring: 0 0 0 2px #0B3B3B, 0 0 0 6px var(--os-backlight-strong);
 }
 

@@ -36,7 +36,7 @@ export default function MultiEnvelopeChart({ values, height = 160 }: MultiEnvelo
       style={{ width: "100%", height: "auto", display: "block" }}
     >
       <rect x={0} y={0} width={w} height={h} fill="var(--os-deep, #0a0a0a)" />
-      <path d={area} fill="rgba(0,240,255,0.15)" />
+      <path d={area} fill="var(--os-backlight)" />
       <path d={top} fill="none" stroke="var(--os-focus, #00F0FF)" strokeWidth={2} />
       {values.map((v, i) => (
         <g key={`mp-${i}`}>

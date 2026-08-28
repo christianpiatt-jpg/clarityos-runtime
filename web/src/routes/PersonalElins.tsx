@@ -463,7 +463,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
       letterSpacing: "0.05em",
       marginBottom: 8,
       paddingBottom: 4,
-      borderBottom: "1px solid rgba(0, 240, 255, 0.15)",
+      borderBottom: "1px solid var(--os-line)",
     }}>{children}</div>
   );
 }

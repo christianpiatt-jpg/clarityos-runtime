@@ -61,7 +61,7 @@ export default function MembershipStatusCard({ state }: Props) {
           {showLock && (
             <span style={{
               padding: "2px 8px",
-              background: "rgba(0, 240, 255, 0.12)",
+              background: "var(--os-backlight)",
               color: "var(--color-accent-cyan, #00F0FF)",
               border: "1px solid var(--color-accent-cyan, #00F0FF)",
               borderRadius: 3,

@@ -180,7 +180,7 @@ const mutedStyle: React.CSSProperties = {
 const esoOnStyle: React.CSSProperties = {
   fontSize: 10, padding: "2px 8px", borderRadius: "var(--radius-pill, 999px)",
   border: "1px solid var(--os-focus, #00F0FF)",
-  background: "rgba(0, 240, 255, 0.1)", color: "var(--os-focus, #00F0FF)",
+  background: "var(--os-backlight)", color: "var(--os-focus, #00F0FF)",
 };
 const esoOffStyle: React.CSSProperties = {
   fontSize: 10, padding: "2px 8px", borderRadius: "var(--radius-pill, 999px)",

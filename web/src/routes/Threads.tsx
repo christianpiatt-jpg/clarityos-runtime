@@ -398,7 +398,7 @@ export default function Threads() {
                   onClick={() => selectThread(t.thread_id)}
                   aria-label={`Open thread ${displayTitle(t)}`}
                   style={{
-                    background: active ? "rgba(0, 240, 255, 0.06)" : "transparent",
+                    background: active ? "var(--os-backlight)" : "transparent",
                     border: "none",
                     borderLeft: active
                       ? "2px solid var(--color-accent-cyan)"

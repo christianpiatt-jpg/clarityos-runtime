@@ -281,7 +281,7 @@ textarea.input { resize: vertical; min-height: 120px; font-family: var(--font-mo
   color: var(--os-text-secondary);
   border-radius: 999px;
 }
-.tag.cyan { color: var(--os-focus); border-color: rgba(0,240,255,0.4); }
+.tag.cyan { color: var(--os-focus); border-color: var(--os-focus); background: var(--os-backlight); }
 .tag.red  { color: var(--os-boundary); border-color: rgba(224,32,32,0.4); }
 
 .row { display: flex; align-items: center; gap: var(--gap); flex-wrap: wrap; }

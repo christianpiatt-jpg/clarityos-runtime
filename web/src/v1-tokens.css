@@ -13,7 +13,7 @@
 
   /* Borders */
   --border-1: 1px solid #E3DFD5;
-  --border-cyan: 2px solid #34E0E0;
+  --border-cyan: 2px solid #0B3B3B;
   --border-red: 2px solid #E23B3B;
 
   /* Radii */
@@ -30,7 +30,7 @@
   --color-bg-surface-alt: #EDE9E0;
   --color-text-primary: #14181C;
   --color-text-secondary: #6B7280;
-  --color-accent-cyan: #34E0E0;
+  --color-accent-cyan: #0B3B3B;
   --color-accent-red: #E23B3B;
 
   /* Typography */
