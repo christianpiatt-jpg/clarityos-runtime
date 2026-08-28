@@ -327,6 +327,12 @@ def _layer_4_causal_chain(primitives: dict) -> dict:
                 pairs.append({
                     "from": a, "to": b,
                     "weight": round(min(ia, ib), 4),
+                    # Addendum 3, 2026-08-04: signed gradient in [-1, 1] with
+                    # a true zero. weight is a co-occurrence FLOOR -- it
+                    # discards magnitude and direction; delta carries both.
+                    # The existing both->=threshold guard means delta == 0 can
+                    # only mean balanced-by-evidence, never balanced-by-miss.
+                    "delta": round(ia - ib, 4),
                 })
     pairs.sort(key=lambda p: -p["weight"])
     return {
