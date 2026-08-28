@@ -297,6 +297,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_whatif_cone.py": {
         "determinism_surface",
     },
+    # ---- emophysics engine, vendored from ClarityOS_Library 2026-08-28 ----
+    # determinism_surface: the whole engine is pure arithmetic with locked
+    # constants (B, lambda, gamma, C2, alpha_c, beta_0, beta_1). A drift in
+    # any of them changes every number the panel would show.
+    "test_emophysics_unit.py": {
+        "determinism_surface",
+    },
     # ---- memory_vault: vault_get must cost one Firestore read ----
     # runtime_spine: a regression here silently multiplies every vault read
     # by the member's key count and is invisible in Query Insights.
