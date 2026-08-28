@@ -228,14 +228,48 @@ export async function refreshProfile(): Promise<Profile | null> {
 }
 
 // ---------- Engines ----------
+/** Shape of POST /markov's `data` block.
+ *
+ *  ★ CORRECTED 2026-08-28. This declared `score` / `tags` / `interpretation`,
+ *  which markov_adapter STOPPED EMITTING when the v2.1 stub was replaced by
+ *  the v81 P-series recast (app.py:1031 records the replacement). Every field
+ *  the page read was `undefined`, and TypeScript could not catch it because
+ *  the interface asserted a shape the wire never carried.
+ *
+ *  Field names below are read from the adapter's RETURN STATEMENT
+ *  (app.py:1060-1070), not from its docstring. */
+export interface MarkovPrimitives {
+  P1: string[];
+  P2: string[];
+  P3: string[];
+  P4: string[];
+  Ts: string[];
+  Te: string[];
+  M: string[];
+  hydronic: {
+    flows: string[];
+    blockages: string[];
+    gradients: string[];
+    pressure_points: string[];
+  };
+}
+
 export interface MarkovResult {
   ok: true;
   engine: string;
   data: {
-    score: number;
-    tags: string[];
-    interpretation: string;
+    model: string;
+    provider: string;
+    output: string;
+    mock: boolean;
     user: string;
+    primitives: MarkovPrimitives;
+    primitives_formatted: string;
+    primitives_meta: {
+      status: string;
+      counts: Record<string, number>;
+    };
+    recast: string;
   };
 }
 
