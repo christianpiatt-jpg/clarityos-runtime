@@ -59,12 +59,37 @@ const NARRATIVE_KEYS = [
 ] as const;
 const NARRATIVE_KEY_SET: ReadonlySet<string> = new Set(NARRATIVE_KEYS);
 
+/** When was this reading ANALYSED — not when was it fetched.
+ *
+ *  ★★ THE BUG THIS REPLACES. The state below was initialised with
+ *  `response ? Date.now() : null`. ThreadInsightsPanel mounts this view only
+ *  while its Physics tab is selected, so tabbing away and back UNMOUNTS and
+ *  REMOUNTS it, the initialiser re-fires, and a reading up to four turns old
+ *  is stamped "updated just now". Looking at the panel is what required the
+ *  tab, so the false timestamp appeared every single time anyone checked.
+ *
+ *  ★ `_meta.ts_ms` is the kernel's own stamp, set at
+ *  intelligence_kernel.py:1877 as `int(time.time() * 1000)` and returned in
+ *  every response. VERIFIED POPULATED by generation 2026-08-28 against a live
+ *  run: a real epoch-ms integer matching wall clock. It survives caching and
+ *  remounting because it travels with the reading.
+ *
+ *  Returns null when the response carries no stamp — the caller then shows
+ *  nothing rather than inventing a time. ★ A missing timestamp and a fresh
+ *  one must not render the same. */
+function analysedAtMs(resp: EmotionalPhysicsResponse | null | undefined): number | null {
+  const raw = resp?._meta?.ts_ms;
+  return typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : null;
+}
+
 export default function EmotionalPhysicsView({ response, text, onAnalyze }: Props) {
   const [view, setView] = useState<EmotionalPhysicsResponse | null>(response ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // ★ NOT Date.now(). See analysedAtMs above — stamping the clock here is
+  // exactly what made a four-turn-old reading claim to be current.
   const [updatedAtMs, setUpdatedAtMs] = useState<number | null>(
-    response ? Date.now() : null,
+    analysedAtMs(response),
   );
 
   const canRerun = typeof text === "string" && text.trim().length > 0;
@@ -76,7 +101,10 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
     try {
       const resp = await analyzeEmotionalPhysics({ text });
       setView(resp);
-      setUpdatedAtMs(Date.now());
+      // Even on a genuinely fresh run the reading's own stamp is preferable:
+      // it is the time the ANALYSIS happened, not the time the promise
+      // resolved. Date.now() is the fallback only when the kernel sent none.
+      setUpdatedAtMs(analysedAtMs(resp) ?? Date.now());
       onAnalyze?.(resp);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
@@ -94,7 +122,9 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
   useEffect(() => {
     if (response) {
       setView(response);
-      setUpdatedAtMs(Date.now());
+      // ★ This fires whenever the parent hands back a CACHED reading. Using
+      // the clock here re-dated stale physics on every tab switch.
+      setUpdatedAtMs(analysedAtMs(response));
       setError(null);
     }
   }, [response]);
@@ -151,6 +181,8 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
       ))}
 
       <footer className={styles.footer}>
+        {/* ★ No stamp renders nothing at all, rather than a reassuring
+            "updated just now". A missing timestamp is not a fresh one. */}
         {updatedAtMs ? (
           <span className={styles.updatedAt}>
             updated {relativeTime(updatedAtMs)}
