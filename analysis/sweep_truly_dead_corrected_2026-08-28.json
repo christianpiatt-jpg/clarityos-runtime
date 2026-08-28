@@ -1,0 +1,578 @@
+[
+ {
+  "path": "/register",
+  "producer": "app.py:1204",
+  "model": null,
+  "caller_class": "phone",
+  "caller": [
+   "phone\\lib\\api.ts"
+  ]
+ },
+ {
+  "path": "/admin/reset_password",
+  "producer": "app.py:1577",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/invite/{p}",
+  "producer": "app.py:1604",
+  "model": null,
+  "caller_class": "email-link",
+  "caller": "followed by an email link, not a fetch"
+ },
+ {
+  "path": "/invite/{p}/redeem",
+  "producer": "app.py:1619",
+  "model": null,
+  "caller_class": "email-link",
+  "caller": "followed by an email link, not a fetch"
+ },
+ {
+  "path": "/invite/{p}/checkout",
+  "producer": "app.py:1657",
+  "model": null,
+  "caller_class": "email-link",
+  "caller": "followed by an email link, not a fetch"
+ },
+ {
+  "path": "/invite/{p}/finalize",
+  "producer": "app.py:1703",
+  "model": null,
+  "caller_class": "email-link",
+  "caller": "followed by an email link, not a fetch"
+ },
+ {
+  "path": "/billing/webhook",
+  "producer": "app.py:1783",
+  "model": null,
+  "caller_class": "webhook",
+  "caller": "Stripe posts to it. Load-bearing. No fetch() BY DESIGN."
+ },
+ {
+  "path": "/timeline/write",
+  "producer": "app.py:2825",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/ingest/primitives",
+  "producer": "app.py:2902",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/ingest/brief",
+  "producer": "app.py:2955",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/ingest/raw",
+  "producer": "app.py:2996",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/dewey/neighborhoods/create",
+  "producer": "app.py:3068",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/dewey/neighborhoods/list",
+  "producer": "app.py:3137",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/dewey/neighborhoods/{p}",
+  "producer": "app.py:3148",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/dewey/neighborhoods/{p}/refresh",
+  "producer": "app.py:3174",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/markov/state/update",
+  "producer": "app.py:3290",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/markov/state/latest",
+  "producer": "app.py:3312",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/trajectory/forecast",
+  "producer": "app.py:3373",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/trajectory/compare",
+  "producer": "app.py:3501",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/markov/chat",
+  "producer": "app.py:8693",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/envelope/update",
+  "producer": "app.py:8889",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/dewey/backfill_vectors",
+  "producer": "app.py:8963",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/billing/subscription/start",
+  "producer": "app.py:10262",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/billing/subscription/cancel",
+  "producer": "app.py:10291",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/billing/checkout-link",
+  "producer": "app.py:10342",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/founder/intelligence/kernel/status",
+  "producer": "app.py:11811",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/founder/alerts",
+  "producer": "app.py:11853",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/model/route",
+  "producer": "app.py:11963",
+  "model": null,
+  "caller_class": "phone",
+  "caller": [
+   "phone\\lib\\cloud\\config.ts"
+  ]
+ },
+ {
+  "path": "/model/complete",
+  "producer": "app.py:12023",
+  "model": null,
+  "caller_class": "phone",
+  "caller": [
+   "phone\\lib\\cloud\\config.ts"
+  ]
+ },
+ {
+  "path": "/me/projects",
+  "producer": "app.py:12633",
+  "model": "V51ProjectListResponse",
+  "caller_class": "desktop",
+  "caller": [
+   "desktop\\src\\lib\\api.ts"
+  ]
+ },
+ {
+  "path": "/me/projects/{p}",
+  "producer": "app.py:12669",
+  "model": "V51ProjectMetaModel",
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/me/projects/{p}/threads",
+  "producer": "app.py:13159",
+  "model": "V47ThreadListResponse",
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/ingest/manual",
+  "producer": "app.py:14048",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/ingest/feeds/register",
+  "producer": "app.py:14085",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/ingest/feeds",
+  "producer": "app.py:14109",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/ingest/feeds/{p}",
+  "producer": "app.py:14120",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/ingest/feeds/run",
+  "producer": "app.py:14138",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/me/entitlement",
+  "producer": "app.py:14222",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/founder/entitlement/{p}",
+  "producer": "app.py:14230",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/c/run",
+  "producer": "app.py:14330",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/single_party_fear",
+  "producer": "app.py:14669",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/economic_coercion",
+  "producer": "app.py:14785",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/compare",
+  "producer": "app.py:14895",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/compare_batch",
+  "producer": "app.py:15055",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/analyze_directory",
+  "producer": "app.py:15233",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/store",
+  "producer": "app.py:15332",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/analyze_directory_and_store",
+  "producer": "app.py:15483",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs",
+  "producer": "app.py:15536",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}",
+  "producer": "app.py:15605",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/metadata",
+  "producer": "app.py:15633",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/retention/delete_older_than",
+  "producer": "app.py:15695",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/summary",
+  "producer": "app.py:15749",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/dashboard/{p}",
+  "producer": "app.py:15782",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/dashboard",
+  "producer": "app.py:15809",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/notes",
+  "producer": "app.py:15873",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/tags",
+  "producer": "app.py:15930",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/rename",
+  "producer": "app.py:15987",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/archive",
+  "producer": "app.py:16032",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/{p}/unarchive",
+  "producer": "app.py:16052",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/run/composite",
+  "producer": "app.py:16077",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs/summary",
+  "producer": "app.py:16172",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs/intelligence",
+  "producer": "app.py:16308",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs/dashboard/intelligence",
+  "producer": "app.py:16365",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs/intelligence/flag-anomalies",
+  "producer": "app.py:16469",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs/intelligence/pin-best-sequence",
+  "producer": "app.py:16504",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/runs/intelligence/tag-cluster",
+  "producer": "app.py:16560",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/drift/series",
+  "producer": "app.py:16643",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/drift/severity",
+  "producer": "app.py:16723",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/drift/magnitude",
+  "producer": "app.py:16801",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/drift",
+  "producer": "app.py:16878",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/elins/regression/diff",
+  "producer": "app.py:16963",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/operator/action",
+  "producer": "app.py:303",
+  "model": null,
+  "caller_class": "none",
+  "caller": null
+ },
+ {
+  "path": "/api/v1/emophysics/pressure",
+  "producer": "api/v1/emophysics.py:126",
+  "model": "PressureResponse",
+  "producer_was": "app.py:126",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ },
+ {
+  "path": "/api/v1/emophysics/convert",
+  "producer": "api/v1/emophysics.py:148",
+  "model": "ConversionResponse",
+  "producer_was": "app.py:148",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ },
+ {
+  "path": "/api/v1/emophysics/threshold",
+  "producer": "api/v1/emophysics.py:187",
+  "model": "ThresholdResponse",
+  "producer_was": "app.py:187",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ },
+ {
+  "path": "/api/v1/emophysics/relational",
+  "producer": "api/v1/emophysics.py:211",
+  "model": "Dict[str, Any]",
+  "model_was": "Dict[str",
+  "producer_was": "app.py:211",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ },
+ {
+  "path": "/api/v1/emophysics/simulate",
+  "producer": "api/v1/emophysics.py:234",
+  "model": "FullStateResponse",
+  "producer_was": "app.py:234",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ },
+ {
+  "path": "/api/v1/emophysics/models/config",
+  "producer": "api/v1/emophysics.py:273",
+  "model": null,
+  "producer_was": "app.py:273",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ },
+ {
+  "path": "/api/v1/emophysics/health",
+  "producer": "api/v1/emophysics.py:284",
+  "model": null,
+  "producer_was": "app.py:284",
+  "caller_class": "none",
+  "caller": null,
+  "note": "Phase 1 SHADOW -- unreached AS SPECIFIED. Label, do not wire."
+ }
+]
