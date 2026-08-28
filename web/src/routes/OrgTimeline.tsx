@@ -92,7 +92,7 @@ export default function OrgTimeline() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }} data-testid="el-ins-org-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.08)" }}>
                 <th style={thStyle}>Timestamp</th>
                 <th style={thStyle}>Operator (masked)</th>
                 <th style={thStyle}>Type</th>
@@ -103,7 +103,7 @@ export default function OrgTimeline() {
               {data.map((e, i) => (
                 <tr
                   key={`${e.timestamp_ms}-${i}`}
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                  style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.05)" }}
                 >
                   <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", fontSize: 11 }}>
                     {formatTimestamp(e.timestamp_ms)}

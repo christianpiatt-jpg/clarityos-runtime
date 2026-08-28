@@ -60,7 +60,7 @@ export default function PrimitiveEnvelopeChart({
       {/* zero baseline */}
       <line
         x1={padX} x2={w - padX} y1={padY + innerH / 2} y2={padY + innerH / 2}
-        stroke="var(--os-line-strong, rgba(255,255,255,0.16))" strokeDasharray="2 3"
+        stroke="var(--os-line-strong, rgba(20, 24, 28, 0.12))" strokeDasharray="2 3"
       />
       {/* x-axis ticks (D+0..D+N) */}
       {Array.from({ length: maxLen }).map((_, i) => (
@@ -108,7 +108,7 @@ export function EmptyChart({ label, height = 180 }: { label: string; height?: nu
   return (
     <div style={{
       height, display: "flex", alignItems: "center", justifyContent: "center",
-      border: "1px dashed var(--os-line-strong, rgba(255,255,255,0.16))",
+      border: "1px dashed var(--os-line-strong, rgba(20, 24, 28, 0.12))",
       color: "var(--os-text-tertiary, #585858)", fontSize: 12,
       borderRadius: "var(--radius-sm, 4px)",
     }}>{label}</div>

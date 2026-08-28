@@ -199,7 +199,7 @@ export default function OperatorElins() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }} data-testid="el-ins-recent-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.08)" }}>
                 <th style={thStyle}>Timestamp</th>
                 <th style={thStyle}>Thread</th>
                 <th style={thStyle}>Classification</th>
@@ -211,7 +211,7 @@ export default function OperatorElins() {
             </thead>
             <tbody>
               {records.map((rec, i) => (
-                <tr key={`${rec.timestamp}-${i}`} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <tr key={`${rec.timestamp}-${i}`} style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.05)" }}>
                   <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", fontSize: 11 }}>
                     {formatTimestamp(rec.timestamp)}
                   </td>

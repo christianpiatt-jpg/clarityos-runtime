@@ -85,7 +85,7 @@ export default function ForecastPanel({
                   onFocus={() => setHighlight(k)}
                   onBlur={() => setHighlight(null)}
                   style={{
-                    fontSize: 11, padding: "2px 8px", border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+                    fontSize: 11, padding: "2px 8px", border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
                     borderRadius: "var(--radius-pill, 999px)", background: highlight === k ? "var(--os-elevated, #1a1a1a)" : "var(--os-surface, #111)",
                     color: "var(--os-text-primary, #fff)", cursor: "pointer",
                   }}
@@ -122,7 +122,7 @@ function Section({ title, help, children }: { title: string; help?: string; chil
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",

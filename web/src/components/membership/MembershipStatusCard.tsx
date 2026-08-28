@@ -41,7 +41,7 @@ export default function MembershipStatusCard({ state }: Props) {
 
   return (
     <section style={{
-      border: "1px solid rgba(255,255,255,0.15)",
+      border: "1px solid rgba(20, 24, 28, 0.12)",
       borderRadius: 6,
       padding: 16,
       background: "var(--color-bg-surface, #0A0A0A)",

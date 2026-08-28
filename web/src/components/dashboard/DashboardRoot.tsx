@@ -100,7 +100,7 @@ function SkeletonCard({ height }: { height: number }) {
       style={{
         height, padding: 12,
         background: "var(--os-surface, #111)",
-        border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+        border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
         borderRadius: "var(--radius-md, 8px)",
       }}
     >
@@ -131,7 +131,7 @@ const metaStyle: React.CSSProperties = {
 };
 const refreshStyle: React.CSSProperties = {
   fontSize: 11, padding: "4px 12px",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   background: "var(--os-surface, #111)",
   color: "var(--os-text-primary, #fff)",
   borderRadius: "var(--radius-pill, 999px)",

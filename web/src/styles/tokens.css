@@ -1,46 +1,66 @@
 /* ClarityOS COMPUTER — design tokens.
-   "Operator cockpit" palette: pure black void, red boundary, cyan focus.
+   "Operator" palette, LIGHT (2026-08-28): cream void, red boundary, cyan focus.
+   Matched to the /enter/ door on pro-mediations.com (.pm-enter).
    Single source of truth for the SPA. Mirrors the phone's designSystem.ts
    intent (high contrast, geometric, minimal) with the cockpit accent set. */
 
 :root {
-  /* Native controls (select, date, scrollbars) follow the dark shell.
-     Scoped light re-declaration lives on .cos-mod — see OperatorWelcome. */
-  color-scheme: dark;
+  /* Native controls (select, date, scrollbars) follow this. WAS `dark`.
+     OperatorWelcome.tsx:9-12 documents exactly what breaks if it is wrong:
+     without it every native control inside a light panel renders
+     dark-on-cream. */
+  color-scheme: light;
 
-  /* Surface */
-  --os-void: #000000;
-  --os-deep: #0a0a0a;
-  --os-surface: #111111;
-  --os-elevated: #1a1a1a;
+  /* Surface
+     THE RAMP INVERTS AND THEN RUNS OUT OF ROOM. Dark mode expressed
+     elevation as LIGHTER (#000 -> #1a1a1a). Light mode cannot go lighter
+     than #FFFFFF, so elevation becomes WHITE + BORDER + SOFT SHADOW
+     instead of a lightness step. */
+  --os-void: #F4F1EA;      /* page canvas -- matches --pm-void / --cos-shell */
+  --os-deep: #EDE9E0;      /* recessed wells, inset areas */
+  --os-surface: #FFFFFF;   /* panels -- matches --pm-panel */
+  --os-elevated: #FFFFFF;  /* cards -- same fill, separated by border + shadow */
 
-  /* Boundaries + accents */
-  --os-boundary: #E02020;          /* red — frame, danger, discard */
-  --os-focus: #00F0FF;             /* cyan — active, focus, primary action */
-  --os-focus-deep: #2563eb;        /* blue — gradient mid */
-  --os-focus-violet: #8b5cf6;      /* violet — gradient deep */
+  /* Accents */
+  --os-boundary: #E23B3B;  /* red -- frame, danger, discard */
+  --os-focus: #34E0E0;     /* cyan -- the door's */
+  --os-focus-deep: #2563eb;
+  --os-focus-violet: #8b5cf6;
+
+  /* CYAN IS A FILL ON LIGHT, NEVER TEXT AND NEVER A HAIRLINE.
+     #34E0E0 on #FFFFFF is ~1.6:1 -- it fails as text or a 1px border. The
+     door works because its button is a SOLID cyan fill with #02151A text
+     (~13:1). Use these two together, always. */
+  --os-on-focus: #02151A;    /* text/icon ON a cyan fill */
+  --os-on-boundary: #1A0405; /* text/icon ON a red fill */
 
   /* Text */
-  --os-text-primary: #FFFFFF;
-  --os-text-secondary: #A0A0A0;
-  --os-text-tertiary: #585858;
+  --os-text-primary: #14181C;
+  --os-text-secondary: #6B7280;
+  --os-text-tertiary: #9AA0A6;
 
-  /* Lines / washes */
-  --os-line: rgba(255, 255, 255, 0.06);
-  --os-line-strong: rgba(255, 255, 255, 0.16);
-  --os-surface-wash: rgba(0, 0, 0, 0.4);
-  --os-nav-wash: rgba(0, 0, 0, 0.7);
+  /* Lines / washes
+     THE BIGGEST MECHANICAL CHANGE. Every line was WHITE-ALPHA, which is
+     INVISIBLE on a light ground. Every wash was BLACK-ALPHA, which goes
+     opaque and heavy. Both flip. */
+  --os-line: #E3DFD5;
+  --os-line-strong: rgba(20, 24, 28, 0.18);
+  --os-surface-wash: rgba(244, 241, 234, 0.75);
+  --os-nav-wash: rgba(244, 241, 234, 0.92);
 
-  /* Status */
-  --os-ok: #4ade80;
-  --os-warn: #fbbf24;
+  /* Status
+     #4ade80 and #fbbf24 were picked to glow on black. Both are illegible
+     on cream. Darkened to hold >=4.5:1 on #F4F1EA. */
+  --os-ok: #128A3E;
+  --os-warn: #A16207;
   --os-err: var(--os-boundary);
 
-  /* Typography */
+  /* Typography -- UNCHANGED. Three stacks are in play; which one wins is
+     CT-1's ruling 4, not a substitution. */
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Sizing */
+  /* Sizing -- unchanged, no colour content */
   --frame: 20px;
   --gap: 12px;
   --gap-lg: 20px;
@@ -52,7 +72,18 @@
   --radius-sm: 4px;
   --radius-md: 8px;
 
-  /* Effects */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
-  --focus-ring: 0 0 0 2px rgba(0, 240, 255, 0.45);
+  /* Effects
+     A 50%-black shadow reads as a bruise on cream. Two soft layers. */
+  /* ALIASES for two tokens that are REFERENCED but were never DEFINED.
+     14 sites use var(--os-border, ...) or var(--os-bg-elev, ...) and every
+     one of them silently fell through to a white-alpha fallback -- which is
+     invisible on cream. Measured 2026-08-28. Defining them fixes all 14 and
+     removes two undefined-token bindings at the same time. */
+  --os-border: var(--os-line);
+  --os-bg-elev: var(--os-deep);
+
+  --shadow-card: 0 1px 3px rgba(20, 24, 28, 0.06),
+                 0 8px 24px rgba(20, 24, 28, 0.06);
+  --focus-ring: 0 0 0 3px rgba(52, 224, 224, 0.15);
 }
+

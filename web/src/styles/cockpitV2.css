@@ -326,7 +326,7 @@
 .cv2-tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 1px solid rgba(20, 24, 28, 0.08);
   padding-bottom: 4px;
   margin-bottom: 8px;
 }
@@ -338,7 +338,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(20, 24, 28, 0.08);
   color: var(--color-text-secondary);
   border-radius: 3px;
   cursor: pointer;
@@ -351,7 +351,7 @@
 /* ---- v55: InsightsPanel summary / rename card + action stack ------------- */
 .cv2-card {
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(20, 24, 28, 0.12);
   background: var(--color-bg-surface);
   margin-bottom: 8px;
 }

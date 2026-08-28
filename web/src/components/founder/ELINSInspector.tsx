@@ -211,7 +211,7 @@ export default function ELINSInspector() {
 function tabStyle(active: boolean): React.CSSProperties {
   return {
     fontSize: 11, padding: "3px 10px",
-    border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(255,255,255,0.16))"}`,
+    border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(20, 24, 28, 0.12))"}`,
     background: active ? "var(--os-elevated, #1a1a1a)" : "var(--os-surface, #111)",
     color: active ? "var(--os-focus, #00F0FF)" : "var(--os-text-primary, #fff)",
     borderRadius: "var(--radius-pill, 999px)",

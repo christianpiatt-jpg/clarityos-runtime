@@ -115,7 +115,7 @@ function ESOBadge({ present, mock }: { present: boolean; mock?: boolean }) {
     return (
       <span style={{
         fontSize: 10, padding: "2px 8px", borderRadius: "var(--radius-pill, 999px)",
-        border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+        border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
         color: "var(--os-text-tertiary, #585858)",
       }}>ESO off</span>
     );

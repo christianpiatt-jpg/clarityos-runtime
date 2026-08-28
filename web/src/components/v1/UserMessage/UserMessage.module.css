@@ -17,6 +17,6 @@
 
 .timestamp {
   font-size: 11px;
-  color: #666666;
+  color: var(--color-text-secondary);
   text-align: right;
 }

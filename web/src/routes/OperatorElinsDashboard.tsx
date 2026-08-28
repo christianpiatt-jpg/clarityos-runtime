@@ -141,7 +141,7 @@ export default function OperatorElinsDashboard() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }} data-testid="el-ins-dashboard-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.08)" }}>
                 <th style={thStyle}>Timestamp</th>
                 <th style={thStyle}>Thread</th>
                 <th style={thStyle}>Classification</th>
@@ -153,7 +153,7 @@ export default function OperatorElinsDashboard() {
             </thead>
             <tbody>
               {records.map((rec, i) => (
-                <tr key={`${rec.timestamp}-${i}`} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <tr key={`${rec.timestamp}-${i}`} style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.05)" }}>
                   <td style={{ ...tdStyle, fontFamily: "var(--font-mono)", fontSize: 11 }}>
                     {formatTimestamp(rec.timestamp)}
                   </td>
@@ -191,7 +191,7 @@ function PieChart({ size, data }: { size: number; data: PieSlice[] }) {
   if (total === 0) {
     return (
       <svg width={size} height={size} role="img" aria-label="empty distribution">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.12)" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(20, 24, 28, 0.08)" />
         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle"
               fill="var(--os-text-muted, #888)" fontSize={11}>no data</text>
       </svg>
@@ -219,7 +219,7 @@ function PieChart({ size, data }: { size: number; data: PieSlice[] }) {
   return (
     <svg width={size} height={size} role="img" aria-label="classification distribution">
       {paths}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(20, 24, 28, 0.05)" />
     </svg>
   );
 }
@@ -244,7 +244,7 @@ function LineChart({ values, width, height, color, ...props }: {
   if (values.length === 0) {
     return (
       <svg width={width} height={height} {...props} role="img" aria-label="no tsi data">
-        <rect x={0} y={0} width={width} height={height} fill="none" stroke="rgba(255,255,255,0.08)" />
+        <rect x={0} y={0} width={width} height={height} fill="none" stroke="rgba(20, 24, 28, 0.05)" />
         <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle"
               fill="var(--os-text-muted, #888)" fontSize={11}>no data</text>
       </svg>
@@ -258,7 +258,7 @@ function LineChart({ values, width, height, color, ...props }: {
   const points = xs.map((x, i) => `${x.toFixed(2)},${ys[i].toFixed(2)}`).join(" ");
   return (
     <svg width={width} height={height} {...props} role="img" aria-label="tsi over time">
-      <rect x={0} y={0} width={width} height={height} fill="none" stroke="rgba(255,255,255,0.08)" />
+      <rect x={0} y={0} width={width} height={height} fill="none" stroke="rgba(20, 24, 28, 0.05)" />
       <polyline fill="none" stroke={color} strokeWidth={1.5} points={points} />
       {xs.map((x, i) => (
         <circle key={i} cx={x} cy={ys[i]} r={2} fill={color} />

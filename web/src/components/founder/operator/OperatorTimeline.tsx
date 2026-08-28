@@ -69,7 +69,7 @@ function fmtTs(ts: number): string {
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",
@@ -89,7 +89,7 @@ const gridStyle: React.CSSProperties = {
 const listStyle: React.CSSProperties = { listStyle: "none", padding: 0, margin: 0 };
 const rowStyle: React.CSSProperties = {
   padding: 6, marginBottom: 4,
-  border: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+  border: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
   borderRadius: "var(--radius-sm, 4px)",
   background: "var(--os-deep, #0a0a0a)",
 };

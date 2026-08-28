@@ -200,7 +200,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",
@@ -212,7 +212,7 @@ const headerStyle: React.CSSProperties = {
 };
 const refreshStyle: React.CSSProperties = {
   fontSize: 11, padding: "3px 10px",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   background: "var(--os-surface, #111)",
   color: "var(--os-text-primary, #fff)",
   borderRadius: "var(--radius-pill, 999px)",
@@ -243,7 +243,7 @@ const inputStyle: React.CSSProperties = {
   width: "100%", padding: "6px 8px",
   background: "var(--os-deep, #0a0a0a)",
   color: "var(--os-text-primary, #fff)",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-sm, 4px)", fontSize: 13,
   fontFamily: "var(--font-mono, monospace)", boxSizing: "border-box",
 };
@@ -264,7 +264,7 @@ const listStyle: React.CSSProperties = {
 };
 const noteItemStyle: React.CSSProperties = {
   display: "flex", gap: 8, padding: "6px 0",
-  borderBottom: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+  borderBottom: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
   alignItems: "flex-start",
 };
 const noteKeyStyle: React.CSSProperties = {
@@ -283,7 +283,7 @@ const noteActionsStyle: React.CSSProperties = {
 };
 const actionStyle: React.CSSProperties = {
   fontSize: 10, padding: "2px 8px",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   background: "var(--os-surface, #111)",
   color: "var(--os-text-primary, #fff)",
   borderRadius: "var(--radius-pill, 999px)", cursor: "pointer",

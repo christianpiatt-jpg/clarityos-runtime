@@ -47,7 +47,7 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",

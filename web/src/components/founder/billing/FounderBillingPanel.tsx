@@ -126,7 +126,7 @@ function Row({ label, value, ok }: { label: string; value: string; ok?: boolean 
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",
@@ -138,7 +138,7 @@ const headerStyle: React.CSSProperties = {
 };
 const refreshStyle: React.CSSProperties = {
   fontSize: 11, padding: "3px 10px",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   background: "var(--os-surface, #111)",
   color: "var(--os-text-primary, #fff)",
   borderRadius: "var(--radius-pill, 999px)",
@@ -156,7 +156,7 @@ const subHeader: React.CSSProperties = {
 };
 const eventStyle: React.CSSProperties = {
   padding: 6, marginBottom: 4,
-  border: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+  border: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
   borderRadius: "var(--radius-sm, 4px)",
   background: "var(--os-deep, #0a0a0a)",
 };

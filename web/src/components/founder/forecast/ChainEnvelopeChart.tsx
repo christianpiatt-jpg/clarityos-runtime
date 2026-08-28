@@ -63,7 +63,7 @@ export default function ChainEnvelopeChart({ values, chain, height = 200 }: Chai
             key={`link-${i}`}
             style={{
               padding: "3px 8px",
-              border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+              border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
               borderRadius: "var(--radius-pill, 999px)",
               background: "var(--os-surface, #111)",
             }}

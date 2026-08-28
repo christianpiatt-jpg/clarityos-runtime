@@ -96,7 +96,7 @@ export default function ProviderHealth() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{
-                borderBottom: "1px solid var(--os-border, rgba(255,255,255,0.1))",
+                borderBottom: "1px solid var(--os-border, rgba(20, 24, 28, 0.08))",
               }}>
                 <th style={thStyle}>Provider</th>
                 <th style={thStyle}>Status</th>
@@ -110,7 +110,7 @@ export default function ProviderHealth() {
                   <tr
                     key={name}
                     style={{
-                      borderBottom: "1px solid var(--os-border, rgba(255,255,255,0.05))",
+                      borderBottom: "1px solid var(--os-border, rgba(20, 24, 28, 0.05))",
                     }}
                   >
                     <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>

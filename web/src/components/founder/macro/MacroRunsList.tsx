@@ -78,7 +78,7 @@ export default function MacroRunsList({ selectedId, onSelect, refreshNonce = 0 }
                     padding: 8,
                     marginBottom: 4,
                     background: active ? "var(--os-elevated, #1a1a1a)" : "var(--os-surface, #111)",
-                    border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(255,255,255,0.16))"}`,
+                    border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(20, 24, 28, 0.12))"}`,
                     borderRadius: "var(--radius-sm, 4px)",
                     color: "var(--os-text-primary, #fff)",
                     cursor: "pointer",

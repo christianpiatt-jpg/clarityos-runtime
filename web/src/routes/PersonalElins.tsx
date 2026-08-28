@@ -109,7 +109,7 @@ export default function PersonalElins() {
         <div style={{
           marginTop: "auto",
           padding: 10,
-          borderTop: "1px solid rgba(255,255,255,0.15)",
+          borderTop: "1px solid rgba(20, 24, 28, 0.12)",
           display: "flex",
           justifyContent: "flex-end",
         }}>
@@ -420,7 +420,7 @@ function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
         }}>
           {slots.map((p) => (
             <div key={p} style={{
-              border: "1px solid rgba(255,255,255,0.15)",
+              border: "1px solid rgba(20, 24, 28, 0.12)",
               padding: 8,
               background: "var(--color-bg-surface)",
             }}>
@@ -503,7 +503,7 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
     : null;
   return (
     <div style={{
-      border: "1px solid rgba(255,255,255,0.15)",
+      border: "1px solid rgba(20, 24, 28, 0.12)",
       background: "var(--color-bg-surface)",
       padding: 10,
     }}>

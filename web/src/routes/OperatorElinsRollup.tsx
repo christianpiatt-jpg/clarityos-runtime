@@ -93,7 +93,7 @@ function RollupCard({
     <div
       data-testid={`el-ins-rollup-card-${window_}`}
       style={{
-        background: "var(--os-bg-elev, rgba(255,255,255,0.04))",
+        background: "var(--os-bg-elev, rgba(20, 24, 28, 0.04))",
         padding: 12,
       }}
     >
@@ -168,7 +168,7 @@ function ReasoningModePie({ distribution }: { distribution: Record<string, numbe
     <div>
       <svg width={size} height={size} role="img" aria-label="reasoning mode distribution">
         {paths}
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(20, 24, 28, 0.05)" />
       </svg>
       <ul style={{ listStyle: "none", padding: 0, margin: "4px 0 0", fontSize: 11 }}>
         {entries.map(([mode, value]) => (

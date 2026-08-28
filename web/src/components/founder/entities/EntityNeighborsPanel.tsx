@@ -116,7 +116,7 @@ const neighborStyle: React.CSSProperties = {
   padding: 6,
   marginBottom: 3,
   background: "var(--os-surface, #111)",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-sm, 4px)",
   color: "var(--os-text-primary, #fff)",
   cursor: "pointer",

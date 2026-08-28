@@ -121,7 +121,7 @@ function ProviderPill({ provider, configured }: { provider: string; configured: 
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 6,
       padding: "4px 8px",
-      border: `1px solid ${configured ? "var(--os-ok, #4ade80)" : "var(--os-line-strong, rgba(255,255,255,0.16))"}`,
+      border: `1px solid ${configured ? "var(--os-ok, #4ade80)" : "var(--os-line-strong, rgba(20, 24, 28, 0.12))"}`,
       borderRadius: "var(--radius-pill, 999px)",
       background: "var(--os-deep, #0a0a0a)",
       color: configured ? "var(--os-text-primary, #fff)" : "var(--os-text-tertiary, #585858)",
@@ -137,7 +137,7 @@ function ProviderPill({ provider, configured }: { provider: string; configured: 
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",
@@ -158,7 +158,7 @@ const selectStyle: React.CSSProperties = {
   width: "100%", padding: "6px 8px",
   background: "var(--os-deep, #0a0a0a)",
   color: "var(--os-text-primary, #fff)",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-sm, 4px)",
   fontSize: 13,
 };

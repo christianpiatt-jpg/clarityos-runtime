@@ -34,7 +34,7 @@ export default function RegionalMapStub({ items, selected, onSelect }: RegionalM
             style={{
               textAlign: "left",
               padding: 10,
-              border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(255,255,255,0.16))"}`,
+              border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(20, 24, 28, 0.12))"}`,
               borderRadius: "var(--radius-md, 8px)",
               background: active ? "var(--os-elevated, #1a1a1a)" : "var(--os-surface, #111)",
               color: "var(--os-text-primary, #fff)",

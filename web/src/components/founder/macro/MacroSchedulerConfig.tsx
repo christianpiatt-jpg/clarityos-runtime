@@ -116,7 +116,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 function toggleStyle(active: boolean): React.CSSProperties {
   return {
     fontSize: 11, padding: "3px 12px",
-    border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(255,255,255,0.16))"}`,
+    border: `1px solid ${active ? "var(--os-focus, #00F0FF)" : "var(--os-line-strong, rgba(20, 24, 28, 0.12))"}`,
     background: active ? "var(--os-elevated, #1a1a1a)" : "var(--os-surface, #111)",
     color: active ? "var(--os-focus, #00F0FF)" : "var(--os-text-primary, #fff)",
     borderRadius: "var(--radius-pill, 999px)",
@@ -128,7 +128,7 @@ const selectStyle: React.CSSProperties = {
   fontSize: 11, padding: "2px 6px",
   background: "var(--os-deep, #0a0a0a)",
   color: "var(--os-text-primary, #fff)",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-sm, 4px)",
 };
 

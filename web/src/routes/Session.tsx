@@ -239,7 +239,7 @@ export default function Session() {
                 padding: "8px 12px",
                 marginBottom: 12,
                 borderLeft: `3px solid ${severityColor}`,
-                background: "var(--os-bg-elev, rgba(255,255,255,0.04))",
+                background: "var(--os-bg-elev, rgba(20, 24, 28, 0.04))",
               }}
             >
               <div
@@ -263,7 +263,7 @@ export default function Session() {
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.7rem",
                         padding: "2px 6px",
-                        background: "rgba(255,255,255,0.08)",
+                        background: "rgba(20, 24, 28, 0.05)",
                         borderRadius: 2,
                       }}
                     >
@@ -298,7 +298,7 @@ export default function Session() {
               style={{
                 margin: 0,
                 padding: 12,
-                background: "var(--os-bg-elev, rgba(255,255,255,0.04))",
+                background: "var(--os-bg-elev, rgba(20, 24, 28, 0.04))",
                 whiteSpace: "pre-wrap",
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.85rem",

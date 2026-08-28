@@ -70,7 +70,7 @@ export default function OperatorTimeline() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }} data-testid="el-ins-timeline-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.08)" }}>
                 <th style={thStyle}>Timestamp</th>
                 <th style={thStyle}>Type</th>
                 <th style={thStyle}>Summary</th>
@@ -82,7 +82,7 @@ export default function OperatorTimeline() {
                   key={e.id}
                   onClick={() => setSelected(e)}
                   style={{
-                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                    borderBottom: "1px solid rgba(20, 24, 28, 0.05)",
                     cursor: "pointer",
                   }}
                   data-testid={`el-ins-timeline-row-${e.id}`}
@@ -128,7 +128,7 @@ function PayloadModal({ event, onClose }: { event: TimelineEvent; onClose: () =>
           maxWidth: 600,
           maxHeight: "80vh",
           overflow: "auto",
-          border: "1px solid rgba(255,255,255,0.15)",
+          border: "1px solid rgba(20, 24, 28, 0.12)",
         }}
       >
         <div className="row row-between" style={{ marginBottom: 8 }}>

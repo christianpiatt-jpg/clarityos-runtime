@@ -444,7 +444,7 @@ export default function Threads() {
       <div style={{
         marginTop: "auto",
         padding: 10,
-        borderTop: "1px solid rgba(255,255,255,0.15)",
+        borderTop: "1px solid rgba(20, 24, 28, 0.12)",
         display: "flex",
         justifyContent: "flex-end",
       }}>
@@ -492,7 +492,7 @@ export default function Threads() {
     <>
       <header style={{
         padding: "12px 16px",
-        borderBottom: "1px solid rgba(255,255,255,0.15)",
+        borderBottom: "1px solid rgba(20, 24, 28, 0.12)",
       }}>
         <h2 style={{ margin: 0, fontSize: 16, color: "var(--color-text-primary)" }}>
           {displayTitle(activeMeta)}
@@ -523,7 +523,7 @@ export default function Threads() {
           appear to be seen. */}
       {/* Composer */}
       <div style={{
-        borderTop: "1px solid rgba(255,255,255,0.15)",
+        borderTop: "1px solid rgba(20, 24, 28, 0.12)",
         padding: 12,
         display: "flex",
         flexDirection: "column",
@@ -623,7 +623,7 @@ export default function Threads() {
         style={{
           display: "flex",
           gap: 4,
-          borderBottom: "1px solid rgba(255,255,255,0.10)",
+          borderBottom: "1px solid rgba(20, 24, 28, 0.08)",
           paddingBottom: 4,
           marginBottom: 4,
         }}
@@ -653,7 +653,7 @@ export default function Threads() {
                 border: "1px solid",
                 borderColor: active
                   ? "var(--color-accent-cyan)"
-                  : "rgba(255,255,255,0.10)",
+                  : "rgba(20, 24, 28, 0.08)",
                 color: active
                   ? "var(--color-accent-cyan)"
                   : "var(--color-text-secondary)",
@@ -734,7 +734,7 @@ export default function Threads() {
               data-testid="thread-summary-card"
               style={{
                 padding: 10,
-                border: "1px solid rgba(255,255,255,0.15)",
+                border: "1px solid rgba(20, 24, 28, 0.12)",
                 background: "var(--color-bg-surface)",
               }}
             >

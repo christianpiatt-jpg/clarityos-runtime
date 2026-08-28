@@ -67,7 +67,7 @@ function Sparkline({
         width: "100%",
         height: "auto",
         background: "var(--os-deep, #0a0a0a)",
-        border: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+        border: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
         borderRadius: "var(--radius-sm, 4px)",
       }}
     >
@@ -82,7 +82,7 @@ function Sparkline({
       </text>
       <line
         x1={padX} x2={w - padX} y1={padY + innerH / 2} y2={padY + innerH / 2}
-        stroke="var(--os-line-strong, rgba(255,255,255,0.16))" strokeDasharray="2 3"
+        stroke="var(--os-line-strong, rgba(20, 24, 28, 0.12))" strokeDasharray="2 3"
       />
       <path d={path} fill="none" stroke={color} strokeWidth={1.5} />
     </svg>

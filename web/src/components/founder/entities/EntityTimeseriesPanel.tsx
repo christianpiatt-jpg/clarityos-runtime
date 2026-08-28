@@ -93,7 +93,7 @@ function Chart({ series }: { series: V37EntityAppearance[] }) {
       ))}
       <line
         x1={padX} x2={w - padX} y1={padY + innerH} y2={padY + innerH}
-        stroke="var(--os-line-strong, rgba(255,255,255,0.16))"
+        stroke="var(--os-line-strong, rgba(20, 24, 28, 0.12))"
       />
     </svg>
   );

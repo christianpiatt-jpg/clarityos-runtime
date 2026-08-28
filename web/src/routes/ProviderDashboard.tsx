@@ -107,7 +107,7 @@ export default function ProviderDashboard() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }} data-testid="provider-dashboard-table">
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <tr style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.08)" }}>
                 <th style={thStyle}>Provider</th>
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Call (s)</th>
@@ -123,7 +123,7 @@ export default function ProviderDashboard() {
                 const r = config?.retries[name];
                 const m = models?.registry[name];
                 return (
-                  <tr key={name} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <tr key={name} style={{ borderBottom: "1px solid rgba(20, 24, 28, 0.05)" }}>
                     <td style={{ ...tdStyle, fontFamily: "var(--font-mono)" }}>{name}</td>
                     <td style={tdStyle}>
                       {h ? (
@@ -149,7 +149,7 @@ export default function ProviderDashboard() {
                 );
               })}
               {config ? (
-                <tr style={{ borderTop: "2px solid rgba(255,255,255,0.15)" }}>
+                <tr style={{ borderTop: "2px solid rgba(20, 24, 28, 0.12)" }}>
                   <td style={{ ...tdStyle, color: "var(--os-text-muted, #888)", fontStyle: "italic" }}>
                     (defaults)
                   </td>

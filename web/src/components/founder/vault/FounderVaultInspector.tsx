@@ -156,7 +156,7 @@ export default function FounderVaultInspector() {
 }
 
 const panelStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   borderRadius: "var(--radius-md, 8px)",
   padding: 12,
   background: "var(--os-surface, #111)",
@@ -168,7 +168,7 @@ const headerStyle: React.CSSProperties = {
 };
 const refreshStyle: React.CSSProperties = {
   fontSize: 11, padding: "3px 10px",
-  border: "1px solid var(--os-line-strong, rgba(255,255,255,0.16))",
+  border: "1px solid var(--os-line-strong, rgba(20, 24, 28, 0.12))",
   background: "var(--os-surface, #111)",
   color: "var(--os-text-primary, #fff)",
   borderRadius: "var(--radius-pill, 999px)",
@@ -186,7 +186,7 @@ const listStyle: React.CSSProperties = {
 const rowStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center",
   padding: "4px 6px",
-  borderBottom: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+  borderBottom: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
   cursor: "pointer", gap: 6,
 };
 const rowOnStyle: React.CSSProperties = {
@@ -197,7 +197,7 @@ const mutedStyle: React.CSSProperties = {
   fontSize: 10, color: "var(--os-text-tertiary, #585858)",
 };
 const itemBoxStyle: React.CSSProperties = {
-  border: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+  border: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
   borderRadius: "var(--radius-sm, 4px)",
   padding: 8, background: "var(--os-deep, #0a0a0a)",
 };

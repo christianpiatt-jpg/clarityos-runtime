@@ -12,22 +12,26 @@
   --insights-width: 320px;
 
   /* Borders */
-  --border-1: 1px solid rgba(255,255,255,0.15);
-  --border-cyan: 2px solid #00F0FF;
-  --border-red: 2px solid #E02020;
+  --border-1: 1px solid #E3DFD5;
+  --border-cyan: 2px solid #34E0E0;
+  --border-red: 2px solid #E23B3B;
 
   /* Radii */
   --radius-none: 0px;
   --radius-small: 4px;
 
   /* Colors */
-  --color-bg-void: #000000;
-  --color-bg-surface: #0A0A0A;
-  --color-bg-surface-alt: #111111;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #888888;
-  --color-accent-cyan: #00F0FF;
-  --color-accent-red: #E02020;
+  /* LIGHT since 2026-08-28. Recoloured with styles/tokens.css to the
+     /enter/ door palette. Measured: Threads.tsx uses 53 of these tokens
+     and ZERO --os-*, so recolouring tokens.css alone left this surface
+     black. */
+  --color-bg-void: #F4F1EA;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-alt: #EDE9E0;
+  --color-text-primary: #14181C;
+  --color-text-secondary: #6B7280;
+  --color-accent-cyan: #34E0E0;
+  --color-accent-red: #E23B3B;
 
   /* Typography */
   --font-sans: system-ui, sans-serif;
@@ -38,5 +42,5 @@
   --line-height-data: 1.2;
 
   /* Gridlines */
-  --gridline-cyan: rgba(0, 240, 255, 0.15);
+  --gridline-cyan: rgba(20, 24, 28, 0.10);
 }

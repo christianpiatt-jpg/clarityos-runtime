@@ -146,7 +146,7 @@ export default function SessionHistory() {
       >
         {/* LIST */}
         <div className="panel" style={{ padding: 0 }}>
-          <div style={{ padding: 12, borderBottom: "1px solid var(--os-border, rgba(255,255,255,0.1))" }}>
+          <div style={{ padding: 12, borderBottom: "1px solid var(--os-border, rgba(20, 24, 28, 0.08))" }}>
             <h2 style={{ margin: 0 }}>SESSIONS</h2>
           </div>
           {loadingList && !sessions ? (
@@ -179,10 +179,10 @@ export default function SessionHistory() {
                       padding: "10px 12px",
                       background:
                         selectedId === s.session_id
-                          ? "var(--os-bg-elev, rgba(255,255,255,0.06))"
+                          ? "var(--os-bg-elev, rgba(20, 24, 28, 0.05))"
                           : "transparent",
                       border: "none",
-                      borderBottom: "1px solid var(--os-border, rgba(255,255,255,0.05))",
+                      borderBottom: "1px solid var(--os-border, rgba(20, 24, 28, 0.05))",
                       color: "inherit",
                       cursor: "pointer",
                     }}
@@ -243,7 +243,7 @@ function SessionDetailPanel({ detail }: { detail: SessionDetailResponse }) {
               style={{
                 padding: 10,
                 borderLeft: `3px solid ${decisionColor(entry.runtime_decision)}`,
-                background: "var(--os-bg-elev, rgba(255,255,255,0.03))",
+                background: "var(--os-bg-elev, rgba(20, 24, 28, 0.03))",
               }}
             >
               <div

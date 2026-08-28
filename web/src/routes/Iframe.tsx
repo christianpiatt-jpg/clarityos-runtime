@@ -210,7 +210,7 @@ export default function Iframe() {
                   display: "flex",
                   alignItems: "center",
                   gap: 4,
-                  border: "1px solid var(--os-border, rgba(255,255,255,0.15))",
+                  border: "1px solid var(--os-border, rgba(20, 24, 28, 0.12))",
                   borderRadius: 4,
                   padding: "4px 8px",
                 }}
@@ -260,7 +260,7 @@ export default function Iframe() {
                 padding: "6px 12px",
                 fontSize: "0.8rem",
                 fontFamily: "var(--font-mono)",
-                borderBottom: "1px solid var(--os-border, rgba(255,255,255,0.1))",
+                borderBottom: "1px solid var(--os-border, rgba(20, 24, 28, 0.08))",
                 display: "flex",
                 gap: 12,
               }}

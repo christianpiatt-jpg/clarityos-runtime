@@ -111,7 +111,7 @@ export default function ElInsIndicator() {
           alignItems: "center",
           gap: 8,
           padding: "4px 10px",
-          border: "1px solid rgba(255,255,255,0.15)",
+          border: "1px solid rgba(20, 24, 28, 0.12)",
           borderRadius: 2,
           textDecoration: "none",
           color: "var(--os-text, #fff)",

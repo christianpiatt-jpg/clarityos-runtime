@@ -132,7 +132,7 @@ const subHeader: React.CSSProperties = {
 const regionalRowStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between",
   padding: "4px 6px", marginBottom: 3,
-  border: "1px solid var(--os-line, rgba(255,255,255,0.06))",
+  border: "1px solid var(--os-line, rgba(20, 24, 28, 0.05))",
   borderRadius: "var(--radius-sm, 4px)",
 };
 

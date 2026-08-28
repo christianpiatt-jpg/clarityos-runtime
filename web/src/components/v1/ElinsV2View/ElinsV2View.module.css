@@ -19,7 +19,7 @@
   justify-content: space-between;
   gap: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 1px solid rgba(20, 24, 28, 0.08);
 }
 
 .title {
@@ -69,7 +69,7 @@
   flex-direction: column;
   align-items: center;
   padding: 6px 4px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(20, 24, 28, 0.08);
   border-radius: 4px;
   min-width: 0;
 }
@@ -109,7 +109,7 @@
 .stateBarOuter {
   width: 100%;
   height: 56px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(20, 24, 28, 0.08);
   border-radius: 3px;
   display: flex;
   align-items: flex-end;
@@ -197,9 +197,9 @@
   align-items: center;
   justify-content: center;
   padding: 6px 2px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(20, 24, 28, 0.08);
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(20, 24, 28, 0.04);
   min-width: 0;
 }
 
@@ -254,7 +254,7 @@
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(20, 24, 28, 0.05);
   overflow: hidden;
 }
 
@@ -273,7 +273,7 @@
   justify-content: space-between;
   gap: 8px;
   padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(20, 24, 28, 0.08);
 }
 
 .updatedAt {
@@ -285,7 +285,7 @@
 .actionBtn {
   font-size: 11px;
   padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.20);
+  border: 1px solid rgba(20, 24, 28, 0.16);
   background: transparent;
   color: inherit;
   border-radius: 3px;
@@ -294,7 +294,7 @@
 }
 
 .actionBtn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.40);
+  border-color: rgba(20, 24, 28, 0.28);
 }
 
 .actionBtn:disabled {
@@ -304,8 +304,8 @@
 
 .error {
   font-size: 11px;
-  color: #f88;
-  background: rgba(255, 128, 128, 0.06);
+  color: var(--os-err, #E23B3B);
+  background: rgba(226, 59, 59, 0.07);
   padding: 6px 8px;
   border-radius: 3px;
   border: 1px solid rgba(255, 128, 128, 0.20);
