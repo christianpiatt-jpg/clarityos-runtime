@@ -291,6 +291,17 @@ except ImportError:
     _TIMELINE_ROUTERS = ()
 # ----- /v73 -----
 
+# ----- Emotional Physics v1.0.0 (vendored 22d8c42) -----
+# ★ /api/v1/emophysics/* becomes reachable. NOTHING in any UI calls it --
+# this is an HTTP surface for testing, not a feature. No client, no button,
+# no panel binding is added by this phase.
+try:
+    from api.v1 import emophysics as _emophysics_api  # noqa: E402
+    app.include_router(_emophysics_api.router)
+except ImportError:  # pragma: no cover - defensive, matches the v73 pattern
+    pass
+# ----- /emophysics -----
+
 SESSION_TTL_SECONDS = int(os.environ.get("CLARITYOS_SESSION_TTL", "86400"))
 LIBRARY_BUCKET = os.environ.get("CLARITYOS_LIBRARY_BUCKET", "clarityos-library")
 LIBRARY_PREFIX = os.environ.get("CLARITYOS_LIBRARY_PREFIX", "")
@@ -6073,6 +6084,85 @@ def _ensure_envelope(user: str) -> dict:
 # ===========================================================================
 # A2 — run the 60-step cascade from a thread message.
 # ===========================================================================
+# ===========================================================================
+# Emotional Physics — PHASE 1, SHADOW. Computes almost nothing, on purpose.
+# ===========================================================================
+# ★★★ THIS FUNCTION EXISTS TO PROVE TWO THINGS AND TO REFUSE A THIRD.
+#
+#   PROVES    the P-series extractor runs on the member's real path, and
+#             that D responds to what the member actually wrote.
+#   CAPTURES  the 8-way `counts` distribution, which is exactly the `p` that
+#             CI needs in Phase 2. This phase starts accumulating the input
+#             the next phase consumes.
+#   REFUSES   to compute any physics. No model is called. Nothing is
+#             constructed.
+#
+# ★★★★★ THE PROHIBITIONS ARE THE CONTENT OF THIS PHASE, so they are in the
+# code and not only in the order:
+#
+#   DO NOT construct EmotionalState.
+#   DO NOT call PressureModel / RelationalModel / ThresholdModel /
+#          ConversionModel.
+#   DO NOT default N to 5.0, or to anything.
+#   DO NOT substitute a placeholder for T.
+#   DO NOT emit a number for P, P_perc, alpha, or collapse_probability.
+#
+# ★★ EmotionalState's OWN DEFAULTS ARE THE HAZARD, which is why the
+# prohibition is "do not construct" rather than "be careful what you pass".
+# `EmotionalState()` yields N=5.0, E=0.5, m=3.0, T=0.5 -- a complete,
+# plausible, entirely meaningless state. Merely instantiating it would
+# manufacture the answer this phase is meant to withhold.
+#
+# WHY T AND N ARE UNMAPPED, precisely:
+#   T  hedgeRatio is computed in phone/lib/langbridg.ts -- CLIENT-SIDE, on
+#      the phone. The web path, which is now the primary member surface
+#      (/cockpit -> CockpitV2), has no producer at all. Not "not lifted
+#      yet": the main client cannot supply it.
+#   N  derivable from CI = 1 - H(p)/H_max(n) over these same counts.
+#      24_compression_index.md:72 gives the closed form and its own header
+#      says the metric is SPECIFIED, NOT IMPLEMENTED. Verified absent from
+#      both roots.
+#
+# A shadow layer that quietly defaults N and logs a plausible pressure would
+# be worse than not shipping this phase: a confident value with correct
+# units and no measurement behind it, committed deliberately, at the joint.
+_EMOPHYSICS_UNMAPPED = "UNMAPPED"
+
+
+def _emophysics_shadow(user: str, text: str) -> dict:
+    """Extract the P-series counts and log what cannot yet be mapped.
+
+    Returns the log payload (for tests). Never raises to the caller -- the
+    call site wraps it too, but this is the member's message path and one
+    guard is not enough.
+    """
+    counts = primitives_extract.build_metadata(
+        primitives_extract.extract_primitives(text)
+    )["counts"]
+    # ★ CANDIDATE ONLY. sum(counts) is a defensible dose -- every term is a
+    # count of a category occurrence, and 06_primitives_extract.md is
+    # explicit that the module cannot grade magnitude ("minor friction" and
+    # "catastrophic deadlock" each contribute 1 to Ts). Whether the sum is
+    # the right dose, or whether the tension classes should be weighted
+    # above the entity/action classes, is unruled. Tagged so a later change
+    # costs one line.
+    payload = {
+        "D": int(sum(counts.values())),
+        "D_status": "CANDIDATE",
+        "counts": dict(counts),
+        "T": _EMOPHYSICS_UNMAPPED,
+        "N": _EMOPHYSICS_UNMAPPED,
+        "computed": False,
+        "reason": ("T: no server-side producer (langbridg.ts is client-side) "
+                   "· N: CI specified, not implemented"),
+    }
+    # INFO with a stable, greppable key. Counts and integers only -- never
+    # the member's text, and nothing here that the message path does not
+    # already log.
+    logger.info("emophysics_shadow user=%s payload=%s", _user_ref(user), payload)
+    return payload
+
+
 def _run_envelope_cascade(user: str, text: str) -> dict:
     """Embed one message, walk the Markov v3 arithmetic, evolve the envelope.
 
@@ -12929,6 +13019,19 @@ def me_threads_post_message(
     except Exception as exc:                      # noqa: BLE001 - see above
         logger.warning(
             "envelope cascade FAILED user=%s thread=%s err=%s: %s",
+            _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
+        )
+
+    # Emotional Physics PHASE 1 -- SHADOW. Log only; computes no physics.
+    # ★ LAST, AND ISOLATED. run_thread_message has already persisted both
+    # messages and the cascade has already run, so nothing here can change
+    # or delay the member's reply. The bare except is deliberate and loud:
+    # a shadow layer must never be able to cost a member their turn.
+    try:
+        _emophysics_shadow(user, req.content)
+    except Exception as exc:                      # noqa: BLE001 - see above
+        logger.warning(
+            "emophysics shadow FAILED user=%s thread=%s err=%s: %s",
             _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
         )
     return V47PostMessageResponse(

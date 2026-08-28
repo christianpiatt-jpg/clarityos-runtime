@@ -297,6 +297,12 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_whatif_cone.py": {
         "determinism_surface",
     },
+    # ---- emophysics PHASE 1 shadow: the prohibitions ----
+    # runtime_spine: it gates the member message path, and its whole value is
+    # that T and N stay UNMAPPED rather than becoming a plausible number.
+    "test_emophysics_shadow.py": {
+        "runtime_spine",
+    },
     # ---- emophysics engine, vendored from ClarityOS_Library 2026-08-28 ----
     # determinism_surface: the whole engine is pure arithmetic with locked
     # constants (B, lambda, gamma, C2, alpha_c, beta_0, beta_1). A drift in
