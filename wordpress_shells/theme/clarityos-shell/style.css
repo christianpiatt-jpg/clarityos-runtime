@@ -1,0 +1,126 @@
+/*
+Theme Name: ClarityOS Shell — Professional Mediations
+Theme URI: https://pro-mediations.com/
+Author: Professional Mediations, LLC
+Author URI: https://pro-mediations.com/
+Description: Operator-grade membership shell for ClarityOS — Founding 500, the five stages (Orientation, Integration, Interpretation, Inversion, Transformation), checkout, and account. Presentation-only; links out to WooCommerce checkout and the ClarityOS app.
+Version: 1.0.0
+Requires at least: 6.0
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: clarityos-shell
+*/
+
+  .pm-shell {
+    --pm-void:#05060a; --pm-panel:#0c0e15; --pm-line:#1b2030;
+    --pm-cyan:#34e0e0; --pm-red:#e23b3b; --pm-text:#f2f5f8; --pm-muted:#98a2b3;
+    --pm-maxw:1120px;
+    background:var(--pm-void); color:var(--pm-text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .pm-shell *{box-sizing:border-box;}
+  .pm-shell img{max-width:100%;height:auto;display:block;}
+  .pm-shell a{color:inherit;text-decoration:none;}
+  .pm-shell .pm-hidden{display:none !important;}
+  .pm-shell__wrap{max-width:var(--pm-maxw);margin:0 auto;padding:0 24px;}
+  .pm-shell-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--pm-line);max-width:var(--pm-maxw);margin:0 auto;}
+  .pm-shell-header__brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;font-size:1.05rem;}
+  .pm-shell-header__dot{width:11px;height:11px;border-radius:50%;background:var(--pm-cyan);box-shadow:0 0 12px var(--pm-cyan);flex:none;}
+  .pm-shell-header__nav{display:flex;align-items:center;gap:22px;font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pm-muted);}
+  .pm-shell-header__nav a:hover{color:var(--pm-cyan);}
+  .pm-shell-hero{display:flex;gap:48px;align-items:center;padding:64px 0 48px;}
+  .pm-shell-hero__col{flex:1 1 0;min-width:0;}
+  .pm-shell-hero__eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.22em;color:var(--pm-cyan);margin:0 0 16px;}
+  .pm-shell-hero__title{font-size:clamp(2rem,5vw,3.3rem);line-height:1.05;font-weight:700;letter-spacing:-.01em;margin:0 0 18px;}
+  .pm-shell-hero__subtitle{font-size:clamp(1rem,1.6vw,1.2rem);color:var(--pm-muted);max-width:46ch;margin:0 0 30px;}
+  .pm-shell-hero__ctas{display:flex;flex-wrap:wrap;gap:14px;}
+  .pm-shell-hero__media{flex:1 1 0;min-width:0;border:1px solid var(--pm-line);border-radius:14px;overflow:hidden;background:#000;}
+  .pm-btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 26px;border-radius:8px;font-weight:600;font-size:.92rem;letter-spacing:.01em;cursor:pointer;border:1px solid transparent;transition:all .15s ease;}
+  .pm-shell .pm-btn--primary{color:var(--pm-cyan);border-color:var(--pm-cyan);background:rgba(52,224,224,.06);box-shadow:0 0 18px rgba(52,224,224,.22);}
+  .pm-shell .pm-btn--primary:hover{background:var(--pm-cyan);color:#02151a;}
+  .pm-shell .pm-btn--ghost{color:var(--pm-text);border-color:var(--pm-line);}
+  .pm-shell .pm-btn--ghost:hover{border-color:var(--pm-muted);}
+  .pm-shell .pm-btn--red{color:var(--pm-red);border-color:var(--pm-red);background:rgba(226,59,59,.06);}
+  .pm-shell .pm-btn--red:hover{background:var(--pm-red);color:#1a0405;}
+  .pm-shell-body{padding:16px 0 48px;max-width:760px;}
+  .pm-shell-body__heading{font-size:clamp(1.3rem,3vw,1.8rem);font-weight:700;margin:0 0 18px;}
+  .pm-shell-body__heading::before{content:"";display:inline-block;width:26px;height:2px;background:var(--pm-red);vertical-align:middle;margin-right:14px;}
+  .pm-shell-body__text{color:var(--pm-muted);margin:0 0 18px;}
+  .pm-shell-body__list{color:var(--pm-muted);padding-left:0;list-style:none;margin:22px 0 0;}
+  .pm-shell-body__list li{position:relative;padding-left:26px;margin:0 0 12px;}
+  .pm-shell-body__list li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;background:var(--pm-cyan);transform:rotate(45deg);}
+  .pm-shell-features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px 0 44px;}
+  .pm-shell-feature{border:1px solid var(--pm-line);border-radius:12px;overflow:hidden;background:var(--pm-panel);}
+  .pm-shell-feature img{width:100%;display:block;border-bottom:1px solid var(--pm-line);}
+  .pm-shell-feature__body{padding:16px 18px;}
+  .pm-shell-feature__label{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;color:var(--pm-cyan);margin:0 0 6px;}
+  .pm-shell-feature__text{font-size:.9rem;color:var(--pm-muted);margin:0;}
+  .pm-shell-band{border:1px solid var(--pm-line);border-radius:14px;overflow:hidden;margin:4px 0 44px;background:#000;}
+  .pm-shell-band img{width:100%;display:block;}
+  .pm-shell-pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;padding:8px 0 36px;}
+  .pm-price{border:1px solid var(--pm-line);border-radius:14px;background:var(--pm-panel);padding:28px 30px;display:flex;flex-direction:column;}
+  .pm-price--featured{border-color:var(--pm-cyan);box-shadow:0 0 24px rgba(52,224,224,.12);}
+  .pm-price__name{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;color:var(--pm-cyan);margin:0 0 12px;}
+  .pm-price__amount{font-size:2.6rem;font-weight:700;line-height:1;margin:0 0 4px;}
+  .pm-price__period{color:var(--pm-muted);font-size:.9rem;margin:0 0 18px;}
+  .pm-price__list{list-style:none;padding:0;margin:0 0 22px;color:var(--pm-muted);font-size:.92rem;flex:1 0 auto;}
+  .pm-price__list li{position:relative;padding-left:24px;margin:0 0 10px;}
+  .pm-price__list li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--pm-cyan);transform:rotate(45deg);}
+  .pm-price .pm-btn{width:100%;}
+  .pm-shell-links{list-style:none;padding:0;margin:8px 0 44px;border:1px solid var(--pm-line);border-radius:14px;overflow:hidden;background:var(--pm-panel);max-width:760px;}
+  .pm-shell-links li+li{border-top:1px solid var(--pm-line);}
+  .pm-shell-links a{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;font-weight:600;}
+  .pm-shell-links a::after{content:"›";color:var(--pm-muted);font-size:1.2rem;}
+  .pm-shell-links a:hover{background:rgba(52,224,224,.04);color:var(--pm-cyan);}
+  .pm-shell-links a:hover::after{color:var(--pm-cyan);}
+  .pm-shell-state{padding:8px 0 52px;display:grid;gap:16px;}
+  .pm-card{border:1px solid var(--pm-line);border-radius:14px;background:var(--pm-panel);padding:30px 32px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;}
+  .pm-card--member{border-color:rgba(52,224,224,.35);}
+  .pm-card__copy{margin:0;font-size:1.05rem;font-weight:600;}
+  .pm-card__sub{margin:6px 0 0;color:var(--pm-muted);font-size:.9rem;font-weight:400;}
+  .pm-shell-trust{border-top:1px solid var(--pm-line);display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:26px 0;color:var(--pm-muted);font-size:.86rem;}
+  .pm-shell-footer{border-top:1px solid var(--pm-line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding:26px 0 40px;color:var(--pm-muted);font-size:.84rem;}
+  .pm-shell-footer__links{display:flex;flex-wrap:wrap;gap:22px;}
+  .pm-shell-footer__links a:hover{color:var(--pm-cyan);}
+  .pm-enter{min-height:100vh;display:flex;flex-direction:column;}
+  .pm-enter__top{padding:24px 28px;}
+  .pm-enter__main{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .pm-enter__card{width:100%;max-width:400px;text-align:center;}
+  .pm-enter__mark{width:84px;height:auto;margin:0 auto 26px;display:block;}
+  .pm-enter__title{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;letter-spacing:-.01em;margin:0 0 10px;}
+  .pm-enter__sub{color:var(--pm-muted);font-size:1.05rem;margin:0 0 28px;}
+  .pm-enter__form{display:flex;flex-direction:column;gap:12px;text-align:left;}
+  .pm-enter__label{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;color:var(--pm-muted);}
+  .pm-enter__input{width:100%;padding:15px 16px;border-radius:10px;border:1px solid var(--pm-line);background:#0a0c12;color:var(--pm-text);font-size:1rem;outline:none;transition:border-color .15s ease,box-shadow .15s ease;}
+  .pm-enter__input::placeholder{color:#566072;}
+  .pm-enter__input:focus{border-color:var(--pm-cyan);box-shadow:0 0 0 3px rgba(52,224,224,.15);}
+  .pm-shell .pm-enter__btn{width:100%;margin-top:4px;background:var(--pm-cyan);color:#02151a;border-color:var(--pm-cyan);box-shadow:0 0 18px rgba(52,224,224,.25);}
+  .pm-shell .pm-enter__btn:hover{filter:brightness(1.08);background:var(--pm-cyan);color:#02151a;}
+  .pm-enter__support{color:var(--pm-muted);font-size:.85rem;text-align:center;margin:14px 0 0;}
+  .pm-enter__error{color:var(--pm-red);font-size:.85rem;text-align:center;margin:6px 0 0;}
+  .pm-enter__reset{display:inline-block;margin-top:18px;padding:6px;background:none;border:0;color:var(--pm-cyan);font:inherit;font-size:.9rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+  .pm-enter__reset:hover{color:var(--pm-text);}
+  .pm-enter__legal{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;padding:22px;border-top:1px solid var(--pm-line);color:var(--pm-muted);font-size:.8rem;}
+  .pm-enter__legal a:hover{color:var(--pm-cyan);}
+  @media (max-width:820px){
+    .pm-shell-hero{flex-direction:column;gap:32px;padding:40px 0 32px;}
+    .pm-shell-hero__media{order:-1;width:100%;}
+    .pm-shell-header{flex-direction:column;align-items:flex-start;gap:12px;}
+    .pm-card{flex-direction:column;align-items:flex-start;}
+    .pm-shell-features{grid-template-columns:1fr;}
+    .pm-shell-pricing{grid-template-columns:1fr;}
+  }
+
+html,body{margin:0;background:#05060a;}
+
+/* Door — light palette. Scoped to .pm-enter, which only the
+   PM - Enter ClarityOS template renders. */
+.pm-enter{
+  --pm-void:#F4F1EA; --pm-panel:#FFFFFF; --pm-line:#E3DFD5;
+  --pm-text:#14181C; --pm-muted:#6B7280;
+  background:var(--pm-void); color:var(--pm-text);
+}
+.pm-enter .pm-enter__input{background:#FFFFFF;color:var(--pm-text);}
+.pm-enter .pm-enter__input::placeholder{color:#9AA0A6;}
