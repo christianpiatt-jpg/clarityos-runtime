@@ -297,6 +297,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_whatif_cone.py": {
         "determinism_surface",
     },
+    # ---- azimuth envelope Phase 3 Unit 5 ----
+    # privacy_surface: the envelope is the innermost privacy boundary and the
+    # suite asserts raw_text never reaches a log record at INFO or above.
+    # determinism_surface: capture must be byte-stable and evaluate idempotent.
+    "test_azimuth_envelope_unit5.py": {
+        "privacy_surface", "determinism_surface",
+    },
     # ---- emophysics PHASE 1 shadow: the prohibitions ----
     # runtime_spine: it gates the member message path, and its whole value is
     # that T and N stay UNMAPPED rather than becoming a plausible number.

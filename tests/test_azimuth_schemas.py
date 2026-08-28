@@ -399,23 +399,45 @@ class TestAzimuthCheckPrompt:
 
 
 # ===========================================================================
-# Skeleton invariants — every function raises NotImplementedError until
-# Phase 3 Unit 5 / Unit 6 lands real behaviour
+# Envelope behaviour — Phase 3 Unit 5 landed 2026-08-28.
+#
+# These three previously asserted NotImplementedError. That assertion was
+# CORRECT while the bodies were skeletons and is FALSE now that they are
+# implemented, so it is replaced rather than deleted: the same three call
+# sites still run, and now pin real behaviour instead of its absence.
+# Deep coverage of the heuristics lives in tests/test_azimuth_envelope_unit5.py.
 # ===========================================================================
-class TestSkeletonsRaise:
-    def test_envelope_capture_skeleton(self):
-        with pytest.raises(NotImplementedError):
-            azimuth_envelope.capture_envelope("x")
+class TestEnvelopeImplemented:
+    def test_envelope_capture_returns_a_populated_state(self):
+        env = azimuth_envelope.capture_envelope("this is REALLY bad!!!")
+        assert isinstance(env, azimuth.EnvelopeState)
+        assert env.raw_text == "this is REALLY bad!!!"
+        # ★ NO PARTIAL FILLS: all four derived axes are real values, never
+        # left at a schema default.
+        assert env.emotional_intensity in tuple(azimuth.IntensityLevel)
+        assert env.valence in tuple(azimuth.Valence)
+        assert env.pressure_level in tuple(azimuth.PressureLevel)
+        assert isinstance(env.rough_intention, str) and env.rough_intention
 
-    def test_envelope_evaluate_skeleton(self):
-        env = _make_envelope()
-        with pytest.raises(NotImplementedError):
-            azimuth_envelope.evaluate_envelope(env)
+    def test_envelope_capture_refuses_empty_input(self):
+        """A defaulted envelope would be a complete, plausible, meaningless
+        state -- it raises instead."""
+        with pytest.raises(ValueError):
+            azimuth_envelope.capture_envelope("")
 
-    def test_envelope_mark_externalize_skeleton(self):
-        env = _make_envelope()
-        with pytest.raises(NotImplementedError):
-            azimuth_envelope.mark_externalize(env)
+    def test_envelope_evaluate_recomputes_and_is_idempotent(self):
+        env = azimuth_envelope.capture_envelope("I have to finish before Friday")
+        once = azimuth_envelope.evaluate_envelope(env)
+        assert once.envelope_id == env.envelope_id
+        assert azimuth_envelope.evaluate_envelope(once) == once
+
+    def test_envelope_mark_externalize_returns_a_frozen_copy(self):
+        env = azimuth_envelope.capture_envelope("I need you to look at this")
+        marked = azimuth_envelope.mark_externalize(env)
+        assert marked.user_marked_externalize is True
+        assert env.user_marked_externalize is False
+        with pytest.raises(Exception):
+            marked.user_marked_externalize = False
 
     def test_transition_detect_implemented(self):
         """Phase 3 Unit 9: detect_externalization_intent is now
