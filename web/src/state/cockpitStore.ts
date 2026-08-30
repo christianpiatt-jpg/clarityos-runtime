@@ -67,6 +67,10 @@ export interface CockpitState {
   thread: {
     status: ThreadStatus;
     meta: ThreadMeta | null;
+    /** Every thread the member owns. init() already fetches this list to
+     *  pick the newest one; it used to discard the rest. The left rail
+     *  reads it, so no second request is made. */
+    items: ThreadMeta[];
     messages: CockpitChatMessage[];
     error: string | null;
     /** True while a summarize / rename / delete round-trip is in flight. */
@@ -99,7 +103,7 @@ function initialState(): CockpitState {
     runtime: { status: "idle", envelope: null, error: null },
     envelope: { status: "idle", forSessionId: null, data: null, error: null },
     thread: {
-      status: "loading", meta: null, messages: [], error: null,
+      status: "loading", meta: null, items: [], messages: [], error: null,
       busy: false, tab: "thread", elins: null, physics: null,
       turnsSincePhysics: 0, failedSend: null,
     },
@@ -274,6 +278,7 @@ const threadSlice = {
   state: (s: CockpitState) => s.thread,
   selectors: {
     meta: (s: CockpitState) => s.thread.meta,
+    items: (s: CockpitState) => s.thread.items,
     messages: (s: CockpitState) => s.thread.messages,
     status: (s: CockpitState) => s.thread.status,
     tab: (s: CockpitState) => s.thread.tab,
@@ -293,6 +298,7 @@ const threadSlice = {
         const detail = await getThread(meta.thread_id);
         setSlice("thread", {
           status: "ready", meta: detail.meta, messages: detail.messages,
+          items: threads.length ? threads : [meta],
           elins: null, physics: null, turnsSincePhysics: 0,
         });
       } catch (e) {
@@ -392,6 +398,22 @@ const threadSlice = {
         setSlice("thread", { error: errMessage(e) });
       } finally {
         setSlice("thread", { busy: false });
+      }
+    },
+
+    /** Switch the cockpit to an existing thread. The left rail lists the
+     *  member's threads, so selecting one has to load it. */
+    async open(threadId: string): Promise<void> {
+      if (current.thread.meta?.thread_id === threadId) return;
+      setSlice("thread", { status: "loading", error: null });
+      try {
+        const detail = await getThread(threadId);
+        setSlice("thread", {
+          status: "ready", meta: detail.meta, messages: detail.messages,
+          elins: null, physics: null, turnsSincePhysics: 0,
+        });
+      } catch (e) {
+        setSlice("thread", { status: "error", error: errMessage(e) });
       }
     },
 

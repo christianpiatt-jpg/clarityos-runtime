@@ -1,36 +1,51 @@
 /**
- * SessionListPanel — selectable session list for CockpitV2.
- * The existing components/cockpit/SessionList takes no props and supports no
- * selection, so this wrapper reuses the same service function (fetchSessions,
- * via the session slice) and renders a store-driven selectable list.
+ * SessionListPanel -- the member's list, read from the THREAD substrate.
+ *
+ * It used to read the session slice, which loads GET /sessions. That endpoint
+ * is healthy, but app.py:9511 reads markov_states_store -- the legacy v28
+ * store. The member product writes through the v47 thread runtime
+ * (/me/threads -> run_thread_message), which never writes that store. So
+ * {"sessions":[],"count":0} was TRUE, and this panel rendered "No sessions."
+ * correctly, forever. Not a stale interface: a stale STORE.
+ *
+ * A member's sessions ARE their threads. No new request is made -- 
+ * threadSlice.init() already fetches the full list to pick the newest thread,
+ * and now keeps it instead of discarding it.
+ *
+ * The label stays "Sessions". Showing threads under it means "session" now
+ * means "thread" in the member product; that collision is CT-1's to rule on,
+ * not something to paper over with a rename here.
  */
 import { useCockpit, cockpit } from "../../state/cockpitStore";
 
 export default function SessionListPanel() {
-  const session = useCockpit((s) => s.session);
+  const status = useCockpit((s) => s.thread.status);
+  const items = useCockpit((s) => s.thread.items);
+  const activeId = useCockpit((s) => s.thread.meta?.thread_id ?? null);
+  const error = useCockpit((s) => s.thread.error);
 
   return (
     <section className="cv2-panel">
       <header className="cv2-panel-head">Sessions</header>
       <div className="cv2-panel-body">
-        {session.status === "loading" && <p className="cv2-muted">Loading…</p>}
-        {session.status === "error" && <p className="cv2-err">{session.error}</p>}
-        {session.status === "ready" && session.items.length === 0 && (
+        {status === "loading" && items.length === 0 && <p className="cv2-muted">Loading…</p>}
+        {status === "error" && <p className="cv2-err">{error}</p>}
+        {status !== "loading" && items.length === 0 && (
           <p className="cv2-muted">No sessions.</p>
         )}
 
         <ul className="cv2-list">
-          {session.items.map((s) => (
-            <li key={s.session_id}>
+          {items.map((t) => (
+            <li key={t.thread_id}>
               <button
                 type="button"
                 className={
-                  "cv2-list-row" + (s.session_id === session.selectedId ? " is-selected" : "")
+                  "cv2-list-row" + (t.thread_id === activeId ? " is-selected" : "")
                 }
-                onClick={() => cockpit.session.actions.select(s.session_id)}
+                onClick={() => void cockpit.thread.actions.open(t.thread_id)}
               >
-                <span className="cv2-mono">{s.session_id}</span>
-                <span className="cv2-muted">{s.state_count} states</span>
+                <span className="cv2-mono">{t.title || t.thread_id}</span>
+                <span className="cv2-muted">{t.message_count} messages</span>
               </button>
             </li>
           ))}
