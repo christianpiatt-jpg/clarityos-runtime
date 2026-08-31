@@ -59,6 +59,22 @@ const NARRATIVE_KEYS = [
 ] as const;
 const NARRATIVE_KEY_SET: ReadonlySet<string> = new Set(NARRATIVE_KEYS);
 
+/** Is this rendered value prose rather than a reading?
+ *
+ *  .paramValue carries tabular numerals, right alignment and
+ *  white-space: nowrap + text-overflow: ellipsis. That is correct for
+ *  "0.847" and "high". On a sentence it cuts mid-word -- CT-1 saw
+ *  next_step render as "Deliver a complete, organized r" -- while a
+ *  full-width column sat empty to its left.
+ *
+ *  Enum members never contain a space ("partially_aligned"), and the
+ *  array joiner packs one-to-three bullet sentences into a single
+ *  value, so length plus a space separates the two cleanly. Both
+ *  classes already exist; this only chooses between them. */
+function isProse(v: string): boolean {
+  return /\s/.test(v) && v.length > 28;
+}
+
 /** When was this reading ANALYSED — not when was it fetched.
  *
  *  ★★ THE BUG THIS REPLACES. The state below was initialised with
@@ -289,7 +305,12 @@ function LayerBlock({
           {params.map(([k, v]) => (
             <Fragment key={k}>
               <dt className={styles.paramKey}>{k}</dt>
-              <dd className={styles.paramValue} title={v}>{v}</dd>
+              <dd
+                className={isProse(v) ? styles.narrative : styles.paramValue}
+                title={v}
+              >
+                {v}
+              </dd>
             </Fragment>
           ))}
         </dl>
