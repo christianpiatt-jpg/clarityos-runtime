@@ -301,6 +301,7 @@ const threadSlice = {
           items: threads.length ? threads : [meta],
           elins: null, physics: null, turnsSincePhysics: 0,
         });
+        sessionSlice.actions.select(detail.meta.thread_id);
       } catch (e) {
         setSlice("thread", { status: "error", error: errMessage(e) });
       } finally {
@@ -412,6 +413,11 @@ const threadSlice = {
           status: "ready", meta: detail.meta, messages: detail.messages,
           elins: null, physics: null, turnsSincePhysics: 0,
         });
+        // ONE selection concept: session.selectedId mirrors the active
+        // thread. EnvelopeViewerPanel gates on it, and 5abeb18 left it
+        // unset when the rail moved off sessionSlice -- the panel read
+        // "Select a session." with a thread plainly selected.
+        sessionSlice.actions.select(threadId);
       } catch (e) {
         setSlice("thread", { status: "error", error: errMessage(e) });
       }
