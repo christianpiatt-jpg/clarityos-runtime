@@ -56,6 +56,7 @@ import felt_gap_reader                # Phase-1 — felt-gap Layer-B classifier 
 import kernel_logging
 import local_model_runtime           # v45 — on-device inference runtime
 import memory_vault                  # v46 — encrypted local KV store
+import turn_record                   # W1_TURN — the per-turn record (seal/observe)
 import model_router
 import operator_state
 import perplexity_oracle
@@ -961,6 +962,51 @@ def run_thread_message(
     except Exception:  # pragma: no cover (defensive — Module B must never break the turn)
         logger.warning("module_b hook skipped", exc_info=True)
         module_b_advisory = None
+
+    # W1_TURN — the per-turn record. Advisory-only and non-blocking, mirroring
+    # the Module B seam above, but LOUD on failure: a silent skip is how the
+    # emophysics mount hid for weeks.
+    #
+    # ★ THE ORDER OF THESE THREE STEPS IS LOAD-BEARING.
+    #   1. read THIS turn
+    #   2. observe -- scores the PREVIOUS turn's seal against this read
+    #   3. seal    -- persistence expectation for the turn that does not
+    #                 exist yet, so the seat rule holds by construction
+    # Sealing first would score a seal against the very turn that produced
+    # it, which is the fitted residual the whole record exists to refuse.
+    #
+    # ★★ WHAT THE READ CARRIES, AND WHAT IT DOES NOT. The four physics
+    # bearings (boundary / agency / distance / alignment) live in
+    # relational_primitives, and physics does NOT run on this path:
+    # _emophysics_shadow (app.py:6132) computes counts only and marks
+    # ``computed: False``, while run_emotional_physics dispatches a real
+    # vendor call. Sealing those bearings here would store None, observe
+    # None, score all-matched and pin trust at 1.0 forever -- a gauge that
+    # cannot move. So the read carries what this turn genuinely produces:
+    # the P-series counts and the pressure reading, both pure functions.
+    # The record's SHAPE is unchanged, so the bearings slot in the moment
+    # physics runs on this path.
+    try:
+        _tr_read = turn_record.build_geometry_observation(text)
+        _tr_pending = turn_record.pending_seal(user_id, thread_id)
+        if _tr_pending:
+            turn_record.observe_return(user_id, _tr_pending, _tr_read)
+        turn_record.seal_expectation(
+            user_id, thread_id,
+            turn_record.next_turn_index(user_id, thread_id),
+            turn_record.persistence_expectation(_tr_read),
+        )
+    except Exception as _tr_exc:  # never breaks the turn -- but never silent
+        # ★ Stable greppable key, and NO identifiers. INV-H1 forbids a raw
+        # user in a logger call, and every other logger call in this module
+        # names the error rather than the member. The error type and message
+        # locate the fault; the member does not need to be in the log to do
+        # it. Caught by tests/test_fix_p5_runtime_privacy.py and
+        # tests/test_runtime_inv_http.py, which is how this was found.
+        logger.warning(
+            "turn_record hook FAILED err=%s: %s",
+            type(_tr_exc).__name__, _tr_exc, exc_info=True,
+        )
 
     started = time.perf_counter()
 

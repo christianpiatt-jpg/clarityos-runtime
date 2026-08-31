@@ -108,12 +108,24 @@ def test_no_prior_yet_is_not_zero():
     assert "value" not in out
 
 
-def test_undefined_when_no_bearing_was_ever_claimed():
-    k = tr.seal_expectation(U, T, 0, {"unrelated": "x"})
+def test_undefined_when_no_claim_was_ever_made():
+    """An expectation carrying only provenance claims nothing, so the rate
+    has no denominator. Not 0.0 -- a different kind of thing."""
+    k = tr.seal_expectation(U, T, 0, {"source": tr.SOURCE_PERSISTENCE})
     tr.observe_return(U, k, {"boundary": "clear"})
     out = tr.trust_signal(U, T)
     assert out["status"] == "undefined"
     assert "value" not in out
+
+
+def test_an_unmet_claim_scores_as_a_miss_not_as_undefined():
+    """★ A claim that did not land is a MISS. Only the absence of a claim
+    is undefined. Collapsing the two would hide every wrong prediction."""
+    k = tr.seal_expectation(U, T, 0, {"pressure_score": 3})
+    rec = tr.observe_return(U, k, {"pressure_score": 5})
+    s = tr.score_record(rec)
+    assert s["per_bearing"]["pressure_score"] == "missed"
+    assert s["missed"] == 1
 
 
 def test_absence_expecting_absence_counts_as_a_match():

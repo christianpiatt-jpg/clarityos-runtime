@@ -294,6 +294,67 @@ def list_turn_records(
 
 
 # --------------------------------------------------------------------------
+# The producer — persistence, the honest null model
+# --------------------------------------------------------------------------
+#: Keys carried for provenance, never scored. D4: the expectation is a
+#: solved r, and it says so in its own payload.
+META_KEYS: frozenset = frozenset({"source"})
+
+SOURCE_PERSISTENCE: str = "persistence"
+
+
+def flatten_scalars(d: dict, prefix: str = "") -> dict:
+    """Flat scalar leaves of a nested observation. ``{"primitives": {"P1": 2}}``
+    becomes ``{"primitives.P1": 2}`` so a prediction can name one leaf."""
+    out: dict = {}
+    for k, v in (d or {}).items():
+        key = prefix + str(k)
+        if isinstance(v, dict):
+            out.update(flatten_scalars(v, key + "."))
+        elif isinstance(v, (str, int, float, bool)) or v is None:
+            out[key] = v
+    return out
+
+
+def persistence_expectation(observation: dict) -> dict:
+    """The null model: turn N+1 looks like turn N.
+
+    ★ D4 -- this is a SOLVED r and is marked as one. ``source`` rides in the
+    payload so a reader can never mistake it for an observation.
+
+    Legitimate rather than a placeholder: a prediction of no change is the
+    honest null, and FORCE is deviation from it. Works from turn 1, needs no
+    model call and no new physics. When markov stops returning a pinned
+    S-state this becomes ``source="markov"`` and NOTHING ELSE CHANGES --
+    the record's shape holds.
+    """
+    exp = flatten_scalars(observation or {})
+    exp["source"] = SOURCE_PERSISTENCE
+    return exp
+
+
+def pending_seal(user_id: str, thread_id: str) -> Optional[str]:
+    """Key of the newest sealed-but-unobserved record, or None.
+
+    Lets the caller find the prior seal without holding a pointer across
+    turns -- there is nothing to lose, and nothing to fabricate.
+    """
+    ns = _thread_ns(thread_id)
+    entries = memory_vault.vault_list(user_id) or {}
+    open_keys = [
+        k for k, v in entries.items()
+        if k.startswith(ns) and isinstance(v, dict) and v.get("ts_observed") is None
+    ]
+    return sorted(open_keys)[-1] if open_keys else None
+
+
+def next_turn_index(user_id: str, thread_id: str) -> int:
+    """Monotonic per thread. Derived from what is stored, so a restart
+    cannot reset it."""
+    return len(list_turn_records(user_id, thread_id))
+
+
+# --------------------------------------------------------------------------
 # trust — the first thing the record makes computable
 # --------------------------------------------------------------------------
 def score_record(rec: dict) -> dict:
@@ -316,15 +377,22 @@ def score_record(rec: dict) -> dict:
     if obs is None:
         return {"status": "unobserved", "matched": 0, "missed": 0, "undefined": len(BEARINGS)}
 
+    flat_obs = flatten_scalars(obs)
+    # Score every key the expectation CLAIMED, plus the named bearings so a
+    # bearing that was never claimed still reports as undefined rather than
+    # vanishing from the tally.
+    claimed = [k for k in exp.keys() if k not in META_KEYS]
+    keys = list(dict.fromkeys(claimed + list(BEARINGS)))
+
     matched = missed = undefined = 0
     per: dict = {}
-    for b in BEARINGS:
+    for b in keys:
         if b not in exp:
             per[b] = "undefined"      # no claim was made
             undefined += 1
             continue
         e = exp.get(b)
-        o = obs.get(b, None)
+        o = flat_obs.get(b, None)
         if e == o:                    # includes None == None: absence expecting absence
             per[b] = "matched"
             matched += 1
