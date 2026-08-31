@@ -16,7 +16,6 @@ import { useEffect } from "react";
 import { useCockpit, cockpit, bootstrapCockpit } from "../state/cockpitStore";
 import CockpitLoginPanel from "../components/cockpitV2/CockpitLoginPanel";
 import SessionListPanel from "../components/cockpitV2/SessionListPanel";
-import EngineSelectorPanel from "../components/cockpitV2/EngineSelectorPanel";
 import VaultStatusPanel from "../components/cockpitV2/VaultStatusPanel";
 import ChatPanel from "../components/cockpitV2/ChatPanel";
 import EnvelopeViewerPanel from "../components/cockpitV2/EnvelopeViewerPanel";
@@ -59,7 +58,6 @@ export default function CockpitV2() {
       <div className="cv2-grid">
         <aside className="cv2-col">
           <SessionListPanel />
-          <EngineSelectorPanel />
           <VaultStatusPanel />
         </aside>
 

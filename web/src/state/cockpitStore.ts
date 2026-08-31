@@ -16,7 +16,6 @@ import { useSyncExternalStore } from "react";
 import { ApiError, login as apiLogin, isAuthed, getUser, getSession, markovEnvelopeLatest } from "../lib/api";
 import { notifyLogin, signOut as authSignOut, syncProfile } from "../lib/auth";
 import { fetchSessions, type SessionMeta } from "../services/sessions";
-import type { EngineId } from "../services/engines";
 import { fetchRuntimeEnvelope, type RuntimeEnvelope } from "../services/runtime";
 import { fetchContinuitySnapshot, type ContinuitySnapshot } from "../services/continuity";
 import {
@@ -60,7 +59,6 @@ export type SessionEnvelope = Awaited<ReturnType<typeof markovEnvelopeLatest>>;
 export interface CockpitState {
   auth: { status: AuthStatus; user: string | null; sessionId: string | null; error: string | null };
   session: { status: LoadStatus; items: SessionMeta[]; selectedId: string | null; error: string | null };
-  engine: { selected: EngineId };
   vault: { status: LoadStatus; snapshot: ContinuitySnapshot | null; error: string | null };
   runtime: { status: LoadStatus; envelope: RuntimeEnvelope | null; error: string | null };
   envelope: { status: LoadStatus; forSessionId: string | null; data: SessionEnvelope | null; error: string | null };
@@ -98,7 +96,6 @@ function initialState(): CockpitState {
   return {
     auth: { status: isAuthed() ? "authed" : "anon", user: getUser(), sessionId: getSession(), error: null },
     session: { status: "idle", items: [], selectedId: null, error: null },
-    engine: { selected: "markov" },
     vault: { status: "idle", snapshot: null, error: null },
     runtime: { status: "idle", envelope: null, error: null },
     envelope: { status: "idle", forSessionId: null, data: null, error: null },
@@ -163,18 +160,6 @@ const authSlice = {
       authSignOut();
       current = initialState();
       listeners.forEach((l) => l());
-    },
-  },
-};
-
-const engineSlice = {
-  state: (s: CockpitState) => s.engine,
-  selectors: {
-    selected: (s: CockpitState) => s.engine.selected,
-  },
-  actions: {
-    select(engine: EngineId): void {
-      setSlice("engine", { selected: engine });
     },
   },
 };
@@ -482,7 +467,6 @@ export function bootstrapCockpit(): void {
 export const cockpit = {
   auth: authSlice,
   session: sessionSlice,
-  engine: engineSlice,
   vault: vaultSlice,
   runtime: runtimeSlice,
   envelope: envelopeSlice,
