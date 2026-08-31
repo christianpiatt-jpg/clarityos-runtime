@@ -28,6 +28,10 @@ export default function ChatPanel() {
   const thread = useCockpit((s) => s.thread);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  // The ring marks the answer that just arrived, then releases. It is
+  // attention moving, not a permanent highlight -- so a new turn re-arms
+  // it and the next keystroke drops it.
+  const [ringReleased, setRingReleased] = useState(false);
 
   const { status, messages, meta, error, failedSend } = thread;
 
@@ -35,6 +39,9 @@ export default function ChatPanel() {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
+
+  // A new turn landed -- re-arm.
+  useEffect(() => { setRingReleased(false); }, [messages.length]);
 
   async function onSend(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -64,9 +71,14 @@ export default function ChatPanel() {
             // share one row, and the row is skipped entirely when there is
             // nothing to put in it.
             const isAssistant = m.role === "assistant";
+            const isLatest =
+              isAssistant && i === messages.length - 1 && !ringReleased;
             const showRow = isAssistant && (Boolean(m.model) || hasDirectiveSurface(m));
             return (
-              <div key={`${m.ts_ms}-${i}`} className={"cv2-msg cv2-msg-" + m.role}>
+              <div
+                key={`${m.ts_ms}-${i}`}
+                className={"cv2-msg cv2-msg-" + m.role + (isLatest ? " is-latest" : "")}
+              >
                 <span className="cv2-msg-role">{m.role}</span>
                 <p className="cv2-msg-body">{m.content}</p>
                 {showRow ? (
@@ -134,13 +146,19 @@ export default function ChatPanel() {
         )}
       </div>
 
-      <form className="cv2-composer" onSubmit={onSend}>
+      <form
+        className={"cv2-composer" + (status === "sending" ? " is-sending" : "")}
+        onSubmit={onSend}
+      >
         <input
           className="cv2-input"
           value={input}
           placeholder="Message…"
           disabled={composerDisabled}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            setRingReleased(true);
+          }}
         />
         <button
           className="cv2-btn cv2-btn-primary"

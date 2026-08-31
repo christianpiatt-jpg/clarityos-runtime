@@ -160,6 +160,17 @@
   flex: 1 1 auto;
 }
 
+/* ONE RING IN THE ROOM. The ring lands on the answer that just arrived;
+   while a send is in flight the composer surrenders its own focus ring so
+   the two are never lit at once. Token unchanged -- 0.28 is a standing
+   ruling, and this only moves where it is drawn. */
+.cv2-msg.is-latest .cv2-msg-body {
+  box-shadow: var(--focus-ring);
+}
+
+.cv2-composer.is-sending .cv2-input:focus-visible {
+  box-shadow: none;
+}
 
 /* ---- form primitives ---- */
 .cv2-field {
