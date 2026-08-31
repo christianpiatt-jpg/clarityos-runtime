@@ -47,7 +47,12 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 340px;
+  /* insights 340 -> 420: the physics tab renders four blocks (5/6/7/5
+     fields) plus per-block prose. The chat column is minmax(0,1fr) and
+     absorbs the 80px. cockpitV2.css has no media queries -- the 800px
+     collapse in app.css:72 targets .cockpit/.rail, not .cv2-grid -- so
+     this raises the comfortable minimum width but pushes no breakpoint. */
+  grid-template-columns: 300px minmax(0, 1fr) 420px;
   gap: var(--gap);
   padding: var(--gap);
 }
@@ -154,6 +159,7 @@
 .cv2-composer .cv2-input {
   flex: 1 1 auto;
 }
+
 
 /* ---- form primitives ---- */
 .cv2-field {
