@@ -75,7 +75,7 @@ export default function ThreadInsightsPanel() {
 
   if (!meta) {
     return (
-      <section className="cv2-panel">
+      <section className="cv2-panel cv2-panel-insights">
         <header className="cv2-panel-head">Insights</header>
         <div className="cv2-panel-body">
           <p className="cv2-muted">No thread selected.</p>
@@ -85,7 +85,7 @@ export default function ThreadInsightsPanel() {
   }
 
   return (
-    <section className="cv2-panel">
+    <section className="cv2-panel cv2-panel-insights">
       <header className="cv2-panel-head">Insights</header>
       <div className="cv2-panel-body">
         <div role="tablist" aria-label="Insights view selector" className="cv2-tabs" data-testid="insights-tabs">

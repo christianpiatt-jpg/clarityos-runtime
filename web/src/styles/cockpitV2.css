@@ -117,6 +117,21 @@
   cursor: pointer;
   text-align: left;
 }
+/* ITEM 2 — Insights is the right column's grower, mirroring .cv2-chat /
+   .cv2-chat-scroll rather than inventing a second pattern. Deliberately NOT
+   flex-grow on .cv2-panel: the LEFT column (Sessions / Engine / Vault) must
+   stay content-sized, and a global grower would stretch all three. */
+.cv2-panel-insights {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cv2-panel-insights .cv2-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 
 
 .cv2-chat-scroll {
