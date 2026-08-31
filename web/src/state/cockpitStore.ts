@@ -402,6 +402,30 @@ const threadSlice = {
       }
     },
 
+    /** Start an empty thread and make it the active one.
+     *  
+     *  createThread(null) -- a null title, matching the v1 route
+     *  (Threads.tsx:191). No prompt, no modal: the use is paste-then-send,
+     *  so the thread has to land ACTIVE and EMPTY with the composer ready.
+     *  
+     *  Opens via threadSlice.actions.open rather than a second selection
+     *  path -- open() also sets session.selectedId, so the Envelope panel
+     *  follows the new thread for free. A parallel path is how the 5abeb18
+     *  orphan happened. */
+    async create(): Promise<void> {
+      if (current.thread.busy) return;
+      setSlice("thread", { busy: true, error: null });
+      try {
+        const meta = await createThread(null);
+        setSlice("thread", { items: [meta, ...current.thread.items] });
+        await threadSlice.actions.open(meta.thread_id);
+      } catch (e) {
+        setSlice("thread", { error: errMessage(e) });
+      } finally {
+        setSlice("thread", { busy: false });
+      }
+    },
+
     /** Switch the cockpit to an existing thread. The left rail lists the
      *  member's threads, so selecting one has to load it. */
     async open(threadId: string): Promise<void> {

@@ -117,6 +117,7 @@
   cursor: pointer;
   text-align: left;
 }
+
 /* ITEM 2 — Insights is the right column's grower, mirroring .cv2-chat /
    .cv2-chat-scroll rather than inventing a second pattern. Deliberately NOT
    flex-grow on .cv2-panel: the LEFT column (Sessions / Engine / Vault) must
@@ -132,7 +133,13 @@
   overflow-y: auto;
 }
 
-
+/* ITEM 3 — the Sessions head carries the + NEW button. */
+.cv2-panel-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap);
+}
 
 .cv2-chat-scroll {
   flex: 1 1 auto;

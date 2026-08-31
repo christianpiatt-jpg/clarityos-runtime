@@ -20,13 +20,26 @@ import { useCockpit, cockpit } from "../../state/cockpitStore";
 
 export default function SessionListPanel() {
   const status = useCockpit((s) => s.thread.status);
+  const busy = useCockpit((s) => s.thread.busy);
   const items = useCockpit((s) => s.thread.items);
   const activeId = useCockpit((s) => s.thread.meta?.thread_id ?? null);
   const error = useCockpit((s) => s.thread.error);
 
   return (
     <section className="cv2-panel">
-      <header className="cv2-panel-head">Sessions</header>
+      <header className="cv2-panel-head cv2-panel-head-row">
+        <span>Sessions</span>
+        {/* Paste-then-send: one click lands an empty thread, active, with
+            the composer ready. Null title, like the v1 route. */}
+        <button
+          type="button"
+          className="cv2-btn"
+          disabled={busy}
+          onClick={() => void cockpit.thread.actions.create()}
+        >
+          + NEW
+        </button>
+      </header>
       <div className="cv2-panel-body">
         {status === "loading" && items.length === 0 && <p className="cv2-muted">Loading…</p>}
         {status === "error" && <p className="cv2-err">{error}</p>}
