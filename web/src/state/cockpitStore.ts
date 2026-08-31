@@ -18,6 +18,17 @@ import { notifyLogin, signOut as authSignOut, syncProfile } from "../lib/auth";
 import { fetchSessions, type SessionMeta } from "../services/sessions";
 import { fetchRuntimeEnvelope, type RuntimeEnvelope } from "../services/runtime";
 import { fetchContinuitySnapshot, type ContinuitySnapshot } from "../services/continuity";
+// ★ lib/api declares its OWN ElinsV2Envelope / EmotionalPhysicsResponse,
+// distinct from lib/elinsV2 and lib/emotionalPhysics which the thread slice
+// uses. Two definitions of one payload -- reported, not merged here. The
+// personal slice binds to the API's, because these are the values those
+// functions actually return.
+import {
+  runElinsV2,
+  runEmotionalPhysics,
+  type ElinsV2Envelope as ApiElinsV2Envelope,
+  type EmotionalPhysicsResponse as ApiEmotionalPhysicsResponse,
+} from "../lib/api";
 import {
   listThreads,
   createThread,
@@ -37,6 +48,13 @@ import type { EmotionalPhysicsResponse } from "../lib/emotionalPhysics";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type ThreadStatus = "loading" | "ready" | "sending" | "error";
+
+/** ★ A VIEW SWITCH, not a route and not a tab. The cockpit chrome stays;
+ *  only the centre and right columns change what they render. */
+export type CockpitView = "thread" | "personal";
+
+const PERSONAL_DEFAULT_SEED =
+  "Personal current state — open snapshot for analysis.";
 
 /** ★ CT-1 ruling 2026-08-26: N = 5.
  *  Emotional Physics runs a metered vendor call, so it does not re-analyse
@@ -62,6 +80,19 @@ export interface CockpitState {
   vault: { status: LoadStatus; snapshot: ContinuitySnapshot | null; error: string | null };
   runtime: { status: LoadStatus; envelope: RuntimeEnvelope | null; error: string | null };
   envelope: { status: LoadStatus; forSessionId: string | null; data: SessionEnvelope | null; error: string | null };
+  /** Which surface the centre + right columns render. */
+  view: CockpitView;
+  /** Personal ELINS. The fetch stays a tier-2 direct call through
+   *  lib/api, exactly as routes/PersonalElins.tsx does it -- only the
+   *  RESULT lives here, so the centre and right panels read one state. */
+  personal: {
+    seed: string;
+    status: LoadStatus;
+    ep: ApiEmotionalPhysicsResponse | null;
+    elins: ApiElinsV2Envelope | null;
+    lastRunTs: number | null;
+    error: string | null;
+  };
   thread: {
     status: ThreadStatus;
     meta: ThreadMeta | null;
@@ -99,6 +130,11 @@ function initialState(): CockpitState {
     vault: { status: "idle", snapshot: null, error: null },
     runtime: { status: "idle", envelope: null, error: null },
     envelope: { status: "idle", forSessionId: null, data: null, error: null },
+    view: "thread",   // a member lands where they land today
+    personal: {
+      seed: PERSONAL_DEFAULT_SEED, status: "idle", ep: null, elins: null,
+      lastRunTs: null, error: null,
+    },
     thread: {
       status: "loading", meta: null, items: [], messages: [], error: null,
       busy: false, tab: "thread", elins: null, physics: null,
@@ -121,8 +157,15 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
+/** Keys whose value is an object. ``view`` is a bare union, and spreading a
+ *  string is not a thing -- so it is excluded here rather than wrapped in a
+ *  pointless ``{ current }`` box just to satisfy one generic. */
+type ObjectSliceKey = {
+  [K in keyof CockpitState]: CockpitState[K] extends object ? K : never
+}[keyof CockpitState];
+
 /** Replace one slice immutably (stable refs elsewhere) and notify. */
-function setSlice<K extends keyof CockpitState>(key: K, part: Partial<CockpitState[K]>): void {
+function setSlice<K extends ObjectSliceKey>(key: K, part: Partial<CockpitState[K]>): void {
   current = { ...current, [key]: { ...current[key], ...part } };
   listeners.forEach((l) => l());
 }
@@ -259,6 +302,55 @@ const sessionSlice = {
 // ELINS / Physics) read the same state instead of each owning a copy.
 // Reuses lib/api's existing thread endpoints — no new endpoint, no backend
 // change.
+const viewSlice = {
+  state: (s: CockpitState) => s.view,
+  selectors: { current: (s: CockpitState) => s.view },
+  actions: {
+    select(view: CockpitView): void {
+      if (current.view === view) return;
+      current = { ...current, view };
+      listeners.forEach((l) => l());
+    },
+  },
+};
+
+const personalSlice = {
+  state: (s: CockpitState) => s.personal,
+  selectors: {
+    seed: (s: CockpitState) => s.personal.seed,
+    ep: (s: CockpitState) => s.personal.ep,
+    elins: (s: CockpitState) => s.personal.elins,
+    status: (s: CockpitState) => s.personal.status,
+  },
+  actions: {
+    setSeed(seed: string): void { setSlice("personal", { seed }); },
+
+    /** Run the pair. Mirrors routes/PersonalElins.tsx:52-70 exactly: the
+     *  physics call is fatal to the run, the ELINS v2 call is NOT -- its
+     *  failure leaves that panel empty rather than losing the read that
+     *  did arrive. */
+    async run(text?: string): Promise<void> {
+      const seed = (text ?? current.personal.seed).trim();
+      if (!seed) return;
+      setSlice("personal", { status: "loading", error: null });
+      try {
+        const ep = await runEmotionalPhysics(seed);
+        let elins: ApiElinsV2Envelope | null = null;
+        try {
+          elins = await runElinsV2(seed);
+        } catch {
+          elins = null;   // non-fatal, same as the route
+        }
+        setSlice("personal", {
+          status: "ready", ep, elins, lastRunTs: Date.now(),
+        });
+      } catch (e) {
+        setSlice("personal", { status: "error", error: errMessage(e) });
+      }
+    },
+  },
+};
+
 const threadSlice = {
   state: (s: CockpitState) => s.thread,
   selectors: {
@@ -466,6 +558,8 @@ export function bootstrapCockpit(): void {
 /** The six slices, each with { state, selectors, actions }. */
 export const cockpit = {
   auth: authSlice,
+  view: viewSlice,
+  personal: personalSlice,
   session: sessionSlice,
   vault: vaultSlice,
   runtime: runtimeSlice,

@@ -208,93 +208,12 @@ function PersonalElinsView({
         </div>
       ) : null}
 
-      <div>
-        <label
-          htmlFor="seed-input"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            color: "var(--color-text-secondary)",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            display: "block",
-            marginBottom: 4,
-          }}
-        >Personal state — seed text</label>
-        <textarea
-          id="seed-input"
-          value={seed}
-          onChange={(e) => onSeedChange(e.target.value)}
-          rows={2}
-          aria-describedby="seed-counter"
-          style={{
-            width: "100%",
-            background: "var(--color-bg-surface-alt)",
-            color: "var(--color-text-primary)",
-            fontFamily: "var(--font-sans)",
-            fontSize: 13,
-            border: "1px solid var(--color-text-secondary)",
-            borderRadius: "var(--radius-small)",
-            padding: 8,
-            outline: "none",
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
-        {/* ★★★ THE SILENT CLIFF AT 6,000 CHARACTERS.
-            intelligence_kernel.py:1845 does `cleaned = cleaned[:6000]` and
-            its own docstring says "Truncation is silent — the call still
-            succeeds." It is a HEAD slice: it keeps the beginning and drops
-            the end. In a narrative seed the current state is at the END, so
-            a long paste returns a confident read of its oldest half with
-            nothing anywhere signalling that the rest was never seen.
-            This is the frontend half — count and warn before sending. The
-            _meta half is backend and waits on the blocked deploy. */}
-        <div
-          id="seed-counter"
-          data-testid="seed-counter"
-          style={{
-            marginTop: 4,
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            letterSpacing: "0.03em",
-            color: seed.length > SEED_CHAR_LIMIT
-              ? "var(--color-accent-red, #E74C3C)"
-              : "var(--color-text-secondary)",
-          }}
-        >
-          {seed.length.toLocaleString()} / {SEED_CHAR_LIMIT.toLocaleString()} characters
-          {seed.length > SEED_CHAR_LIMIT ? (
-            <span data-testid="seed-overflow-warning" style={{ display: "block", marginTop: 2 }}>
-              ⚠ {(seed.length - SEED_CHAR_LIMIT).toLocaleString()} characters past the
-              limit will NOT be read. The engine keeps the first{" "}
-              {SEED_CHAR_LIMIT.toLocaleString()} and silently drops the rest — and the
-              end of a seed is usually the current state. Trim from the top, not
-              the bottom.
-            </span>
-          ) : null}
-        </div>
-        <div style={{ marginTop: 8 }}>
-          <button
-            type="button"
-            onClick={onReRun}
-            disabled={loading || !seed.trim()}
-            data-testid="personal-elins-rerun"
-            style={{
-              background: "transparent",
-              border: "1px solid var(--color-accent-cyan)",
-              color: "var(--color-accent-cyan)",
-              padding: "6px 14px",
-              fontSize: 12,
-              cursor: loading || !seed.trim() ? "not-allowed" : "pointer",
-              opacity: loading || !seed.trim() ? 0.5 : 1,
-              borderRadius: 0,
-              fontFamily: "var(--font-sans)",
-              letterSpacing: "0.04em",
-            }}
-          >{loading ? "Running…" : "Re-run Personal ELINS"}</button>
-        </div>
-      </div>
+      <SeedComposer
+        seed={seed}
+        onSeedChange={onSeedChange}
+        onReRun={onReRun}
+        loading={loading}
+      />
 
       <SectionEmotionalPhysics ep={ep} />
       <SectionAttractor elins={elins} />
@@ -304,7 +223,111 @@ function PersonalElinsView({
   );
 }
 
-function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }) {
+/** The seed textarea + character counter + [Re-run] button.
+ *
+ *  ★ ONE DEFINITION. Extracted verbatim from PersonalElinsView so the
+ *  cockpit view renders the SAME control rather than a second copy --
+ *  a second copy is the vocabulary drift this build exists to stop. */
+export function SeedComposer({
+  seed, onSeedChange, onReRun, loading,
+}: {
+  seed: string;
+  onSeedChange: (s: string) => void;
+  onReRun: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor="seed-input"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          color: "var(--color-text-secondary)",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          display: "block",
+          marginBottom: 4,
+        }}
+      >Personal state — seed text</label>
+      <textarea
+        id="seed-input"
+        value={seed}
+        onChange={(e) => onSeedChange(e.target.value)}
+        rows={2}
+        aria-describedby="seed-counter"
+        style={{
+          width: "100%",
+          background: "var(--color-bg-surface-alt)",
+          color: "var(--color-text-primary)",
+          fontFamily: "var(--font-sans)",
+          fontSize: 13,
+          border: "1px solid var(--color-text-secondary)",
+          borderRadius: "var(--radius-small)",
+          padding: 8,
+          outline: "none",
+          resize: "vertical",
+          boxSizing: "border-box",
+        }}
+      />
+      {/* ★★★ THE SILENT CLIFF AT 6,000 CHARACTERS.
+          intelligence_kernel.py:1845 does `cleaned = cleaned[:6000]` and
+          its own docstring says "Truncation is silent — the call still
+          succeeds." It is a HEAD slice: it keeps the beginning and drops
+          the end. In a narrative seed the current state is at the END, so
+          a long paste returns a confident read of its oldest half with
+          nothing anywhere signalling that the rest was never seen.
+          This is the frontend half — count and warn before sending. The
+          _meta half is backend and waits on the blocked deploy. */}
+      <div
+        id="seed-counter"
+        data-testid="seed-counter"
+        style={{
+          marginTop: 4,
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          letterSpacing: "0.03em",
+          color: seed.length > SEED_CHAR_LIMIT
+            ? "var(--color-accent-red, #E74C3C)"
+            : "var(--color-text-secondary)",
+        }}
+      >
+        {seed.length.toLocaleString()} / {SEED_CHAR_LIMIT.toLocaleString()} characters
+        {seed.length > SEED_CHAR_LIMIT ? (
+          <span data-testid="seed-overflow-warning" style={{ display: "block", marginTop: 2 }}>
+            ⚠ {(seed.length - SEED_CHAR_LIMIT).toLocaleString()} characters past the
+            limit will NOT be read. The engine keeps the first{" "}
+            {SEED_CHAR_LIMIT.toLocaleString()} and silently drops the rest — and the
+            end of a seed is usually the current state. Trim from the top, not
+            the bottom.
+          </span>
+        ) : null}
+      </div>
+      <div style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={onReRun}
+          disabled={loading || !seed.trim()}
+          data-testid="personal-elins-rerun"
+          style={{
+            background: "transparent",
+            border: "1px solid var(--color-accent-cyan)",
+            color: "var(--color-accent-cyan)",
+            padding: "6px 14px",
+            fontSize: 12,
+            cursor: loading || !seed.trim() ? "not-allowed" : "pointer",
+            opacity: loading || !seed.trim() ? 0.5 : 1,
+            borderRadius: 0,
+            fontFamily: "var(--font-sans)",
+            letterSpacing: "0.04em",
+          }}
+        >{loading ? "Running…" : "Re-run Personal ELINS"}</button>
+      </div>
+    </div>
+  );
+}
+
+export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }) {
   return (
     <section data-testid="section-emotional-physics">
       <SectionHeader>1. Emotional Physics</SectionHeader>
@@ -322,7 +345,7 @@ function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }
   );
 }
 
-function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
+export function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
   return (
     <section data-testid="section-attractor">
       <SectionHeader>2. Attractor State</SectionHeader>
@@ -386,7 +409,7 @@ function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
   );
 }
 
-function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
+export function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
   const slots: Array<"P0" | "P1" | "P2" | "P3"> = ["P0", "P1", "P2", "P3"];
   return (
     <section data-testid="section-collapse-risk">
@@ -438,7 +461,7 @@ function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
   );
 }
 
-function SectionFieldWeather({ elins }: { elins: ElinsV2Envelope | null }) {
+export function SectionFieldWeather({ elins }: { elins: ElinsV2Envelope | null }) {
   return (
     <section data-testid="section-field-weather">
       <SectionHeader>4. Field Weather</SectionHeader>
