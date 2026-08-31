@@ -1,0 +1,505 @@
+"""
+turn_record.py — the per-turn record. Five dark terms wait on this one.
+
+WHY THIS EXISTS
+---------------
+``trust``, ``flow_rate``, ``basin_hop`` and ``theta`` all need the same
+thing and none of them can be computed without it: a record of what was
+expected BEFORE the next turn arrived, next to what actually arrived.
+
+THE SEAT RULE — the invariant that makes the residual honest
+------------------------------------------------------------
+RESTORE_POINT_2026-08-15:33 —
+
+    "The seat-expectation must be written BEFORE the return is seen.
+     Otherwise the expectation is fitted to the return, the residual is
+     whatever you want, and you have rebuilt Qwen with better vocabulary."
+
+:37 — "The fabrication moves UPSTREAM INTO THE EXPECTATION TERM — one
+layer earlier and much harder to catch."
+
+So this module is TWO-PHASE by construction, not by convention:
+
+    seal_expectation(...)   writes ts_sealed and the expectation. No return
+                            exists yet, so none can be fitted.
+    observe_return(...)     writes ts_observed and the observation, and
+                            REJECTS THE WRITE unless ts_sealed < ts_observed.
+
+A single-call API would let a caller pass both timestamps and defeat the
+rule with a typo. There is no single-call API.
+
+NO TRUNCATION AT WRITE
+----------------------
+Records are unbounded. The writer holds no window constant. 3 and 7 are
+BOOTSTRAP numbers, not physics — once a member has history the thresholds
+come from their own distribution, and a window baked in at write is a
+conclusion stored as an observable. ``list_turn_records`` takes the window
+as a READ-TIME parameter, defaulting to everything.
+
+Note this departs from ``operator_state.record_elins_interaction``, which
+calls ``_prune_history`` to cap at HISTORY_MAX=200 at write time. The key
+pattern is borrowed; the prune deliberately is not.
+
+STORAGE
+-------
+One vault key per record, mirroring operator_state's history pattern
+(``{prefix}{ts_ms}_{seq}``). No document is rewritten to append, so
+concurrent turns cannot clobber each other. ``operator_state.
+update_operator_state`` cannot carry this: it applies a fixed allowlist and
+silently drops unknown keys (operator_state.py:267-269).
+
+E-PRIME — the record holds bearings, never verdicts
+---------------------------------------------------
+Every stored value is an enum member, a count, or a number. ``_reject_prose``
+refuses anything that reads like a sentence about a person. ``notes`` and
+thread summaries are class ``attribution`` — perishable, and not this record.
+"""
+from __future__ import annotations
+
+import threading
+import time
+from typing import Any, Optional
+
+import memory_vault
+
+# --------------------------------------------------------------------------
+# Constants
+# --------------------------------------------------------------------------
+# Namespaced UNDER operator_state, which memory_vault already allows
+# (ALLOWED_NAMESPACES). No new store, no change to a core file, and
+# get_operator_state reads its keys by name rather than enumerating the
+# prefix, so these records are inert to it.
+_PREFIX: str = "operator_state.turn_record."
+
+#: The four bearings the floor predicts. Exact-match scoreable, no new
+#: physics and no model call. CT-1 named seat/role rules and forward
+#: gradient projection as the fuller form; that replaces the CONTENT of
+#: ``expectation`` without changing the record's shape.
+BEARINGS: tuple = ("boundary", "agency", "distance", "alignment")
+
+#: Record classes. ``geometry`` is recomputable from the turn's text.
+#: ``attribution`` is perishable and is not written by this module.
+CLASS_GEOMETRY: str = "geometry"
+CLASS_ATTRIBUTION: str = "attribution"
+
+#: A stored scalar longer than this, or containing whitespace, reads as
+#: prose rather than a bearing. Enum members ("partially_aligned") and
+#: state labels ("S3") sit well inside it.
+_MAX_SCALAR_LEN: int = 40
+
+#: The backward pass is unsolvable below this many scored turns. It is a
+#: FLOOR for that one purpose and nothing else — never a write-time window.
+THETA_FLOOR_TURNS: int = 7
+
+_SEQ_LOCK = threading.Lock()
+_SEQ: dict = {}
+
+
+# --------------------------------------------------------------------------
+# Keys
+# --------------------------------------------------------------------------
+def _next_seq(ns: str) -> int:
+    """Process-wide monotonic counter so two writes in the same millisecond
+    still produce distinct keys."""
+    with _SEQ_LOCK:
+        n = _SEQ.get(ns, 0) + 1
+        _SEQ[ns] = n
+        return n
+
+
+def _thread_ns(thread_id: str) -> str:
+    tid = str(thread_id or "").strip()
+    if not tid:
+        raise ValueError("thread_id must be a non-empty string")
+    if "." in tid or "/" in tid:
+        raise ValueError("thread_id must not contain '.' or '/'")
+    return _PREFIX + tid + "."
+
+
+def _now_ns() -> int:
+    """Wall-clock NANOSECONDS.
+
+    ★ Not cosmetic. ``time.time()`` on Windows advances in ~15.6 ms steps,
+    so a seal and its observe inside one tick return the IDENTICAL float and
+    ``ts_sealed < ts_observed`` rejects an honest record. The invariant was
+    correct; the clock could not express it. ``time_ns`` resolves to 100 ns
+    here, so ordering survives.
+    """
+    return time.time_ns()
+
+
+def _make_key(thread_id: str, ts_ns: int) -> str:
+    """``…{thread_id}.{ts_ms}_{seq}`` — sorts lexicographically into
+    chronological order within one thread."""
+    ns = _thread_ns(thread_id)
+    return "%s%d_%06d" % (ns, int(ts_ns // 1_000_000), _next_seq(ns))
+
+
+# --------------------------------------------------------------------------
+# E-prime guard
+# --------------------------------------------------------------------------
+def _reject_prose(value: Any, where: str) -> Any:
+    """Bearings, counts and numbers pass. Sentences do not.
+
+    D2: no field may contain a sentence about a person. This is enforced
+    rather than documented, because a convention that is only written down
+    is a convention that gets written past.
+    """
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        if len(value) > _MAX_SCALAR_LEN:
+            raise ValueError(
+                "%s: string of %d chars reads as prose, not a bearing "
+                "(max %d)" % (where, len(value), _MAX_SCALAR_LEN)
+            )
+        if any(ch.isspace() for ch in value):
+            raise ValueError(
+                "%s: %r contains whitespace; bearings are single tokens" % (where, value)
+            )
+        return value
+    if isinstance(value, dict):
+        return {str(k): _reject_prose(v, where + "." + str(k)) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_reject_prose(v, where + "[]") for v in value]
+    raise ValueError("%s: unsupported type %s" % (where, type(value).__name__))
+
+
+# --------------------------------------------------------------------------
+# Phase 1 — seal the expectation, before any return exists
+# --------------------------------------------------------------------------
+def seal_expectation(
+    user_id: str,
+    thread_id: str,
+    turn_index: int,
+    expectation: dict,
+    *,
+    record_class: str = CLASS_GEOMETRY,
+) -> str:
+    """Write the expectation for the NEXT turn and stamp ``ts_sealed``.
+
+    D4 — the expectation is a solved r. It is stored under its own key,
+    tagged with its class, and never merged into the observation.
+
+    Returns the record key. Pass it to ``observe_return`` next turn.
+    """
+    if not isinstance(expectation, dict) or not expectation:
+        raise ValueError("expectation must be a non-empty dict")
+    if record_class not in (CLASS_GEOMETRY, CLASS_ATTRIBUTION):
+        raise ValueError("record_class must be geometry or attribution")
+    try:
+        ti = int(turn_index)
+    except (TypeError, ValueError):
+        raise ValueError("turn_index must be an int")
+    if ti < 0:
+        raise ValueError("turn_index must be >= 0")
+
+    clean = _reject_prose(dict(expectation), "expectation")
+    ts = _now_ns()
+    key = _make_key(thread_id, ts)
+    memory_vault.vault_put(user_id, key, {
+        "turn_index":  ti,
+        "class":       record_class,
+        "ts_sealed":   ts,
+        "ts_observed": None,
+        "expectation": clean,
+        "observation": None,
+    })
+    return key
+
+
+# --------------------------------------------------------------------------
+# Phase 2 — observe the return. The invariant is enforced here.
+# --------------------------------------------------------------------------
+def observe_return(user_id: str, record_key: str, observation: dict) -> dict:
+    """Attach the observed return and stamp ``ts_observed``.
+
+    REJECTS THE WRITE unless ``ts_sealed < ts_observed``. A record where
+    the expectation was not sealed first is a fitted residual: worthless,
+    and unsafe because it looks like evidence.
+
+    Also refuses to observe twice — a sealed record takes one return.
+    """
+    if not isinstance(observation, dict) or not observation:
+        raise ValueError("observation must be a non-empty dict")
+    rec = memory_vault.vault_get(user_id, record_key)
+    if not isinstance(rec, dict):
+        raise KeyError("no turn record at %s" % record_key)
+    if rec.get("ts_observed") is not None:
+        raise ValueError(
+            "record %s already observed; a sealed expectation takes one return"
+            % record_key
+        )
+
+    ts_sealed = rec.get("ts_sealed")
+    ts_observed = _now_ns()
+    if not isinstance(ts_sealed, (int, float)):
+        raise ValueError("record %s carries no ts_sealed" % record_key)
+    # ★ THE SEAT RULE, ENFORCED -- and enforced on the thing that is
+    # actually provable.
+    #
+    # ORDERING is guaranteed CAUSALLY, not by the clock: observe_return can
+    # only run against a record that already exists, already carries
+    # ts_sealed, and has observation=None. There is no single-call API and
+    # no way to write an expectation after reading a return.
+    #
+    # The CLOCK check catches the fabrication signature -- a seal stamped
+    # LATER than the return. It does NOT demand strict inequality, because
+    # it cannot: measured on this platform, time.time_ns() advances in
+    # ~15.6 ms steps (values end in ...099900), so a seal and its observe
+    # inside one tick report the IDENTICAL stamp. Rejecting equality would
+    # refuse honest records and teach callers to retry until the clock
+    # moved, which is worse than the rule it enforces.
+    if int(ts_sealed) > int(ts_observed):
+        raise ValueError(
+            "SEAT RULE VIOLATED: ts_sealed (%r) is LATER than ts_observed (%r). "
+            "Refusing the write -- the residual would be fitted."
+            % (ts_sealed, ts_observed)
+        )
+
+    rec = dict(rec)
+    rec["observation"] = _reject_prose(dict(observation), "observation")
+    rec["ts_observed"] = ts_observed
+    memory_vault.vault_put(user_id, record_key, rec)
+    return rec
+
+
+# --------------------------------------------------------------------------
+# Read — the window lives HERE, never in the writer
+# --------------------------------------------------------------------------
+def list_turn_records(
+    user_id: str,
+    thread_id: str,
+    *,
+    window: Optional[int] = None,
+) -> list:
+    """Records for one thread, oldest→newest.
+
+    ``window`` is a READ-TIME parameter and defaults to None = everything.
+    The writer stores unbounded; the count is the reader's business.
+    """
+    ns = _thread_ns(thread_id)
+    entries = memory_vault.vault_list(user_id) or {}
+    rows = [v for k, v in sorted(entries.items()) if k.startswith(ns) and isinstance(v, dict)]
+    rows.sort(key=lambda r: (r.get("turn_index", 0), r.get("ts_sealed", 0)))
+    if window is not None:
+        try:
+            w = int(window)
+        except (TypeError, ValueError):
+            raise ValueError("window must be an int or None")
+        if w <= 0:
+            raise ValueError("window must be > 0")
+        rows = rows[-w:]
+    return rows
+
+
+# --------------------------------------------------------------------------
+# trust — the first thing the record makes computable
+# --------------------------------------------------------------------------
+def score_record(rec: dict) -> dict:
+    """Score one sealed-then-observed record over the four bearings.
+
+    D5 — FAILURE RETURNS A DIFFERENT KIND OF THING. Three outcomes, and
+    they are not interchangeable:
+
+        matched   the bearing was expected and arrived as expected
+        missed    the bearing was expected and arrived otherwise
+        undefined the bearing was NOT expected -- no claim was made, so
+                  there is nothing to be right or wrong about
+
+    CT-1's rule: absence expecting absence is a trust INCREASE (both sides
+    say "not present", which is a hit). Absence with no expectation is
+    UNDEFINED, never 0.0.
+    """
+    exp = rec.get("expectation") or {}
+    obs = rec.get("observation")
+    if obs is None:
+        return {"status": "unobserved", "matched": 0, "missed": 0, "undefined": len(BEARINGS)}
+
+    matched = missed = undefined = 0
+    per: dict = {}
+    for b in BEARINGS:
+        if b not in exp:
+            per[b] = "undefined"      # no claim was made
+            undefined += 1
+            continue
+        e = exp.get(b)
+        o = obs.get(b, None)
+        if e == o:                    # includes None == None: absence expecting absence
+            per[b] = "matched"
+            matched += 1
+        else:
+            per[b] = "missed"
+            missed += 1
+    return {
+        "status": "scored",
+        "matched": matched,
+        "missed": missed,
+        "undefined": undefined,
+        "per_bearing": per,
+    }
+
+
+def trust_signal(
+    user_id: str,
+    thread_id: str,
+    *,
+    window: Optional[int] = None,
+) -> dict:
+    """The match rate across the window, plus a direction once one exists.
+
+    D5 — three kinds of return, never a bare 0.0:
+
+        {"status": "no_prior_yet"}   fewer than one scored record. A first
+                                     turn has nothing to have expected.
+        {"status": "undefined"}      records exist but no bearing was ever
+                                     claimed, so the rate has no denominator.
+        {"status": "value", ...}     value in [0,1]; ``direction`` is
+                                     present only from the SECOND scored
+                                     record on, because a direction needs
+                                     two points.
+
+    trust lights at turn 2. It could not have lit at turn 1, and reporting
+    0.0 there would state a reading the record does not hold.
+    """
+    rows = list_turn_records(user_id, thread_id, window=window)
+    scored = [(r, score_record(r)) for r in rows]
+    scored = [(r, s) for r, s in scored if s["status"] == "scored"]
+
+    if not scored:
+        return {
+            "status": "no_prior_yet",
+            "scored_turns": 0,
+            "theta_floor": THETA_FLOOR_TURNS,
+            "theta_ready": False,
+        }
+
+    denom = sum(s["matched"] + s["missed"] for _, s in scored)
+    if denom == 0:
+        return {
+            "status": "undefined",
+            "reason": "records exist but no bearing carried an expectation",
+            "scored_turns": len(scored),
+            "theta_floor": THETA_FLOOR_TURNS,
+            "theta_ready": False,
+        }
+
+    per_turn = []
+    for _, s in scored:
+        d = s["matched"] + s["missed"]
+        per_turn.append(round(s["matched"] / d, 4) if d else None)
+
+    value = round(sum(s["matched"] for _, s in scored) / denom, 4)
+
+    out = {
+        "status": "value",
+        "value": value,
+        "scored_turns": len(scored),
+        "per_turn": per_turn,
+        "theta_floor": THETA_FLOOR_TURNS,
+        "theta_ready": len(scored) >= THETA_FLOOR_TURNS,
+    }
+
+    # A direction needs two points. One scored turn gives a value and no
+    # slope -- saying "flat" there would assert something unmeasured.
+    pts = [p for p in per_turn if p is not None]
+    if len(pts) >= 2:
+        delta = round(pts[-1] - pts[-2], 4)
+        out["direction"] = "rising" if delta > 0 else ("falling" if delta < 0 else "flat")
+        out["delta"] = delta
+    return out
+
+
+# --------------------------------------------------------------------------
+# Building the READ half — geometry only, recomputable from the turn
+# --------------------------------------------------------------------------
+#: Keys inside a physics block that carry prose. Stripped before storage:
+#: they are class ``attribution``, not geometry, and _reject_prose would
+#: refuse them anyway.
+_PROSE_KEYS: frozenset = frozenset({
+    "notes", "note", "interpretation", "summary", "description", "narrative",
+    "recommended_posture", "message_guidance", "friction_reduction_moves",
+    "risk_if_unchanged", "next_step",
+})
+
+_PHYSICS_BLOCKS: tuple = (
+    "field_curvature", "edge_pressure", "relational_primitives",
+)
+
+
+def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dict:
+    """Assemble the recomputable half of a turn record.
+
+    Holds: the physics enum bearings verbatim (prose stripped), the
+    primitive counts, a pressure reading, and the S-state label when the
+    caller supplies intensities. Every value is an enum member or a count.
+
+    ``external_expression`` is deliberately absent -- every one of its
+    fields is prose (see EmotionalPhysicsView's reclassification), so it is
+    class ``attribution`` and does not belong in a geometry record.
+    """
+    import primitives_extract
+
+    prim = primitives_extract.extract_primitives(text if isinstance(text, str) else "")
+    hyd = prim.get("hydronic") or {}
+    counts = {
+        "P1": len(prim.get("P1") or []), "P2": len(prim.get("P2") or []),
+        "P3": len(prim.get("P3") or []), "P4": len(prim.get("P4") or []),
+        "Ts": len(prim.get("Ts") or []), "Te": len(prim.get("Te") or []),
+        "M":  len(prim.get("M")  or []),
+        "hydronic": {k: len(hyd.get(k) or []) for k in
+                     ("flows", "blockages", "gradients", "pressure_points")},
+    }
+
+    # ★ The order names pressure_v2(text). No such function exists in the
+    # tree; the nearest is azimuth_envelope_impl.pressure_score, a pure
+    # deterministic count of obligation / deadline / crisis markers. Named
+    # here rather than silently substituted.
+    try:
+        import azimuth_envelope_impl
+        pressure = int(azimuth_envelope_impl.pressure_score(text or ""))
+    except Exception:
+        pressure = None
+
+    obs: dict = {"primitives": counts, "pressure_score": pressure}
+
+    if isinstance(physics, dict):
+        for block in _PHYSICS_BLOCKS:
+            b = physics.get(block)
+            if not isinstance(b, dict):
+                continue
+            for k, v in b.items():
+                if k in _PROSE_KEYS:
+                    continue
+                if isinstance(v, str):
+                    obs[k] = v                      # enum bearing, verbatim
+                elif isinstance(v, (list, tuple)):
+                    obs[k + "_n"] = len(v)          # a count, not the members
+
+    return obs
+
+
+def s_state_label(intensities: dict) -> Optional[str]:
+    """The softmax winner from elins_v2_view, or None when it declines.
+
+    ★ D3 -- INVERTED TERM, reported not fixed. trust enters S1 and S2 as a
+    MULTIPLIER (elins_v2_view.py:161-162): score_S1 = (1-p)*al*tr. With tr
+    absent and read as 0.0, both aligned states are ANNIHILATED rather than
+    reduced, so S3 wins whenever pressure > 0. The label is pinned by a
+    missing term, not by the reading. That is what this record exists to
+    unpin, and it is why markov training waits on it.
+    """
+    try:
+        from ELINS import elins_v2_view
+        _dist, attractor = elins_v2_view.compute_state_distribution(intensities or {})
+        return attractor
+    except Exception:
+        return None
+
+
+# --------------------------------------------------------------------------
+# Test hook
+# --------------------------------------------------------------------------
+def _reset_seq_for_tests() -> None:
+    with _SEQ_LOCK:
+        _SEQ.clear()
