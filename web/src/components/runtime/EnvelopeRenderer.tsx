@@ -33,6 +33,7 @@ const LAYERS: LayerSpec[] = [
   { id: "universal_physics",         title: "v13 universal_physics",        field: "universal_physics" },
   { id: "coherence",                 title: "v14 coherence",                field: "coherence" },
   { id: "external_context",          title: "v15 external_context",         field: "external_context" },
+  { id: "s_strategy_layer",          title: "v16 s_strategy (Sun Tzu)",     field: "s_strategy_layer" },
   { id: "physics_reasoning_context", title: "v17 physics_reasoning_context",field: "physics_reasoning_context" },
   { id: "reasoning_cues",            title: "v18 reasoning_cues",           field: "reasoning_cues" },
   { id: "reasoning_weights",         title: "v19 reasoning_weights",        field: "reasoning_weights" },

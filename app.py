@@ -8242,6 +8242,11 @@ def _evolve_envelope(
         "universal_physics": universal_physics_block,                              # v13
         "coherence": coherence_report,                                             # v14
         "external_context": external_context_block,                                # v15
+        # v16 — the key is declared in the canonical list (app.py:3724) but was
+        # only ever written nested under `elins`. Two readers, one value: the
+        # nested write below stays for v17. Written even when {} -- a labelled
+        # empty box beats an invisible absence.
+        "s_strategy_layer": s_strategy_layer_built,                                # v16
         "physics_reasoning_context": physics_reasoning_context,                    # v17
         "reasoning_cues": reasoning_cues,                                          # v18
         "reasoning_weights": reasoning_weights,                                    # v19

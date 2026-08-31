@@ -33,6 +33,7 @@ export interface RuntimeEnvelope {
   universal_physics?: Record<string, unknown>;
   coherence?: Record<string, unknown>;
   external_context?: Record<string, unknown>;
+  s_strategy_layer?: Record<string, unknown>;
   physics_reasoning_context?: Record<string, unknown>;
   reasoning_cues?: Record<string, unknown>;
   reasoning_weights?: Record<string, unknown>;
