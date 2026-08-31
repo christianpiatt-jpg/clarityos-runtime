@@ -100,6 +100,25 @@
   flex: 1 1 auto;
 }
 
+/* ITEM 1 — the Runtime head is a button now. It must still read as the
+   panel header, so it inherits .cv2-panel-head and only drops the button
+   chrome. */
+.cv2-panel-head-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--os-line);
+  font: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-align: left;
+}
+
+
 .cv2-chat-scroll {
   flex: 1 1 auto;
   min-height: 0;
