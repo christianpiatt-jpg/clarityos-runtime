@@ -131,10 +131,33 @@ CONF_NO_BASIS: str = "no_basis"             # SENTINEL -- nothing contributed
 CONF_SINGLE_READING: str = "single_reading"
 CONF_MULTI_READING: str = "multi_reading"
 
+#: THE CROSSING MARKER -- did this return cross a NON-INVERTING node?
+#:
+#: A non-inverting node responds without interpreting: the world, a
+#: filesystem, an exit code, an HTTP status, a byte count. An INVERTING
+#: node emits carrier-shaped output -- a user, a model, any lane.
+#:
+#: *** WHY THE RECORD NEEDS IT. An interior turn and an act-and-return
+#: turn are THE SAME SHAPE ON DISK without this field. A later reader
+#: cannot tell evidence from echo, and no amount of care at read time
+#: recovers a distinction that was never written down.
+#:
+#: ** SIBLING of provenance, not a replacement. provenance says WHERE a
+#: value came from; crossing says WHETHER it has been outside the
+#: interior. A value can be OBSERVED_THIS_CALL and still have crossed
+#: nothing -- that is exactly the turn path today.
+CROSSED_WORLD: str = "world"                # an act intervened
+CROSSED_INSTRUMENT: str = "instrument"      # a tool read it
+CROSSING_NEITHER: str = "neither"           # interior only -- ECHO
+CROSSING_UNDETERMINED: str = "undetermined"  # SENTINEL -- a different KIND
+
 _PROVENANCE_TOKENS: frozenset = frozenset(
     {PROV_OBSERVED, PROV_DERIVED, PROV_INHERITED, PROV_UNKNOWN})
 _CONFIDENCE_TOKENS: frozenset = frozenset(
     {CONF_NO_BASIS, CONF_SINGLE_READING, CONF_MULTI_READING})
+_CROSSING_TOKENS: frozenset = frozenset(
+    {CROSSED_WORLD, CROSSED_INSTRUMENT, CROSSING_NEITHER,
+     CROSSING_UNDETERMINED})
 
 #: The carrier key. ``build_geometry_observation`` stamps its own reading
 #: here and ``observe_return`` LIFTS IT OUT before storing, so the stored
@@ -293,6 +316,10 @@ def seal_expectation(
             "expectation": CONF_SINGLE_READING if claimed else CONF_NO_BASIS,
             "observation": CONF_NO_BASIS,
         },
+        # The marker describes THE RETURN, and at seal time no return
+        # exists. Undetermined is the honest reading, and it is a
+        # different KIND from both crossed and did-not-cross.
+        "crossing": CROSSING_UNDETERMINED,
     })
     return key
 
@@ -354,11 +381,20 @@ def observe_return(user_id: str, record_key: str, observation: dict) -> dict:
     cop = incoming.pop(_COP_KEY, None)
 
     obs_prov, obs_conf = PROV_UNKNOWN, CONF_NO_BASIS
+    crossing = CROSSING_UNDETERMINED
     if isinstance(cop, dict):
         if cop.get("provenance") in _PROVENANCE_TOKENS:
             obs_prov = cop["provenance"]
         if cop.get("confidence") in _CONFIDENCE_TOKENS:
             obs_conf = cop["confidence"]
+        # *** A marker that GUESSES is worse than no marker: it launders
+        # echo as evidence. An unstamped or unrecognised value stays
+        # UNDETERMINED. It is never inferred from the payload, and never
+        # from the text -- text is carrier-shaped output from an
+        # inverting node, so reading crossing out of it would be the
+        # laundering itself.
+        if cop.get("crossing") in _CROSSING_TOKENS:
+            crossing = cop["crossing"]
 
     # *** NO BACKFILL. A record sealed BEFORE this commit carries no
     # provenance dict, and it cannot know what its expectation was built
@@ -376,6 +412,7 @@ def observe_return(user_id: str, record_key: str, observation: dict) -> dict:
     rec["ts_observed"] = ts_observed
     rec["provenance"] = prov
     rec["confidence"] = conf
+    rec["crossing"] = crossing
     memory_vault.vault_put(user_id, record_key, rec)
     return rec
 
@@ -684,11 +721,30 @@ def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dic
     # from the text that just arrived. So it stamps the provenance itself
     # rather than letting a downstream writer assert it second-hand. The
     # stamp rides under the carrier key and never reaches storage.
+    # *** THE CROSSING MARKER, DERIVED -- not guessed, and not read out
+    # of the text.
+    #
+    # It is derived from this function INPUT SET, which is static and
+    # checkable: primitives_extract imports only re and typing, and
+    # azimuth_envelope_impl.pressure_score is arithmetic over the
+    # normalised text. No filesystem, no socket, no exit code, no status.
+    # A reading assembled only from pure functions of interior text
+    # PROVABLY did not cross a non-inverting node.
+    #
+    # ** The distinction that keeps this honest: deriving the marker from
+    # what the producer READ is checkable, while inferring it from what
+    # the text SAYS would let a member describe an act and have the
+    # record score it as one. The second is the laundering. This is not.
+    #
+    # * A caller that genuinely crossed something -- ran a command, read
+    # an exit code, took an HTTP status -- supplies its own token. This
+    # function cannot, because it never does.
     obs[_COP_KEY] = {
         "provenance": PROV_OBSERVED,
         "confidence": (CONF_NO_BASIS if readings == 0 else
                        CONF_SINGLE_READING if readings == 1 else
                        CONF_MULTI_READING),
+        "crossing": CROSSING_NEITHER,
     }
     return obs
 

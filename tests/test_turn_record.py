@@ -380,3 +380,88 @@ def test_widening_the_allowlist_reclassifies_nothing_already_written():
     tr.seal_expectation(U, T, 1, {"boundary": "clear"},
                         record_class=tr.CLASS_RATIO)
     assert memory_vault.vault_get(U, old)["class"] == before == tr.CLASS_GEOMETRY
+
+
+# --------------------------------------------------------------------------
+# The crossing marker — evidence is a return that crossed a non-inverting node
+# --------------------------------------------------------------------------
+# ★★★ WHAT THESE PIN. An interior turn and an act-and-return turn are the
+# same shape on disk without this field. The failure mode is not a missing
+# marker — it is a marker that GUESSES, because that launders echo as
+# evidence and there is no way to tell afterwards which rows were laundered.
+def test_T1_round_trip_all_three_fields_survive_storage():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear",
+                                        "source": tr.SOURCE_PERSISTENCE})
+    tr.observe_return(U, key, tr.build_geometry_observation("The ridge is held."))
+    rec = memory_vault.vault_get(U, key)          # RELOAD, not the return value
+    assert rec["provenance"]["observation"] == tr.PROV_OBSERVED
+    assert rec["confidence"]["observation"] in tr._CONFIDENCE_TOKENS
+    assert rec["crossing"] == tr.CROSSING_NEITHER
+
+
+def test_T2_no_basis_is_a_sentinel_and_never_a_number():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    rec = memory_vault.vault_get(U, key)
+    # At seal time there is no return, so there is nothing to have crossed.
+    assert rec["crossing"] == tr.CROSSING_UNDETERMINED
+    assert isinstance(rec["crossing"], str)
+    assert not isinstance(rec["crossing"], (int, float))
+
+
+def test_T2b_an_unstamped_or_invalid_marker_stays_undetermined():
+    for obs in ({"boundary": "clear"},
+                {"boundary": "clear", "_cop": {"crossing": "probably"}}):
+        memory_vault._reset_for_tests()
+        tr._reset_seq_for_tests()
+        key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+        tr.observe_return(U, key, obs)
+        # ★ Never inferred from the payload, never from the text.
+        assert memory_vault.vault_get(U, key)["crossing"] == tr.CROSSING_UNDETERMINED
+
+
+def test_T3_a_row_written_before_this_commit_reloads_with_sentinels():
+    key = tr._make_key(T, tr._now_ns())
+    memory_vault.vault_put(U, key, {                  # pre-commit SHAPE
+        "turn_index": 0, "class": "geometry",
+        "ts_sealed": tr._now_ns(), "ts_observed": None,
+        "expectation": {"boundary": "clear", "source": "persistence"},
+        "observation": None,
+    })
+    tr.observe_return(U, key, {"boundary": "clear"})
+    rec = memory_vault.vault_get(U, key)
+    # ★★★ It cannot know whether an act intervened before it existed.
+    assert rec["crossing"] == tr.CROSSING_UNDETERMINED
+    assert rec["provenance"]["expectation"] == tr.PROV_UNKNOWN
+    assert rec["confidence"]["expectation"] == tr.CONF_NO_BASIS
+
+
+def test_T4_a_fifth_class_named_trust_is_refused():
+    with pytest.raises(ValueError):
+        tr.seal_expectation(U, T, 0, {"boundary": "clear"}, record_class="trust")
+
+
+def test_T5_the_new_fields_do_not_bypass_the_seat_rule_guards():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    stamped = tr.build_geometry_observation("Held.")
+    tr.observe_return(U, key, stamped)
+    # A sealed expectation still takes exactly one return, carrier or not.
+    with pytest.raises(ValueError):
+        tr.observe_return(U, key, stamped)
+    # A record carrying no ts_sealed is still refused.
+    bad = tr._make_key(T, tr._now_ns())
+    memory_vault.vault_put(U, bad, {"turn_index": 0, "class": "geometry",
+                                    "ts_observed": None, "expectation": {"a": 1},
+                                    "observation": None})
+    with pytest.raises(ValueError):
+        tr.observe_return(U, bad, stamped)
+
+
+def test_the_marker_is_a_sibling_of_provenance_not_a_replacement():
+    # ★ A value can be OBSERVED_THIS_CALL and still have crossed nothing.
+    # That is the turn path today, and the two fields must be able to say
+    # so at the same time without contradicting each other.
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    tr.observe_return(U, key, tr.build_geometry_observation("The ridge is held."))
+    rec = memory_vault.vault_get(U, key)
+    assert rec["provenance"]["observation"] == tr.PROV_OBSERVED
+    assert rec["crossing"] == tr.CROSSING_NEITHER
