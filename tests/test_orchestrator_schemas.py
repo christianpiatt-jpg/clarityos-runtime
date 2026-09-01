@@ -462,11 +462,10 @@ class TestRuntimeGuards:
 # Skeleton invariants — every function raises NotImplementedError
 # ===========================================================================
 class TestSkeletonsRaise:
-    def test_routing_route_request_skeleton(self):
-        with pytest.raises(NotImplementedError):
-            orchestrator_routing.route_request(
-                _make_request(), (), (),
-            )
+    # ★ route_request is NO LONGER A SKELETON (board #50). Its
+    # NotImplementedError assertion is removed rather than left to assert
+    # a thing that stopped being true. select_agent and
+    # build_execution_plan below still raise, and still say so.
 
     def test_routing_select_agent_skeleton(self):
         with pytest.raises(NotImplementedError):
@@ -668,3 +667,107 @@ class TestCrossModuleTypes:
         assert result.final_propagation.active_constraints == prop.active_constraints
         assert result.halt_state.propagation_at_halt.identity_profile == prop.identity_profile
         assert result.checkpoints[0].propagation.drift_state == prop.drift_state
+
+
+# ===========================================================================
+# board #50 — route_request implemented, in SHADOW
+# ===========================================================================
+def _agent(agent_id: str, caps: tuple, tiers: tuple) -> schemas.AgentBinding:
+    return schemas.AgentBinding(
+        agent_id=agent_id, capabilities=caps, authorized_tiers=tiers,
+    )
+
+
+class TestRouteRequest:
+    def test_empty_registry_returns_a_halt_not_a_selection(self):
+        """★ D5 — failure returns a DIFFERENT KIND than a decision.
+
+        This is the LIVE case: zero AgentBinding instantiations exist
+        tree-wide, so production routes into exactly this branch."""
+        d = orchestrator_routing.route_request(_make_request(), (), ())
+        assert d.selected_agent == orchestrator_routing.HALT_AGENT
+        assert "no_agent_qualifies" in d.rationale
+        assert d.request_id == "req_test"
+
+    def test_capability_match_selects_and_names_its_tiebreak(self):
+        agents = (
+            _agent("zeta", ("elins_run",), (schemas.AuthorizationTier.EXECUTE,)),
+            _agent("alpha", ("elins_run",), (schemas.AuthorizationTier.EXECUTE,)),
+            _agent("gamma", ("other",), (schemas.AuthorizationTier.EXECUTE,)),
+        )
+        d = orchestrator_routing.route_request(_make_request(), agents, ())
+        assert d.selected_agent == "alpha", "tie-break is lexicographic by agent_id"
+        assert "tiebreak=agent_id_lexicographic" in d.rationale
+
+    def test_tier_filter_excludes_an_unauthorized_agent(self):
+        agents = (
+            _agent("reader", ("elins_run",), (schemas.AuthorizationTier.READ,)),
+        )
+        d = orchestrator_routing.route_request(_make_request(), agents, ())
+        assert d.selected_agent == orchestrator_routing.HALT_AGENT
+        assert "tier_eligible=0" in d.rationale
+
+    def test_absolute_halt_constraint_halts_even_with_a_matching_agent(self):
+        """★ The locked invariant is NEVER select an agent that violates an
+        ABSOLUTE constraint. AgentBinding carries no constraint linkage, so
+        non-violation cannot be PROVEN -- the invariant is satisfied the only
+        honest way available: halt."""
+        agents = (
+            _agent("alpha", ("elins_run",), (schemas.AuthorizationTier.EXECUTE,)),
+        )
+        c = schemas.ConstitutionalConstraint(
+            rule_id="C1", statement="s", severity=schemas.Severity.ABSOLUTE,
+            enforcement=schemas.EnforcementMode.HALT,
+        )
+        d = orchestrator_routing.route_request(_make_request(), agents, (c,))
+        assert d.selected_agent == orchestrator_routing.HALT_AGENT
+        assert orchestrator_routing.UNMAPPED in d.rationale
+
+    def test_constraints_are_never_dropped(self):
+        """Locked invariant: constraints do not vanish between the request
+        and the decision."""
+        c = schemas.ConstitutionalConstraint(
+            rule_id="C2", statement="s", severity=schemas.Severity.ADVISORY,
+            enforcement=schemas.EnforcementMode.ALLOW_WITH_WARNING,
+        )
+        d = orchestrator_routing.route_request(_make_request(), (), (c,))
+        assert c in d.constraints_attached
+
+    def test_request_is_never_mutated(self):
+        req = _make_request()
+        before = (req.request_id, req.request_type, dict(req.payload))
+        orchestrator_routing.route_request(req, (), ())
+        assert (req.request_id, req.request_type, dict(req.payload)) == before
+
+
+class TestShadowHandoffLog:
+    def test_it_is_shadow_and_says_so(self):
+        req = _make_request()
+        d = orchestrator_routing.route_request(req, (), ())
+        out = orchestrator_routing.log_shadow_handoff(req, d, ())
+        assert out["acted_on"] is False, "nothing may route on a shadow decision"
+        assert out["interp"]["reading"] is True, "D4 — marked as a reading"
+
+    def test_it_carries_the_three_part_shape(self):
+        req = _make_request()
+        d = orchestrator_routing.route_request(req, (), ())
+        out = orchestrator_routing.log_shadow_handoff(req, d, ())
+        assert set(out) >= {"signal", "interp", "decision"}
+        assert set(out["interp"]) >= {"forward", "backward", "geometry"}
+
+    def test_geometry_carries_no_proper_noun_or_system_term(self):
+        """★ §14.1 hard rule: if GEOMETRY cannot be written without a proper
+        noun or a system-specific term, the backward read was not finished."""
+        req = _make_request()
+        d = orchestrator_routing.route_request(req, (), ())
+        geom = orchestrator_routing.log_shadow_handoff(req, d, ())["interp"]["geometry"]
+        for banned in ("ClarityOS", "ELINS", "thread", "agent", "alice", "elins_run"):
+            assert banned.lower() not in geom.lower(), (
+                "geometry must be portable; %r is system-specific" % banned
+            )
+
+    def test_the_member_text_never_reaches_the_log(self):
+        req = _make_request()          # payload carries "ignored by tests"
+        d = orchestrator_routing.route_request(req, (), ())
+        blob = repr(orchestrator_routing.log_shadow_handoff(req, d, ()))
+        assert "ignored by tests" not in blob

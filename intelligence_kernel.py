@@ -57,6 +57,8 @@ import kernel_logging
 import local_model_runtime           # v45 — on-device inference runtime
 import memory_vault                  # v46 — encrypted local KV store
 import turn_record                   # W1_TURN — the per-turn record (seal/observe)
+import orchestrator_routing          # board #50 — routing handoff, SHADOW ONLY
+import orchestrator_schemas          # locked schemas — conformed to, never amended
 import model_router
 import operator_state
 import perplexity_oracle
@@ -1006,6 +1008,40 @@ def run_thread_message(
         logger.warning(
             "turn_record hook FAILED err=%s: %s",
             type(_tr_exc).__name__, _tr_exc, exc_info=True,
+        )
+
+    # board #50 — the ROUTING HANDOFF, in SHADOW.
+    #
+    # ★ NOTHING ROUTES ON THIS. The decision is computed and logged; no
+    # call path changes and no response differs. A server-side handoff is
+    # the only place an E/r ratio can be mounted, and today a browser tab
+    # calls two engines in sequence with no coordinator between them (HAR
+    # 2026-09-01: analyze 6058ms then run 545ms, SEQUENTIAL, client-driven).
+    # This creates the mounting point and nothing else.
+    #
+    # ★★ available_agents=() is NOT a placeholder. Measured tree-wide:
+    # ZERO AgentBinding instantiations exist. The registry is empty, so the
+    # decision halts -- and the halt IS the finding, recorded rather than
+    # papered over with a fabricated agent.
+    try:
+        _rt_req = orchestrator_schemas.RoutingRequest(
+            request_id=thread_id,
+            request_type="thread_message",
+            payload={"content_len": len(text or "")},   # length, never the text
+            identity=orchestrator_schemas.IdentityProfile(
+                actor=user_id,
+                actor_kind=orchestrator_schemas.ActorKind.USER,
+                sovereignty_level=orchestrator_schemas.SovereigntyLevel.USER_OWNED,
+                authorization_tier=orchestrator_schemas.AuthorizationTier.EXECUTE,
+            ),
+            arrived_at=datetime.now(timezone.utc),
+        )
+        _rt_decision = orchestrator_routing.route_request(_rt_req, (), ())
+        orchestrator_routing.log_shadow_handoff(_rt_req, _rt_decision, ())
+    except Exception as _rt_exc:  # shadow must never break the turn
+        logger.warning(
+            "orchestrator_routing shadow FAILED err=%s: %s",
+            type(_rt_exc).__name__, _rt_exc, exc_info=True,
         )
 
     started = time.perf_counter()
