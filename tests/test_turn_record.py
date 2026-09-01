@@ -229,3 +229,111 @@ def test_s_strategy_basin_hop_is_the_only_term_that_reads_a_prior():
 
     assert app_module._build_s_strategy_layer(base, prior_low)["basin_hop"] is True
     assert app_module._build_s_strategy_layer(base, prior_high)["basin_hop"] is False
+
+
+# --------------------------------------------------------------------------
+# COPObservation primitive #5 — provenance and confidence
+# --------------------------------------------------------------------------
+# ★ WHAT THESE PIN. A COP is a provenance-stamped state picture, and its
+# whole value is that a later reader can tell E from r in a STORED row.
+# These pin the two ways that guarantee is normally lost: a sentinel
+# quietly becoming a number, and a row being backfilled with a plausible
+# guess. Both look like improvements when someone makes them.
+def test_seal_writes_both_cop_fields_and_the_observation_half_is_the_sentinel():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear",
+                                        "source": tr.SOURCE_PERSISTENCE})
+    rec = memory_vault.vault_get(U, key)          # RELOAD, not the return
+    assert rec["provenance"]["expectation"] == tr.PROV_INHERITED
+    assert rec["confidence"]["expectation"] == tr.CONF_SINGLE_READING
+    # Nothing has been observed yet, so there is nothing to have observed.
+    assert rec["provenance"]["observation"] == tr.PROV_UNKNOWN
+    assert rec["confidence"]["observation"] == tr.CONF_NO_BASIS
+
+
+def test_expectation_provenance_is_read_from_the_declared_source():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear", "source": "markov"})
+    rec = memory_vault.vault_get(U, key)
+    # An unmapped source resolves to the sentinel, NOT to the nearest
+    # plausible token. Guessing here is the failure mode, not a fallback.
+    assert rec["provenance"]["expectation"] == tr.PROV_UNKNOWN
+
+
+def test_an_expectation_claiming_no_bearing_has_no_basis():
+    key = tr.seal_expectation(U, T, 0, {"source": tr.SOURCE_PERSISTENCE})
+    rec = memory_vault.vault_get(U, key)
+    assert rec["confidence"]["expectation"] == tr.CONF_NO_BASIS
+
+
+def test_the_reader_stamps_its_own_provenance_and_the_stamp_never_reaches_storage():
+    read = tr.build_geometry_observation("The ridge is contested.")
+    assert read[tr._COP_KEY]["provenance"] == tr.PROV_OBSERVED
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear",
+                                        "source": tr.SOURCE_PERSISTENCE})
+    tr.observe_return(U, key, read)
+    rec = memory_vault.vault_get(U, key)
+    assert rec["provenance"]["observation"] == tr.PROV_OBSERVED
+    # ★ The carrier is LIFTED, so the stored payload is what it always was.
+    assert tr._COP_KEY not in rec["observation"]
+
+
+def test_an_unstamped_observation_stays_unknown_rather_than_being_assumed():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    tr.observe_return(U, key, {"boundary": "clear"})
+    rec = memory_vault.vault_get(U, key)
+    # observe_return cannot see HOW the caller built this, so it says so.
+    assert rec["provenance"]["observation"] == tr.PROV_UNKNOWN
+    assert rec["confidence"]["observation"] == tr.CONF_NO_BASIS
+
+
+def test_an_invalid_token_is_refused_rather_than_stored():
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    tr.observe_return(U, key, {"boundary": "clear",
+                               "_cop": {"provenance": "wishful",
+                                        "confidence": "very"}})
+    rec = memory_vault.vault_get(U, key)
+    assert rec["provenance"]["observation"] == tr.PROV_UNKNOWN
+    assert rec["confidence"]["observation"] == tr.CONF_NO_BASIS
+
+
+def test_a_row_sealed_before_this_commit_is_never_backfilled():
+    # A record written in the PRE-COMMIT shape: no provenance, no confidence.
+    key = tr._make_key(T, tr._now_ns())
+    memory_vault.vault_put(U, key, {
+        "turn_index": 0, "class": "geometry",
+        "ts_sealed": tr._now_ns(), "ts_observed": None,
+        "expectation": {"boundary": "clear", "source": "persistence"},
+        "observation": None,
+    })
+    tr.observe_return(U, key, tr.build_geometry_observation("Held."))
+    rec = memory_vault.vault_get(U, key)
+    # ★★★ Its source says "persistence", so INHERITED would be the tempting
+    # inference. It is still refused: this row was sealed before the field
+    # existed and cannot testify about itself. A guess written into a
+    # provenance field is a fabrication with a timestamp on it.
+    assert rec["provenance"]["expectation"] == tr.PROV_UNKNOWN
+    assert rec["confidence"]["expectation"] == tr.CONF_NO_BASIS
+    # The half that CAN be known is filled normally.
+    assert rec["provenance"]["observation"] == tr.PROV_OBSERVED
+
+
+def test_the_carrier_never_becomes_a_claimed_bearing():
+    # ★ The kernel hook passes ONE dict to both observe_return and
+    # persistence_expectation. If the carrier flattened into the next
+    # expectation it would silently move score_record's tally.
+    read = tr.build_geometry_observation("The ridge is contested.")
+    exp = tr.persistence_expectation(read)
+    assert not any(k.startswith("_") for k in exp)
+    assert tr._COP_KEY not in exp
+
+
+def test_confidence_is_never_a_number():
+    # D5 — the no-basis case must return a different KIND. A float that
+    # defaults to 0.0 reads "no second reading" as "perfect agreement",
+    # which is elins_v2_view.py:147's error. Pinned so it cannot come back.
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    tr.observe_return(U, key, {"boundary": "clear"})
+    rec = memory_vault.vault_get(U, key)
+    for half in ("expectation", "observation"):
+        assert isinstance(rec["confidence"][half], str)
+        assert rec["confidence"][half] in tr._CONFIDENCE_TOKENS
+        assert not isinstance(rec["confidence"][half], (int, float))

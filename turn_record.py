@@ -82,6 +82,47 @@ BEARINGS: tuple = ("boundary", "agency", "distance", "alignment")
 CLASS_GEOMETRY: str = "geometry"
 CLASS_ATTRIBUTION: str = "attribution"
 
+#: COPObservation primitive #5 -- PROVENANCE. Where a reading CAME FROM.
+#: This is the E/r marker: OBSERVED is E, DERIVED and INHERITED are r. A
+#: record that cannot say which cannot support an angle later.
+PROV_OBSERVED: str = "observed_this_call"   # computed from the text that arrived
+PROV_DERIVED: str = "derived"               # computed from another field here
+PROV_INHERITED: str = "inherited"           # carried from a prior record
+PROV_UNKNOWN: str = "unknown"               # SENTINEL -- never a guess
+
+#: CONFIDENCE, and it is NOT a probability. It counts how many independent
+#: readings contributed to a payload, which is a fact the writer can check.
+#:
+#: * D5 -- the no-basis case returns a DIFFERENT KIND, not a number. A float
+#: defaulting to 0.0 would repeat elins_v2_view.py:147, where a missing
+#: second reading is read as perfect agreement and annihilates the term.
+#: There is no numeric confidence in this module. There is no 0.0.
+#:
+#: ** It asserts a COUNT, never agreement. Two readings of DIFFERENT
+#: quantities cannot agree or disagree, so claiming "corroborated" would
+#: state something unmeasured. The tokens say how many, and stop there.
+CONF_NO_BASIS: str = "no_basis"             # SENTINEL -- nothing contributed
+CONF_SINGLE_READING: str = "single_reading"
+CONF_MULTI_READING: str = "multi_reading"
+
+_PROVENANCE_TOKENS: frozenset = frozenset(
+    {PROV_OBSERVED, PROV_DERIVED, PROV_INHERITED, PROV_UNKNOWN})
+_CONFIDENCE_TOKENS: frozenset = frozenset(
+    {CONF_NO_BASIS, CONF_SINGLE_READING, CONF_MULTI_READING})
+
+#: The carrier key. ``build_geometry_observation`` stamps its own reading
+#: here and ``observe_return`` LIFTS IT OUT before storing, so the stored
+#: observation payload stays byte-identical to what it was before this
+#: commit (tests/test_turn_record.py:47 asserts that payload exactly).
+#:
+#: *** It is underscore-prefixed for a load-bearing reason. The kernel hook
+#: passes ONE dict to BOTH observe_return (:995) and persistence_expectation
+#: (:999). Without the underscore rule in ``flatten_scalars`` this key would
+#: flatten into the NEXT expectation as a claimed bearing and silently move
+#: score_record's tally. Measured: no existing observation key begins with
+#: "_", so the skip is a no-op on every row already written.
+_COP_KEY: str = "_cop"
+
 #: A stored scalar longer than this, or containing whitespace, reads as
 #: prose rather than a bearing. Enum members ("partially_aligned") and
 #: state labels ("S3") sit well inside it.
@@ -197,6 +238,15 @@ def seal_expectation(
     clean = _reject_prose(dict(expectation), "expectation")
     ts = _now_ns()
     key = _make_key(thread_id, ts)
+    # COP #5 -- the EXPECTATION half. Both are read off what was actually
+    # passed: provenance from the declared source, confidence from the
+    # count of bearings genuinely claimed.
+    #
+    # * The observation half is the SENTINEL here, and that is the honest
+    # reading: at seal time no return exists, so there is nothing to have
+    # observed and nothing to have confidence in. It is filled by
+    # observe_return or it stays unknown forever.
+    claimed = [k for k in clean.keys() if k not in META_KEYS]
     memory_vault.vault_put(user_id, key, {
         "turn_index":  ti,
         "class":       record_class,
@@ -204,6 +254,14 @@ def seal_expectation(
         "ts_observed": None,
         "expectation": clean,
         "observation": None,
+        "provenance": {
+            "expectation": _SOURCE_PROVENANCE.get(clean.get("source"), PROV_UNKNOWN),
+            "observation": PROV_UNKNOWN,
+        },
+        "confidence": {
+            "expectation": CONF_SINGLE_READING if claimed else CONF_NO_BASIS,
+            "observation": CONF_NO_BASIS,
+        },
     })
     return key
 
@@ -258,8 +316,35 @@ def observe_return(user_id: str, record_key: str, observation: dict) -> dict:
         )
 
     rec = dict(rec)
-    rec["observation"] = _reject_prose(dict(observation), "observation")
+
+    # COP #5 -- LIFT the carrier out BEFORE storing, so the stored payload
+    # is exactly what it was before this commit.
+    incoming = dict(observation)
+    cop = incoming.pop(_COP_KEY, None)
+
+    obs_prov, obs_conf = PROV_UNKNOWN, CONF_NO_BASIS
+    if isinstance(cop, dict):
+        if cop.get("provenance") in _PROVENANCE_TOKENS:
+            obs_prov = cop["provenance"]
+        if cop.get("confidence") in _CONFIDENCE_TOKENS:
+            obs_conf = cop["confidence"]
+
+    # *** NO BACKFILL. A record sealed BEFORE this commit carries no
+    # provenance dict, and it cannot know what its expectation was built
+    # from. It gets the sentinel. Inferring a value for it would be a
+    # fabrication with a timestamp on it, which is the one thing a
+    # provenance field exists to prevent.
+    prev_prov = rec.get("provenance")
+    prev_conf = rec.get("confidence")
+    prov = dict(prev_prov) if isinstance(prev_prov, dict) else {"expectation": PROV_UNKNOWN}
+    conf = dict(prev_conf) if isinstance(prev_conf, dict) else {"expectation": CONF_NO_BASIS}
+    prov["observation"] = obs_prov
+    conf["observation"] = obs_conf
+
+    rec["observation"] = _reject_prose(incoming, "observation")
     rec["ts_observed"] = ts_observed
+    rec["provenance"] = prov
+    rec["confidence"] = conf
     memory_vault.vault_put(user_id, record_key, rec)
     return rec
 
@@ -302,12 +387,23 @@ META_KEYS: frozenset = frozenset({"source"})
 
 SOURCE_PERSISTENCE: str = "persistence"
 
+#: An expectation declares its own source, so its provenance is READ, not
+#: guessed. ``persistence`` flattens the PRIOR turn observation forward, so
+#: its values are carried in -- INHERITED. A source with no entry here
+#: resolves to PROV_UNKNOWN rather than to the nearest plausible token.
+_SOURCE_PROVENANCE: dict = {SOURCE_PERSISTENCE: PROV_INHERITED}
+
 
 def flatten_scalars(d: dict, prefix: str = "") -> dict:
     """Flat scalar leaves of a nested observation. ``{"primitives": {"P1": 2}}``
     becomes ``{"primitives.P1": 2}`` so a prediction can name one leaf."""
     out: dict = {}
     for k, v in (d or {}).items():
+        # * Carrier keys are metadata ABOUT the reading, not part of it.
+        # They must never become a claimed bearing. No existing key starts
+        # with "_", so this drops nothing that was ever stored.
+        if str(k).startswith("_"):
+            continue
         key = prefix + str(k)
         if isinstance(v, dict):
             out.update(flatten_scalars(v, key + "."))
@@ -531,6 +627,13 @@ def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dic
 
     obs: dict = {"primitives": counts, "pressure_score": pressure}
 
+    # COP #5 -- count the INDEPENDENT readings that contributed. The
+    # extractor always contributes; pressure_score is wrapped and may
+    # decline; physics does not run on the turn path today.
+    readings = 1                                    # primitives_extract ran
+    if pressure is not None:
+        readings += 1                               # pressure_score returned
+
     if isinstance(physics, dict):
         for block in _PHYSICS_BLOCKS:
             b = physics.get(block)
@@ -541,9 +644,21 @@ def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dic
                     continue
                 if isinstance(v, str):
                     obs[k] = v                      # enum bearing, verbatim
+                    readings += 1
                 elif isinstance(v, (list, tuple)):
                     obs[k + "_n"] = len(v)          # a count, not the members
+                    readings += 1
 
+    # * This function KNOWS where its reading came from -- it computed it
+    # from the text that just arrived. So it stamps the provenance itself
+    # rather than letting a downstream writer assert it second-hand. The
+    # stamp rides under the carrier key and never reaches storage.
+    obs[_COP_KEY] = {
+        "provenance": PROV_OBSERVED,
+        "confidence": (CONF_NO_BASIS if readings == 0 else
+                       CONF_SINGLE_READING if readings == 1 else
+                       CONF_MULTI_READING),
+    }
     return obs
 
 
