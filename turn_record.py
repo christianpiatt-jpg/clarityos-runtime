@@ -768,6 +768,42 @@ def s_state_label(intensities: dict) -> Optional[str]:
 
 
 # --------------------------------------------------------------------------
+# The three-step record, as ONE callable
+# --------------------------------------------------------------------------
+def record_turn(user_id: str, thread_id: str, text: str) -> dict:
+    """Read this turn, observe the PREVIOUS seal against it, then seal for
+    the turn that does not exist yet.
+
+    ** THE ORDER OF THE THREE STEPS IS LOAD-BEARING and it is why this is
+    a function rather than a comment. Sealing before observing would score
+    a seal against the very turn that produced it -- the fitted residual
+    the record exists to refuse. A caller that inlines the sequence can
+    get it subtly wrong; a caller that calls this cannot.
+
+    Returns a small status dict. Raises nothing that the caller has to
+    care about beyond the usual write errors -- callers on a request path
+    should still wrap it, because a record must never cost a response.
+
+    * Mirrors the sequence already inline at intelligence_kernel.py:991.
+    That copy is fenced by a prior order and is NOT refactored here;
+    the duplication is reported rather than removed under a gate that
+    forbids touching it.
+    """
+    read = build_geometry_observation(text if isinstance(text, str) else "")
+    pending = pending_seal(user_id, thread_id)
+    observed = False
+    if pending:
+        observe_return(user_id, pending, read)
+        observed = True
+    key = seal_expectation(
+        user_id, thread_id,
+        next_turn_index(user_id, thread_id),
+        persistence_expectation(read),
+    )
+    return {"sealed_key": key, "observed_prior": observed}
+
+
+# --------------------------------------------------------------------------
 # Test hook
 # --------------------------------------------------------------------------
 def _reset_seq_for_tests() -> None:

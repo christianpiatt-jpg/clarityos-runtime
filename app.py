@@ -113,6 +113,7 @@ import elins_entity_graph          # v37 — cross-cluster entity graph
 import elins_dashboard              # v38 — interactive dashboard aggregator
 import operator_state              # v39 — operator state memory + continuity
 import intelligence_kernel        # v40 — unified #c/#G/ELINS/ESO/macro kernel
+import turn_record                # W1_TURN — the per-turn record
 import billing_config              # v42 — Stripe mode/keys + recent events
 import founder_analytics           # v43 — founder analytics aggregator
 import monitoring_alerts           # Phase 5 — anomaly + churn alert aggregators
@@ -13925,8 +13926,50 @@ def me_regression_first_replay(
 # structured object plus a ``_meta`` block with model_id / ts_ms /
 # parse_error. No vendor pinning — model selection is task-level via
 # model_router (task key ``emotional_physics``).
+# ---------------------------------------------------------------------
+# The relationship key -- what makes a run ADDRESSABLE
+# ---------------------------------------------------------------------
+def _record_run_against_thread(user: str, thread_id, text: str) -> None:
+    """Put a standalone run on the recorded path when it names a thread.
+
+    *** OPTIONAL BY CONSTRUCTION. A request without ``thread_id`` returns
+    here immediately and behaves exactly as it did before this commit.
+    That is the whole backward-compatibility contract, and it is one
+    guard rather than a branch spread through the handler.
+
+    ** OWNERSHIP IS CHECKED, not assumed. ``thread_id`` arrives from a
+    client body, so it is an untrusted string; writing against it
+    unchecked would let one caller append to another caller's thread. A
+    thread the session does not own is treated as no thread at all.
+
+    * A record must never cost a response. Everything is wrapped, and a
+    failure is LOUD in the log but invisible to the caller -- a silent
+    skip is how the emophysics mount hid for weeks.
+    """
+    if not isinstance(thread_id, str) or not thread_id.strip():
+        return
+    tid = thread_id.strip()
+    try:
+        threads_vault.get_thread(user, tid)          # ownership gate
+    except Exception:
+        logger.info("run_record skipped: thread not owned or missing")
+        return
+    try:
+        turn_record.record_turn(user, tid, text)
+    except Exception as exc:
+        # No identifiers in the log (INV-H1): the error locates the
+        # fault, the member does not need to be in it to do that.
+        logger.warning(
+            "run_record hook FAILED err=%s: %s",
+            type(exc).__name__, exc, exc_info=True,
+        )
+
+
 class V52EmotionalPhysicsRequest(BaseModel):
     text: str
+    # The relationship this run belongs to. OPTIONAL: absent means the
+    # run is anonymous and nothing is recorded, exactly as before.
+    thread_id: Optional[str] = None
 
 
 @app.post("/me/emotional_physics/analyze")
@@ -13952,6 +13995,11 @@ def me_emotional_physics_analyze(
             status_code=400,
             detail=error_response("bad_input", "text must be a non-empty string"),
         )
+    # The run is recorded BEFORE the engine call, matching the kernel
+    # hook: the seal must exist before the return it will be scored
+    # against, or the residual is fitted.
+    _record_run_against_thread(user, req.thread_id, text)
+
     try:
         out = intelligence_kernel.run_emotional_physics(user, text)
     except ValueError as e:
@@ -13982,6 +14030,9 @@ class V53ElinsV2Request(BaseModel):
     elins_version: Optional[str] = None
     region:        Optional[str] = None
     input:         V53ElinsV2Input
+    # Same field name as the v52 request on purpose: one relationship
+    # key, spelled identically on both halves of the pair.
+    thread_id:     Optional[str] = None
 
 
 @app.post("/elins/v2/run")
@@ -14012,6 +14063,8 @@ def elins_v2_run(
                 "bad_input", "input.raw_text must be a non-empty string",
             ),
         )
+
+    _record_run_against_thread(user, req.thread_id, raw_text)
 
     try:
         envelope = intelligence_kernel.run_elins_v2(

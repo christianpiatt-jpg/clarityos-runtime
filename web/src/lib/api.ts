@@ -1638,6 +1638,10 @@ export interface ThreadMeta {
   // ``POST /me/threads/{id}/summarize`` lands.
   summary: string | null;
   summary_ts_ms: number | null;
+  // v51 — project membership, surfaced on every meta read. The
+  // cockpit partitions its left list on this: a RELATIONSHIP is a
+  // thread carrying the reserved relationship project id.
+  project_id?: string | null;
 }
 
 export interface ThreadMessage {
@@ -1685,10 +1689,30 @@ export async function listThreads(): Promise<ThreadMeta[]> {
 }
 
 /** Create a new thread; ``title`` may be null/omitted. */
-export async function createThread(title?: string | null): Promise<ThreadMeta> {
+export async function createThread(
+  title?: string | null,
+  project_id?: string | null,
+): Promise<ThreadMeta> {
   return request<ThreadMeta>("/me/threads", {
     method: "POST",
-    body: { title: title ?? null },
+    // project_id is omitted entirely when absent, so an existing
+    // createThread(title) call sends the byte-identical body it did
+    // before. The backend 404s on an unknown project, so sending a
+    // null would be a behaviour change, not a no-op.
+    body: project_id ? { title: title ?? null, project_id }
+                     : { title: title ?? null },
+  });
+}
+
+/** Create a project. Rejects a duplicate id with 400 — callers that
+ *  only need it to EXIST should catch and continue. */
+export async function createProject(
+  project_id: string,
+  name: string,
+): Promise<{ project_id: string }> {
+  return request<{ project_id: string }>("/me/projects", {
+    method: "POST",
+    body: { project_id, name },
   });
 }
 
@@ -1915,10 +1939,13 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     parse_error: string | null;
   };
 }
-export const runEmotionalPhysics = (text: string) =>
+// ★ thread_id is the RELATIONSHIP KEY, and it is spelled identically
+// on both halves of the pair below. Omitted when absent, so a run
+// without a relationship sends exactly the body it sent before.
+export const runEmotionalPhysics = (text: string, thread_id?: string | null) =>
   request<EmotionalPhysicsResponse>(
     "/me/emotional_physics/analyze",
-    { method: "POST", body: { text } },
+    { method: "POST", body: thread_id ? { text, thread_id } : { text } },
   );
 
 // ---------- v53 — ELINS v2 (Path C view adapter) ----------
@@ -1947,15 +1974,18 @@ export interface ElinsV2Envelope {
   outputs:       ElinsV2Outputs;
   meta?:         Record<string, unknown>;
 }
-export const runElinsV2 = (text: string, region?: string | null) =>
+export const runElinsV2 = (
+  text: string,
+  region?: string | null,
+  thread_id?: string | null,
+) =>
   request<ElinsV2Envelope>(
     "/elins/v2/run",
     {
       method: "POST",
-      body: {
-        region: region ?? null,
-        input: { raw_text: text },
-      },
+      body: thread_id
+        ? { region: region ?? null, input: { raw_text: text }, thread_id }
+        : { region: region ?? null, input: { raw_text: text } },
     },
   );
 

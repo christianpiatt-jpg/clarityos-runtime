@@ -32,6 +32,7 @@ import {
 import {
   listThreads,
   createThread,
+  createProject,
   getThread,
   postThreadMessage,
   summarizeThread,
@@ -82,6 +83,16 @@ export interface CockpitState {
   envelope: { status: LoadStatus; forSessionId: string | null; data: SessionEnvelope | null; error: string | null };
   /** Which surface the centre + right columns render. */
   view: CockpitView;
+  /** RELATIONSHIPS. A relationship IS a thread carrying the reserved
+   *  project id -- one store, one minter, one filter. The alternative
+   *  was a second thread-shaped store, which is how two definitions of
+   *  one payload happen. */
+  relationships: {
+    status: LoadStatus;
+    items: ThreadMeta[];
+    activeId: string | null;
+    error: string | null;
+  };
   /** Personal ELINS. The fetch stays a tier-2 direct call through
    *  lib/api, exactly as routes/PersonalElins.tsx does it -- only the
    *  RESULT lives here, so the centre and right panels read one state. */
@@ -131,6 +142,7 @@ function initialState(): CockpitState {
     runtime: { status: "idle", envelope: null, error: null },
     envelope: { status: "idle", forSessionId: null, data: null, error: null },
     view: "thread",   // a member lands where they land today
+    relationships: { status: "idle", items: [], activeId: null, error: null },
     personal: {
       seed: PERSONAL_DEFAULT_SEED, status: "idle", ep: null, elins: null,
       lastRunTs: null, error: null,
@@ -332,12 +344,18 @@ const personalSlice = {
     async run(text?: string): Promise<void> {
       const seed = (text ?? current.personal.seed).trim();
       if (!seed) return;
+      // The run carries its relationship. The client has held this id all
+      // along and simply never sent it, which is why three runs on one
+      // subject could not accumulate: the engine had no way to know run 2
+      // was the same subject as run 1. Null when none is selected, and
+      // then both calls send the bodies they always sent.
+      const rel = current.relationships.activeId;
       setSlice("personal", { status: "loading", error: null });
       try {
-        const ep = await runEmotionalPhysics(seed);
+        const ep = await runEmotionalPhysics(seed, rel);
         let elins: ApiElinsV2Envelope | null = null;
         try {
-          elins = await runElinsV2(seed);
+          elins = await runElinsV2(seed, null, rel);
         } catch {
           elins = null;   // non-fatal, same as the route
         }
@@ -347,6 +365,70 @@ const personalSlice = {
       } catch (e) {
         setSlice("personal", { status: "error", error: errMessage(e) });
       }
+    },
+  },
+};
+
+/** The reserved project a relationship thread belongs to. */
+export const RELATIONSHIP_PROJECT = "relationships";
+
+const isRelationship = (t: ThreadMeta) => t.project_id === RELATIONSHIP_PROJECT;
+
+const relationshipsSlice = {
+  state: (s: CockpitState) => s.relationships,
+  selectors: {
+    items: (s: CockpitState) => s.relationships.items,
+    activeId: (s: CockpitState) => s.relationships.activeId,
+  },
+  actions: {
+    /** Load the relationships. Reuses GET /me/threads and partitions
+     *  client-side, so the list route is left exactly as it is and
+     *  nothing that reads it today changes. */
+    async load(): Promise<void> {
+      setSlice("relationships", { status: "loading", error: null });
+      try {
+        const all = await listThreads();
+        setSlice("relationships", {
+          status: "ready", items: all.filter(isRelationship),
+        });
+      } catch (e) {
+        setSlice("relationships", { status: "error", error: errMessage(e) });
+      }
+    },
+
+    /** Mint one. The NAME IS REQUIRED -- an unnamed relationship renders
+     *  as raw hex, which is exactly what makes the current thread list
+     *  unreadable. Refused here rather than allowed and regretted. */
+    async create(name: string): Promise<void> {
+      const title = (name ?? "").trim();
+      if (!title) {
+        setSlice("relationships", { error: "A relationship needs a name." });
+        return;
+      }
+      setSlice("relationships", { status: "loading", error: null });
+      try {
+        // The project must EXIST before a thread can join it (the backend
+        // 404s otherwise). Creating it is idempotent in effect: a
+        // duplicate id is a 400 we deliberately swallow.
+        try {
+          await createProject(RELATIONSHIP_PROJECT, "Relationships");
+        } catch {
+          /* already exists -- that is the state we wanted */
+        }
+        const meta = await createThread(title, RELATIONSHIP_PROJECT);
+        setSlice("relationships", {
+          status: "ready",
+          items: [meta, ...current.relationships.items],
+          activeId: meta.thread_id,
+        });
+      } catch (e) {
+        setSlice("relationships", { status: "error", error: errMessage(e) });
+      }
+    },
+
+    /** Select one. The next run keys on it. */
+    open(threadId: string): void {
+      setSlice("relationships", { activeId: threadId });
     },
   },
 };
@@ -370,7 +452,12 @@ const threadSlice = {
       initInFlight = true;
       setSlice("thread", { status: "loading", error: null });
       try {
-        const threads = await listThreads();
+        // Relationships are threads, so they arrive here too. Sessions
+        // shows threads and the personal list shows relationships;
+        // without this partition each would show both. No thread written
+        // before this commit carries the reserved project id, so this
+        // filters nothing that already exists.
+        const threads = (await listThreads()).filter((t) => !isRelationship(t));
         const meta = threads[0] ?? (await createThread("Cockpit"));
         const detail = await getThread(meta.thread_id);
         setSlice("thread", {
@@ -553,6 +640,7 @@ export function bootstrapCockpit(): void {
   void sessionSlice.actions.load();
   void vaultSlice.actions.load();
   void threadSlice.actions.init();
+  void relationshipsSlice.actions.load();
 }
 
 /** The six slices, each with { state, selectors, actions }. */
@@ -560,6 +648,7 @@ export const cockpit = {
   auth: authSlice,
   view: viewSlice,
   personal: personalSlice,
+  relationships: relationshipsSlice,
   session: sessionSlice,
   vault: vaultSlice,
   runtime: runtimeSlice,

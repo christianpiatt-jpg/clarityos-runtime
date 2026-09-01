@@ -465,3 +465,67 @@ def test_the_marker_is_a_sibling_of_provenance_not_a_replacement():
     rec = memory_vault.vault_get(U, key)
     assert rec["provenance"]["observation"] == tr.PROV_OBSERVED
     assert rec["crossing"] == tr.CROSSING_NEITHER
+
+
+# --------------------------------------------------------------------------
+# The run carries its relationship — record_turn + the endpoint guard
+# --------------------------------------------------------------------------
+# ★ WHAT THESE PIN. Two runs on one subject could not accumulate because
+# neither POST carried an id, so the engine could not know run 2 was the
+# same subject as run 1. One run proves addressing; TWO prove accumulation,
+# which is the whole point — so every test here runs it twice.
+def test_record_turn_accumulates_under_one_key():
+    tr.record_turn(U, T, "Ava keeps agreeing then going quiet.")
+    tr.record_turn(U, T, "Ava pushed back and named the deadline.")
+    rows = tr.list_turn_records(U, T)          # RELOAD, not the return value
+    assert len(rows) == 2
+    assert [r["turn_index"] for r in rows] == [0, 1]
+
+
+def test_record_turn_observes_the_prior_seal_not_its_own():
+    first = tr.record_turn(U, T, "one")
+    second = tr.record_turn(U, T, "two")
+    # ★ The first call has no prior to observe; the second observes the
+    # first. A call that observed its OWN seal would be the fitted
+    # residual the seat rule exists to refuse.
+    assert first["observed_prior"] is False
+    assert second["observed_prior"] is True
+    assert first["sealed_key"] != second["sealed_key"]
+
+
+def test_two_runs_produce_a_trust_value_where_one_cannot():
+    tr.record_turn(U, T, "Ava keeps agreeing then going quiet.")
+    assert tr.trust_signal(U, T)["status"] == "no_prior_yet"
+    tr.record_turn(U, T, "Ava pushed back and named the deadline.")
+    out = tr.trust_signal(U, T)
+    # This is what the relationship key unlocks: a second run on the SAME
+    # key has something to be scored against.
+    assert out["status"] == "value"
+    assert isinstance(out["value"], float)
+
+
+def test_the_endpoint_guard_records_nothing_without_a_usable_key():
+    import app as app_module
+    tr.record_turn(U, T, "seed the thread so there is something to change")
+    before = len(tr.list_turn_records(U, T))
+    # ★ D5 / backward compatibility: absent, blank, and not-owned are all
+    # "no relationship", and none of them writes. A request without the
+    # field behaves exactly as it did before the field existed.
+    app_module._record_run_against_thread(U, None, "no key")
+    app_module._record_run_against_thread(U, "", "blank key")
+    app_module._record_run_against_thread(U, "   ", "whitespace key")
+    app_module._record_run_against_thread(U, "a-thread-nobody-owns", "unowned")
+    assert len(tr.list_turn_records(U, T)) == before
+
+
+def test_both_halves_of_the_pair_spell_the_key_identically():
+    import app as app_module
+    # ★ One relationship key, one spelling. Two names for it on two calls
+    # would key the same subject into two places, which is the failure
+    # this order exists to close.
+    assert "thread_id" in app_module.V52EmotionalPhysicsRequest.model_fields
+    assert "thread_id" in app_module.V53ElinsV2Request.model_fields
+    # And it is OPTIONAL on both — a request without it must still build.
+    assert app_module.V52EmotionalPhysicsRequest(text="x").thread_id is None
+    assert app_module.V53ElinsV2Request(
+        input={"raw_text": "x"}).thread_id is None
