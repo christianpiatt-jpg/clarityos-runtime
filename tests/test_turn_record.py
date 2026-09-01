@@ -337,3 +337,46 @@ def test_confidence_is_never_a_number():
         assert isinstance(rec["confidence"][half], str)
         assert rec["confidence"][half] in tr._CONFIDENCE_TOKENS
         assert not isinstance(rec["confidence"][half], (int, float))
+
+
+# --------------------------------------------------------------------------
+# The record_class allowlist is FOUR, and it is closed
+# --------------------------------------------------------------------------
+# ★ WHAT THESE PIN. A closed class system only stays closed while the
+# closing is enforced. The failure mode is not a wrong class — it is a
+# fifth class quietly added so that one stubborn write succeeds, after
+# which the field accepts rather than classifies.
+def test_all_four_classes_are_accepted():
+    for cls in (tr.CLASS_GEOMETRY, tr.CLASS_ATTRIBUTION,
+                tr.CLASS_CROSSING, tr.CLASS_RATIO):
+        key = tr.seal_expectation(U, T, 0, {"boundary": "clear"},
+                                  record_class=cls)
+        assert memory_vault.vault_get(U, key)["class"] == cls
+
+
+def test_a_fifth_class_is_refused_and_the_error_names_the_closed_set():
+    with pytest.raises(ValueError) as e:
+        tr.seal_expectation(U, T, 0, {"boundary": "clear"},
+                            record_class="crossing_maybe")
+    # ★ The rejection shows what IS allowed, so the next caller reads the
+    # closed set instead of guessing a fifth entry into existence.
+    for cls in tr.RECORD_CLASSES:
+        assert cls in str(e.value)
+
+
+def test_the_default_class_is_still_geometry():
+    # Widening the allowlist must not move what an unlabelled write becomes.
+    # The kernel hook (intelligence_kernel.py:996) passes no record_class.
+    key = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    assert memory_vault.vault_get(U, key)["class"] == tr.CLASS_GEOMETRY
+
+
+def test_widening_the_allowlist_reclassifies_nothing_already_written():
+    # ★★★ A row written under the two-value allowlist keeps the class it was
+    # written with. Deciding after the fact what a past row should have been
+    # is attribution written backwards.
+    old = tr.seal_expectation(U, T, 0, {"boundary": "clear"})
+    before = memory_vault.vault_get(U, old)["class"]
+    tr.seal_expectation(U, T, 1, {"boundary": "clear"},
+                        record_class=tr.CLASS_RATIO)
+    assert memory_vault.vault_get(U, old)["class"] == before == tr.CLASS_GEOMETRY

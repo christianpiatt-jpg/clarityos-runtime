@@ -53,6 +53,15 @@ E-PRIME — the record holds bearings, never verdicts
 Every stored value is an enum member, a count, or a number. ``_reject_prose``
 refuses anything that reads like a sentence about a person. ``notes`` and
 thread summaries are class ``attribution`` — perishable, and not this record.
+THE CLASS ALLOWLIST IS FOUR AND IT IS CLOSED
+--------------------------------------------
+geometry / attribution / crossing / ratio. See RECORD_CLASSES. A write that
+fits none of them is a REPORT, never a fifth entry.
+
+* NO RECLASSIFICATION OF HISTORY. A row written under an older, narrower
+allowlist keeps the class it was written with. Deciding after the fact what
+a past row should have been is attribution written backwards -- the same
+failure the seat rule refuses one layer up.
 """
 from __future__ import annotations
 
@@ -77,10 +86,27 @@ _PREFIX: str = "operator_state.turn_record."
 #: ``expectation`` without changing the record's shape.
 BEARINGS: tuple = ("boundary", "agency", "distance", "alignment")
 
-#: Record classes. ``geometry`` is recomputable from the turn's text.
-#: ``attribution`` is perishable and is not written by this module.
+#: RECORD CLASSES -- the allowlist is FOUR, and it is closed.
+#:
+#: geometry     the SHAPE of a reading -- counts, bearings, positions.
+#:              Recomputable from the turn's text.
+#: attribution  WHO or WHAT. Perishable. Droppable. Not written here.
+#: crossing     DID THIS RETURN CROSS A NON-INVERTING NODE?
+#:              world (an act intervened) / instrument (a tool read it)
+#:              / neither (interior -- ECHO).
+#: ratio        A QUOTIENT OF TWO READINGS. Any two-arm quantity.
+#:              NOT a magnitude, NOT a score, NOT a verdict.
+#:
+#: ** NO FIFTH CLASS. A value that fits none of these four is a REPORT,
+#: not a widening. Growing the allowlist to make a write succeed is how
+#: a class system stops classifying and starts accepting.
 CLASS_GEOMETRY: str = "geometry"
 CLASS_ATTRIBUTION: str = "attribution"
+CLASS_CROSSING: str = "crossing"
+CLASS_RATIO: str = "ratio"
+
+RECORD_CLASSES: frozenset = frozenset(
+    {CLASS_GEOMETRY, CLASS_ATTRIBUTION, CLASS_CROSSING, CLASS_RATIO})
 
 #: COPObservation primitive #5 -- PROVENANCE. Where a reading CAME FROM.
 #: This is the E/r marker: OBSERVED is E, DERIVED and INHERITED are r. A
@@ -226,8 +252,13 @@ def seal_expectation(
     """
     if not isinstance(expectation, dict) or not expectation:
         raise ValueError("expectation must be a non-empty dict")
-    if record_class not in (CLASS_GEOMETRY, CLASS_ATTRIBUTION):
-        raise ValueError("record_class must be geometry or attribution")
+    if record_class not in RECORD_CLASSES:
+        # * The rejection names what IS allowed, so a caller reaching for a
+        # fifth class reads the closed set rather than inventing one.
+        raise ValueError(
+            "record_class must be one of %s; got %r"
+            % (sorted(RECORD_CLASSES), record_class)
+        )
     try:
         ti = int(turn_index)
     except (TypeError, ValueError):
