@@ -413,6 +413,26 @@
   background: var(--color-bg-surface);
   margin-bottom: 8px;
 }
+/* The summary card declares its currency. Cyan = current, the same glow
+   the rest of the surface uses for "active"; magenta = stale, used
+   nowhere else so it cannot be mistaken for anything but "re-run". */
+.cv2-card-summary.is-current {
+  border-color: var(--os-focus, #0B3B3B);
+  box-shadow: 0 0 0 2px var(--os-backlight-strong, rgba(52, 224, 224, 0.28)),
+              0 0 14px var(--os-backlight-strong, rgba(52, 224, 224, 0.28));
+}
+.cv2-card-summary.is-stale {
+  border-color: var(--os-stale-ink, #8A1F70);
+  box-shadow: 0 0 0 2px var(--os-stale-strong, rgba(214, 51, 176, 0.32)),
+              0 0 14px var(--os-stale-strong, rgba(214, 51, 176, 0.32));
+}
+.cv2-card-currency {
+  float: right;
+  text-transform: none;
+  letter-spacing: 0.03em;
+}
+.cv2-card-summary.is-current .cv2-card-currency { color: var(--os-focus, #0B3B3B); }
+.cv2-card-summary.is-stale   .cv2-card-currency { color: var(--os-stale-ink, #8A1F70); }
 .cv2-card-head {
   font-family: var(--font-mono);
   font-size: 10px;

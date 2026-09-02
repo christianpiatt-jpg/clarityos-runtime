@@ -30,6 +30,13 @@
   /* The cyan IDENTITY lives here now -- the door's exact #34E0E0, as a wash. */
   --os-backlight: rgba(52, 224, 224, 0.14);        /* resting backlight */
   --os-backlight-strong: rgba(52, 224, 224, 0.28); /* active state / glow */
+  /* STALE. The one colour in the palette that means "this reading is
+     behind the thing it describes". Magenta, because it is cyan's
+     complement and nothing else on the surface uses it -- a stale
+     summary should look like nothing else on the page. */
+  --os-stale: rgba(214, 51, 176, 0.16);
+  --os-stale-strong: rgba(214, 51, 176, 0.32);
+  --os-stale-ink: #8A1F70;
 
   /* CREAM AND BLACK SCRIPT, CYAN AS A BACKLIGHT -- measured, not chosen.
      Cyan is consumed here as INK at 36 sites and as a border at 25, against

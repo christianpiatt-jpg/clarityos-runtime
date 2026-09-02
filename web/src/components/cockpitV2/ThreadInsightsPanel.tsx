@@ -22,6 +22,7 @@
 import { useMemo, useState } from "react";
 
 import { useCockpit, cockpit, type InsightsTab } from "../../state/cockpitStore";
+import { summaryCurrency } from "../../lib/summaryCurrency";
 import {
   composeTranscript,
   computeWindow,
@@ -89,7 +90,9 @@ function WindowDeclaration({ w }: { w: TranscriptWindow }) {
 /** Same relative formatting Threads.tsx uses for updated/summary stamps. */
 function relativeTime(ts: number | null | undefined): string {
   if (!ts) return "—";
-  // ThreadMeta.updated_at is seconds; summary_ts_ms is milliseconds.
+  // ThreadMeta.updated_at is written in milliseconds by the vault today
+  // (threads_vault._now_ms), but older rows carried seconds; normalise
+  // by magnitude rather than assume either. summary_ts_ms is milliseconds.
   const ms = ts > 1e11 ? ts : ts * 1000;
   const delta = Math.max(0, Date.now() - ms);
   const mins = Math.floor(delta / 60000);
@@ -210,8 +213,23 @@ export default function ThreadInsightsPanel() {
                 </div>
               </div>
             ) : meta.summary ? (
-              <div className="cv2-card" data-testid="thread-summary-card">
-                <div className="cv2-card-head">Summary</div>
+              // ★ The box says whether it still describes the thread. Cyan =
+              // computed at or after the thread's last change; magenta = the
+              // thread has moved since. Derived from two timestamps the meta
+              // already carries -- nothing new is stored, and a summary produced
+              // by an older prompt is caught the same way as any other stale one:
+              // it predates the turns that came after it.
+              <div
+                className={"cv2-card cv2-card-summary is-" + summaryCurrency(meta)}
+                data-testid="thread-summary-card"
+                data-currency={summaryCurrency(meta)}
+              >
+                <div className="cv2-card-head">
+                  Summary
+                  <span className="cv2-card-currency" data-testid="thread-summary-currency">
+                    {summaryCurrency(meta) === "current" ? "current" : "stale — re-run"}
+                  </span>
+                </div>
                 <div className="cv2-card-body">{meta.summary}</div>
               </div>
             ) : (
