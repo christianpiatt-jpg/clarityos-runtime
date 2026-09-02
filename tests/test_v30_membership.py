@@ -376,7 +376,7 @@ def test_membership_endpoints_require_session(app_module, client, path, method, 
 # membership_tier on the doc AND a cohort-blob entry AND, if the doc predates
 # v43 (2026-08-27), cohort=None. Every flag gate reads session["cohort"] and
 # nothing else, so a pre-v43 paying member 403'd on their own surfaces
-# (Ava: 26 x 403). The hop derives cohort from the two real fields when the
+# (26 x 403 on the founder's own session). The hop derives cohort from the two real fields when the
 # doc says None -- and ONLY then. Nothing here defaults; an unpaid doc stays
 # None and its 403 stays TRUE.
 #
@@ -408,7 +408,7 @@ def _seat(user, status="active"):
 
 
 def test_hop_a_paid_doc_with_null_cohort_opens(app_module):
-    """D1, direction one. Ava's exact shape: tier founding_500, seat held,
+    """D1, direction one. the founder's own doc shape (from the HAR's GET /me): tier founding_500, seat held,
     cohort None. The session derives founding_500 and the v28 gate opens."""
     import v29_hardening as h, membership_store, users_store
     _arm_v43_flags()
