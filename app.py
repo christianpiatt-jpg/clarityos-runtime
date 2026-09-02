@@ -522,8 +522,11 @@ _admin_pwd_source = _bootstrap_admin()
 # operator toggles them on per-user. Idempotent on every process boot.
 # v43 (CT-1 2026-08-27): member + admin + founding_500 added — the paying
 # cohort was locked out of surfaces the free invite pool had. founding_500
-# names membership_store.FOUNDING_COHORT (user docs carry it as
-# membership_tier; see require_session cohort hop for the read path).
+# names membership_store.FOUNDING_COHORT. User docs carry it as
+# membership_tier, NOT as cohort: require_session derives cohort from
+# membership_tier / the cohort blob when the doc has cohort=None (the
+# pre-v43 case). That hop is at require_session -- it was described here
+# for a week before it existed (#107).
 for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_TERRACE_1,
              COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT):
     v29_hardening.set_flag("v28_surfaces", True, cohort=_coh)
@@ -640,6 +643,35 @@ def require_session(x_session_id: Optional[str] = Header(default=None)) -> dict:
     try:
         u = users_store.get_user(session["user"]) or {}
         cohort = u.get("cohort")
+        # THE HOP (#107 #84 #65). Three stores, one read: a paid member
+        # carries membership_tier on the doc AND an entry in the cohort
+        # blob AND, if the doc predates v43 (2026-08-27), cohort=None.
+        # The gates below (feature_enabled, _require_founder, /me
+        # operator) read cohort and nothing else, so a pre-v43 paying
+        # member 403s on their own surfaces. 02889c1 enabled the v28 flag
+        # for founding_500 and its comment described this hop; the hop
+        # was never written.
+        #
+        # ***** DERIVED FROM A REAL FIELD, NEVER DEFAULTED. If neither the
+        # doc nor the blob says paid, cohort STAYS None and the 403 is
+        # TRUE. An `or "member"` here would manufacture entitlement from
+        # absence -- the exact class-C guard the last scan hunted.
+        #
+        # * Read path only. Nothing is written back to the doc; the doc
+        # stays the record of what was actually granted.
+        # * STATUS IS READ (CT-1, 2026-09-02: "if you cancel your
+        # membership, it's gone"). membership_status is the doc field --
+        # "active", "cancelled" or None (users_store.py:205), and only
+        # "active" derives a cohort. Cancel keeps tier on the doc and
+        # drops the blob seat; this read derives NOTHING for it, and None
+        # is not active. Nothing is deleted: doc, vault, threads and
+        # library metadata are untouched, because this is a read.
+        if cohort is None:
+            _u = session["user"]
+            if (u.get("membership_status") == "active"
+                    and (u.get("membership_tier") == membership_store.FOUNDING_COHORT
+                         or membership_store.is_member(_u))):
+                cohort = membership_store.FOUNDING_COHORT
     except Exception:  # pragma: no cover — defensive against backend hiccups
         cohort = None
     return {"session_id": x_session_id, "user": session["user"], "cohort": cohort}

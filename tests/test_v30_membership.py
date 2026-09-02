@@ -367,3 +367,127 @@ def test_membership_endpoints_require_session(app_module, client, path, method, 
     else:
         r = client.post(path, json=body)
     assert r.status_code == 401, f"{path} returned {r.status_code}"
+
+
+# ---------------------------------------------------------------------------
+# #107 #84 #65 -- the cohort hop in require_session
+# ---------------------------------------------------------------------------
+# WHAT THESE PIN. Three stores, one read. A paid member carries
+# membership_tier on the doc AND a cohort-blob entry AND, if the doc predates
+# v43 (2026-08-27), cohort=None. Every flag gate reads session["cohort"] and
+# nothing else, so a pre-v43 paying member 403'd on their own surfaces
+# (Ava: 26 x 403). The hop derives cohort from the two real fields when the
+# doc says None -- and ONLY then. Nothing here defaults; an unpaid doc stays
+# None and its 403 stays TRUE.
+#
+# These call require_session directly. TestClient does not run in this
+# environment (#89), and the hop is a plain function of a session id.
+
+
+def _arm_v43_flags():
+    """Mirror app.py:527-531 EXACTLY. conftest.reset_stores re-arms v28 for
+    founder / founder_exception / terrace_1 only -- its comment says it
+    mirrors app startup, but it predates v43 and omits member, admin and
+    founding_500. Without this, (a) would fail for a stale-harness reason
+    rather than a real one."""
+    import v29_hardening as h
+    import membership_store
+    for coh in ("founder", "founder_exception", "terrace_1",
+                "member", "admin", membership_store.FOUNDING_COHORT):
+        h.set_flag("v28_surfaces", True, cohort=coh)
+
+
+def _seat(user, status="active"):
+    """The production grant, in production order: add_member (the seat),
+    then set_membership (the doc). app.py webhook path :2099 -> :2111."""
+    import users_store, membership_store
+    membership_store.add_member(user)
+    users_store.set_membership(
+        user, tier=membership_store.FOUNDING_COHORT, price=50.0, status=status,
+    )
+
+
+def test_hop_a_paid_doc_with_null_cohort_opens(app_module):
+    """D1, direction one. Ava's exact shape: tier founding_500, seat held,
+    cohort None. The session derives founding_500 and the v28 gate opens."""
+    import v29_hardening as h, membership_store, users_store
+    _arm_v43_flags()
+    user, sid = _make_user(app_module, "ava", cohort=None)
+    _seat(user)
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] == membership_store.FOUNDING_COHORT
+    assert h.feature_enabled("v28_surfaces", user=user, cohort=sess["cohort"]) is True
+    # Read path ONLY. The doc is the record of what was granted; the hop
+    # never writes to it.
+    assert "cohort" not in (users_store.get_user(user) or {})
+
+
+def test_hop_b_unpaid_doc_stays_closed(app_module):
+    """D1, direction two. Neither field says paid -> cohort stays None and
+    the 403 is TRUE. This is the assertion that forbids `or "member"`."""
+    import v29_hardening as h
+    _arm_v43_flags()
+    user, sid = _make_user(app_module, "lurker", cohort=None)
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] is None
+    assert h.feature_enabled("v28_surfaces", user=user, cohort=None) is False
+
+
+def test_hop_c_present_cohort_is_never_touched(app_module):
+    """A doc that already carries a cohort is left alone -- the hop only
+    fills None. founder_exception stays founder-like and passes
+    _require_founder, which reads the doc directly."""
+    user, sid = _make_user(app_module, "chris", cohort="founder_exception")
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] == "founder_exception"
+    assert sess["cohort"] in app_module.FOUNDER_LIKE_COHORTS
+    assert app_module._require_founder(session=sess) is sess
+
+
+def test_hop_d_cancelled_member_derives_no_cohort(app_module):
+    """CT-1, 2026-09-02: "if you cancel your membership, it's gone."
+    Cancel keeps tier on the doc and drops the blob seat; the hop reads
+    membership_status and only "active" derives. Nothing is deleted --
+    the doc still says founding_500/cancelled -- but no cohort is
+    derived from it and the v28 gate stays shut."""
+    import v29_hardening as h, membership_store
+    _arm_v43_flags()
+    user, sid = _make_user(app_module, "cxl", cohort=None)
+    _seat(user, status="cancelled")
+    membership_store.remove_member(user)
+    assert membership_store.is_member(user) is False
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] is None
+    assert h.feature_enabled("v28_surfaces", user=user, cohort=None) is False
+
+
+def test_hop_e_blob_seat_with_active_status(app_module):
+    """A seat in the blob with membership_status active but no tier on the
+    doc: status says active, the blob says seated, the hop derives."""
+    import users_store, membership_store
+    user, sid = _make_user(app_module, "blobonly", cohort=None)
+    membership_store.add_member(user)
+    users_store.set_membership(user, tier=None, price=None, status="active")
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] == membership_store.FOUNDING_COHORT
+
+
+def test_hop_e2_blob_seat_with_no_status_stays_closed(app_module):
+    """(e'). The webhook seats (add_member, :2099) before it writes the doc
+    (:2111). A crash in that window leaves a seat and a doc with no status.
+    None is not active: the hop derives nothing. The seat is not deleted;
+    it is simply not enough on its own."""
+    import membership_store
+    user, sid = _make_user(app_module, "blobonly2", cohort=None)
+    membership_store.add_member(user)
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] is None
+
+
+def test_hop_f_explicit_member_cohort_untouched(app_module):
+    """A v43-born account (cohort="member") is not upgraded by a seat the
+    hop never consults -- the hop fills None and nothing else."""
+    user, sid = _make_user(app_module, "mem", cohort="member")
+    _seat(user)
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] == "member"
