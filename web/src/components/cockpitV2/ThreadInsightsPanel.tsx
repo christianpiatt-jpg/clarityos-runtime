@@ -22,6 +22,11 @@
 import { useMemo, useState } from "react";
 
 import { useCockpit, cockpit, type InsightsTab } from "../../state/cockpitStore";
+import {
+  composeTranscript,
+  computeWindow,
+  type TranscriptWindow,
+} from "../../lib/transcriptWindow";
 import ElinsV2View from "../v1/ElinsV2View/ElinsV2View";
 import EmotionalPhysicsView from "../v1/EmotionalPhysicsView/EmotionalPhysicsView";
 
@@ -30,6 +35,56 @@ const TABS: { id: InsightsTab; label: string }[] = [
   { id: "elins", label: "ELINS" },
   { id: "physics", label: "Physics" },
 ];
+
+/** ★★★ WHAT THIS PANEL ACTUALLY READ.
+ *
+ * Rendered above BOTH analytical views, because both run on the same
+ * capped transcript and neither previously said so. A 10-message thread
+ * was being analysed from its first 6,000 characters — 17% of it, ending
+ * inside message 3 — and the panel reported the result as if it had read
+ * the thread.
+ *
+ * ★★ IT DECLARES; IT DOES NOT CHANGE. Same cap, same head anchor, same
+ * content. This only stops the instrument reporting over a set it never
+ * received. Wording and placement follow the #68 seed-cliff counter
+ * (routes/PersonalElins.tsx:284-305), which does this for the composer.
+ */
+function WindowDeclaration({ w }: { w: TranscriptWindow }) {
+  const partial = w.window_chars < w.total_chars;
+  return (
+    <div
+      data-testid="window-declaration"
+      style={{
+        marginBottom: 8,
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        letterSpacing: "0.03em",
+        color: partial
+          ? "var(--color-accent-red, #E74C3C)"
+          : "var(--color-text-secondary)",
+      }}
+    >
+      {partial ? (
+        <>
+          read: first {w.window_chars.toLocaleString()} of{" "}
+          {w.total_chars.toLocaleString()} chars — messages 1-
+          {w.window_messages} of {w.total_messages}
+          {w.window_truncated_mid_message ? (
+            <span data-testid="window-mid-message" style={{ display: "block", marginTop: 2 }}>
+              ⚠ the cut lands INSIDE message {w.window_messages + 1} — this
+              reading contains a fragment whose own ending it never saw.
+            </span>
+          ) : null}
+        </>
+      ) : (
+        <>
+          read: all {w.total_chars.toLocaleString()} chars — {w.total_messages}{" "}
+          of {w.total_messages} messages
+        </>
+      )}
+    </div>
+  );
+}
 
 /** Same relative formatting Threads.tsx uses for updated/summary stamps. */
 function relativeTime(ts: number | null | undefined): string {
@@ -54,15 +109,16 @@ export default function ThreadInsightsPanel() {
 
   // Compose the transcript once per messages change. Capped to 6KB so we
   // don't blow the backend's text limit — same cap as Threads.tsx:283-292.
-  const threadText = useMemo(
-    () =>
-      messages
-        .map((m) => `${m.role}: ${m.content}`)
-        .join("\n")
-        .slice(0, 6000)
-        .trim(),
-    [messages],
-  );
+  // ★ Now composed by the shared helper. Byte-identical to the expression
+  // it replaces; the twin at Threads.tsx:326 is still inline and is a
+  // second definition of the same window. Reported, not changed here.
+  const threadText = useMemo(() => composeTranscript(messages), [messages]);
+
+  // ★★ The window facts, derived from the SAME messages array in the same
+  // pass. They cannot desync from the cached readings: the elins/physics
+  // caches are transcript-keyed and clear whenever a turn is added, so a
+  // stored reading is always paired with the window it was read through.
+  const window_ = useMemo(() => computeWindow(messages), [messages]);
 
   // Only pass runOn when there is text, so the views render their empty
   // state instead of firing a request against the empty string.
@@ -196,22 +252,28 @@ export default function ThreadInsightsPanel() {
           </>
         ) : tab === "elins" ? (
           runOn ? (
-            <ElinsV2View
-              envelope={elins}
-              runOn={runOn}
-              onRun={cockpit.thread.actions.setElins}
-            />
+            <>
+              <WindowDeclaration w={window_} />
+              <ElinsV2View
+                envelope={elins}
+                runOn={runOn}
+                onRun={cockpit.thread.actions.setElins}
+              />
+            </>
           ) : (
             <p className="cv2-muted" data-testid="insights-elins-empty">
               No messages yet — add a turn to run ELINS on this thread.
             </p>
           )
         ) : runOn ? (
-          <EmotionalPhysicsView
-            response={physics}
-            text={runOn.rawText}
-            onAnalyze={cockpit.thread.actions.setPhysics}
-          />
+          <>
+            <WindowDeclaration w={window_} />
+            <EmotionalPhysicsView
+              response={physics}
+              text={runOn.rawText}
+              onAnalyze={cockpit.thread.actions.setPhysics}
+            />
+          </>
         ) : (
           <p className="cv2-muted" data-testid="insights-physics-empty">
             No messages yet — add a turn to analyse this thread.
