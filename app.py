@@ -54,6 +54,7 @@ Environment variables
 
 import json
 import logging
+import math
 import os
 import secrets
 import sys
@@ -6129,6 +6130,71 @@ def _ensure_envelope(user: str) -> dict:
 # units and no measurement behind it, committed deliberately, at the joint.
 _EMOPHYSICS_UNMAPPED = "UNMAPPED"
 
+#: n is the TAXONOMY SIZE, and it is a CONSTANT. primitives_extract.py
+#: :222-228 returns EIGHT FIXED KEYS -- P1 P2 P3 P4 Ts Te M hydronic --
+#: always, never fewer. A category with count 0 is PRESENT AND ZERO.
+#:
+#: ***** n IS NOT THE NUMBER OF NON-ZERO CATEGORIES, and the reason is
+#: the whole point of the metric: a denominator that shrank when a
+#: category happened to be absent would make two turns' CI values
+#: DIFFERENT MEASUREMENTS, and the series they are plotted in would be
+#: meaningless. It also eliminates the n=1 -> H_max=0 division entirely.
+_EMOPHYSICS_CI_N: int = 8
+_EMOPHYSICS_CI_LOG_N: float = math.log(_EMOPHYSICS_CI_N)   # computed once
+
+
+def _compression_index(counts: dict):
+    """CI = 1 - H/H_max over the eight-category taxonomy.
+
+    The closed form is source_docs/floating_geometry_2026-08-04/
+    "### Hydronic compression index (CI).txt":
+
+        p_i   = w_i / sum(w)
+        H     = -sum(p_i * log(p_i))
+        H_max = log(n)
+        CI    = 1 - H / H_max
+
+    Returns a float in [0,1], or ``_EMOPHYSICS_UNMAPPED`` -- A DIFFERENT
+    KIND, not a number -- when there is no distribution to measure.
+
+    ***** THE ZERO EDGE IS THE POINT. An extraction that found nothing
+    leaves p_i UNDEFINED, and the honest return is the sentinel. It is
+    emphatically NOT 0.0 and NOT 1.0. engine/emophysics/relational.py:142
+    writes `if P <= 0: return 1.0` on this same shape of failure, where
+    1.0 reads as PERFECT REGISTRATION -- the instrument reporting maximum
+    agreement at the exact point it has no measurement. That edge is
+    written correctly here at birth rather than repaired later.
+
+    ** CI near 1 means concentrated in few categories (over-compressed,
+    brittle); CI near 0 means a flat spread (entropy-friendly). A turn
+    landing in one category yielding CI near 1 is the CORRECT reading,
+    not an artifact.
+
+    No rounding happens here. If a caller wants a short form it rounds
+    at its own boundary, so the stored value never loses precision to a
+    display decision.
+    """
+    counts = counts or {}
+    # A different-sized taxonomy is not a smaller measurement of the same
+    # thing -- it is a different denominator, so it returns the sentinel
+    # rather than a value that would silently join the wrong series.
+    if len(counts) != _EMOPHYSICS_CI_N:
+        return _EMOPHYSICS_UNMAPPED
+
+    total = float(sum(float(w) for w in counts.values()))
+    if total <= 0.0:
+        return _EMOPHYSICS_UNMAPPED
+
+    entropy = 0.0
+    for w in counts.values():
+        pi = float(w) / total
+        # * math.log(0) RAISES. "0 * log 0 == 0" is a mathematical
+        # convention, not a Python behaviour, so the zero term is
+        # skipped explicitly rather than relied upon.
+        if pi > 0.0:
+            entropy -= pi * math.log(pi)
+    return 1.0 - (entropy / _EMOPHYSICS_CI_LOG_N)
+
 
 def _emophysics_shadow(user: str, text: str) -> dict:
     """Extract the P-series counts and log what cannot yet be mapped.
@@ -6147,20 +6213,37 @@ def _emophysics_shadow(user: str, text: str) -> dict:
     # the right dose, or whether the tension classes should be weighted
     # above the entity/action classes, is unruled. Tagged so a later change
     # costs one line.
+    # N -- CANDIDATE, exactly as D is. The closed form is ruled; the
+    # WEIGHTING is not. Whether Ts/Te should outrank P1-P4 before the
+    # counts become a probability vector is unruled, the same open
+    # question D carries. Tagged so a later change costs one line.
+    n_value = _compression_index(counts)
+    n_mapped = isinstance(n_value, float)
+    n_reason = ("CI over %d categories, weighting unruled" % _EMOPHYSICS_CI_N
+                if n_mapped else
+                "no primitives extracted, p_i undefined")
     payload = {
         "D": int(sum(counts.values())),
         "D_status": "CANDIDATE",
         "counts": dict(counts),
         "T": _EMOPHYSICS_UNMAPPED,
-        "N": _EMOPHYSICS_UNMAPPED,
+        "N": n_value,
+        "N_status": "CANDIDATE" if n_mapped else _EMOPHYSICS_UNMAPPED,
         "computed": False,
         "reason": ("T: no server-side producer (langbridg.ts is client-side) "
-                   "· N: CI specified, not implemented"),
+                   "· N: " + n_reason),
     }
     # INFO with a stable, greppable key. Counts and integers only -- never
     # the member's text, and nothing here that the message path does not
     # already log.
-    logger.info("emophysics_shadow user=%s payload=%s", _user_ref(user), payload)
+    # * Rounding is a DISPLAY decision and it happens here, at the log
+    # boundary. The returned payload keeps full precision so a consumer
+    # never inherits a truncation made for readability.
+    log_payload = dict(payload)
+    if n_mapped:
+        log_payload["N"] = round(n_value, 4)
+    logger.info("emophysics_shadow user=%s payload=%s",
+                _user_ref(user), log_payload)
     return payload
 
 
