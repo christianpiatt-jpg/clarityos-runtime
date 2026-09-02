@@ -388,3 +388,89 @@ def test_health_version_4_4(app_module, client):
     OK — the v50 contract didn't include the literal version string."""
     r = client.get("/health")
     assert r.json()["version"].startswith("4.")
+
+
+# ---------------------------------------------------------------------------
+# The summarizer hands the transcript to the model as DATA
+# ---------------------------------------------------------------------------
+# ★ WHAT THESE PIN. Measured 2026-09-02 on a real thread: the stored summary
+# was the model REFUSING, because the transcript was appended raw after
+# SYSTEM: and its last line was an imperative ("test it directly and
+# report."). The model read the transcript as the live request. These pin
+# that every transcript line now sits INSIDE a declared fence, that the
+# boundary sentence is present, and that budget truncation cannot eat the
+# opening fence -- the failure that would leave the boundary half-declared.
+
+
+def _msgs(*contents, roles=None):
+    roles = roles or ["user", "assistant"] * len(contents)
+    return [{"role": roles[i], "content": c, "ts_ms": i} for i, c in enumerate(contents)]
+
+
+def test_summary_prompt_fences_the_transcript_as_data():
+    import intelligence_kernel as ik
+
+    imperative = "test it directly and report."
+    prompt = ik._format_summary_prompt(_msgs("kick off planning", "sure", imperative))
+
+    # The pre-existing contract still holds.
+    assert prompt.startswith("SYSTEM:")
+    assert "Summarize this conversation" in prompt
+    # The boundary is declared, once, before the fence opens.
+    assert ik.SUMMARY_DATA_BOUNDARY in prompt
+    i_open = prompt.index(ik.SUMMARY_FENCE_OPEN)
+    i_close = prompt.index(ik.SUMMARY_FENCE_CLOSE)
+    assert prompt.index(ik.SUMMARY_DATA_BOUNDARY) < i_open < i_close
+    # ★ The imperative -- the line that got answered instead of summarised --
+    # is INSIDE the fence, and nowhere outside it.
+    i_imp = prompt.index(imperative)
+    assert i_open < i_imp < i_close
+    assert prompt.count(imperative) == 1
+    # Every transcript line is inside the fence.
+    for line in ("user: kick off planning", "assistant: sure", "user: " + imperative):
+        assert i_open < prompt.index(line) < i_close
+
+
+def test_summary_prompt_truncation_keeps_both_fences():
+    import intelligence_kernel as ik
+
+    # Far past the char budget: many long messages.
+    many = _msgs(*[("message %03d " % i) + ("x" * 900) for i in range(ik.SUMMARY_CONTEXT_MESSAGES)])
+    prompt = ik._format_summary_prompt(many)
+
+    assert len(prompt) <= ik.SUMMARY_CONTEXT_CHAR_BUDGET
+    # Header intact -- the boundary and the OPENING fence survived, which is
+    # exactly what front-slicing the whole prompt would have destroyed.
+    assert prompt.startswith("SYSTEM:")
+    assert ik.SUMMARY_DATA_BOUNDARY in prompt
+    assert prompt.count(ik.SUMMARY_FENCE_OPEN) == 1
+    assert prompt.count(ik.SUMMARY_FENCE_CLOSE) == 1
+    assert prompt.index(ik.SUMMARY_FENCE_OPEN) < prompt.index(ik.SUMMARY_FENCE_CLOSE)
+    # Tail kept, head dropped: the newest message is present, the oldest is not.
+    assert "message %03d" % (ik.SUMMARY_CONTEXT_MESSAGES - 1) in prompt
+    assert "message 000" not in prompt
+
+
+def test_summarize_thread_sends_the_fenced_prompt(reset_stores, monkeypatch):
+    """End to end through the router: the prompt that reaches the provider
+    carries the fence, so a real model sees the transcript as data."""
+    import intelligence_kernel as ik
+    import model_router as mr
+    import threads_vault as tv
+
+    captured = {"prompt": None}
+
+    def fake_handler(model_id, prompt, *, temperature, max_tokens):
+        captured["prompt"] = prompt
+        return {"ok": True, "model_id": model_id, "provider": "anthropic",
+                "text": "FAKE SUMMARY", "mock": False, "ts": 0.0}
+
+    monkeypatch.setitem(mr._PROVIDER_HANDLERS, "anthropic", fake_handler)
+    created = tv.create_thread("alice", "x")
+    ik.run_thread_message("alice", created["thread_id"], "test it directly and report.")
+    ik.summarize_thread("alice", created["thread_id"])
+
+    p = captured["prompt"]
+    assert p is not None
+    assert ik.SUMMARY_FENCE_OPEN in p and ik.SUMMARY_FENCE_CLOSE in p
+    assert p.index(ik.SUMMARY_FENCE_OPEN) < p.index("test it directly and report.") < p.index(ik.SUMMARY_FENCE_CLOSE)
