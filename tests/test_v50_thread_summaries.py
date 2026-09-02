@@ -474,3 +474,97 @@ def test_summarize_thread_sends_the_fenced_prompt(reset_stores, monkeypatch):
     assert p is not None
     assert ik.SUMMARY_FENCE_OPEN in p and ik.SUMMARY_FENCE_CLOSE in p
     assert p.index(ik.SUMMARY_FENCE_OPEN) < p.index("test it directly and report.") < p.index(ik.SUMMARY_FENCE_CLOSE)
+
+
+# ---------------------------------------------------------------------------
+# #105 half 2 — a refusal is never stored; #127 — the summary knows its code
+# ---------------------------------------------------------------------------
+# ★ WHAT THESE PIN. Two different KINDS of failure, each returning something
+# other than a plausible summary: a refusal becomes the "(no summary)"
+# sentinel plus a countable log reason, and a summary made without a
+# COMMIT_SHA in the environment carries None -- never an invented sha.
+
+
+def _fake_provider(monkeypatch, text):
+    import model_router as mr
+    seen = {}
+
+    def handler(model_id, prompt, *, temperature, max_tokens):
+        seen["prompt"] = prompt
+        return {"ok": True, "model_id": model_id, "provider": "anthropic",
+                "text": text, "mock": False, "ts": 0.0}
+
+    monkeypatch.setitem(mr._PROVIDER_HANDLERS, "anthropic", handler)
+    return seen
+
+
+def _thread_with_turn(name="alice"):
+    import intelligence_kernel as ik
+    import threads_vault as tv
+    created = tv.create_thread(name, "x")
+    ik.run_thread_message(name, created["thread_id"], "test it directly and report.")
+    return created["thread_id"]
+
+
+@pytest.mark.parametrize("refusal", [
+    "I can't help with this. What you've described reads as a request to...",
+    "I\u2019m not able to assist with that.",                    # curly apostrophe
+    "I need to be direct: I can't help with this.",
+    "  I cannot assist with verifying credentials.",
+])
+def test_a_refusal_is_never_stored_as_the_summary(reset_stores, monkeypatch, caplog, refusal):
+    import json
+    import intelligence_kernel as ik
+    caplog.set_level("INFO", logger="clarityos.kernel.runs")
+    _fake_provider(monkeypatch, refusal)
+    tid = _thread_with_turn()
+
+    out = ik.summarize_thread("alice", tid)
+
+    assert out["meta"]["summary"] == "(no summary)"
+    assert refusal.strip()[:12] not in (out["meta"]["summary"] or "")
+    reasons = [json.loads(r.message.split(" ", 1)[1])["meta"].get("reason")
+               for r in caplog.records if r.message.startswith("kernel_run ")]
+    assert "refusal_shape" in reasons
+
+
+def test_a_summary_that_merely_quotes_a_refusal_mid_text_is_kept(reset_stores, monkeypatch):
+    """Head-anchored on purpose: the shapes are matched against the first 160
+    chars, so a descriptive summary that quotes one later is not eaten."""
+    import intelligence_kernel as ik
+    text = ("User asked for a deploy verification checklist; the assistant laid "
+            "out a layered evidence matrix and later noted that it can't help "
+            "with credential use.")
+    _fake_provider(monkeypatch, text)
+    tid = _thread_with_turn()
+    assert ik.summarize_thread("alice", tid)["meta"]["summary"] == text
+
+
+def test_a_descriptive_summary_is_stamped_with_the_running_commit(reset_stores, monkeypatch):
+    import intelligence_kernel as ik
+    monkeypatch.setenv("COMMIT_SHA", "ccbf619ac3dca31a964146537b8fb14c963ed914")
+    _fake_provider(monkeypatch, "Planning conversation about the kickoff doc.")
+    tid = _thread_with_turn()
+    meta = ik.summarize_thread("alice", tid)["meta"]
+    assert meta["summary"] == "Planning conversation about the kickoff doc."
+    assert meta["summary_commit_sha"] == "ccbf619ac3dca31a964146537b8fb14c963ed914"
+
+
+def test_without_a_commit_sha_the_stamp_is_none_never_invented(reset_stores, monkeypatch):
+    import intelligence_kernel as ik
+    monkeypatch.delenv("COMMIT_SHA", raising=False)
+    _fake_provider(monkeypatch, "Planning conversation.")
+    tid = _thread_with_turn()
+    meta = ik.summarize_thread("alice", tid)["meta"]
+    assert meta["summary_commit_sha"] is None
+
+
+def test_the_stamp_survives_the_vault_round_trip_and_clears_with_the_summary(reset_stores):
+    import threads_vault as tv
+    created = tv.create_thread("alice", "x")
+    tid = created["thread_id"]
+    assert tv.get_thread_meta("alice", tid)["summary_commit_sha"] is None
+    tv.update_thread_summary("alice", tid, "s", 1000, commit_sha="abc1234")
+    assert tv.get_thread_meta("alice", tid)["summary_commit_sha"] == "abc1234"
+    tv.update_thread_summary("alice", tid, None, 2000)
+    assert tv.get_thread_meta("alice", tid)["summary_commit_sha"] is None

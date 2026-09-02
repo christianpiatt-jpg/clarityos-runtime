@@ -22,7 +22,8 @@
 import { useMemo, useState } from "react";
 
 import { useCockpit, cockpit, type InsightsTab } from "../../state/cockpitStore";
-import { summaryCurrency } from "../../lib/summaryCurrency";
+import { summaryCurrency, shortSha } from "../../lib/summaryCurrency";
+import { useLiveCommitSha } from "../../hooks/useLiveCommitSha";
 import {
   composeTranscript,
   computeWindow,
@@ -106,6 +107,10 @@ function relativeTime(ts: number | null | undefined): string {
 export default function ThreadInsightsPanel() {
   const thread = useCockpit((s) => s.thread);
   const { meta, messages, tab, busy, elins, physics } = thread;
+  // #127 -- the sha of the code RUNNING, so the card can say whether the
+  // summary was made by it. Null until /health answers; null reads stale.
+  const { sha: liveSha } = useLiveCommitSha();
+  const cur = summaryCurrency(meta, liveSha);
 
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
@@ -213,21 +218,26 @@ export default function ThreadInsightsPanel() {
                 </div>
               </div>
             ) : meta.summary ? (
-              // ★ The box says whether it still describes the thread. Cyan =
-              // computed at or after the thread's last change; magenta = the
-              // thread has moved since. Derived from two timestamps the meta
-              // already carries -- nothing new is stored, and a summary produced
-              // by an older prompt is caught the same way as any other stale one:
-              // it predates the turns that came after it.
+              // ★ The box says whether it still describes the thread, on TWO
+              // axes. Cyan only if the summary was computed at or after the
+              // thread's last change AND by the code running now (#127).
+              // Magenta if the thread moved since, or the summarizer that made
+              // it is not the one deployed -- a stale-code summary on an
+              // untouched thread used to read cyan; it no longer can. The
+              // caption shows both shas so the reason is legible.
               <div
-                className={"cv2-card cv2-card-summary is-" + summaryCurrency(meta)}
+                className={"cv2-card cv2-card-summary is-" + cur}
                 data-testid="thread-summary-card"
-                data-currency={summaryCurrency(meta)}
+                data-currency={cur}
+                data-made-sha={shortSha(meta.summary_commit_sha)}
+                data-live-sha={shortSha(liveSha)}
               >
                 <div className="cv2-card-head">
                   Summary
                   <span className="cv2-card-currency" data-testid="thread-summary-currency">
-                    {summaryCurrency(meta) === "current" ? "current" : "stale — re-run"}
+                    {cur === "current" ? "current" : "stale — re-run"}
+                    {" · made "}{shortSha(meta.summary_commit_sha)}
+                    {" · running "}{shortSha(liveSha)}
                   </span>
                 </div>
                 <div className="cv2-card-body">{meta.summary}</div>

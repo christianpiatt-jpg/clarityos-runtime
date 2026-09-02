@@ -2270,7 +2270,13 @@ def me(request: Request, session: dict = Depends(require_session)):
         _user_ref(session["user"]), _session_ref(session["session_id"]),
     )
     user_doc = users_store.get_user(session["user"]) or {}
-    cohort = user_doc.get("cohort")
+    # The SESSION cohort, not a fresh doc read: require_session already read
+    # the doc and, for a pre-v43 paid member with cohort=None, DERIVED
+    # founding_500 from membership fields (the hop, #107). Re-reading the
+    # doc here bypassed that and echoed cohort: None to the footer and the
+    # features block while every gate opened. When the doc carries a cohort,
+    # the session carries the same value, so nothing else changes.
+    cohort = session.get("cohort")
 
     # Card 18 — operator identity model:
     #   Operator identity is cohort-derived (durable) and token-override
@@ -12982,6 +12988,9 @@ class V47ThreadMetaModel(BaseModel):
     # ``POST /me/threads/{id}/summarize`` call.
     summary: Optional[str] = None
     summary_ts_ms: Optional[int] = None
+    # #127 -- the COMMIT_SHA of the code that produced the summary; None on
+    # rows that predate the stamp (never backfilled) or when unset.
+    summary_commit_sha: Optional[str] = None
     # v51 — project membership. ``None`` for threads not tied to
     # any project (existing v47-v50 threads remain valid). Set at
     # creation via ``POST /me/threads`` body and surfaced on every
@@ -13095,6 +13104,11 @@ def _meta_to_model(meta: dict) -> V47ThreadMetaModel:
         archived=bool(meta.get("archived")),
         summary=summary,
         summary_ts_ms=summary_ts_ms,
+        summary_commit_sha=(
+            meta.get("summary_commit_sha")
+            if isinstance(meta.get("summary_commit_sha"), str) and meta.get("summary_commit_sha").strip()
+            else None
+        ),
         project_id=project_id_val,
     )
 
@@ -13369,6 +13383,22 @@ class V50ThreadSummaryResponse(BaseModel):
     """Wrapper for ``GET /me/threads/{thread_id}/summary`` and
     ``POST /me/threads/{thread_id}/summarize``."""
     meta: V47ThreadMetaModel
+    # #127 -- two strings the UI compares with ==. summary_commit_sha is the
+    # code that MADE the stored summary; live_commit_sha is the code RUNNING.
+    # Either None when unknown; the UI reads None as stale, never as current.
+    summary_commit_sha: Optional[str] = None
+    live_commit_sha: Optional[str] = None
+
+
+def _summary_response(meta: dict) -> V50ThreadSummaryResponse:
+    """The one place the summary wrapper is built, so every route echoes
+    both shas the same way."""
+    m = _meta_to_model(meta)
+    return V50ThreadSummaryResponse(
+        meta=m,
+        summary_commit_sha=m.summary_commit_sha,
+        live_commit_sha=(os.getenv("COMMIT_SHA") or "").strip() or None,
+    )
 
 
 class V50ThreadSummarizeRequest(BaseModel):
@@ -13398,7 +13428,7 @@ def me_threads_summary_get(
         meta = threads_vault.get_thread_meta(user, thread_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="thread not found")
-    return V50ThreadSummaryResponse(meta=_meta_to_model(meta))
+    return _summary_response(meta)
 
 
 @app.post("/me/threads/{thread_id}/summarize", response_model=V50ThreadSummaryResponse)
@@ -13427,13 +13457,13 @@ def me_threads_summarize(
         and isinstance(existing.get("summary_ts_ms"), int)
         and now_ms - int(existing["summary_ts_ms"]) < _SUMMARY_RECENT_WINDOW_MS
     ):
-        return V50ThreadSummaryResponse(meta=_meta_to_model(existing))
+        return _summary_response(existing)
 
     try:
         out = intelligence_kernel.summarize_thread(user, thread_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="thread not found")
-    return V50ThreadSummaryResponse(meta=_meta_to_model(out["meta"]))
+    return _summary_response(out["meta"])
 
 
 # ---------- v51 — Project's threads (uses V47 response shape) ----------

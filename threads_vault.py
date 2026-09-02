@@ -75,6 +75,10 @@ class ThreadMeta(TypedDict):
     # timestamp at which the summary was last computed.
     summary: Optional[str]
     summary_ts_ms: Optional[int]
+    # #127 -- the COMMIT_SHA of the code that produced the summary. None on
+    # rows written before the stamp existed (never backfilled) and when the
+    # running process has no COMMIT_SHA. A reader treats None as UNKNOWN.
+    summary_commit_sha: Optional[str]
     # v51 — project membership. None for threads that aren't part of
     # any project (existing v47-v50 threads stay valid). When set,
     # ``GET /me/threads?project_id=X`` filters on this field.
@@ -148,6 +152,10 @@ def _coerce_meta(raw: Any, *, thread_id: str) -> ThreadMeta:
         else None
     )
 
+    raw_sha = raw.get("summary_commit_sha")
+    summary_commit_sha: Optional[str] = (
+        raw_sha.strip() if isinstance(raw_sha, str) and raw_sha.strip() else None
+    )
     out: ThreadMeta = {
         "thread_id":     str(raw.get("thread_id") or thread_id),
         "title":         raw.get("title") if isinstance(raw.get("title"), str) else None,
@@ -157,6 +165,7 @@ def _coerce_meta(raw: Any, *, thread_id: str) -> ThreadMeta:
         "archived":      bool(raw.get("archived")),
         "summary":       summary,
         "summary_ts_ms": summary_ts_ms,
+        "summary_commit_sha": summary_commit_sha,
         "project_id":    project_id_val,
     }
     return out
@@ -228,6 +237,7 @@ def create_thread(
         "archived":      False,
         "summary":       None,
         "summary_ts_ms": None,
+        "summary_commit_sha": None,
         "project_id":    project_id,
     }
     memory_vault.vault_put(user_id, _meta_key(thread_id), meta)
@@ -397,8 +407,13 @@ def update_thread_summary(
     thread_id: str,
     summary: Optional[str],
     ts_ms: int,
+    *,
+    commit_sha: Optional[str] = None,
 ) -> ThreadMeta:
     """Persist a freshly-computed summary onto the thread's meta.
+
+    ``commit_sha`` (#127) stamps the code that produced it; None when the
+    caller could not read one. It is stored, never derived here.
 
     Passing ``summary=None`` (or an empty string) clears the summary —
     used by :func:`intelligence_kernel.summarize_thread` when the
@@ -420,9 +435,13 @@ def update_thread_summary(
     if isinstance(summary, str) and summary.strip():
         meta["summary"] = summary.strip()
         meta["summary_ts_ms"] = ts_ms_int
+        meta["summary_commit_sha"] = (
+            commit_sha.strip() if isinstance(commit_sha, str) and commit_sha.strip() else None
+        )
     else:
         meta["summary"] = None
         meta["summary_ts_ms"] = None
+        meta["summary_commit_sha"] = None
 
     memory_vault.vault_put(user_id, _meta_key(thread_id), meta)
     return meta

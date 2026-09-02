@@ -63,6 +63,9 @@ export interface HealthResponse {
   ok: true;
   status: string;
   version: string;
+  // #127 -- the COMMIT_SHA the service was deployed with. The literal
+  // "unknown" when unset; normSha() treats that as no sha at all.
+  commit_sha?: string;
 }
 
 export class ApiError extends Error {
@@ -1638,6 +1641,9 @@ export interface ThreadMeta {
   // ``POST /me/threads/{id}/summarize`` lands.
   summary: string | null;
   summary_ts_ms: number | null;
+  // #127 -- the COMMIT_SHA of the code that made the summary. Absent or
+  // null on rows that predate the stamp; never backfilled.
+  summary_commit_sha?: string | null;
   // v51 — project membership, surfaced on every meta read. The
   // cockpit partitions its left list on this: a RELATIONSHIP is a
   // thread carrying the reserved relationship project id.

@@ -491,3 +491,20 @@ def test_hop_f_explicit_member_cohort_untouched(app_module):
     _seat(user)
     sess = app_module.require_session(x_session_id=sid)
     assert sess["cohort"] == "member"
+
+
+def test_hop_g_get_me_echoes_the_derived_cohort(app_module, client):
+    """GET /me echoes the DERIVED cohort. Before this, me() re-read the doc
+    and reported cohort None for a paid pre-v43 member while every gate
+    opened -- the footer read "COHORT --" on an account whose surfaces were
+    all live. me() now reads the session cohort the hop produced."""
+    _arm_v43_flags()
+    user, sid = _make_user(app_module, "ava_me", cohort=None)
+    _seat(user)
+    r = client.get("/me", headers=_auth(sid))
+    assert r.status_code == 200, r.json()
+    body = r.json()
+    assert body["cohort"] == "founding_500"
+    assert body["features"]["v28_surfaces"] is True
+    # Not founder-like: operator stays False, exactly as before.
+    assert body["operator"] is False

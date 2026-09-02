@@ -1491,6 +1491,28 @@ def _format_summary_prompt(messages: list) -> str:
     return (header + transcript + footer).rstrip()
 
 
+# ***** #105 half 2 -- A REFUSAL IS NEVER STORED AS A SUMMARY.
+# CT-1 ruled the shapes. They are matched against the HEAD of the text
+# (first 160 chars), because a refusal opens with one of them, while a
+# genuine summary that quotes one mid-sentence ("...the user said it
+# can't help...") is the false positive this anchoring exists to avoid.
+# Curly apostrophes are normalised so a model's typography cannot slip a
+# refusal past the shape. On a match the stored value is the existing
+# "(no summary)" sentinel -- a different KIND -- and the kernel-run log
+# carries reason=refusal_shape so the event is countable.
+_SUMMARY_REFUSAL_SHAPES: tuple = (
+    "i can't help", "i'm not able to", "i need to be direct", "i cannot assist",
+)
+_SUMMARY_REFUSAL_HEAD_CHARS: int = 160
+
+
+def _looks_like_refusal(text: str) -> bool:
+    head = (text or "")[:_SUMMARY_REFUSAL_HEAD_CHARS].lower()
+    head = head.replace("\u2019", "'").replace("\u2018", "'")
+    head = " ".join(head.split())
+    return any(shape in head for shape in _SUMMARY_REFUSAL_SHAPES)
+
+
 def summarize_thread(user_id: str, thread_id: str) -> dict:
     """Generate or refresh a summary for ``thread_id`` and persist it
     onto the thread meta. Returns ``{"meta": ThreadMeta}``.
@@ -1537,12 +1559,19 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
 
     # Defence-in-depth: never persist an empty summary. The mock path
     # always returns a non-empty preview so this is mostly belt-and-braces.
-    if not summary_text:
+    refused = _looks_like_refusal(summary_text)
+    if not summary_text or refused:
         summary_text = "(no summary)"
+
+    # #127 -- STAMP the code that made this summary. COMMIT_SHA is the
+    # service env var /health already reports; it IS visible from the
+    # kernel. Absent (local dev, or a deploy that forgot --update-env-vars)
+    # -> None, never invented. A reader treats None as UNKNOWN -> stale.
+    commit_sha = (os.getenv("COMMIT_SHA") or "").strip() or None
 
     now_ms = int(time.time() * 1000)
     updated = threads_vault.update_thread_summary(
-        user_id, thread_id, summary_text, now_ms,
+        user_id, thread_id, summary_text, now_ms, commit_sha=commit_sha,
     )
 
     kernel_logging.log_kernel_run(
@@ -1558,6 +1587,8 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
             "message_count": int(meta.get("message_count") or 0),
             "summary_len":   len(summary_text),
             "cleared":       False,
+            "reason":        "refusal_shape" if refused else None,
+            "commit_sha":    commit_sha,
         },
     )
     return {"meta": updated}
