@@ -56,6 +56,7 @@ import json
 import logging
 import math
 import os
+import re
 import secrets
 import sys
 import time
@@ -6196,6 +6197,146 @@ def _compression_index(counts: dict):
     return 1.0 - (entropy / _EMOPHYSICS_CI_LOG_N)
 
 
+# ---------------------------------------------------------------------------
+# T -- the hedge ratio, ported from phone/lib/langbridg.ts
+# ---------------------------------------------------------------------------
+# ***** THE COMMENT ABOVE WAS FALSIFIED, NOT SATISFIED. It said the web path
+# "cannot supply" T because hedgeRatio runs client-side. That is true about
+# WHERE IT RAN and false as a constraint on where it CAN run: langbridg.ts
+# imports nothing and touches no browser API (measured 2026-09-02, grep for
+# import/require/window/document/localStorage/fetch returns nothing). It is
+# ~40 lines of text processing, and stdlib `re` is enough. A LOCATION HAD
+# BEEN READ AS A LIMITATION.
+#
+# ** TRANSLATED, NOT IMPROVED. The lexicon and the regexes are ported exactly
+# as written, including choices this lane would not have made -- see the
+# `like,` pattern below. A "better" lexicon here would make the phone and the
+# server two instruments wearing one name, which is worse than a flawed one
+# they share.
+#
+# *** JS-vs-PYTHON REGEX, and the flag choice is deliberate:
+#   \b   JS (no /u) is ASCII-only; Python str patterns are UNICODE-aware, so
+#        "\bjust\b" fires after a Cyrillic letter in Python but not in JS.
+#        re.ASCII restores JS semantics exactly.
+#   \s   re.ASCII also narrows \s, which DIVERGES from JS. It cannot change
+#        any count: \s appears in exactly one pattern, as a TRAILING
+#        quantifier on an already-matched literal, so it never gates a match.
+#   /g   is not a flag in Python -- it is findall/finditer. re.match is a
+#        different function and is not used here.
+_JS_FLAGS = re.IGNORECASE | re.ASCII
+
+#: 40 patterns, generated from the TS source rather than retyped. The array
+#: runs to langbridg.ts:170, not :150.
+_HEDGES = (
+    # first-person hedges
+    re.compile(r"\bI think\b", _JS_FLAGS),
+    re.compile(r"\bI believe\b", _JS_FLAGS),
+    re.compile(r"\bI feel\b", _JS_FLAGS),
+    re.compile(r"\bI would say\b", _JS_FLAGS),
+    re.compile(r"\bI guess\b", _JS_FLAGS),
+    re.compile(r"\bI suppose\b", _JS_FLAGS),
+    # qualifiers
+    re.compile(r"\bin my opinion\b", _JS_FLAGS),
+    re.compile(r"\bif you ask me\b", _JS_FLAGS),
+    re.compile(r"\bto be honest\b", _JS_FLAGS),
+    re.compile(r"\bif I'm honest\b", _JS_FLAGS),
+    # social filler
+    re.compile(r"\byou know\b", _JS_FLAGS),
+    re.compile(r"\blike,\s*", _JS_FLAGS),
+    # approximation
+    re.compile(r"\bit seems(?: like)?\b", _JS_FLAGS),
+    re.compile(r"\bit appears(?: that)?\b", _JS_FLAGS),
+    re.compile(r"\bmight be\b", _JS_FLAGS),
+    re.compile(r"\bcould be\b", _JS_FLAGS),
+    re.compile(r"\bmay be\b", _JS_FLAGS),
+    re.compile(r"\bperhaps\b", _JS_FLAGS),
+    re.compile(r"\bmaybe\b", _JS_FLAGS),
+    re.compile(r"\bpossibly\b", _JS_FLAGS),
+    re.compile(r"\bprobably\b", _JS_FLAGS),
+    re.compile(r"\bkind of\b", _JS_FLAGS),
+    re.compile(r"\bsort of\b", _JS_FLAGS),
+    re.compile(r"\ba bit\b", _JS_FLAGS),
+    # intensifiers / softeners
+    re.compile(r"\bbasically\b", _JS_FLAGS),
+    re.compile(r"\bliterally\b", _JS_FLAGS),
+    re.compile(r"\bessentially\b", _JS_FLAGS),
+    re.compile(r"\bhonestly\b", _JS_FLAGS),
+    re.compile(r"\bactually\b", _JS_FLAGS),
+    re.compile(r"\bfrankly\b", _JS_FLAGS),
+    re.compile(r"\bquite\b", _JS_FLAGS),
+    re.compile(r"\bsomewhat\b", _JS_FLAGS),
+    re.compile(r"\bfairly\b", _JS_FLAGS),
+    re.compile(r"\bpretty\b", _JS_FLAGS),
+    re.compile(r"\bjust\b", _JS_FLAGS),
+    re.compile(r"\breally\b", _JS_FLAGS),
+    re.compile(r"\bvery\b", _JS_FLAGS),
+    re.compile(r"\bobviously\b", _JS_FLAGS),
+    re.compile(r"\bclearly\b", _JS_FLAGS),
+    re.compile(r"\bof course\b", _JS_FLAGS),
+)
+
+#: /g, case-SENSITIVE in the TS -- no /i. Ported that way.
+_ABBREV_GUARD_RE = re.compile(
+    r"\b(Mr|Mrs|Ms|Dr|Sr|Jr|St|Mt|U\.S|U\.K|e\.g|i\.e|etc|vs)\.", re.ASCII)
+
+#: * \Z, not $. JS `$` without /m matches ONLY at absolute end; Python `$`
+#: also matches just before a trailing newline. The input is stripped first
+#: so the two cannot differ here, but \Z is what the TS actually means.
+_SENTENCE_RE = re.compile(r"[^.!?\n]+[.!?]+|[^.!?\n]+\Z")
+
+
+def _split_sentences(text):
+    """Port of langbridg.ts:46-56."""
+    t = (text or "").strip()
+    if not t:
+        return []
+    guarded = _ABBREV_GUARD_RE.sub(r"\1<DOT>", t)
+    parts = _SENTENCE_RE.findall(guarded) or [t]
+    return [x for x in (s.replace("<DOT>", ".").strip() for s in parts) if x]
+
+
+def _count_hedge_matches(text):
+    """Port of langbridg.ts:193-200.
+
+    ** DOUBLE-COUNTING IS THE EXISTING BEHAVIOUR AND IS PRESERVED. Each
+    pattern scans the whole text independently and the counts SUM, so a
+    phrase matching two patterns contributes twice. "it might be just fine"
+    scores `might be` AND `just`. Porting the loop faithfully means porting
+    that, not correcting it.
+    """
+    n = 0
+    for rx in _HEDGES:
+        n += len(rx.findall(text or ""))
+    return n
+
+
+def _hedge_ratio(text):
+    """Hedges per sentence. langbridg.ts:345-354, with TWO deliberate
+    divergences, both stated here because they are behavioural:
+
+    ***** 1. THE ZERO EDGE. The TS returns 0 when sentenceCount == 0. This
+    returns the sentinel. No sentences means no denominator means the ratio
+    is UNDEFINED, and 0 reads as "no hedging at all" -- a real, confident
+    measurement asserted where none was taken. THE PHONE AND THE SERVER WILL
+    DISAGREE ON EMPTY INPUT, DELIBERATELY, AND THE PHONE IS WRONG.
+
+    This is the THIRD instance of one shape in three languages:
+        engine/emophysics/relational.py:142   `if P <= 0: return 1.0`
+        the CI sum==0 case                    (fixed at birth, aca7146)
+        langbridg.ts:351                      sentenceCount == 0 -> 0
+
+    * 2. NO ROUNDING. The TS rounds to 2dp inside the computation. Rounding
+    is a display decision and happens at the log boundary, so the stored
+    value keeps full precision. Parity with the TS is asserted by rounding
+    BOTH sides at the comparison, not by truncating the measurement.
+    """
+    src = text if isinstance(text, str) else ""
+    sentence_count = len(_split_sentences(src))
+    if sentence_count <= 0:
+        return _EMOPHYSICS_UNMAPPED
+    return _count_hedge_matches(src) / float(sentence_count)
+
+
 def _emophysics_shadow(user: str, text: str) -> dict:
     """Extract the P-series counts and log what cannot yet be mapped.
 
@@ -6222,16 +6363,33 @@ def _emophysics_shadow(user: str, text: str) -> dict:
     n_reason = ("CI over %d categories, weighting unruled" % _EMOPHYSICS_CI_N
                 if n_mapped else
                 "no primitives extracted, p_i undefined")
+    # T -- CANDIDATE, as D and N are. The ARITHMETIC is ported exactly;
+    # the MAPPING from hedge ratio to arousal is asserted by a comment,
+    # not derived from anything. Tagged so a later change costs one line.
+    t_value = _hedge_ratio(text)
+    t_mapped = isinstance(t_value, float)
+    t_reason = ("hedge ratio ported from langbridg.ts; arousal mapping unruled"
+                if t_mapped else "no sentences, ratio undefined")
     payload = {
         "D": int(sum(counts.values())),
         "D_status": "CANDIDATE",
         "counts": dict(counts),
-        "T": _EMOPHYSICS_UNMAPPED,
+        "T": t_value,
+        "T_status": "CANDIDATE" if t_mapped else _EMOPHYSICS_UNMAPPED,
         "N": n_value,
         "N_status": "CANDIDATE" if n_mapped else _EMOPHYSICS_UNMAPPED,
+        # ***** E IS MARKED, NOT MISSING. Doctrine 8.4 names four per-turn
+        # flows -- E, D, T, N. E was the only one with no key at all, and
+        # AN ABSENT FIELD IS QUIETER THAN AN UNMAPPED ONE: a reader
+        # scanning the payload sees three flows and has no reason to ask
+        # about a fourth. It is not computed, not defaulted, and no
+        # producer is guessed at.
+        "E": _EMOPHYSICS_UNMAPPED,
+        "E_status": _EMOPHYSICS_UNMAPPED,
         "computed": False,
-        "reason": ("T: no server-side producer (langbridg.ts is client-side) "
-                   "· N: " + n_reason),
+        "reason": ("T: " + t_reason + " · N: " + n_reason
+                   + " · E: no producer identified; not computed, "
+                     "not defaulted"),
     }
     # INFO with a stable, greppable key. Counts and integers only -- never
     # the member's text, and nothing here that the message path does not
@@ -6242,6 +6400,8 @@ def _emophysics_shadow(user: str, text: str) -> dict:
     log_payload = dict(payload)
     if n_mapped:
         log_payload["N"] = round(n_value, 4)
+    if t_mapped:
+        log_payload["T"] = round(t_value, 4)
     logger.info("emophysics_shadow user=%s payload=%s",
                 _user_ref(user), log_payload)
     return payload
