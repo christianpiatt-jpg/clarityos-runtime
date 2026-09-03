@@ -336,6 +336,35 @@ def test_comp_override_and_malformed_numbers_are_handled(reset_stores):
     assert users_store.identity_view({"username": "x@e.com", "member_number": "junk"})["member_number"] is None
 
 
+def test_the_grant_backfill_marks_manual_only_ledgers_and_logs_no_address(app_module, caplog):
+    """A pre-#124 founder grant: an active founding doc whose ledger holds
+    only manual activations. The backfill marks it granted and logs a HASH
+    reference -- never the address, never a prefix of it (the tag-boot log
+    of 37a4a67 carried eight characters of an email; this pins the fix)."""
+    import bcrypt
+    caplog.set_level("INFO")
+    for u, txs in (
+        ("granted.walker@example.com", [{"type": "membership_activation", "metadata": {"manual": True}}]),
+        ("paid.member@example.com", [{"type": "membership_activation", "metadata": {"manual": True}},
+                                     {"type": "checkout_session_completed", "metadata": {}}]),
+    ):
+        users_store.create_user(username=u, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
+                                salt="", tier="free", created_at=100.0)
+        users_store.set_membership(u, tier="founding_500", price=50.0, status="active")
+        for t in txs:
+            membership_store.record_transaction(u, type=t["type"], amount=50.0, credits_delta=0,
+                                                metadata=t["metadata"])
+    marked = app_module._backfill_membership_granted()
+    assert marked == 1
+    assert users_store.get_user("granted.walker@example.com")["membership_granted"] is True
+    assert not users_store.get_user("paid.member@example.com").get("membership_granted")
+    assert users_store.is_citizen(users_store.get_user("paid.member@example.com")) is True
+    msgs = [r.getMessage() for r in caplog.records if "membership_granted.backfilled" in r.getMessage()]
+    assert len(msgs) == 1
+    assert "granted.walker" not in msgs[0] and "granted.w" not in msgs[0]
+    assert users_store._uref("granted.walker@example.com") in msgs[0]
+
+
 def test_a_session_with_no_doc_derives_nothing(app_module, monkeypatch):
     """The old entitlement-from-absence guard stands: a live session whose doc
     is gone derives NO label (not "all"). The harness auto-provisions a doc for

@@ -559,7 +559,10 @@ def _backfill_membership_granted() -> int:
         paid = any(t.get("type") == "checkout_session_completed" for t in txs)
         if acts and not paid and all((t.get("metadata") or {}).get("manual") for t in acts):
             users_store.update_user(u, {"membership_granted": True})
-            logger.info("membership_granted.backfilled user_ref=%s", _user_ref(u))
+            # users_store._uref is a HASH; app's _user_ref is a username PREFIX,
+            # which for an email-keyed account is eight characters of the
+            # address. Never the prefix here.
+            logger.info("membership_granted.backfilled user_ref=%s", users_store._uref(u))
             marked += 1
     return marked
 
