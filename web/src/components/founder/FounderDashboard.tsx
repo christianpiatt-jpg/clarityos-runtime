@@ -6,6 +6,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import CohortList from "./CohortList";
+import CreateMemberBox from "./CreateMemberBox";
+import MembersTable from "./MembersTable";
 import WaitlistPanel from "./WaitlistPanel";
 import MemberDetailPanel from "./MemberDetailPanel";
 import ManualActivateButton from "./ManualActivateButton";
@@ -23,6 +25,10 @@ import FounderVaultInspector from "./vault/FounderVaultInspector";
 
 export default function FounderDashboard() {
   const [selectedUser, setSelectedUser] = useState<string>("");
+  // #150 -- a Member-search miss prefills Create member; a create bumps
+  // the Members table so the new row is there on sight.
+  const [createPrefill, setCreatePrefill] = useState<{ email: string; n: number }>({ email: "", n: 0 });
+  const [membersVersion, setMembersVersion] = useState(0);
 
   return (
     <div className="founder-dashboard" style={{ maxWidth: 960, margin: "0 auto" }}>
@@ -43,7 +49,21 @@ export default function FounderDashboard() {
         alignItems: "start",
       }}>
         <CohortList />
-        <MemberDetailPanel selected={selectedUser} onSelect={setSelectedUser} />
+        <MemberDetailPanel
+          selected={selectedUser}
+          onSelect={setSelectedUser}
+          onCreateRequest={(email) => setCreatePrefill((p) => ({ email, n: p.n + 1 }))}
+        />
+
+        {/* #150 -- row 2: Members under Cohort fill (left), Create member under
+            Member search (right). The table is height-capped so Manual ops,
+            which a row-click feeds, stays in reach below. */}
+        <MembersTable onSelect={setSelectedUser} refreshKey={membersVersion} />
+        <CreateMemberBox
+          prefill={createPrefill.email}
+          prefillKey={createPrefill.n}
+          onCreated={(email) => { setSelectedUser(email); setMembersVersion((v) => v + 1); }}
+        />
 
         <ManualActivateButton user={selectedUser} />
         <DMNotesPanel scopeUser={selectedUser || undefined} />

@@ -1983,6 +1983,57 @@ export const founderMembershipCredits = (user: string, delta: number, reason?: s
     { method: "POST", body: { user, delta, ...(reason ? { reason } : {}) } },
   );
 
+// ---------- #150 -- the founder creates accounts and sees them ----------
+// POST /founder/members/create: the SAME birth fn a magic-link click uses,
+// an optional founder grant by the SAME body as Activate, the person's link
+// by the SAME throttled sender. The server never returns a token or link.
+export interface FounderMemberCreateResult {
+  ok: true;
+  created: boolean;
+  activated: boolean;
+  /** set when activate was asked and refused (e.g. "cohort_error"); the doc still exists */
+  activate_error: string | null;
+  /** the sender reported success -- not merely "attempted" */
+  sent: boolean;
+  link_throttled: boolean;
+  email_hash: string;
+}
+export const founderMembersCreate = (input: {
+  email: string; activate?: boolean; send_link?: boolean; note?: string;
+}) =>
+  request<FounderMemberCreateResult>("/founder/members/create", {
+    method: "POST",
+    body: {
+      email: input.email,
+      activate: !!input.activate,
+      send_link: input.send_link !== false,
+      ...(input.note ? { note: input.note } : {}),
+    },
+  });
+
+// GET /founder/members: the server's projection -- no hash, no salt, no
+// operator id. last_seen is null until a surface stores one.
+export interface FounderMemberRow {
+  email: string;
+  cohort: string | null;
+  membership_status: string | null;
+  membership_tier: string | null;
+  created_at: number | null;
+  last_seen: number | null;
+  balance_display: string;
+  auth_method: string | null;
+}
+export const founderMembersList = (params: { limit?: number; offset?: number; email?: string } = {}) => {
+  const qp = new URLSearchParams();
+  if (params.limit !== undefined) qp.set("limit", String(params.limit));
+  if (params.offset !== undefined) qp.set("offset", String(params.offset));
+  if (params.email) qp.set("email", params.email);
+  const qs = qp.toString();
+  return request<{
+    ok: true; members: FounderMemberRow[]; count: number; limit: number; offset: number; has_more: boolean;
+  }>(`/founder/members${qs ? "?" + qs : ""}`);
+};
+
 // ---------- v52 — Emotional Physics (Path C-compliant kernel) ----------
 export interface EmotionalPhysicsLayers {
   field_curvature:       Record<string, unknown>;
