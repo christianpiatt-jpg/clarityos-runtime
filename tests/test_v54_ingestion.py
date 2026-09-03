@@ -36,6 +36,19 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
+@pytest.fixture(autouse=True)
+def _no_vertex_probe(monkeypatch):
+    """persist_to_library now embeds every stored item. Un-stubbed, the first
+    embed enters dewey_pipeline._init_vertex_once -> google.auth.default(),
+    a ~12 s credential probe on a box without ADC and a LIVE Vertex call on a
+    box with it. Stub only the real embedder: embed_object ->
+    embed_text_cached -> hash fallback stays genuinely exercised, and the
+    file is hermetic by construction rather than by the absence of creds.
+    (Suite convention: tests/test_v28_endpoints.py stubs the embedder.)"""
+    import dewey_pipeline
+    monkeypatch.setattr(dewey_pipeline, "_real_embed", lambda text: None)
+
+
 def _make_user(app_module, username, cohort="founder"):
     import bcrypt
     import sessions_store
@@ -739,3 +752,134 @@ def test_fetch_feed_bytes_only_allows_http_https():
     assert "file" not in ib.ALLOWED_URL_SCHEMES
     assert "ftp" not in ib.ALLOWED_URL_SCHEMES
     assert "javascript" not in ib.ALLOWED_URL_SCHEMES
+
+
+# ===========================================================================
+# persist_to_library -- the object_vector (the corpus front door)
+# ===========================================================================
+# ★ WHAT THESE PIN. Every other library write embeds the row and hands it
+# to dewey_worker.process_object; the bus write did neither, so an ingested
+# item had no vector on its row and no neighborhood pass at write time (it
+# was reachable only by a later refresh/backfill scan). These pin that the
+# vector is now written from the same call the other paths use, that an
+# embedding failure stores the item WITHOUT a vector rather than dropping
+# it, that the log line for that failure carries no user and no exception
+# text, that the un-stubbed chain (hash fallback) yields a real non-empty
+# vector (the acceptance shape), and that process_object is offered the
+# stored row -- and cannot take the ingest down.
+def test_persist_to_library_sets_object_vector(reset_stores, monkeypatch):
+    from ELINS import ingestion_bus as ib
+    import library_store
+
+    seen = {}
+    def fake_embed(obj):
+        seen["obj"] = dict(obj)
+        return [0.1, 0.2, 0.3]
+    monkeypatch.setattr(ib.dewey_pipeline, "embed_object", fake_embed)
+
+    item_id = ib.persist_to_library(
+        "alice", source="manual", region=None, raw_text="three sentences of text",
+        envelope={"outputs": {"attractor": "S1", "collapse_state": "none"}},
+    )
+    rec = library_store.get(item_id)
+    assert rec["object_vector"] == [0.1, 0.2, 0.3]
+    # embed_object was handed the dict with the fields it embeds from.
+    assert seen["obj"]["content"] == "three sentences of text"
+    assert seen["obj"]["title"]
+
+
+def test_persist_to_library_embed_failure_still_stores_the_item(reset_stores, monkeypatch, caplog):
+    from ELINS import ingestion_bus as ib
+    import library_store
+
+    def boom(obj):
+        raise RuntimeError("embedder down")
+    monkeypatch.setattr(ib.dewey_pipeline, "embed_object", boom)
+    caplog.set_level("WARNING", logger="clarityos.ingestion_bus")
+
+    item_id = ib.persist_to_library(
+        "alice", source="manual", region=None, raw_text="still stored",
+        envelope={"outputs": {}},
+    )
+    rec = library_store.get(item_id)
+    assert rec is not None and rec["content"] == "still stored"
+    # WITHOUT the vector: the key is absent, not a fake or empty vector.
+    assert "object_vector" not in rec
+    hits = [r.message for r in caplog.records if "embed_failed" in r.message]
+    assert hits and all("kind=ingest" in m and "RuntimeError" in m for m in hits)
+    # INV-H1 by construction: neither the user nor the exception TEXT is
+    # in the line -- only the random item id and the exception type.
+    assert not any("alice" in r.message for r in caplog.records)
+    assert not any("embedder down" in r.message for r in caplog.records)
+
+
+def test_persist_to_library_unmocked_path_yields_a_real_vector(reset_stores):
+    """The acceptance shape: object_vector present and a non-empty list of
+    floats. Only _real_embed is stubbed (autouse fixture above); embed_object
+    -> embed_text_cached -> hash fallback -> normalize all run for real."""
+    from ELINS import ingestion_bus as ib
+    import library_store
+
+    item_id = ib.persist_to_library(
+        "alice", source="manual", region=None,
+        raw_text="Paste three sentences here. They carry signal. The corpus keeps them.",
+        envelope={"outputs": {"attractor": "S2", "collapse_state": "soft"}},
+    )
+    vec = library_store.get(item_id).get("object_vector")
+    assert isinstance(vec, list) and len(vec) > 0
+    assert all(isinstance(x, float) for x in vec)
+
+
+def test_run_manual_ingestion_end_to_end_carries_the_vector(reset_stores):
+    """The route's kernel path: run_manual_ingestion -> persist_to_library ->
+    library_store, and the stored row carries its vector."""
+    import intelligence_kernel as ik
+    import library_store
+    out = ik.run_manual_ingestion("alice", "A member pastes text. It is analysed. It is kept.",
+                                  source="cockpit", region=None)
+    rec = library_store.get(out["library_id"])
+    assert rec is not None
+    assert isinstance(rec.get("object_vector"), list) and len(rec["object_vector"]) > 0
+    assert rec["metadata"]["source"] == "cockpit"
+
+
+def test_persist_to_library_offers_the_stored_row_to_the_neighborhood_pass(reset_stores, monkeypatch):
+    """★ CONNECTABLE. A vector is an embedding; a membership is the connection.
+    After the store, the bus hands the stored row (WITH its vector) to
+    dewey_worker.process_object exactly as app.py's /library/write does."""
+    from ELINS import ingestion_bus as ib
+    import library_store
+
+    calls = []
+    monkeypatch.setattr(ib.dewey_worker, "process_object",
+                        lambda user, kind, oid, doc: calls.append((user, kind, oid, doc)) or 0)
+    item_id = ib.persist_to_library(
+        "alice", source="manual", region=None, raw_text="connect me",
+        envelope={"outputs": {}},
+    )
+    assert len(calls) == 1
+    user, kind, oid, doc = calls[0]
+    assert (user, kind, oid) == ("alice", "library", item_id)
+    assert isinstance(doc.get("object_vector"), list) and doc["object_vector"]
+    # and the row was ALREADY stored when the pass was offered it
+    assert library_store.get(item_id) is not None
+
+
+def test_persist_to_library_survives_a_neighborhood_pass_failure(reset_stores, monkeypatch, caplog):
+    from ELINS import ingestion_bus as ib
+    import library_store
+
+    def boom(user, kind, oid, doc):
+        raise RuntimeError("memberships store down")
+    monkeypatch.setattr(ib.dewey_worker, "process_object", boom)
+    caplog.set_level("WARNING", logger="clarityos.ingestion_bus")
+
+    item_id = ib.persist_to_library(
+        "alice", source="manual", region=None, raw_text="still stored",
+        envelope={"outputs": {}},
+    )
+    assert library_store.get(item_id)["content"] == "still stored"
+    hits = [r.message for r in caplog.records if "neighborhood_pass_failed" in r.message]
+    assert hits and all("RuntimeError" in m for m in hits)
+    assert not any("alice" in r.message or "memberships store down" in r.message
+                   for r in caplog.records)

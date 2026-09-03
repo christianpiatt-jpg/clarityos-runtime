@@ -14,7 +14,13 @@ Per-user signal ingestion. Two paths:
 
 Architecture / safety:
 
-  * Stdlib only — no feedparser, no defusedxml, no third-party deps.
+  * This module's own imports are stdlib — no feedparser, no defusedxml.
+    persist_to_library calls two root modules every app.py library write
+    also calls: dewey_pipeline.embed_object (Vertex text-embedding-005
+    when configured, hash fallback otherwise; never raises) and
+    dewey_worker.process_object (neighborhood memberships; never raises).
+    Those pull google.auth / vertexai lazily. So: one outbound call that
+    is NOT an RSS fetch — the embedding of the stored item.
   * Outbound HTTP only via registered RSS/Atom URLs. http/https only,
     no redirects, 2 MB response cap, 10 s timeout.
   * No HTML parsing, no scraping, no eval / no exec, no compile of
@@ -74,6 +80,10 @@ import xml.etree.ElementTree as ET
 from typing import Any, Optional
 from urllib.parse import urlparse
 
+# Root modules resolve from ELINS/ the same way library_store does. The
+# import is cycle-free: dewey_pipeline pulls only stdlib + embeddings_cache_store.
+import dewey_pipeline
+import dewey_worker
 import library_store
 
 logger = logging.getLogger("clarityos.ingestion_bus")
@@ -400,7 +410,7 @@ def persist_to_library(
         tags.append(f"region:{region}")
 
     capped_text = (raw_text or "")[:MAX_TEXT_BYTES]
-    library_store.create(item_id, {
+    item = {
         "id":         item_id,
         "user":       user,
         "title":      title[:200],
@@ -417,7 +427,41 @@ def persist_to_library(
         "size_bytes": len(capped_text.encode("utf-8")),
         "created_at": now,
         "updated_at": now,
-    })
+    }
+    # ★ THE TWO CALLS EVERY OTHER LIBRARY WRITE MAKES (app.py /library/write:
+    # embed, store, process_object). Before this the bus stored the item and
+    # stopped: no vector on the row, no neighborhood pass, so an ingested
+    # item was reachable only by a later refresh/backfill scan. Now the row
+    # carries its embedding at write time and is offered to the member's
+    # neighborhoods immediately. A vector is an embedding; a membership is
+    # the connection -- process_object writes the second from the first.
+    # embed_object reads title + content off the dict, both present above.
+    #
+    # ★ NEVER DROP THE ITEM. embed_text_cached already falls back to a hash
+    # embedding rather than raising, so this branch is belt-and-braces; if
+    # anything does raise, the item is stored WITHOUT a vector (the key is
+    # omitted -- a different kind from a vector, not a fake one) and the
+    # failure is logged as a countable event. The log line carries the
+    # random item id and the exception TYPE only -- never str(exc), which a
+    # future embedder could fill with the request body (INV-H1 by construction).
+    try:
+        item["object_vector"] = dewey_pipeline.embed_object(item)
+    except Exception as exc:  # noqa: BLE001 -- see above: the item must survive
+        logger.warning(
+            "ingest kind=ingest reason=embed_failed item=%s err=%s",
+            item_id, type(exc).__name__,
+        )
+    library_store.create(item_id, item)
+    # process_object is documented never-raises and returns the membership
+    # count; the guard is belt-and-braces so the stored item is returned
+    # even if that contract ever breaks. The item is ALREADY stored here.
+    try:
+        dewey_worker.process_object(user, "library", item_id, item)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "ingest kind=ingest reason=neighborhood_pass_failed item=%s err=%s",
+            item_id, type(exc).__name__,
+        )
     return item_id
 
 

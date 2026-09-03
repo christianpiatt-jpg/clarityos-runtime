@@ -290,6 +290,15 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- v54 ingestion bus + the corpus front door ----
+    # runtime_spine: /ingest/manual and /ingest/feeds/* are member routes
+    # and persist_to_library is the one library write outside app.py.
+    # privacy_surface: the embed_failed / neighborhood_pass_failed log
+    # lines must never carry a user or exception text.
+    "test_v54_ingestion.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- what-if cone spikes (nudge table + physics mapper) ----
     # determinism_surface: both mappers are pure functions over recorded
     # readings, so every figure must reproduce exactly. Not runtime_spine --
