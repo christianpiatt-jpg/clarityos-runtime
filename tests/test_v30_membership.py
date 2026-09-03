@@ -508,3 +508,80 @@ def test_hop_g_get_me_echoes_the_derived_cohort(app_module, client):
     assert body["features"]["v28_surfaces"] is True
     # Not founder-like: operator stays False, exactly as before.
     assert body["operator"] is False
+
+
+# ===========================================================================
+# #123 -- set_membership honours its own docstring
+# ===========================================================================
+# ★ WHAT THESE PIN. The docstring said "pass None to clear a field" while the
+# code guarded on `is not None`, so None was never written and a
+# re-activation left membership_cancelled_ts standing. Now: omit = leave
+# alone; None = clear (written as null); float = set. And the activation
+# writers pass cancelled_ts=None.
+def _seed_user(username):
+    import bcrypt
+    import users_store
+    users_store.create_user(
+        username=username, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
+        salt="", tier="free", created_at=time.time(),
+    )
+
+
+def test_activate_after_cancel_clears_cancelled_ts(reset_stores):
+    import users_store
+    _seed_user("re_activated")
+    users_store.set_membership(
+        "re_activated", tier="founding_500", price=50.0, status="cancelled",
+        cancelled_ts=1783420269.0,
+    )
+    assert users_store.get_user("re_activated")["membership_cancelled_ts"] == 1783420269.0
+
+    users_store.set_membership(
+        "re_activated", tier="founding_500", price=50.0, status="active",
+        started_ts=1783500000.0, cancelled_ts=None,
+    )
+    doc = users_store.get_user("re_activated")
+    assert doc["membership_status"] == "active"
+    assert doc.get("membership_cancelled_ts") is None
+    assert users_store.get_membership_view("re_activated")["cancelled_ts"] is None
+    assert doc["membership_started_ts"] == 1783500000.0
+
+
+def test_omitting_a_ts_leaves_it_untouched_and_none_clears_started_too(reset_stores):
+    """Backward compatibility for every existing caller (none passes None
+    today): omit = untouched. And the clear works for started_ts as well."""
+    import users_store
+    _seed_user("untouched")
+    users_store.set_membership(
+        "untouched", tier="founding_500", price=50.0, status="active",
+        started_ts=1783500000.0, cancelled_ts=1783420269.0,
+    )
+    # omit both -> both survive a status-only rewrite
+    users_store.set_membership("untouched", tier="founding_500", price=50.0, status="cancelled")
+    doc = users_store.get_user("untouched")
+    assert doc["membership_started_ts"] == 1783500000.0
+    assert doc["membership_cancelled_ts"] == 1783420269.0
+    # explicit None clears started_ts as well
+    users_store.set_membership("untouched", tier="founding_500", price=50.0, status="cancelled", started_ts=None)
+    assert users_store.get_user("untouched").get("membership_started_ts") is None
+
+
+def test_founder_activate_route_clears_a_prior_cancellation(app_module, client):
+    """The named writer, through its route: a cancelled member the founder
+    re-activates carries no cancelled_ts afterwards."""
+    import users_store
+    founder, fsid = _make_user(app_module, "founder_123", cohort="founder")
+    _seed_user("comeback")
+    users_store.set_membership(
+        "comeback", tier="founding_500", price=50.0, status="cancelled",
+        cancelled_ts=1783420269.0,
+    )
+    r = client.post(
+        "/founder/membership/activate",
+        json={"user": "comeback", "price": 0},
+        headers={"X-Session-ID": fsid},
+    )
+    assert r.status_code == 200, r.text
+    doc = users_store.get_user("comeback")
+    assert doc["membership_status"] == "active"
+    assert doc.get("membership_cancelled_ts") is None

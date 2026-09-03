@@ -2116,6 +2116,7 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
                 price=float(obj.get("amount_total") or 0) / 100.0,
                 status="active",
                 started_ts=started_ts,
+                cancelled_ts=None,  # #123 -- a re-activation clears the old cancellation
             )
             users_store.set_billing_state(
                 email_lower, billing_state="active",
@@ -14893,6 +14894,7 @@ def founder_membership_activate(
         price=price,
         status="active",
         started_ts=started_ts,
+        cancelled_ts=None,  # #123 -- a re-activation clears the old cancellation
     )
     users_store.set_billing_state(
         target,

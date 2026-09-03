@@ -32,7 +32,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Optional
+from typing import Any, Optional
 
 logger = logging.getLogger("clarityos.users_store")
 
@@ -436,26 +436,40 @@ def refund_g_credit_tx(user: str, request_id: str, *, cost: int = 1) -> None:
     _txn(client.transaction())
 
 
+# #123 -- "leave this field alone". The old default was None with an
+# `is not None` guard, so the docstring's "pass None to clear" could never
+# happen: a re-activation left membership_cancelled_ts standing (the
+# founder's own doc read active + cancelled_ts set). A private sentinel
+# separates "not passed" from "passed None".
+_UNSET: Any = object()
+
+
 def set_membership(
     user: str,
     *,
     tier: Optional[str],
     price: Optional[float],
     status: Optional[str],
-    started_ts: Optional[float] = None,
-    cancelled_ts: Optional[float] = None,
+    started_ts: Any = _UNSET,
+    cancelled_ts: Any = _UNSET,
 ) -> None:
-    """Apply membership fields. Pass None to clear a field. Atomic from the
-    caller's perspective (one update_user call)."""
+    """Apply membership fields. Atomic from the caller's perspective (one
+    update_user call).
+
+    started_ts / cancelled_ts: OMIT the argument to leave the stored field
+    untouched; pass None EXPLICITLY to clear it (written as null, so a
+    reader sees None); pass a float to set it. Every activation writer
+    passes cancelled_ts=None so a re-activated member does not carry the
+    timestamp of a cancellation that no longer holds (#123)."""
     payload: dict = {
         "membership_tier": tier,
         "membership_price": price,
         "membership_status": status,
     }
-    if started_ts is not None:
-        payload["membership_started_ts"] = float(started_ts)
-    if cancelled_ts is not None:
-        payload["membership_cancelled_ts"] = float(cancelled_ts)
+    if started_ts is not _UNSET:
+        payload["membership_started_ts"] = None if started_ts is None else float(started_ts)
+    if cancelled_ts is not _UNSET:
+        payload["membership_cancelled_ts"] = None if cancelled_ts is None else float(cancelled_ts)
     update_user(user, payload)
 
 

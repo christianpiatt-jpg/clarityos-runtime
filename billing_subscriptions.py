@@ -296,6 +296,7 @@ def handle_invoice_paid(invoice: dict) -> None:
             user, tier=membership_store.FOUNDING_COHORT,
             price=membership_store.FOUNDING_PRICE_LOCKED, status="active",
             started_ts=time.time(),
+            cancelled_ts=None,  # #123 -- a re-activation clears the old cancellation
         )
         try:
             membership_store.add_member(user)

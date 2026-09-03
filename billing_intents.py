@@ -430,6 +430,7 @@ def _apply_succeeded(user: str, kind: str, intent: dict) -> None:
             price=amount,
             status="active",
             started_ts=time.time(),
+            cancelled_ts=None,  # #123 -- a re-activation clears the old cancellation
         )
         users_store.set_billing_state(
             user,
