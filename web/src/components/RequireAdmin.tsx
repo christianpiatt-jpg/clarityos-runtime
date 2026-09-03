@@ -17,10 +17,16 @@ import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
 /** Cohorts allowed to see the V1 console. Mirrors the server's founder-like
  *  cohorts (app.py COHORT_FOUNDER / COHORT_FOUNDER_EXCEPTION / admin); the
  *  server re-checks every call regardless. */
-const ADMIN_COHORTS = new Set(["founder", "founder_exception", "admin"]);
+// #124 -- the founder is /me.controller; the derived label "controller"
+// and the legacy strings are accepted for one deploy (the server's shim).
+const ADMIN_COHORTS = new Set(["controller", "founder", "founder_exception", "admin"]);
 
 export function isAdminCohort(cohort: string | null | undefined): boolean {
   return typeof cohort === "string" && ADMIN_COHORTS.has(cohort);
+}
+
+export function isController(profile: { controller?: boolean; cohort?: string | null } | null | undefined): boolean {
+  return profile?.controller === true || isAdminCohort(profile?.cohort);
 }
 
 export default function RequireAdmin() {
@@ -35,7 +41,7 @@ export default function RequireAdmin() {
   if (!auth.session) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
-  if (!isAdminCohort(auth.profile?.cohort)) {
+  if (!isController(auth.profile)) {
     // Redirect rather than render a refusal page: the member product is
     // where they meant to be, and a dead-end error screen is the exact
     // outcome this guard exists to avoid.

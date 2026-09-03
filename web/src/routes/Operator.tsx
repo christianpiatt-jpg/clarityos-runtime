@@ -16,6 +16,7 @@ import {
   type InviteCreated,
 } from "../lib/api";
 import { syncProfile } from "../lib/auth";
+import { isController } from "../components/RequireAdmin";
 
 const RECENT_INVITES_KEY = "clarityos.recent_invites";
 
@@ -56,7 +57,9 @@ export default function Operator() {
     return () => { cancelled = true; };
   }, [profile]);
 
-  const isAdmin = profile?.cohort === "founder";
+  // #124 -- the founder is /me.controller (the derived label is "controller",
+  // never "founder" any more); the server gate is username-based and unchanged.
+  const isAdmin = isController(profile);
 
   async function mint(cohort: Cohort) {
     if (minting) return;

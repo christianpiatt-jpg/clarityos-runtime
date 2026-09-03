@@ -21,7 +21,9 @@ function writeStorage(k: string, v: string | null): void {
 }
 
 // ---------- Types ----------
-export type Cohort = "founder" | "founder_exception" | "terrace_1";
+// #124 -- `cohort` is a label DERIVED on the server ("controller" |
+// "founding" | "all"); the legacy strings may still appear for one deploy.
+export type Cohort = "controller" | "founding" | "all" | "founder" | "founder_exception" | "terrace_1" | "member" | "admin" | string;
 
 export interface Profile {
   user: string;
@@ -29,6 +31,11 @@ export interface Profile {
   operator_id?: string | null;
   tier?: string;
   billing_expires_at?: number | null;
+  // #124 -- the citizen number and what is derived from it
+  member_number?: number | null;
+  citizen?: boolean;
+  controller?: boolean;
+  citz_id?: string | null;
 }
 
 export interface MeResponse {
@@ -39,6 +46,11 @@ export interface MeResponse {
   operator_id?: string | null;
   tier?: string;
   billing_expires_at?: number | null;
+  // #124
+  member_number?: number | null;
+  citizen?: boolean;
+  controller?: boolean;
+  citz_id?: string | null;
 }
 
 export interface ConfigResponse {
@@ -219,6 +231,10 @@ export async function refreshProfile(): Promise<Profile | null> {
       operator_id: m.operator_id ?? null,
       tier: m.tier,
       billing_expires_at: m.billing_expires_at ?? null,
+      member_number: m.member_number ?? null,
+      citizen: m.citizen === true,
+      controller: m.controller === true,
+      citz_id: m.citz_id ?? null,
     };
     return memoryProfile;
   } catch (e) {
@@ -662,6 +678,14 @@ export type V31BillingState =
 
 export interface MembershipStateView {
   user: string;
+  // #124 -- the citizen id, shown on /membership
+  identity?: {
+    member_number: number | null;
+    citizen: boolean;
+    controller: boolean;
+    citz_id: string | null;
+    cohort: string;
+  };
   membership: {
     tier: string | null;
     status: "active" | "cancelled" | null;

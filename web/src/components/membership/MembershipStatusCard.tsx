@@ -25,6 +25,7 @@ interface Props {
 export default function MembershipStatusCard({ state }: Props) {
   const m = state.membership;
   const c = state.cohort;
+  const ident = state.identity;  // #124 -- the citizen id
   const isActive = m.status === "active";
   const isCancelled = m.status === "cancelled";
   const isNonMember = !m.status;
@@ -56,6 +57,11 @@ export default function MembershipStatusCard({ state }: Props) {
       }}>
         <h2 style={{ margin: 0, fontSize: 18 }}>
           {m.tier === "founding_500" ? "Founding 500" : "Membership"}
+          {ident?.citz_id ? (
+            <span data-testid="citz-id" style={{ marginLeft: 10, fontSize: 12, fontFamily: "var(--font-mono, monospace)", opacity: 0.8 }}>
+              {ident.citz_id}{ident.controller ? " · controller" : ident.citizen ? " · citizen" : ""}
+            </span>
+          ) : null}
         </h2>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {showLock && (

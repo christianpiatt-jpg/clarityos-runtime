@@ -191,13 +191,19 @@ export default function Layout() {
   );
 }
 
+// #124 -- the footer names the derived label and, when numbered, the
+// citizen id. The legacy strings keep their old labels for one deploy.
 function cohortLabel(profile: Profile | null): string {
   if (!profile) return "—";
-  if (!profile.cohort) return "—";
+  const id = profile.citz_id ? ` ${profile.citz_id}` : "";
+  if (profile.controller || profile.cohort === "controller") return "CONTROLLER" + id;
+  if (profile.cohort === "founding") return "FOUNDING" + id;
+  if (profile.cohort === "all") return "ALL" + id;
+  if (!profile.cohort) return id ? id.trim() : "—";
   if (profile.cohort === "founder") return "FOUNDER";
   if (profile.cohort === "founder_exception") return "FOUNDER·EXC";
   if (profile.cohort === "terrace_1") return "T-1";
-  return profile.cohort;
+  return profile.cohort + id;
 }
 
 // ---------- Rail bits ----------
