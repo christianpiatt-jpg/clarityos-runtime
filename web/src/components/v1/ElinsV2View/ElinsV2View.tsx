@@ -28,6 +28,7 @@ import {
   type PKey,
 } from "../../../lib/elinsV2";
 import { ApiError } from "../../../lib/api";
+import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
 import styles from "./ElinsV2View.module.css";
 import {
   attractorVerdict,
@@ -130,8 +131,9 @@ export default function ElinsV2View({ envelope, runOn, onRun }: Props) {
         distribution={outputs.state_distribution}
         attractor={outputs.attractor}
       />
+      <MathRail view={view} />
       <CollapseBlock collapse={outputs.collapse_state} />
-      <P0P8Block grid={outputs.P0_P8} />
+      <P0P8Block grid={outputs.P0_P8} timeline={outputs.timeline} />
       <GeographyBlock tier={outputs.geography_tier} />
       <MultiplierBlock multiplier={outputs.multiplier} />
 
@@ -196,6 +198,127 @@ function EtfPill({ label, value }: { label: string; value: number }) {
     <div className={styles.etfPill}>
       <span className={styles.etfLabel}>{label}</span>
       <span className={styles.etfValue}>{pct}%</span>
+    </div>
+  );
+}
+
+// ★★ THE MATH RAIL -- which numbers are measured, which are waiting, and
+// what a flat reading means. Ruled 2026-08-27 (ORDER_math_rail), built
+// 2026-09-03. Reads `outputs` and `pipeline` already in scope: NO fetch.
+//
+// The attractor caption says "indeterminate" on a tie, and as a WINNER
+// statement that is correct. It is not a verdict on the distribution. A
+// flat distribution is CI = 0 -- maximum entropy, minimum curvature -- the
+// most resilient reading the instrument returns, and until this rail the
+// panel called it a non-result. Same screen printed intensities of 0.000
+// where edge_count was 0, i.e. where nothing had been measured at all.
+//
+// ★ Every WAITING quantity is rendered, one line each, with its named
+// blocker. A hidden waiting row is the defect this rail ends.
+function MathRail({ view }: { view: ElinsV2Envelope }) {
+  const { outputs, pipeline } = view;
+  const weights = Object.values(outputs.state_distribution ?? {}).filter(
+    (x): x is number => typeof x === "number" && Number.isFinite(x),
+  );
+  const cx = compressionIndex(weights);
+  // A flat read at n != 4 lands at -2e-16, not 0 -- float noise where H and
+  // H_max differ in the last bit. "-0.0000" is not a reading. Display-side
+  // only; the math and the word are taken from the true value.
+  const ciShown = cx.kind === "ci" ? (Math.abs(cx.ci) < 1e-12 ? 0 : cx.ci) : 0;
+  const layers: Array<{ key: string; label: string }> = [
+    { key: "L5_pressure",  label: "pressure"  },
+    { key: "L6_drift",     label: "drift"     },
+    { key: "L9_alignment", label: "alignment" },
+  ];
+  // ElinsV2Pipeline is a closed interface (no index signature); the rail reads
+  // it by string key on purpose so a missing layer degrades to "no edges".
+  const pipe = (pipeline ?? {}) as unknown as Record<string, unknown>;
+  return (
+    <div className={styles.section} data-testid="math-rail">
+      <div className={styles.sectionLabel}>Math rail · measured / waiting</div>
+
+      {cx.kind === "ci" ? (
+        <div
+          className={styles.railRow}
+          data-testid="math-rail-ci"
+          data-word={compressionWord(cx.ci)}
+        >
+          <span className={styles.railKey}>CI</span>
+          <span className={styles.railVal}>{ciShown.toFixed(4)}</span>
+          <span className={styles.railWord}>{compressionWord(cx.ci)}</span>
+          {cx.ci < 0.1 ? (
+            <span className={styles.railNote}>
+              flat is maximum entropy -- a measurement, not a non-result
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        // ★ D5: no basis is a different KIND. Never NaN, never a number
+        // that could be mistaken for a real CI.
+        <div className={styles.railRow} data-testid="math-rail-ci" data-word="none">
+          <span className={styles.railKey}>CI</span>
+          <span className={styles.railVal}>--</span>
+          <span className={styles.railNote}>
+            {cx.reason === "single_attractor"
+              ? `n = ${cx.n}: one attractor cannot be spread`
+              : "no weight in the distribution"}
+          </span>
+        </div>
+      )}
+
+      {cx.kind === "ci" ? (
+        <div className={styles.railRow} data-testid="math-rail-entropy">
+          <span className={styles.railKey}>H</span>
+          <span className={styles.railVal}>{cx.h.toFixed(4)}</span>
+          <span className={styles.railKey}>{`H_max = ln ${cx.n}`}</span>
+          <span className={styles.railVal}>{cx.hMax.toFixed(4)}</span>
+        </div>
+      ) : null}
+
+      {layers.map(({ key, label }) => {
+        const layer = pipe[key] as { intensity?: unknown; edge_count?: unknown } | undefined;
+        const edges =
+          typeof layer?.edge_count === "number" && Number.isFinite(layer.edge_count)
+            ? layer.edge_count : 0;
+        const intensity =
+          typeof layer?.intensity === "number" && Number.isFinite(layer.intensity)
+            ? layer.intensity : null;
+        return (
+          <div
+            key={key}
+            className={styles.railRow}
+            data-testid={`math-rail-${label}`}
+            data-edges={edges}
+          >
+            <span className={styles.railKey}>{label}</span>
+            {edges > 0 && intensity !== null ? (
+              <>
+                <span className={styles.railVal}>{intensity.toFixed(3)}</span>
+                <span className={styles.railNote}>
+                  {edges} edge{edges === 1 ? "" : "s"}
+                </span>
+              </>
+            ) : edges > 0 ? (
+              // Edges exist but no finite intensity arrived: saying "no edges"
+              // here would be false. Name what is actually missing.
+              <span className={styles.railNote}>
+                {edges} edge{edges === 1 ? "" : "s"} · intensity unavailable
+              </span>
+            ) : (
+              // ★ edge_count 0 means nothing was measured. "0.000" would be a
+              // confident reading with no measurement behind it.
+              <span className={styles.railNote}>no edges</span>
+            )}
+          </div>
+        );
+      })}
+
+      <div className={styles.railWaiting} data-testid="math-rail-waiting">
+        <div>basin_hop -- awaiting a second read</div>
+        <div>fog_of_war -- awaiting PRO-tier ingest</div>
+        <div>cohesion -- awaiting PRO-tier ingest</div>
+        <div>E/r curvature -- awaiting a region graph</div>
+      </div>
     </div>
   );
 }
@@ -293,7 +416,12 @@ function collapseDescriptor(c: CollapseState): string {
   }
 }
 
-function P0P8Block({ grid }: { grid: Record<PKey, number> }) {
+function P0P8Block({
+  grid, timeline,
+}: {
+  grid: Record<PKey, number>;
+  timeline?: ElinsV2Envelope["outputs"]["timeline"];
+}) {
   const rows: Array<{
     label: string;
     cells: Array<{ key: PKey; cellLabel: string }>;
@@ -330,7 +458,17 @@ function P0P8Block({ grid }: { grid: Record<PKey, number> }) {
         <div className={styles.pGridHeader} role="row">
           <span />
           <span>near</span>
-          <span>mid</span>
+          <span>
+            mid
+            {/* ★ The timeline MIDDLE, beside the P-grid MID band, so "the
+                missing middle" (P1/P4/P7 resolution) and mid_term_days stop
+                being conflated -- they are different axes that share a word. */}
+            {timeline && Number.isFinite(timeline.mid_term_days) ? (
+              <span className={styles.railNote} data-testid="pgrid-mid-days">
+                {" · "}{timeline.mid_term_days}d
+              </span>
+            ) : null}
+          </span>
           <span>far</span>
         </div>
         {rows.map((row) => (
