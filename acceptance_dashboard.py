@@ -21,14 +21,32 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
 import incident_store
 
+
+def _founder_gate(x_session_id: Optional[str] = Header(default=None)) -> dict:
+    """Founder gate for every route below (applied router-level).
+
+    Composes app.require_session (session validity + the cohort hop) with
+    app._require_founder (cohort check) at REQUEST time. The import is lazy
+    on purpose: app.py includes these routers at module load (app.py:178),
+    before it defines _require_founder (app.py:1432), so a top-level
+    ``from app import ...`` here would bind against a half-initialised app
+    and fail. By the time a request arrives, app is fully loaded. One
+    definition of each gate, reused -- no second copy of the session or
+    cohort logic to drift out of sync with the hop.
+    """
+    from app import require_session, _require_founder  # lazy: see docstring
+    session = require_session(x_session_id=x_session_id)
+    return _require_founder(session=session)
+
 acceptance_router = APIRouter(
     prefix="/founder/acceptance",
     tags=["founder", "acceptance"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 6B — separate router for /founder/analytics/* (different prefix
@@ -36,6 +54,7 @@ acceptance_router = APIRouter(
 analytics_router = APIRouter(
     prefix="/founder/analytics",
     tags=["founder", "analytics"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 7C — separate router for /founder/telemetry (different prefix
@@ -43,6 +62,7 @@ analytics_router = APIRouter(
 telemetry_router = APIRouter(
     prefix="/founder/telemetry",
     tags=["founder", "telemetry"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 8B — separate router for /founder/identity. Mount via
@@ -50,6 +70,7 @@ telemetry_router = APIRouter(
 identity_router = APIRouter(
     prefix="/founder/identity",
     tags=["founder", "identity"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 9C — separate router for /founder/console. Mount via
@@ -57,6 +78,7 @@ identity_router = APIRouter(
 console_router = APIRouter(
     prefix="/founder/console",
     tags=["founder", "console"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 10B — separate router for /founder/surfaces. Mount via
@@ -64,6 +86,7 @@ console_router = APIRouter(
 surfaces_router = APIRouter(
     prefix="/founder/surfaces",
     tags=["founder", "surfaces"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 11B — separate router for /founder/operator. Mount via
@@ -71,6 +94,7 @@ surfaces_router = APIRouter(
 operator_router = APIRouter(
     prefix="/founder/operator",
     tags=["founder", "operator"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 # Phase 12B — separate router for /founder/launch. Mount via
@@ -78,6 +102,7 @@ operator_router = APIRouter(
 launch_router = APIRouter(
     prefix="/founder/launch",
     tags=["founder", "launch"],
+    dependencies=[Depends(_founder_gate)],
 )
 
 
