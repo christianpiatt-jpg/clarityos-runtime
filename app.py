@@ -14882,6 +14882,37 @@ def founder_membership_activate(
         v29_hardening.raise_validation(
             v29_hardening.ValidationError("bad_amount", "price must be >= 0"),
         )
+    # #150 -- the seating body lives in _founder_seat_membership so the
+    # create route seats a membership by the SAME path.
+    return _founder_seat_membership(target, price=price, founder=founder, note=req.note)
+
+
+# ---------------------------------------------------------------------------
+# #150 — the founder can create an account and see the accounts
+#
+# A user doc was born ONLY at verify_magic_link -> ensure_user: an address
+# that never clicked was "user not found" to Activate, and Cohort fill said
+# "active 4" with no list of who. CT-1 ruled (09-03): the founder creates
+# operator profiles and manages accounts as admin. Two routes:
+#   POST /founder/members/create  -- the SAME birth fn the link uses
+#                                    (auth_magiclink.ensure_user), an
+#                                    optional founder grant by the SAME
+#                                    seating body the activate route uses,
+#                                    and the person's link by the SAME
+#                                    request_magic_link (throttle intact).
+#   GET  /founder/members         -- a projected page of docs, newest first.
+# Never a token, never a link, never a session for the new user, never a
+# password hash or an operator id on the wire. Logs carry the email hash
+# only -- including the throttle bucket handed to request_magic_link.
+# ---------------------------------------------------------------------------
+def _founder_seat_membership(
+    target: str, *, price: float, founder: str, note: Optional[str],
+    route: str = "/founder/membership/activate",
+) -> dict:
+    """The founder grant. Lifted from /founder/membership/activate (one
+    body, two callers: that route and /founder/members/create). Returns
+    the activate route's response dict; {already_active: True} when the
+    doc is already active."""
     target_doc = users_store.get_user(target) or {}
     if target_doc.get("membership_status") == "active":
         return {"ok": True, "already_active": True, "user": target}
@@ -14911,19 +14942,165 @@ def founder_membership_activate(
         target, type="membership_activation", amount=price, credits_delta=0,
         metadata={
             "manual": True, "founder": founder,
-            "note": (req.note or "")[:500],
+            "note": (note or "")[:500],
             "cohort": membership_store.FOUNDING_COHORT,
         },
     )
     v29_hardening.log_event(
         "founder_membership_activate", user=founder,
-        route="/founder/membership/activate", success=True,
+        route=route, success=True,
         target=target, price=price, active_count=cohort_state["active_count"],
     )
     return {
         "ok": True,
         "user": target,
         "membership": users_store.get_membership_view(target),
+    }
+
+
+class V150FounderMemberCreateRequest(BaseModel):
+    email: str
+    activate: bool = False
+    send_link: bool = True
+    note: Optional[str] = None
+
+
+# What the members list puts on the wire. Nothing else from the doc.
+_FOUNDER_MEMBER_ROW_KEYS = (
+    "email", "cohort", "membership_status", "membership_tier",
+    "created_at", "last_seen", "balance_display", "auth_method",
+)
+
+
+def _founder_member_row(doc: dict) -> dict:
+    """Project a user doc for the founder console. No password hash, no
+    salt, no operator id, no Stripe ids. last_seen is null: no surface
+    stores one today (a null is honest; an invented timestamp is not)."""
+    row = {
+        "email":             doc.get("username"),
+        "cohort":            doc.get("cohort"),
+        "membership_status": doc.get("membership_status"),
+        "membership_tier":   doc.get("membership_tier"),
+        "created_at":        doc.get("created_at"),
+        "last_seen":         doc.get("last_seen_ts"),
+        "balance_display":   usage_billing.micro_to_dollars(int(doc.get("balance_micro") or 0)),
+        "auth_method":       doc.get("auth_method"),
+    }
+    assert set(row) == set(_FOUNDER_MEMBER_ROW_KEYS)  # the two cannot drift
+    return row
+
+
+@app.post("/founder/members/create")
+def founder_members_create(
+    req: V150FounderMemberCreateRequest,
+    session: dict = Depends(_require_founder),
+):
+    """Founder types an email -> the doc exists (same birth as a link
+    click), optionally seated (same body as Activate), and the person
+    gets their link (same request_magic_link, same throttle). Idempotent:
+    an existing doc is left alone and the link is (re)sent.
+
+    Returns {ok, created, activated, sent, link_throttled, email_hash}.
+    Never the token, never the link, never a session for the new user."""
+    founder = session["user"]
+    email = auth_magiclink._normalize_email(req.email)
+    if not auth_magiclink._EMAIL_RE.match(email):
+        raise HTTPException(
+            status_code=400,
+            detail=error_response("invalid_email", "email is malformed"),
+        )
+    ehash = auth_magiclink._email_hash(email)
+    now = time.time()
+    created = auth_magiclink.ensure_user(email, now)
+
+    activated = False
+    activate_error: Optional[str] = None
+    if req.activate:
+        # A founder grant, no charge: price 0.0, the SAME seating body. If
+        # the seat is refused (cohort full -> 409 cohort_error) the doc is
+        # ALREADY born; say so and carry on to the link rather than abort
+        # with an error that hides the partial write.
+        try:
+            seat = _founder_seat_membership(
+                email, price=0.0, founder=founder, note=req.note or "founder_create",
+                route="/founder/members/create",
+            )
+            activated = not bool(seat.get("already_active"))
+        except HTTPException as exc:
+            d = exc.detail if isinstance(exc.detail, dict) else {}
+            activate_error = str(d.get("error") or exc.status_code)
+
+    sent = False
+    throttled = False
+    if req.send_link:
+        # The per-EMAIL throttle is the effective one for a programmatic
+        # sender; the ip bucket is scoped per address exactly as the
+        # Stripe-webhook caller scopes it (a shared bucket would throttle
+        # every later address once the founder's window filled). Not a
+        # bypass: 3 links per address per window still holds. The bucket
+        # carries the HASH -- request_magic_link logs the ip string raw.
+        r = auth_magiclink.request_magic_link(
+            email, source="founder_create", next_path="app",
+            ip=f"founder_create:{ehash}", user_agent="founder-console", now=now,
+        )
+        throttled = bool(r.get("rate_limited"))
+        # `sent` means the sender reported success -- not merely "attempted".
+        sent = r.get("status") == "ok" and not throttled and bool(r.get("sent"))
+
+    v29_hardening.log_event(
+        "founder_members_create", user=founder,
+        route="/founder/members/create", success=True,
+        email_hash=ehash, created=created, activated=activated,
+        activate_error=activate_error, sent=sent, throttled=throttled,
+    )
+    return {
+        "ok": True,
+        "created": created,
+        "activated": activated,
+        "activate_error": activate_error,
+        "sent": sent,
+        "link_throttled": throttled,
+        "email_hash": ehash,
+    }
+
+
+@app.get("/founder/members")
+def founder_members_list(
+    session: dict = Depends(_require_founder),
+    limit: int = 50,
+    offset: int = 0,
+    email: Optional[str] = None,
+):
+    """A page of accounts, newest first. ``email=`` looks one address up
+    (the search box's miss test) -- one route, one projection."""
+    _ = session
+    limit = min(max(1, int(limit)), 200)
+    offset = max(0, int(offset))
+    if email:
+        # Exact key first (legacy /login usernames are stored as typed),
+        # then the normalised address. A "/" can never be a doc key and
+        # would be an invalid Firestore path: empty, not a 500.
+        raw = (email or "").strip()
+        e = auth_magiclink._normalize_email(email)
+        doc = None
+        key = None
+        if "/" not in raw:
+            for cand in (raw, e):
+                if cand:
+                    doc = users_store.get_user(cand)
+                    if doc:
+                        key = cand
+                        break
+        docs = [dict(doc, username=doc.get("username") or key)] if doc else []
+        has_more = False
+    else:
+        docs = users_store.list_users(limit=limit + 1, offset=offset)
+        has_more = len(docs) > limit
+        docs = docs[:limit]
+    rows = [_founder_member_row(d) for d in docs]
+    return {
+        "ok": True, "members": rows, "count": len(rows),
+        "limit": limit, "offset": offset, "has_more": has_more,
     }
 
 

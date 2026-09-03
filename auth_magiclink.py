@@ -353,8 +353,15 @@ EMAIL_SENDER = _default_email_sender
 # ---------------------------------------------------------------------------
 # Identity helpers
 # ---------------------------------------------------------------------------
-def _ensure_user(email: str, now: float) -> bool:
-    """Create the user on first sign-in. Returns True if newly created.
+def ensure_user(email: str, now: float) -> bool:
+    """THE birth path for a user doc. Returns True if newly created.
+
+    #150 (2026-09-03): made public. Three callers, one body, one doc shape:
+      * verify_magic_link (first click on a link)
+      * app.founder_members_create (the founder types an address)
+      * the Stripe checkout webhook (app.py, via the _ensure_user alias)
+    Do not copy these fields anywhere else; add a caller instead.
+
 
     The account gets an unusable random bcrypt password so the username/
     password path (/login) can never authenticate it — magic-link only.
@@ -393,6 +400,12 @@ def _ensure_user(email: str, now: float) -> bool:
     except Exception:  # pragma: no cover — defensive against backend hiccups
         pass
     return True
+
+
+# Back-compat alias for the pre-#150 private name. The webhook and its test
+# reach the body through this name; verify_magic_link binds ensure_user
+# directly, so a patch of _ensure_user observes the webhook path only.
+_ensure_user = ensure_user
 
 
 def _is_active_member(email: str, now: float) -> bool:
@@ -478,7 +491,10 @@ def request_magic_link(
 
     _log("magic_link.sent", token_id=record["id"], email_hash=ehash,
          success=sent, invalidated_prior=invalidated)
-    return {"status": "ok"}
+    # `sent` is for TRUSTED callers (the founder console, #150). It never
+    # reaches a public client: /auth/enter builds its own generic body and
+    # the Stripe webhook ignores the return, so enumeration-safety holds.
+    return {"status": "ok", "sent": sent}
 
 
 # ---------------------------------------------------------------------------
@@ -524,7 +540,7 @@ def verify_magic_link(
 
     email = record["email"]
     ehash = _email_hash(email)
-    created = _ensure_user(email, now)
+    created = ensure_user(email, now)
     active = _is_active_member(email, now)
 
     session_id = secrets.token_urlsafe(32)

@@ -34,6 +34,16 @@ import os
 import time
 from typing import Any, Optional
 
+
+def _uref(username: str) -> str:
+    """A log-safe reference for a username. Usernames are EMAIL ADDRESSES
+    for every magic-link account, and auth_magiclink's invariant is that
+    the raw address never reaches a log line (#150 found this module's
+    \"user created username=\" line breaking it on every birth). 16 hex of
+    sha256, the same shape auth_magiclink._email_hash logs."""
+    import hashlib
+    return hashlib.sha256(str(username).encode("utf-8")).hexdigest()[:16]
+
 logger = logging.getLogger("clarityos.users_store")
 
 _USERS_COLLECTION = "users"
@@ -119,7 +129,7 @@ def create_user(
     else:
         _MEMORY_USERS[username] = payload
     logger.info(
-        "user created username=%s tier=%s backend=%s", username, tier, _backend()
+        "user created user_ref=%s tier=%s backend=%s", _uref(username), tier, _backend()
     )
 
 
@@ -168,9 +178,9 @@ def update_user(username: str, data: dict) -> None:
             filtered = {k: v for k, v in data.items()
                         if k not in COMP_OVERRIDE_GUARDED_KEYS}
             logger.warning(
-                "update_user comp_override_hold username=%s dropped_keys=%s "
+                "update_user comp_override_hold user_ref=%s dropped_keys=%s "
                 "dropped_values=%s remaining_keys=%s",
-                username,
+                _uref(username),
                 sorted(guarded_hit),
                 {k: data[k] for k in sorted(guarded_hit)},
                 sorted(filtered.keys()),
@@ -183,14 +193,14 @@ def update_user(username: str, data: dict) -> None:
     if _backend() == "firestore":
         ref = _users_collection().document(username)
         if not ref.get().exists:
-            logger.warning("update_user no such user username=%s", username)
+            logger.warning("update_user no such user user_ref=%s", _uref(username))
             return
         ref.set(data, merge=True)
         return
     if username in _MEMORY_USERS:
         _MEMORY_USERS[username].update(data)
     else:
-        logger.warning("update_user no such user username=%s", username)
+        logger.warning("update_user no such user user_ref=%s", _uref(username))
 
 
 # ---------------------------------------------------------------------------
@@ -672,6 +682,33 @@ def list_all_usernames() -> list[str]:
                 out.append(str(name))
         return out
     return list(_MEMORY_USERS.keys())
+
+
+def list_users(limit: int = 50, offset: int = 0) -> list[dict]:
+    """#150 — a page of user docs, newest first by created_at. The founder
+    console's members list. Memory backend sorts the dict; Firestore
+    orders by the single field created_at (no composite index needed).
+    Callers project the doc -- this returns it whole, secrets included,
+    so never hand it to a client unprojected."""
+    limit = max(1, int(limit))
+    offset = max(0, int(offset))
+    if _backend() == "firestore":
+        from google.cloud import firestore  # type: ignore
+        q = (
+            _users_collection()
+            .order_by("created_at", direction=firestore.Query.DESCENDING)
+            .offset(offset)
+            .limit(limit)
+        )
+        out: list[dict] = []
+        for doc in q.stream():
+            data = doc.to_dict() or {}
+            data.setdefault("username", doc.id)
+            out.append(data)
+        return out
+    docs = [dict(d, username=d.get("username") or u) for u, d in _MEMORY_USERS.items()]
+    docs.sort(key=lambda d: float(d.get("created_at") or 0.0), reverse=True)
+    return docs[offset:offset + limit]
 
 
 def list_users_due_for_renewal(now_ts: float) -> list[str]:

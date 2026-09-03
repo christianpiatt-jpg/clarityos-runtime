@@ -290,6 +290,14 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- #150 founder creates accounts + members list ----
+    # runtime_spine: two founder routes members are refused on.
+    # privacy_surface: no hash / salt / operator id / token / raw email on
+    # the wire or in a log line.
+    "test_founder_members.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- v54 ingestion bus + the corpus front door ----
     # runtime_spine: /ingest/manual and /ingest/feeds/* are member routes
     # and persist_to_library is the one library write outside app.py.
