@@ -18,6 +18,7 @@ import {
   SeedComposer,
   SectionEmotionalPhysics,
 } from "../../routes/PersonalElins";
+import AddToCorpusBox from "./AddToCorpusBox";
 
 export default function PersonalElinsComposerPanel() {
   const personal = useCockpit((s) => s.personal);
@@ -45,6 +46,9 @@ export default function PersonalElinsComposerPanel() {
         />
         {loading && <p className="cv2-muted">running…</p>}
         <SectionEmotionalPhysics ep={personal.ep} />
+        {/* The corpus front door: same panel as the seed composer, no new
+            route. Diagnostic boxes discard their input; this one keeps it. */}
+        <AddToCorpusBox />
       </div>
     </section>
   );

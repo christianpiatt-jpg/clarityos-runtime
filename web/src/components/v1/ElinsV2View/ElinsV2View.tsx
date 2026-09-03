@@ -28,6 +28,7 @@ import {
   type PKey,
 } from "../../../lib/elinsV2";
 import { ApiError } from "../../../lib/api";
+import SendToCorpus from "./SendToCorpus";
 import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
 import styles from "./ElinsV2View.module.css";
 import {
@@ -153,6 +154,17 @@ export default function ElinsV2View({ envelope, runOn, onRun }: Props) {
           >
             {loading ? "running…" : "Re-run ELINS"}
           </button>
+        ) : null}
+        {/* ★ "send to corpus". The run's INPUT text -- runOn.rawText, the
+            same text the diagnostic was run on -- goes through the same
+            front door as the cockpit box. Rendered only when that text is
+            in hand; a button that could send nothing is not offered. */}
+        {/* key={text}: the control's "sent" state belongs to THIS text. When
+            the transcript changes (new turn, other thread) it remounts fresh,
+            so it never claims the new text was sent. Trimmed gate matches
+            canRerun: whitespace-only input offers nothing. */}
+        {runOn?.rawText?.trim() ? (
+          <SendToCorpus key={runOn.rawText} text={runOn.rawText} region={runOn.region ?? null} />
         ) : null}
       </footer>
 

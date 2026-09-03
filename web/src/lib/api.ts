@@ -320,6 +320,11 @@ export interface ServerLibraryItem {
   created_at: number;
   updated_at: number;
   size_bytes: number;
+  // The embedding the Dewey neighborhood layer measures the item by.
+  // Written by /library/write and /library/update since Dewey v3, and by
+  // the ingestion path since the corpus front door. Absent only on
+  // ingestion rows written before that, or where embedding raised at ingest.
+  object_vector?: number[];
 }
 
 export interface ServerTimelineEvent {
@@ -370,6 +375,41 @@ export const vaultDelete = (id: string) =>
 
 export const libraryUserList = (limit = 100) =>
   request<{ ok: true; items: ServerLibraryItem[]; count: number }>(`/library/list?limit=${limit}`);
+
+// ---------- The corpus front door (POST /ingest/manual) ----------
+// A member's own text -> ELINS v2 -> library_store, stored WITH an
+// object_vector so the neighborhood layer can find it. Same request()
+// shape as the /library bindings above; the created item id comes back as
+// `library_id`.
+//
+// ★ THE CONTRACT IS {raw_text, source?, region?} (app.py V54IngestManualRequest).
+// The brief asked for {title?, text, tags?}. The request model has no field
+// for title or tags, and an unknown field would be dropped on the floor --
+// so the input type does NOT advertise them: a type that accepts what the
+// wire discards is a field that lies, and tsc is the cheapest place to
+// refuse it. They arrive here the day the contract gains them.
+// `source` is omitted-by-default so the SERVER's own default ("manual",
+// app.py) applies; surfaces pass their own label so the two doors stay
+// tellable apart in the store ("cockpit", "elins_v2_view").
+export interface IngestManualInput {
+  text: string;
+  source?: string;
+  region?: string | null;
+}
+export interface IngestManualResponse {
+  ok: true;
+  library_id: string;
+  envelope: Record<string, unknown>;
+}
+export const ingestManual = (input: IngestManualInput) =>
+  request<IngestManualResponse>("/ingest/manual", {
+    method: "POST",
+    body: {
+      raw_text: input.text,
+      source: input.source ?? "manual",
+      region: input.region ?? null,
+    },
+  });
 
 export const libraryUserWrite = (input: {
   title: string;
