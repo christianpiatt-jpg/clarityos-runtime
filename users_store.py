@@ -316,8 +316,9 @@ def grant_signup_credits(user: str, *, source: str = "account_creation") -> int:
         "signup_grant_ts": time.time(),
         "g_credit_history": history,
     })
-    logger.info("signup grant user=%s micro=%d source=%s",
-                user, SIGNUP_GRANT_MICRO, source)
+    # #154 -- a hash reference, never the address (usernames are emails)
+    logger.info("signup grant user_ref=%s micro=%d source=%s",
+                _uref(user), SIGNUP_GRANT_MICRO, source)
     return current + SIGNUP_GRANT_MICRO
 
 

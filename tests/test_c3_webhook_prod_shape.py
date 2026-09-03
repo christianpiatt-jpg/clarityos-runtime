@@ -151,6 +151,40 @@ def test_new_user_provisioning_creates_passwordless_shell(client, monkeypatch):
     assert u.get("password_hash")
 
 
+def test_new_user_provisioning_grants_the_signup_credits_once(client, monkeypatch):
+    """#152 -- the webhook births through auth_magiclink.ensure_user (the
+    third caller), so a webhook-born buyer carries the signup balance the
+    moment the doc exists: balance_micro 15_000_000, signup_grant_ts, ONE
+    signup_grant history entry. An event-id replay and a second, distinct
+    checkout by the same address grant nothing more."""
+    monkeypatch.setenv("CLARITYOS_BILLING_MODE", "mock")
+    import users_store
+
+    def _event(eid, cs):
+        return {"id": eid, "type": "checkout.session.completed",
+                "data": {"object": {
+                    "id": cs, "payment_status": "paid", "amount_total": 5000,
+                    "customer": "cus_g",
+                    "customer_details": {"email": "granted@example.com"},
+                    "metadata": {"plan": "founding"},
+                }}}
+
+    assert client.post("/billing/webhook", json=_event("evt_152_a", "cs_152_a")).status_code == 200
+    u = users_store.get_user("granted@example.com")
+    assert u["provisioned_via"] == "stripe_webhook"
+    assert u["balance_micro"] == users_store.SIGNUP_GRANT_MICRO == 15_000_000
+    assert u["signup_grant_ts"]
+    assert [h["type"] for h in u["g_credit_history"]] == ["signup_grant"]
+    ts = u["signup_grant_ts"]  # snapshot: the memory store hands out the live dict
+    # the same event id again: the duplicate fast path, nothing changes
+    assert client.post("/billing/webhook", json=_event("evt_152_a", "cs_152_a")).json().get("duplicate") is True
+    # a second, distinct checkout by the same address: the doc exists, no second birth, no second grant
+    assert client.post("/billing/webhook", json=_event("evt_152_b", "cs_152_b")).status_code == 200
+    u2 = users_store.get_user("granted@example.com")
+    assert u2["balance_micro"] == 15_000_000 and u2["signup_grant_ts"] == ts
+    assert len(u2["g_credit_history"]) == 1
+
+
 def test_provisioning_uses_existing_magic_link_helper(client, monkeypatch):
     """Provisioning must route through the existing magic-link helper
     (auth_magiclink._ensure_user) — never a new account-creation path."""

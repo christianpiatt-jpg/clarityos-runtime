@@ -31,11 +31,16 @@ import membership_store
 import sessions_store
 import users_store
 
+# Imported at module top, BEFORE any reset_stores runs: the first import
+# seeds the bootstrap admin doc (app._bootstrap_admin), and a fixture that
+# reset first and imported second left that doc in the members list, so
+# the paging test was green only by test order (#152 refuter).
+import app as _app
+
 
 @pytest.fixture
 def app_module(reset_stores):
-    import app as app_module
-    return app_module
+    return _app
 
 
 @pytest.fixture
@@ -223,7 +228,7 @@ def test_list_projects_rows_without_secrets_newest_first_and_pages(client, sende
     emails = [m["email"] for m in body["members"]]
     assert emails == ["l3@example.com", "l2@example.com"]  # newest first
     assert body["members"][0]["cohort"] == "all"  # #124 -- derived label
-    assert body["members"][0]["balance_display"] == "$0.00"  # a fresh doc, exactly
+    assert body["members"][0]["balance_display"] == "$15.00"  # #152 -- the birth grants, exactly
 
     r2 = client.get("/founder/members?limit=2&offset=2", headers=h).json()
     # the last page: l1, then the founder's own (older) doc; nothing after
@@ -302,3 +307,78 @@ def test_list_email_lookup_tries_the_exact_key_first(client, sender):
     assert hit["count"] == 1 and hit["members"][0]["email"] == "Legacy.User"
     bad = client.get("/founder/members?email=a/b", headers=h).json()
     assert bad["count"] == 0
+
+
+# ===========================================================================
+# #152 -- the birth fn grants
+# ===========================================================================
+SIGNUP_MICRO = 15_000_000
+
+
+def test_a_link_born_doc_carries_the_signup_balance_once(sender):
+    """verify on a new address -> balance_micro 15_000_000 + signup_grant_ts;
+    a second verify changes nothing (one history entry, same balance)."""
+    am.request_magic_link("born.by.link@example.com", "test", "app", "ip-a", "ua", now=time.time())
+    token = sender["links"][-1].split("token=", 1)[1]
+    r = am.verify_magic_link(token, "ip-a", "ua")
+    assert r["status"] == "ok" and r["created"] is True
+    doc = users_store.get_user("born.by.link@example.com")
+    assert doc["balance_micro"] == SIGNUP_MICRO
+    assert doc["signup_grant_ts"]
+    assert [h["type"] for h in doc["g_credit_history"]] == ["signup_grant"]
+    ts = doc["signup_grant_ts"]  # snapshot: the memory store hands out the live dict
+    # second login: unchanged
+    am.request_magic_link("born.by.link@example.com", "test", "app", "ip-a", "ua", now=time.time())
+    token = sender["links"][-1].split("token=", 1)[1]
+    assert am.verify_magic_link(token, "ip-a", "ua")["created"] is False
+    doc2 = users_store.get_user("born.by.link@example.com")
+    assert doc2["balance_micro"] == SIGNUP_MICRO
+    assert doc2["signup_grant_ts"] == ts
+    assert len(doc2["g_credit_history"]) == 1
+
+
+def test_a_console_born_doc_carries_the_signup_balance_and_the_row_shows_it(client, sender):
+    h = _founder()
+    r = client.post("/founder/members/create", json={"email": "born.by.console@example.com", "send_link": False},
+                    headers=h)
+    assert r.status_code == 200 and r.json()["created"] is True
+    doc = users_store.get_user("born.by.console@example.com")
+    assert doc["balance_micro"] == SIGNUP_MICRO and doc["signup_grant_ts"]
+    row = client.get("/founder/members?email=born.by.console@example.com", headers=h).json()["members"][0]
+    assert row["balance_display"] == "$15.00"
+    # a second create hits ensure_user's user_exists early-return: no birth,
+    # no grant call, nothing more. (The grant's own signup_grant_ts guard is
+    # pinned in test_usage_billing_invariant, GATE 4.)
+    client.post("/founder/members/create", json={"email": "born.by.console@example.com", "send_link": False}, headers=h)
+    assert users_store.get_user("born.by.console@example.com")["balance_micro"] == SIGNUP_MICRO
+
+
+def test_existing_docs_are_not_backfilled(reset_stores):
+    import bcrypt
+    users_store.create_user(username="old.hand@example.com", password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
+                            salt="", tier="free", created_at=100.0)
+    assert am.ensure_user("old.hand@example.com", time.time()) is False
+    assert not users_store.get_user("old.hand@example.com").get("signup_grant_ts")
+    assert int(users_store.get_user("old.hand@example.com").get("balance_micro") or 0) == 0
+
+
+def test_a_grant_failure_never_blocks_the_birth_and_logs_only_the_hash(reset_stores, monkeypatch, caplog):
+    caplog.set_level("INFO")
+    def boom(user, *, source):
+        raise RuntimeError("ledger down")
+    monkeypatch.setattr(users_store, "grant_signup_credits", boom)
+    assert am.ensure_user("unlucky.birth@example.com", time.time()) is True
+    doc = users_store.get_user("unlucky.birth@example.com")
+    assert doc is not None and doc["auth_method"] == "magic_link"
+    recs = [r for r in caplog.records if "birth.post_create_failed" in r.getMessage()]
+    assert len(recs) == 1 and recs[0].levelname == "WARNING"
+    msg = recs[0].getMessage()
+    assert "RuntimeError" in msg and "step=signup_grant" in msg  # WHICH write failed
+    assert "unlucky" not in msg and am._email_hash("unlucky.birth@example.com") in msg
+
+
+def test_the_grant_log_line_carries_no_address(reset_stores, caplog):
+    caplog.set_level("INFO")
+    am.ensure_user("quiet.grant@example.com", time.time())
+    grant_lines = [r.getMessage() for r in caplog.records if "signup grant" in r.getMessage()]
+    assert grant_lines and all("quiet.grant" not in m for m in grant_lines)

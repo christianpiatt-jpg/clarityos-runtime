@@ -462,6 +462,9 @@ def _create_user(
     # with another, and a future fifth path gets the grant for free.
     # Idempotent on `signup_grant_ts`, so a retried creation cannot
     # double-grant.
+    # #152 -- the birth fn (auth_magiclink.ensure_user) now grants too; this
+    # call stays as belt-and-braces for the /register family. Idempotent on
+    # signup_grant_ts, so a doc reached by both paths is granted ONCE.
     users_store.grant_signup_credits(username, source="account_creation")
 
 

@@ -152,9 +152,9 @@ def _hash_token(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def _log(event: str, **fields) -> None:
+def _log(event: str, *, _level: int = logging.INFO, **fields) -> None:
     parts = " ".join(f"{k}={v}" for k, v in fields.items() if v is not None)
-    logger.info("%s %s", event, parts)
+    logger.log(_level, "%s %s", event, parts)
 
 
 def normalize_next(raw) -> str:
@@ -387,6 +387,7 @@ def ensure_user(email: str, now: float) -> bool:
         tier="free",
         created_at=now,
     )
+    step = "operator_id"
     try:
         users_store.update_user(
             email, {"operator_id": "op_" + secrets.token_urlsafe(12), "auth_method": "magic_link"}
@@ -395,8 +396,21 @@ def ensure_user(email: str, now: float) -> bool:
             # default "all", which is what v43's "member" meant). The number
             # itself is minted at FIRST LOGIN (verify_magic_link), never here.
         )
-    except Exception:  # pragma: no cover — defensive against backend hiccups
-        pass
+        # #152 -- THE BIRTH GRANTS. Every doc born here (link click, founder
+        # console, Stripe webhook) carries the signup balance the moment it
+        # exists, once: grant_signup_credits is idempotent on
+        # signup_grant_ts. Before this only app._create_user (/register)
+        # granted, so link-born and console-born accounts started at $0.00
+        # and 402'd on their first cockpit send.
+        step = "signup_grant"
+        users_store.grant_signup_credits(email, source="account_creation")
+    except Exception as exc:  # never block the birth; the doc exists
+        # #154 -- the hash, never the address or a prefix of it. `step` names
+        # WHICH write failed (operator_id | signup_grant): a doc born without
+        # the grant is never repaired (no backfill, by order), so this line
+        # is the only evidence, and it is a WARNING.
+        _log("birth.post_create_failed", _level=logging.WARNING,
+             email_hash=_email_hash(email), step=step, err=type(exc).__name__)
     return True
 
 
