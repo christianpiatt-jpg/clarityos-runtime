@@ -287,23 +287,63 @@ def _auth(user: str = "op_alice") -> dict[str, str]:
     return {"X-Session-ID": sid}
 
 
+# #110 -- a rollup event is an audit of a REVIEW; with nothing to review
+# there is nothing to audit. These seed one record so the emit has a
+# basis; the last test pins that zero records emit nothing, however many
+# times the page loads.
+def _seed_one_record(operator_id: str = "op_alice") -> None:
+    el_ins.store_el_ins_record({
+        "operator_id": operator_id, "thread_id": "t1",
+        "timestamp":   time.time() - 10,
+        "source":      "on_demand",
+        "result": {
+            "analysis": {
+                "el_components": [], "ins_components": [],
+                "el_score": 4.0, "ins_score": 4.0,
+                "ratio_classification": "balanced",
+            },
+            "reasoning_mode": "normal",
+            "regression_chain": {
+                "projection": None, "drivers": [], "precedents": [],
+                "principle_stack": [], "invariant": None,
+            },
+            "stability_notes": None,
+        },
+    })
+
+
 class TestRollupEmitsTimelineEvent:
     def test_rollup_24h_emits_event(self, client):
+        _seed_one_record()
         client.get("/el_ins/rollup/24h", headers=_auth())
         events = el_ins.list_events("op_alice")
         rollup_events = [e for e in events if e["event_type"] == "rollup"]
         assert len(rollup_events) == 1
         assert rollup_events[0]["payload"]["window"] == "24h"
+        assert rollup_events[0]["payload"]["record_count"] == 1
 
     def test_rollup_7d_emits_event(self, client):
+        _seed_one_record()
         client.get("/el_ins/rollup/7d", headers=_auth())
         events = el_ins.list_events("op_alice")
         assert any(e["payload"].get("window") == "7d" for e in events)
 
     def test_rollup_30d_emits_event(self, client):
+        _seed_one_record()
         client.get("/el_ins/rollup/30d", headers=_auth())
         events = el_ins.list_events("op_alice")
         assert any(e["payload"].get("window") == "30d" for e in events)
+
+    def test_rollup_with_zero_records_emits_nothing_however_often_loaded(self, client):
+        """★ #110: the walk loaded the rollup page twice and found six
+        zero-rows on /operator/timeline. Zero records -> zero events."""
+        for _ in range(2):
+            for window in ("24h", "7d", "30d"):
+                r = client.get(f"/el_ins/rollup/{window}", headers=_auth())
+                assert r.status_code == 200
+                assert r.json()["record_count"] == 0
+        events = el_ins.list_events("op_alice")
+        assert [e for e in events if e["event_type"] == "rollup"] == []
 
 
 # ===========================================================================

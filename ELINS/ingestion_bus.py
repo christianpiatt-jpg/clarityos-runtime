@@ -15,10 +15,12 @@ Per-user signal ingestion. Two paths:
 Architecture / safety:
 
   * This module's own imports are stdlib — no feedparser, no defusedxml.
-    persist_to_library calls two root modules every app.py library write
+    persist_to_library calls three root modules every app.py library write
     also calls: dewey_pipeline.embed_object (Vertex text-embedding-005
-    when configured, hash fallback otherwise; never raises) and
-    dewey_worker.process_object (neighborhood memberships; never raises).
+    when configured, hash fallback otherwise; never raises),
+    dewey_worker.process_object (neighborhood memberships; never raises)
+    and timeline_store.create (the member-timeline event, kind
+    library.ingest; log-only failure).
     Those pull google.auth / vertexai lazily. So: one outbound call that
     is NOT an RSS fetch — the embedding of the stored item.
   * Outbound HTTP only via registered RSS/Atom URLs. http/https only,
@@ -85,6 +87,7 @@ from urllib.parse import urlparse
 import dewey_pipeline
 import dewey_worker
 import library_store
+import timeline_store  # #137 -- the MEMBER timeline (/timeline page), not el_ins
 
 logger = logging.getLogger("clarityos.ingestion_bus")
 
@@ -452,6 +455,34 @@ def persist_to_library(
             item_id, type(exc).__name__,
         )
     library_store.create(item_id, item)
+    # #137 -- every other library write emits a member-timeline event
+    # (app.py _emit_timeline); the bus did not, so /timeline promised
+    # "ingestion activity" and showed none. timeline_store is stdlib-only
+    # and cycle-free (app.py imports this module, so app._emit_timeline
+    # cannot be called from here). Kind "library.ingest" tells an ingested
+    # row from a hand-written one. No quota charge (the bus library write
+    # never charges), no vector (a neighborhood refresh or the founder
+    # backfill adds one later; nothing here calls process_object for it).
+    # Log-only failure: the item is ALREADY stored when this runs.
+    try:
+        ev_id = timeline_store.new_id()
+        timeline_store.create(ev_id, {
+            "id":         ev_id,
+            "user":       user,
+            "kind":       "library.ingest",
+            "ref":        item_id,
+            "summary":    title[:120],
+            "ts":         now,
+            "data":       {"tags": tags, "source": source,
+                           "ingestion_version": INGESTION_VERSION},
+            "size_bytes": 0,
+            "created_at": now,
+        })
+    except Exception as exc:  # noqa: BLE001 -- never raise past a stored item
+        logger.warning(
+            "ingest kind=ingest reason=timeline_emit_failed item=%s err=%s",
+            item_id, type(exc).__name__,
+        )
     # process_object is documented never-raises and returns the membership
     # count; the guard is belt-and-braces so the stored item is returned
     # even if that contract ever breaks. The item is ALREADY stored here.

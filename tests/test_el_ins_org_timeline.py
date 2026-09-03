@@ -317,3 +317,28 @@ class TestNoLeakage:
         assert "op_christian_full_id" not in serialised
         # Last 6 chars = "ull_id"
         assert "ull_id" in serialised
+
+
+# ===========================================================================
+# #149 -- the two founder sets agree (the drift was "admin")
+# ===========================================================================
+class TestFounderSetParity:
+    def test_admin_cohort_is_allowed(self, client):
+        """An admin doc opened every /founder/* page (app.py FOUNDER_LIKE_
+        COHORTS) and was refused ONLY here. Same set now."""
+        r = client.get("/org/timeline/24h", headers=_auth("adm_user", cohort="admin"))
+        assert r.status_code == 200
+
+    def test_founding_500_stays_403_the_set_is_not_widened(self, client):
+        """A paying member is not founder-like. The walk's 403 was a
+        founding_500 doc refused CORRECTLY (settled 09-03); the text is kept."""
+        r = client.get("/org/timeline/24h", headers=_auth("member_user", cohort="founding_500"))
+        assert r.status_code == 403
+        assert "Founder cohort required" in r.text
+
+    def test_drift_guard_the_two_sets_are_equal(self):
+        """Change both or neither. app.py owns the names; runtime_http mirrors
+        them because importing app back would be a cycle."""
+        import app as app_mod
+        assert frozenset(app_mod.FOUNDER_LIKE_COHORTS) == rh_mod._FOUNDER_COHORTS
+        assert "admin" in rh_mod._FOUNDER_COHORTS

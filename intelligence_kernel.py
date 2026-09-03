@@ -1981,6 +1981,7 @@ def run_emotional_physics(user_id: str, text: str) -> dict:
                 "model_id":    "anthropic:claude-3.7",
                 "ts_ms":       1715300000000,
                 "parse_error": None,   # or str on degrade
+                "stop_reason": "end_turn",  # #128 raw vendor value; None on mock
             },
         }
 
@@ -2031,6 +2032,9 @@ def run_emotional_physics(user_id: str, text: str) -> dict:
             "model_id":    model_id,
             "ts_ms":       now_ms,
             "parse_error": parse_error,
+            # #128 -- the provider's stop signal, copied raw whether or not
+            # the body parsed. None on mock (surfaced later; no UI yet).
+            "stop_reason": response.get("stop_reason"),
         },
     }
 

@@ -247,3 +247,43 @@ def test_cl19_idempotent_match_writes_no_audit(client, monkeypatch):
     assert u.get("stripe_customer_id") == "cus_same"
     assert "_cl19_mismatch_observed_at" not in u
 
+
+# ===========================================================================
+# #143b -- /config billing_configured reads the check that matches the
+# live path (secret key + webhook secret), not the legacy price ids
+# ===========================================================================
+def _session(user: str = "cfg_user") -> dict[str, str]:
+    import sessions_store
+    import users_store
+    if not users_store.get_user(user):
+        users_store.create_user(user, "x", "x", tier="standard", created_at=time.time())
+    sid = f"auth-cfg-{user}"
+    sessions_store.create_session(sid, user, expires_at=time.time() + 3600)
+    return {"X-Session-ID": sid}
+
+
+def test_config_billing_configured_true_with_key_and_webhook_and_no_price_ids(client, monkeypatch):
+    monkeypatch.setenv("CLARITYOS_BILLING_MODE", "stripe")
+    monkeypatch.setenv("CLARITYOS_STRIPE_SECRET_KEY", "sk_test_xxx")
+    monkeypatch.setenv("CLARITYOS_STRIPE_WEBHOOK_SECRET", "whsec_xxx")
+    monkeypatch.delenv("STRIPE_PRICE_ONETIME", raising=False)
+    monkeypatch.delenv("STRIPE_PRICE_RECURRING", raising=False)
+    import billing
+    # the predicate itself, then the field the three pages read
+    assert billing.is_webhook_configured() is True
+    assert billing.is_configured() is False  # legacy invite flow stays legacy
+    r = client.get("/config", headers=_session())
+    assert r.status_code == 200, r.text
+    assert r.json()["data"]["billing_configured"] is True
+
+
+def test_config_billing_configured_false_without_a_webhook_secret(client, monkeypatch):
+    monkeypatch.setenv("CLARITYOS_BILLING_MODE", "stripe")
+    monkeypatch.setenv("CLARITYOS_STRIPE_SECRET_KEY", "sk_test_xxx")
+    monkeypatch.delenv("CLARITYOS_STRIPE_WEBHOOK_SECRET", raising=False)
+    monkeypatch.delenv("STRIPE_WEBHOOK_SECRET", raising=False)
+    monkeypatch.delenv("STRIPE_PRICE_ONETIME", raising=False)
+    monkeypatch.delenv("STRIPE_PRICE_RECURRING", raising=False)
+    r = client.get("/config", headers=_session("cfg_user2"))
+    assert r.status_code == 200, r.text
+    assert r.json()["data"]["billing_configured"] is False

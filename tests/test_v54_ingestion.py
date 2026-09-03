@@ -883,3 +883,56 @@ def test_persist_to_library_survives_a_neighborhood_pass_failure(reset_stores, m
     assert hits and all("RuntimeError" in m for m in hits)
     assert not any("alice" in r.message or "memberships store down" in r.message
                    for r in caplog.records)
+
+
+# ===========================================================================
+# #137 -- an ingested item appears on the MEMBER timeline
+# ===========================================================================
+def test_persist_to_library_emits_a_library_ingest_timeline_event(reset_stores):
+    from ELINS import ingestion_bus as ib
+    import timeline_store
+    item_id = ib.persist_to_library(
+        "alice", source="feed:my_feed", region="us", raw_text="some text",
+        envelope={"outputs": {"attractor": "S2", "collapse_state": "soft"}},
+        item_meta={"kind": "feed_item"},
+    )
+    evs = timeline_store.list_for_user("alice", kind="library.ingest")
+    assert len(evs) == 1
+    ev = evs[0]
+    assert ev["ref"] == item_id
+    assert ev["user"] == "alice"
+    assert ev["kind"] == "library.ingest"
+    assert "elins_v2_ingestion" in ev["data"]["tags"]
+    assert ev["data"]["source"] == "feed:my_feed"
+    assert ev["data"]["ingestion_version"] == ib.INGESTION_VERSION
+    assert ev["summary"]
+    assert ev["id"].startswith("t_")
+    assert ev["size_bytes"] == 0
+    assert ev["ts"] == ev["created_at"]
+    # user-scoped: nobody else sees it
+    assert timeline_store.list_for_user("bob") == []
+
+
+def test_run_manual_ingestion_reaches_the_member_timeline(reset_stores):
+    import intelligence_kernel as ik
+    import timeline_store
+    out = ik.run_manual_ingestion("alice", "Pasted text. Kept. Shown.", source="cockpit", region=None)
+    evs = timeline_store.list_for_user("alice", kind="library.ingest")
+    assert [e["ref"] for e in evs] == [out["library_id"]]
+
+
+def test_persist_to_library_survives_a_timeline_emit_failure(reset_stores, monkeypatch, caplog):
+    from ELINS import ingestion_bus as ib
+    import library_store
+    def boom(*a, **k):
+        raise RuntimeError("timeline down")
+    monkeypatch.setattr(ib.timeline_store, "create", boom)
+    caplog.set_level("WARNING", logger="clarityos.ingestion_bus")
+    item_id = ib.persist_to_library(
+        "alice", source="manual", region=None, raw_text="still stored",
+        envelope={"outputs": {}},
+    )
+    assert library_store.get(item_id)["content"] == "still stored"
+    hits = [r.message for r in caplog.records if "timeline_emit_failed" in r.message]
+    assert hits and all("RuntimeError" in m for m in hits)
+    assert not any("alice" in r.message or "timeline down" in r.message for r in caplog.records)

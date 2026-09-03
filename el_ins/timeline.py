@@ -15,7 +15,8 @@ Event types
               ``{anomaly_id, type, severity, message}``.
 
 ``rollup``    Emitted when an operator hits a /el_ins/rollup/{window}
-              endpoint. Payload carries ``{window, avg_el, avg_ins,
+              endpoint AND the window holds >= 1 record (#110: a review
+              of nothing is not a review). Payload carries ``{window, avg_el, avg_ins,
               avg_tsi}``. Side-effect on a GET endpoint, but matches
               the spec ("audit-trail of when operators reviewed").
 

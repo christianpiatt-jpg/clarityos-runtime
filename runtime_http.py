@@ -93,10 +93,8 @@ import session_loop
 #   GET /operator/sessions
 #   GET /operator/vault/{operator_id}
 #
-# Scope intentionally narrow — /operator/session/start + /step remain
-# open per existing v60/v61 contract. The /start privacy hole (anyone
-# can start a session under any operator_id and inherit that
-# operator's vault) is a separate concern flagged in v64 memory.
+# (The v64 note about /operator/session/start + /step being open is
+# gone: v66 / Unit 68 put require_operator on both. Hole closed.)
 # ---------------------------------------------------------------------------
 def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
     """Session → (user, operator_id). The single joint for operator
@@ -215,16 +213,21 @@ org_timeline_router = APIRouter(
 # v73 / Unit 83 — Founder-cohort gate. Mirrors the app.py
 # _require_founder pattern but lives here so /org/timeline/* doesn't
 # need to import app.py back (avoids the circular import that bit
-# v64). Cohort literals match app.py's COHORT_FOUNDER /
-# COHORT_FOUNDER_EXCEPTION constants.
-_FOUNDER_COHORTS: frozenset[str] = frozenset({"founder", "founder_exception"})
+# v64). #149 (2026-09-03): this set MUST equal app.py's
+# FOUNDER_LIKE_COHORTS = {COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION,
+# COHORT_ADMIN}. It had drifted by "admin": an admin doc opened every
+# /founder/* page and was refused only on /org/timeline/*. A drift guard
+# in tests/test_el_ins_org_timeline.py asserts the two sets are equal;
+# change both or neither. The 403 text is unchanged.
+_FOUNDER_COHORTS: frozenset[str] = frozenset({"founder", "founder_exception", "admin"})
 
 
 def require_founder(
     x_session_id: Optional[str] = Header(default=None),
 ) -> str:
     """Cohort-based gate. Returns the authed operator_id when the user
-    is in the ``founder`` or ``founder_exception`` cohort; otherwise
+    is in a founder-like cohort (``founder`` / ``founder_exception`` /
+    ``admin`` -- the same set as app.py FOUNDER_LIKE_COHORTS); otherwise
     raises 403 — same status code as app.py's ``_require_founder``.
 
     v87 — goes through ``_resolve_authed_identity`` so the users doc is
@@ -1350,6 +1353,11 @@ def _rollup_for(operator_id: str, window_name: str) -> dict[str, Any]:
     # the spec ("audit-trail of when operators reviewed"). Failures
     # swallow — timeline is a diagnostic, never allowed to break the
     # endpoint response.
+    # #110 (2026-09-03): only when there was something to review. With
+    # record_count 0 every page load appended a zero row (six from two
+    # loads on the walk) -- a review of nothing is not a review.
+    if int(out.get("record_count", 0) or 0) <= 0:
+        return out
     try:
         ev = el_ins.build_rollup_event(
             operator_id,

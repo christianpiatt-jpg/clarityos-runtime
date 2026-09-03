@@ -2287,7 +2287,7 @@ def me(request: Request, session: dict = Depends(require_session)):
     #   This preserves identity semantics while keeping capability checks
     #   isolated.
     #
-    # ``FOUNDER_LIKE_COHORTS`` (= {"founder", "founder_exception"}) is the
+    # ``FOUNDER_LIKE_COHORTS`` (= {"founder", "founder_exception", "admin"}) is the
     # same set used by other cohort-derived privilege gates in this file
     # (invite redemption, quota resolution) so the boundary stays
     # consistent across the engine. Token-bearing requests are operator
@@ -2476,7 +2476,12 @@ def get_config(session: dict = Depends(require_session)):
             "invite_only": INVITE_ONLY,
             "terrace_1_cap": TERRACE_1_CAP,
             "terrace_1_redeemed": invites_store.count_redeemed(COHORT_TERRACE_1),
-            "billing_configured": billing.is_configured(),
+            # #143b -- is_configured() demands the legacy STRIPE_PRICE_ONETIME /
+            # STRIPE_PRICE_RECURRING (removed under Doctrine #74), so /plans,
+            # /system and /operator said "billing offline" while the live
+            # checkout-link + webhook path worked. That path needs a secret
+            # key + a webhook secret: billing.is_webhook_configured().
+            "billing_configured": billing.is_webhook_configured(),
         },
     }
 

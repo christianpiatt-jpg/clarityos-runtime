@@ -494,6 +494,8 @@ def _mock_result(
         "text": f"[mock {model_id}] {preview}".rstrip(),
         "mock": True,
         "ts": started,
+        # #128 -- a mock stopped for no vendor reason. None, never a guess.
+        "stop_reason": None,
         # v56 — a mock consumed no vendor tokens, so there is no usage to
         # report. Explicitly None rather than zeros: the meter must be able
         # to tell "the vendor billed us nothing" from "we never asked".
@@ -605,6 +607,7 @@ def _http_post_json(url: str, *, headers: dict, body: dict) -> dict:
 
 def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
     started = time.time()
+    stop: Optional[str] = None  # #128 -- captured the moment a body arrives, before any raise
     if not _provider_configured("openai"):
         return _mock_result(model_id, "openai", prompt, started)
     key = (os.environ.get("CLARITYOS_OPENAI_KEY") or "").strip()
@@ -627,6 +630,7 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
                 body=body,
             )
         # Chat completions shape: {choices: [{message: {content: str}}, ...]}
+        stop = (out.get("choices") or [{}])[0].get("finish_reason")
         text = out.get("choices", [{}])[0].get("message", {}).get("content")
         if not isinstance(text, str):
             raise ValueError("openai response missing choices[0].message.content")
@@ -639,6 +643,9 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             "ok": True, "model_id": model_id, "provider": "openai",
             "text": text, "mock": False, "ts": started,
             "usage": _usage.as_dict() if _usage else None,
+            # #128 -- the vendor's own stop signal, RAW (stop / length /
+            # content_filter / ...). None if the vendor omitted it.
+            "stop_reason": stop,
         }
     except Exception as e:  # pragma: no cover (real-network path)
         if isinstance(e, urllib.error.HTTPError):
@@ -649,11 +656,16 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             logger.warning("openai http error status=%s body=%s", e.code, body)
         else:
             logger.warning("openai non-http error: %s", str(e))
-        return _mock_result(model_id, "openai", prompt, started, error=str(e))
+        degraded = _mock_result(model_id, "openai", prompt, started, error=str(e))
+        # #128 -- an empty-body refusal / filter degrades to mock, but the
+        # vendor DID say why. Carry it: this is the case the field is for.
+        degraded["stop_reason"] = stop
+        return degraded
 
 
 def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
     started = time.time()
+    stop: Optional[str] = None  # #128 -- captured the moment a body arrives, before any raise
     if not _provider_configured("anthropic"):
         return _mock_result(model_id, "anthropic", prompt, started)
     key = (os.environ.get("CLARITYOS_ANTHROPIC_KEY") or "").strip()
@@ -676,6 +688,7 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
                 body=body,
             )
         # Messages shape: {content: [{type: "text", text: str}, ...]}
+        stop = out.get("stop_reason")
         blocks = out.get("content") or []
         text_parts = [
             b.get("text", "") for b in blocks
@@ -692,6 +705,8 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
             "ok": True, "model_id": model_id, "provider": "anthropic",
             "text": text, "mock": False, "ts": started,
             "usage": _usage.as_dict() if _usage else None,
+            # #128 -- RAW vendor value (end_turn / max_tokens / refusal / ...).
+            "stop_reason": stop,
         }
     except Exception as e:  # pragma: no cover
         if isinstance(e, urllib.error.HTTPError):
@@ -702,11 +717,16 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
             logger.warning("anthropic http error status=%s body=%s", e.code, body)
         else:
             logger.warning("anthropic non-http error: %s", str(e))
-        return _mock_result(model_id, "anthropic", prompt, started, error=str(e))
+        degraded = _mock_result(model_id, "anthropic", prompt, started, error=str(e))
+        # #128 -- an empty-body refusal / filter degrades to mock, but the
+        # vendor DID say why. Carry it: this is the case the field is for.
+        degraded["stop_reason"] = stop
+        return degraded
 
 
 def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
     started = time.time()
+    stop: Optional[str] = None  # #128 -- captured the moment a body arrives, before any raise
     if not _provider_configured("gemini"):
         return _mock_result(model_id, "gemini", prompt, started)
     key = (os.environ.get("CLARITYOS_GEMINI_KEY") or "").strip()
@@ -728,6 +748,7 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             )
         # Gemini shape: {candidates: [{content: {parts: [{text: str}, ...]}}, ...]}
         candidates = out.get("candidates") or []
+        stop = candidates[0].get("finishReason") if candidates and isinstance(candidates[0], dict) else None
         if not candidates:
             raise ValueError("gemini response had no candidates")
         parts = (candidates[0].get("content") or {}).get("parts") or []
@@ -737,6 +758,8 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
         return {
             "ok": True, "model_id": model_id, "provider": "gemini",
             "text": text, "mock": False, "ts": started,
+            # #128 -- RAW vendor value (STOP / MAX_TOKENS / SAFETY / ...).
+            "stop_reason": stop,
         }
     except Exception as e:  # pragma: no cover
         if isinstance(e, urllib.error.HTTPError):
@@ -747,7 +770,11 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             logger.warning("gemini http error status=%s body=%s", e.code, body)
         else:
             logger.warning("gemini non-http error: %s", str(e))
-        return _mock_result(model_id, "gemini", prompt, started, error=str(e))
+        degraded = _mock_result(model_id, "gemini", prompt, started, error=str(e))
+        # #128 -- an empty-body refusal / filter degrades to mock, but the
+        # vendor DID say why. Carry it: this is the case the field is for.
+        degraded["stop_reason"] = stop
+        return degraded
 
 
 def _call_xai(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
@@ -801,6 +828,7 @@ def _call_local(model_id: str, prompt: str, *, temperature: float, max_tokens: i
         "text": str(out.get("text") or ""),
         "mock": bool(out.get("mock", True)),
         "ts": float(out.get("ts") or started),
+        "stop_reason": out.get("stop_reason"),  # #128 -- the runtime's own, else None
         "backend": out.get("backend"),
         "duration_ms": out.get("duration_ms"),
         "tokens_estimated": out.get("tokens_estimated"),
@@ -914,6 +942,7 @@ def _call_ollama(model_id: str, prompt: str, *, temperature: float, max_tokens: 
         return {
             "ok": True, "model_id": model_id, "provider": "ollama",
             "text": text, "mock": False, "ts": started,
+            "stop_reason": out.get("done_reason"),  # #128 -- raw ("stop" / "length")
         }
     except Exception as e:  # pragma: no cover (real-network path)
         logger.warning("ollama call failed → mock; err=%s", e)
@@ -951,6 +980,7 @@ def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens
         return {
             "ok": True, "model_id": model_id, "provider": "deepseek",
             "text": text, "mock": False, "ts": started,
+            "stop_reason": (out.get("choices") or [{}])[0].get("finish_reason"),  # #128 -- raw
         }
     except Exception as e:  # pragma: no cover (real-network path)
         if isinstance(e, urllib.error.HTTPError):
@@ -995,6 +1025,7 @@ def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens:
         return {
             "ok": True, "model_id": model_id, "provider": "mistral",
             "text": text, "mock": False, "ts": started,
+            "stop_reason": (out.get("choices") or [{}])[0].get("finish_reason"),  # #128 -- raw
         }
     except Exception as e:  # pragma: no cover (real-network path)
         if isinstance(e, urllib.error.HTTPError):
