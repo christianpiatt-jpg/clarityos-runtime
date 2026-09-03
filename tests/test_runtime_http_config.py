@@ -165,17 +165,23 @@ class TestHealthCheckUsesConfig:
         monkeypatch.setenv("CLARITYOS_ANTHROPIC_KEY", "sk-test")
         observed: dict[str, float] = {}
 
-        def fake_http(url, *, headers, body):
+        # #120 -- the probe is a models-list GET through
+        # runtime_http._http_get_json (not a completion POST). It passes
+        # the health timeout explicitly AND sets the ContextVar for the
+        # probe's duration; both are asserted.
+        def fake_get(url, *, headers, timeout):
             observed["timeout_during_call"] = mr._PROVIDER_HTTP_TIMEOUT
-            return {"content": [{"type": "text", "text": "ok"}]}
+            observed["timeout_kwarg"] = timeout
+            return 200, {"data": []}
 
-        monkeypatch.setattr(mr, "_http_post_json", fake_http)
+        monkeypatch.setattr(rh_mod, "_http_get_json", fake_get)
         # Push a distinctive health timeout so we can detect a hit.
         monkeypatch.setitem(rhc.PROVIDER_HEALTH_TIMEOUTS, "anthropic", 1.25)
 
         r = client.get("/runtime/providers/health", headers=_auth())
         assert r.status_code == 200
         assert observed["timeout_during_call"] == 1.25
+        assert observed["timeout_kwarg"] == 1.25
 
     def test_health_check_restores_call_timeout_after_probe(self, client, monkeypatch):
         """The global timeout must return to the pre-probe value once
@@ -183,8 +189,8 @@ class TestHealthCheckUsesConfig:
         permanently throttled to 3s."""
         monkeypatch.setenv("CLARITYOS_ANTHROPIC_KEY", "sk-test")
         monkeypatch.setattr(
-            mr, "_http_post_json",
-            lambda url, *, headers, body: {"content": [{"type": "text", "text": "ok"}]},
+            rh_mod, "_http_get_json",
+            lambda url, *, headers, timeout: (200, {"data": []}),
         )
         prior = mr._PROVIDER_HTTP_TIMEOUT
         client.get("/runtime/providers/health", headers=_auth())

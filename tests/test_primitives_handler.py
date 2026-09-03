@@ -167,3 +167,37 @@ def test_engine_applies_primitives():
     assert pm["status"] == "extracted"
     assert "counts" in pm
     assert meta.retry_needed is False
+
+
+# ---------------------------------------------------------------------------
+# #116 -- the caps travel with the counts
+# ---------------------------------------------------------------------------
+def test_build_metadata_ships_the_caps_with_the_counts():
+    meta = pe.build_metadata(pe.extract_primitives("NASA partnered with John Smith in Berlin."))
+    assert meta["caps"] == {
+        "P1": pe._CAP_TERMS, "P2": pe._CAP_TERMS,
+        "P3": pe._CAP_CLAUSES, "P4": pe._CAP_CLAUSES,
+        "Ts": pe._CAP_TENSION, "Te": pe._CAP_TENSION, "M": pe._CAP_TENSION,
+    }
+    # the two the brief named, by value, so a silent constant change is seen
+    assert meta["caps"]["P1"] == 30
+    assert meta["caps"]["P3"] == 20
+    # hydronic is a distinct-keyword-type count over 29 fixed keywords; the
+    # per-list slice never truncates, so it carries no cap (48 cannot occur).
+    assert "hydronic" not in meta["caps"]
+    assert set(meta["caps"]) == set(meta["counts"]) - {"hydronic"}
+    assert len(pe._FLOWS) + len(pe._BLOCKAGES) + len(pe._GRADIENTS) + len(pe._PRESSURE) <= 4 * pe._CAP_HYDRO
+
+
+def test_a_saturating_paste_reports_count_equal_to_cap():
+    """42 distinct capitalised phrases in (the extractor keeps the
+    sentence-initial "Then" glued on, so they are bigrams "Then Abram" ...;
+    still 42 distinct) -> P1 stops at the cap, and the count says exactly
+    the cap (the UI renders that as '30+ (cap)')."""
+    names = [f"{a}{b}" for a in ("Ab", "Ed", "Ib", "Ob", "Ub", "Yb")
+             for b in ("ram", "ren", "rin", "ron", "run", "ryn", "rat")]
+    assert len(set(names)) == 42
+    text = " ".join(f"Then {n} agreed." for n in names)
+    prim = pe.extract_primitives(text)
+    meta = pe.build_metadata(prim)
+    assert len(prim["P1"]) == meta["counts"]["P1"] == meta["caps"]["P1"] == 30

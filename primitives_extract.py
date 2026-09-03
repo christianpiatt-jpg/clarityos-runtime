@@ -225,6 +225,19 @@ def build_metadata(prim: Dict) -> Dict:
             "Ts": len(prim["Ts"]), "Te": len(prim["Te"]), "M": len(prim["M"]),
             "hydronic": hydronic_count,
         },
+        # #116 -- the caps travel WITH the counts. A count that equals its
+        # cap is a floor, not a measurement ("30" on a long paste means
+        # "at least 30"); the UI can only say so if it knows the cap, and
+        # it must not hard-code numbers that live here.
+        # hydronic carries NO cap on purpose: it counts distinct keyword
+        # TYPES from four fixed tuples (8+8+6+7 = 29 in all), so the
+        # per-list [:_CAP_HYDRO] slice never truncates and a hydronic count
+        # is never a floor. Advertising 48 would be a cap that cannot occur.
+        "caps": {
+            "P1": _CAP_TERMS, "P2": _CAP_TERMS,
+            "P3": _CAP_CLAUSES, "P4": _CAP_CLAUSES,
+            "Ts": _CAP_TENSION, "Te": _CAP_TENSION, "M": _CAP_TENSION,
+        },
     }
 
 

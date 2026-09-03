@@ -643,17 +643,54 @@ def get_vault(
 # ---------------------------------------------------------------------------
 # v65 / Unit 69 — Provider health dashboard
 #
-# Lightweight health-check endpoint per provider. For every provider
-# with an env key configured, issue a 1-token trivial completion call
-# via the v65 _http_post_json chokepoint. Timeout 3s. Any exception →
-# available=false with the exception string.
+# #120 (2026-09-03) — THE PROBE THAT LIED. The old probe POSTed a 1-token
+# completion with a PLACEHOLDER model ("claude-3.7-sonnet-20250101",
+# "gemini-2.0-flash") and reported anthropic 404 / gemini 404 / openai
+# 400 while real calls through model_router succeeded. The 404 was the
+# placeholder, not the provider. Now each probe is the provider's
+# models-list GET on the SAME host and the SAME auth header the real
+# call uses (model_router._call_anthropic / _call_openai / _call_gemini):
+#
+#   anthropic  GET https://api.anthropic.com/v1/models          x-api-key
+#   openai     GET https://api.openai.com/v1/models             Authorization: Bearer
+#   gemini     GET https://generativelanguage.googleapis.com/v1beta/models
+#                                                               x-goog-api-key
+#
+# No tokens spent, no model name to drift. The Gemini key rides a HEADER
+# here, not the ?key= query the real call uses -- so no URL that could be
+# logged ever carries a key. Three states, and the HTTP status is CARRIED:
+#
+#   available    the list came back (2xx JSON)
+#   no_key       no env key configured -- nothing was probed
+#   unreachable  probed and failed: http_status carries the code when the
+#                provider answered (401 = key rejected, 403, 5xx), None
+#                when nothing answered (DNS, refused, timeout)
+#
+# available/error are kept for every existing consumer; state/http_status/
+# probe are additive. The error text never contains a key or a URL: the
+# HTTPError branch uses the STANDARD phrase for the code (never the
+# provider's reason/body, which can quote the request), and the other
+# branches pass through _scrub (key -> [redacted], http(s)://... -> [url]).
+#
+# Two caveats the probe cannot remove:
+#   * 401/403 means the provider ANSWERED and rejected the key for the
+#     models-list scope. It is reported as state=unreachable (the ruled
+#     vocabulary is three states) with http_status carried, so the row
+#     reads "HTTP 401 Unauthorized", not a network fault.
+#   * Same host + same header is not always the same PERMISSION: an
+#     OpenAI restricted key can be granted completions and denied
+#     "Models: read" (or vice versa). Unrestricted keys, which this
+#     deployment uses, carry both. A scoped key that lists but cannot
+#     complete would read available here and fail a real call.
 #
 # The synthetic "mock" provider is always available=true — the
 # fallback path through model_router._mock_result is guaranteed to
 # work (deterministic, no I/O).
 #
 # Returned per provider:
-#     {"available": bool, "error": str | None}
+#     {"available": bool, "error": str | None,
+#      "state": "available" | "no_key" | "unreachable",
+#      "http_status": int | None, "probe": str | None}
 #
 # Auth-gated even though the data is system-level — consistent with
 # the rest of /operator/* and /runtime/* under v66 / v68 and prevents
@@ -668,70 +705,141 @@ def get_vault(
 import runtime_http_config
 
 
-def _check_provider_health(provider: str) -> dict[str, Any]:
-    """Issue a trivial 1-token completion to ``provider`` and return
-    ``{"available": bool, "error": str | None}``.
+# Probe targets: (url, header-name-for-the-key, extra headers). The key
+# is read from the SAME env var model_router reads for the real call.
+_PROBE_TARGETS: dict[str, tuple[str, str, dict[str, str]]] = {
+    "anthropic": (
+        "https://api.anthropic.com/v1/models",
+        "x-api-key",
+        {"anthropic-version": "2023-06-01"},
+    ),
+    "openai": (
+        "https://api.openai.com/v1/models",
+        "Authorization",
+        {},
+    ),
+    "gemini": (
+        "https://generativelanguage.googleapis.com/v1beta/models",
+        "x-goog-api-key",
+        {},
+    ),
+}
 
-    Returns ``available: False, error: "no api key configured"`` when
-    the env key is unset. Any other failure carries the exception
-    text.
+
+def _http_get_json(url: str, *, headers: dict, timeout: float) -> tuple[int, dict]:
+    """Single-shot JSON GET over stdlib urllib. Returns ``(status, body)``
+    so the OBSERVED status is what the probe carries (not a constant).
+    Module-level and signature-locked so tests stub it at ONE site.
+    Raises on transport, HTTP (urllib.error.HTTPError, .code carries the
+    status) or parse failure; the probe maps those to states."""
+    import json as _json
+    import urllib.request as _urlreq
+    req = _urlreq.Request(url, method="GET")
+    for k, v in headers.items():
+        req.add_header(k, v)
+    with _urlreq.urlopen(req, timeout=timeout) as resp:
+        status = int(getattr(resp, "status", 0) or 0) or 200
+        raw = resp.read()
+    decoded = _json.loads(raw.decode("utf-8"))
+    if not isinstance(decoded, dict):
+        raise ValueError("provider returned non-object JSON")
+    return status, decoded
+
+
+def _probe_path(url: str) -> str:
+    """host + path of a probe URL, never a query string."""
+    from urllib.parse import urlsplit
+    u = urlsplit(url)
+    return f"{u.netloc}{u.path}"
+
+
+def _check_provider_health(provider: str) -> dict[str, Any]:
+    """Probe ``provider``'s models-list endpoint and return
+    ``{available, error, state, http_status, probe}``.
+
+    state is one of ``available`` / ``no_key`` / ``unreachable``.
+    http_status is the provider's HTTP code when it answered, else None.
+    probe is the host+path probed (no query string, no key).
+    The error text never contains the key or the URL.
     """
+    import socket
+    import urllib.error as _uerr
     import model_router as _mr
 
-    if not _mr._provider_configured(provider):
-        return {"available": False, "error": "no api key configured"}
+    target = _PROBE_TARGETS.get(provider)
+    if target is None:
+        return {"available": False, "error": f"unknown provider {provider!r}",
+                "state": "unreachable", "http_status": None, "probe": None}
+    url, key_header, extra = target
+    probe = _probe_path(url)
 
-    # Per-Unit-71: pull the health timeout from the runtime_http_config
-    # registry. Override the call-path timeout transactionally via the
-    # `_request_timeout` context manager that model_router exports.
+    if not _mr._provider_configured(provider):
+        return {"available": False, "error": "no api key configured",
+                "state": "no_key", "http_status": None, "probe": probe}
+
+    env_names = _mr._PROVIDER_ENV_KEYS.get(provider) or ()
+    key = ""
+    for name in env_names:
+        key = (os.environ.get(name) or "").strip()
+        if key:
+            break
+    headers = dict(extra)
+    headers[key_header] = f"Bearer {key}" if key_header == "Authorization" else key
+
     health_timeout = runtime_http_config.get_health_timeout(provider)
     try:
+        # The timeout is passed explicitly AND the ContextVar is set for the
+        # probe's duration: the Unit-71 invariant ("during the probe
+        # _PROVIDER_HTTP_TIMEOUT == get_health_timeout(provider)") stays
+        # observable, and the call path's own timeout is restored after.
         with _mr._request_timeout(health_timeout):
-            if provider == "anthropic":
-                wire_model = "claude-3.7-sonnet-20250101"  # placeholder; provider validates
-                key = (os.environ.get("CLARITYOS_ANTHROPIC_KEY") or "").strip()
-                _mr._http_post_json(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "x-api-key": key,
-                        "anthropic-version": "2023-06-01",
-                        "Content-Type": "application/json",
-                    },
-                    body={
-                        "model": wire_model,
-                        "max_tokens": 1,
-                        "messages": [{"role": "user", "content": "?"}],
-                    },
-                )
-            elif provider == "openai":
-                key = (os.environ.get("CLARITYOS_OPENAI_KEY") or "").strip()
-                _mr._http_post_json(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {key}",
-                        "Content-Type": "application/json",
-                    },
-                    body={
-                        "model": "gpt-5.4-mini",
-                        "messages": [{"role": "user", "content": "?"}],
-                        "max_completion_tokens": 1,
-                    },
-                )
-            elif provider == "gemini":
-                key = (os.environ.get("CLARITYOS_GEMINI_KEY") or "").strip()
-                _mr._http_post_json(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}",
-                    headers={"Content-Type": "application/json"},
-                    body={
-                        "contents": [{"parts": [{"text": "?"}]}],
-                        "generationConfig": {"maxOutputTokens": 1},
-                    },
-                )
-            else:
-                return {"available": False, "error": f"unknown provider {provider!r}"}
-        return {"available": True, "error": None}
-    except Exception as e:  # pragma: no cover (real-network path)
-        return {"available": False, "error": str(e)}
+            status, _body = _http_get_json(url, headers=headers, timeout=health_timeout)
+        return {"available": True, "error": None,
+                "state": "available", "http_status": int(status), "probe": probe}
+    except _uerr.HTTPError as e:
+        # The provider ANSWERED. Carry its code and the STANDARD phrase for
+        # it -- never the provider's own reason/body text, which can quote
+        # the request (headers included). A key must not reach a log or a
+        # dashboard through an error string.
+        import http.client as _hc
+        try:
+            e.close()  # the error holds an open response; release the socket
+        except Exception:  # noqa: BLE001
+            pass
+        code = int(getattr(e, "code", 0) or 0) or None
+        phrase = _hc.responses.get(code or 0, "")
+        return {"available": False,
+                "error": f"HTTP {code}" + (f" {phrase}" if phrase else ""),
+                "state": "unreachable", "http_status": code, "probe": probe}
+    except (socket.timeout, TimeoutError):
+        return {"available": False, "error": f"timeout after {health_timeout:g}s",
+                "state": "unreachable", "http_status": None, "probe": probe}
+    except _uerr.URLError as e:
+        # Nothing answered (DNS, refused, TLS). reason is an OSError or str;
+        # it names the failure class, never the request. A CONNECT-phase
+        # timeout arrives here wrapped (urllib wraps request() failures);
+        # only a read timeout reaches the branch above -- same deadline,
+        # same words.
+        reason = getattr(e, "reason", e)
+        if isinstance(reason, (socket.timeout, TimeoutError)):
+            return {"available": False, "error": f"timeout after {health_timeout:g}s",
+                    "state": "unreachable", "http_status": None, "probe": probe}
+        return {"available": False, "error": f"unreachable: {_scrub(str(reason), key)}",
+                "state": "unreachable", "http_status": None, "probe": probe}
+    except Exception as e:  # noqa: BLE001 -- parse failure or an unexpected transport error
+        return {"available": False, "error": f"{type(e).__name__}: {_scrub(str(e), key)}",
+                "state": "unreachable", "http_status": None, "probe": probe}
+
+
+def _scrub(text: str, key: str) -> str:
+    """Belt for the non-HTTP branches: an exception text never leaves with
+    the key (-> [redacted]) or a URL (-> [url]). Keys shorter than 8 chars
+    are not substring-replaced (a 1-char "key" would shred the message).
+    Bounded to 200 chars."""
+    import re as _re
+    out = text.replace(key, "[redacted]") if key and len(key) >= 8 else text
+    out = _re.sub(r"https?://\S+", "[url]", out)
+    return out[:200]
 
 
 # Need os in this scope. Already imported at module top via app.py
@@ -745,8 +853,9 @@ def get_provider_health(
 ) -> dict[str, Any]:
     """Per-provider availability snapshot.
 
-    Returns a dict keyed by provider name with ``{available, error}``.
-    The synthetic ``mock`` entry is always ``{available: True, error: null}``.
+    Returns a dict keyed by provider name with
+    ``{available, error, state, http_status, probe}`` (see #120 above).
+    The synthetic ``mock`` entry is always ``available: True``.
 
     Returns 401 on missing / invalid / expired X-Session-ID.
     """
@@ -756,7 +865,8 @@ def get_provider_health(
         "anthropic": _check_provider_health("anthropic"),
         "openai":    _check_provider_health("openai"),
         "gemini":    _check_provider_health("gemini"),
-        "mock":      {"available": True, "error": None},
+        "mock":      {"available": True, "error": None,
+                      "state": "available", "http_status": None, "probe": None},
     }
 
 
