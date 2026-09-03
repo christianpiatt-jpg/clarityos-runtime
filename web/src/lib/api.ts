@@ -271,6 +271,10 @@ export interface MarkovResult {
     primitives_meta: {
       status: string;
       counts: Record<string, number>;
+      // #116 -- per-category extractor caps (primitives_extract._CAP_*),
+      // shipped with the counts so the page can say "30+ (cap)". Optional:
+      // absent from responses of a backend older than this field.
+      caps?: Record<string, number>;
     };
     recast: string;
   };
@@ -1467,21 +1471,29 @@ export const founderAnalyticsSummary = () =>
 // ===========================================================================
 // v44 — Multi-model router
 // ===========================================================================
-export type V44ModelId =
-  | "openai:gpt-4.2"
-  | "anthropic:claude-3.7"
-  | "google:gemini-2.0"
-  | "xai:groq-llama"
-  | "local:llama3.1"
-  | "auto";
+// #126 -- the SERVER owns the model ids. This union used to enumerate
+// gpt-4.2 / claude-3.7 / gemini-2.0, ids model_router.is_valid_model
+// rejects; a picker built on it offered options the router refused. The
+// registry comes from GET /runtime/providers/models (useRegistryModels);
+// the type is a plain string because the client no longer knows the set.
+export type V44ModelId = string;
 
+// FALLBACK ONLY -- used when the registry fetch fails, and the picker
+// then labels itself "registry unavailable". Values mirror
+// model_router.MODEL_REGISTRY as of 2026-09-03 so a fallback selection is
+// still one the router accepts; the registry endpoint is the truth.
 export const V44_MODEL_IDS: V44ModelId[] = [
   "auto",
-  "openai:gpt-4.2",
-  "anthropic:claude-3.7",
-  "google:gemini-2.0",
+  "openai:gpt-5.4",
+  "openai:gpt-5.4-mini",
+  "anthropic:claude-haiku-4-5-20251001",
+  "google:gemini-2.5-flash",
   "xai:groq-llama",
   "local:llama3.1",
+  "ollama:llama3.1",
+  "deepseek:deepseek-v4-flash",
+  "deepseek:deepseek-v4-pro",
+  "mistral:mistral-large-2512",
 ];
 
 export interface V44ProviderStatus {
@@ -2253,6 +2265,12 @@ export function setModelPreferences(
 export interface ProviderHealthEntry {
   available: boolean;
   error:     string | null;
+  // #120 -- additive. state: available | no_key | unreachable;
+  // http_status: the provider's code when it answered (401 = key rejected),
+  // null when nothing did; probe: host+path probed, never a key.
+  state?:       "available" | "no_key" | "unreachable";
+  http_status?: number | null;
+  probe?:       string | null;
 }
 
 export type ProviderHealthResponse = Record<string, ProviderHealthEntry>;

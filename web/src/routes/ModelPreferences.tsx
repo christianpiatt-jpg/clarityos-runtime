@@ -19,10 +19,13 @@ const PROVIDERS: readonly string[] = [
 ] as const;
 
 // Default model per provider — matches runtime_providers._PROVIDER_DEFAULT_MODEL.
+// #126 (2026-09-03): these said claude-3.7 / gpt-4.2 / gemini-2.0, ids
+// model_router.is_valid_model rejects, so SAVE after a provider change
+// answered 400. Same class of lie as V44_MODEL_IDS; same fix.
 const DEFAULT_MODELS: Record<string, string> = {
-  anthropic: "claude-3.7",
-  openai:    "gpt-4.2",
-  gemini:    "gemini-2.0",
+  anthropic: "claude-haiku-4-5-20251001",
+  openai:    "gpt-5.4",
+  gemini:    "gemini-2.5-flash",
   xai:       "groq-llama",
   local:     "llama3.1",
 };

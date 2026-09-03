@@ -2,8 +2,9 @@
 //
 // Lists each LLM provider with a red/green availability indicator
 // and any error text. Backed by GET /runtime/providers/health. Each
-// real provider gets a lightweight 1-token completion call server-
-// side; the synthetic "mock" provider is always green.
+// real provider is probed server-side with its models-list GET on the
+// same host and auth header the real call uses (#120; no tokens spent);
+// the synthetic "mock" provider is always green.
 
 import { useEffect, useState } from "react";
 import {
@@ -59,9 +60,11 @@ export default function ProviderHealth() {
         <h1>PROVIDER HEALTH</h1>
         <p className="muted" style={{ marginTop: 4 }}>
           Lightweight reachability check for each LLM provider. Real
-          providers issue a 1-token completion against their HTTP
-          endpoint (3-second timeout); the <code>mock</code> entry is
-          the always-available deterministic fallback.
+          providers are probed with their models-list endpoint on the
+          same host and auth header a real call uses (no tokens spent,
+          3-second timeout); a 401/403 means the provider answered and
+          rejected the key. The <code>mock</code> entry is the
+          always-available deterministic fallback.
         </p>
         <div className="row" style={{ marginTop: 12, gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1, fontSize: "0.85rem" }}>

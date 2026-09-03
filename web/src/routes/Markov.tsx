@@ -115,9 +115,21 @@ export default function Markov() {
             <div className="row" style={{ marginTop: 8 }} data-testid="markov-counts">
               {COUNT_ORDER.map((k) => {
                 const n = r.result?.primitives_meta?.counts?.[k];
+                // #116 -- the extractor caps each category (backend ships the
+                // caps in primitives_meta.caps). A count AT its cap is a floor,
+                // not a measurement: say "30+ (cap)". No caps block (older
+                // backend) -> the number, never a guessed cap.
+                const cap = r.result?.primitives_meta?.caps?.[k];
+                const atCap = typeof n === "number" && typeof cap === "number" && cap > 0 && n >= cap;
+                const shown = n === undefined || n === null ? "(absent)" : atCap ? `${cap}+ (cap)` : n;
                 return (
-                  <span key={k} className="tag cyan" title={`${k} occurrences`}>
-                    {k}: {n === undefined || n === null ? "(absent)" : n}
+                  <span
+                    key={k}
+                    className="tag cyan"
+                    title={atCap ? `${k}: at least ${cap} (extractor cap)` : `${k}: distinct items`}
+                    data-at-cap={atCap ? "true" : undefined}
+                  >
+                    {k}: {shown}
                   </span>
                 );
               })}

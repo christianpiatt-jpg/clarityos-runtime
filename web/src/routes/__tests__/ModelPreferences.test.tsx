@@ -46,7 +46,7 @@ function makeResponse(
   return {
     operator_id: "op_alice",
     provider:    "anthropic",
-    model:       "claude-3.7",
+    model:       "claude-haiku-4-5-20251001",
     source:      "default",
     ...overrides,
   };
@@ -79,11 +79,11 @@ describe("ModelPreferences route", () => {
 
   test("renders current provider + model + source after load", async () => {
     mockGet.mockResolvedValueOnce(makeResponse({
-      provider: "openai", model: "gpt-4.2", source: "vault",
+      provider: "openai", model: "gpt-5.4", source: "vault",
     }));
     renderRoute();
     await screen.findByText("openai");
-    expect(screen.getByText("gpt-4.2")).toBeInTheDocument();
+    expect(screen.getByText("gpt-5.4")).toBeInTheDocument();
     expect(screen.getByText("explicit (vault)")).toBeInTheDocument();
   });
 
@@ -111,14 +111,14 @@ describe("ModelPreferences route", () => {
       "openai",
     );
     const modelInput = screen.getByLabelText("Model") as HTMLInputElement;
-    expect(modelInput.value).toBe("gpt-4.2");
+    expect(modelInput.value).toBe("gpt-5.4");
   });
 
   test("SAVE posts the selected provider + model", async () => {
     const user = userEvent.setup();
     mockGet.mockResolvedValueOnce(makeResponse());
     mockSet.mockResolvedValueOnce(makeResponse({
-      provider: "openai", model: "gpt-4.2", source: "vault",
+      provider: "openai", model: "gpt-5.4", source: "vault",
     }));
     renderRoute();
     await screen.findByText("anthropic");
@@ -130,7 +130,7 @@ describe("ModelPreferences route", () => {
     await user.click(screen.getByRole("button", { name: "SAVE" }));
 
     await waitFor(() => expect(mockSet).toHaveBeenCalledTimes(1));
-    expect(mockSet).toHaveBeenCalledWith("openai", "gpt-4.2");
+    expect(mockSet).toHaveBeenCalledWith("openai", "gpt-5.4");
   });
 
   test("error from setModelPreferences surfaces in banner", async () => {

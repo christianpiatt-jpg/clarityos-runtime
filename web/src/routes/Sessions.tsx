@@ -3,6 +3,7 @@
 // land them here as well. Read-only viewer for now.
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { listThreads, readThread, type LocalThread } from "../lib/continuity";
 
 export default function Sessions() {
@@ -19,9 +20,12 @@ export default function Sessions() {
       </div>
 
       {threads.length === 0 ? (
-        <div className="empty">
-          No threads yet on this browser. Threads created in the phone app stay on the phone —
-          web threads will appear here once a chat surface lands on web.
+        <div className="empty" data-testid="sessions-empty">
+          {/* #118 -- the chat surface landed (/cockpit). This page is the
+              on-device list; web threads are server-side and live there. */}
+          No threads yet on this browser. Threads created in the phone app stay on the phone.
+          Web threads live in the Cockpit (<Link to="/cockpit">/cockpit</Link>).
+          This page lists threads stored on this device.
         </div>
       ) : (
         <div className="panel-grid">

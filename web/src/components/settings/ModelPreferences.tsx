@@ -7,10 +7,10 @@ import { useCallback, useEffect, useState } from "react";
 import {
   me as fetchMe,
   meOperatorStateModel,
-  V44_MODEL_IDS,
   type V44ModelId,
   type V44RouterStatus,
 } from "../../lib/api";
+import { useRegistryModels } from "../../lib/useRegistryModels";
 
 interface KernelBlock {
   preferred_model?: V44ModelId | null;
@@ -23,6 +23,8 @@ export default function ModelPreferences() {
   const [router, setRouter] = useState<V44RouterStatus | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // #126 -- the ids the picker offers come from the server registry.
+  const registry = useRegistryModels();
 
   const load = useCallback(async () => {
     setBusy("load"); setError(null);
@@ -71,16 +73,25 @@ export default function ModelPreferences() {
 
       <label style={labelStyle}>Preferred model</label>
       <select
+        data-testid="model-picker"
         value={pref}
         onChange={(e) => void apply(e.target.value as V44ModelId | "")}
-        disabled={busy !== null}
+        disabled={busy !== null || registry.source === "loading"}
         style={selectStyle}
       >
         <option value="">(use system default)</option>
-        {V44_MODEL_IDS.map((m) => (
+        {registry.source === "loading" && pref ? (
+          <option value={pref}>{pref}</option>
+        ) : null}
+        {registry.ids.map((m) => (
           <option key={m} value={m}>{m}</option>
         ))}
       </select>
+      {registry.source === "fallback" && (
+        <p data-testid="registry-fallback" style={mutedStyle} title={registry.error ?? undefined}>
+          registry unavailable — showing the built-in list
+        </p>
+      )}
 
       <div style={statRowStyle}>
         <Stat label="Current preference" value={pref || "system default"} />

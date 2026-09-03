@@ -105,6 +105,19 @@ export default function ForecastPanel({
           </Section>
         </div>
       )}
+
+      {/* #119 -- when THIS panel fetched the example itself, the data is the
+          fixture behind /elins/forecast/example (app.py), not a run. Say so
+          under the chart, wherever the panel is mounted without a block. A
+          provided block is a real run and gets no caption. */}
+      {!providedBlock && block && (
+        <p
+          data-testid="forecast-fixture-caption"
+          style={{ marginTop: 8, marginBottom: 0, fontSize: 11, fontFamily: "var(--font-mono, monospace)", color: "var(--os-text-tertiary, #585858)" }}
+        >
+          fixture from /elins/forecast/example — not a live run
+        </p>
+      )}
     </section>
   );
 }

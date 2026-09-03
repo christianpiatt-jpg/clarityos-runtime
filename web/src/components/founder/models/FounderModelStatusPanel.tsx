@@ -3,14 +3,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  founderModelsOverride, founderModelsStatus, V44_MODEL_IDS,
+  founderModelsOverride, founderModelsStatus,
   type V44ModelId, type V44RouterStatus,
 } from "../../../lib/api";
+import { useRegistryModels } from "../../../lib/useRegistryModels";
 
 export default function FounderModelStatusPanel() {
   const [router, setRouter] = useState<V44RouterStatus | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // #126 -- the ids the picker offers come from the server registry.
+  const registry = useRegistryModels();
 
   const load = useCallback(async () => {
     setBusy("load"); setError(null);
@@ -75,17 +78,28 @@ export default function FounderModelStatusPanel() {
           </p>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <select
+              data-testid="model-picker"
               value={router.founder_default_model || ""}
               onChange={(e) => void apply(e.target.value as V44ModelId | "")}
-              disabled={busy !== null}
+              disabled={busy !== null || registry.source === "loading"}
               style={selectStyle}
             >
               <option value="">(none)</option>
-              {V44_MODEL_IDS.map((m) => (
+              {/* while the registry loads, keep the CURRENT value visible so a
+                  set override does not flash as "(none)" */}
+              {registry.source === "loading" && router.founder_default_model ? (
+                <option value={router.founder_default_model}>{router.founder_default_model}</option>
+              ) : null}
+              {registry.ids.map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
             {busy === "save" && <span style={mutedStyle}>saving…</span>}
+            {registry.source === "fallback" && (
+              <span data-testid="registry-fallback" style={mutedStyle} title={registry.error ?? undefined}>
+                registry unavailable — showing the built-in list
+              </span>
+            )}
           </div>
 
           <h3 style={subHeader}>Task defaults</h3>

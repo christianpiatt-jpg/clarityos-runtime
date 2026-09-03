@@ -56,7 +56,9 @@ export default function FounderDashboard() {
         <CommentGeneratorPanel />
 
         <div style={{ gridColumn: "1 / span 2" }}>
-          <ForecastPanel title="Forecast engine (v34) — example" />
+          {/* #119 -- no block prop: the panel fetches /elins/forecast/example,
+              a FIXTURE. The title says so; the panel adds the caption. */}
+          <ForecastPanel title="Forecast engine (v34) — SAMPLE DATA" />
         </div>
 
         <div style={{ gridColumn: "1 / span 2" }}>
