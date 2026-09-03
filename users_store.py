@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import time
 from typing import Any, Optional
 
@@ -684,6 +685,275 @@ def list_all_usernames() -> list[str]:
     return list(_MEMORY_USERS.keys())
 
 
+# ---------------------------------------------------------------------------
+# #124 -- citizens are numbered, cohort is a range, the founder is a controller
+#
+# Six cohort strings read by four gates; paid members counted, not numbered.
+# Now: every account that ever signed in holds a member_number from ONE
+# global counter (minted at first login, never on create alone); `cohort` is
+# a label DERIVED at read from the number (1-500 "founding", else "all",
+# controller "controller"); citizenship is derived (active founding
+# membership that was PAID, not granted); the founder is doc.controller.
+# Writers stop writing cohort strings. A one-deploy SHIM lets the gates also
+# accept the old strings -- delete next deploy.
+# ---------------------------------------------------------------------------
+FOUNDING_NUMBER_MAX = 500
+FOUNDING_TIER = "founding_500"   # membership_store.FOUNDING_COHORT (literal: that module cannot be imported here without a cycle risk)
+# one-deploy shim -- the old founder-like strings still open the gates
+_LEGACY_CONTROLLER_COHORTS = frozenset({"founder", "founder_exception", "admin"})
+_COUNTER_COLLECTION = "_meta"
+_COUNTER_DOC = "member_counter"
+_MEMORY_COUNTER: dict = {"next": 1}
+_COUNTER_LOCK = threading.RLock()  # re-entrant: assign holds it while it mints
+# The one-time numbering pass leaves a marker so it never numbers a doc born
+# AFTER the migration (rule 1: those wait for their owner's first click).
+_MARKER_DOC = "member_numbering"
+_MEMORY_MARKER: dict = {"done_at": None}
+
+
+def next_member_number() -> int:
+    """Take the next number from the ONE global counter. Firestore: a
+    transaction on _meta/member_counter; memory: a lock."""
+    if _backend() == "firestore":
+        from google.cloud import firestore  # type: ignore
+        client = _get_firestore()
+        ref = client.collection(_COUNTER_COLLECTION).document(_COUNTER_DOC)
+
+        @firestore.transactional
+        def _take(tx):
+            snap = ref.get(transaction=tx)
+            nxt = int(((snap.to_dict() or {}).get("next") or 1)) if snap.exists else 1
+            tx.set(ref, {"next": nxt + 1})
+            return nxt
+
+        return int(_take(client.transaction()))
+    with _COUNTER_LOCK:
+        n = int(_MEMORY_COUNTER["next"])
+        _MEMORY_COUNTER["next"] = n + 1
+        return n
+
+
+def assign_member_number(username: str) -> Optional[int]:
+    """Idempotent AND atomic: the doc's number if it has one, else mint the
+    next and write it -- the check and the write are one transaction
+    (Firestore: one tx over the user doc and the counter; memory: the
+    counter lock held across the whole check-and-set), so two concurrent
+    first logins for one address cannot burn a number. None when there is
+    no doc. Called at FIRST LOGIN (verify_magic_link) and by the one-time
+    deploy pass -- never on create."""
+    if _backend() == "firestore":
+        from google.cloud import firestore  # type: ignore
+        client = _get_firestore()
+        counter_ref = client.collection(_COUNTER_COLLECTION).document(_COUNTER_DOC)
+        user_ref = _users_collection().document(username)
+
+        @firestore.transactional
+        def _assign(tx):
+            usnap = user_ref.get(transaction=tx)
+            if not usnap.exists:
+                return (None, False)
+            have = (usnap.to_dict() or {}).get("member_number")
+            if have:
+                return (int(have), False)
+            csnap = counter_ref.get(transaction=tx)
+            nxt = int(((csnap.to_dict() or {}).get("next") or 1)) if csnap.exists else 1
+            tx.set(counter_ref, {"next": nxt + 1})
+            tx.update(user_ref, {"member_number": nxt})
+            return (nxt, True)
+
+        n, minted = _assign(client.transaction())
+    else:
+        with _COUNTER_LOCK:
+            doc = get_user(username)
+            if doc is None:
+                return None
+            have = doc.get("member_number")
+            if have:
+                return int(have)
+            n = next_member_number()
+            update_user(username, {"member_number": n})
+            minted = True
+    if minted and n is not None:
+        logger.info("member_number.assigned user_ref=%s number=%d", _uref(username), n)
+    return n
+
+
+def is_controller(doc: Optional[dict]) -> bool:
+    """The founder. doc.controller is the field; the legacy founder-like
+    cohort strings are accepted for ONE deploy (shim) so nothing that opens
+    today closes before the docs are flagged. Delete the shim next deploy."""
+    d = doc or {}
+    return bool(d.get("controller")) or (d.get("cohort") in _LEGACY_CONTROLLER_COHORTS)
+
+
+def is_citizen(doc: Optional[dict]) -> bool:
+    """CITIZEN = an active founding membership that was PAID for. A founder
+    grant (membership_granted) does not confer citizenship (#124 rule 7)."""
+    d = doc or {}
+    return (d.get("membership_status") == "active"
+            and d.get("membership_tier") == FOUNDING_TIER
+            and not bool(d.get("membership_granted"))
+            and not bool(d.get("comp_override")))  # a beta comp is a grant too
+
+
+def derive_cohort(doc: Optional[dict]) -> str:
+    """The label, derived at read: controller -> "controller"; number 1-500
+    -> "founding" (the price lock); everything else -> "all"."""
+    d = doc or {}
+    if is_controller(d):
+        return "controller"
+    n = d.get("member_number")
+    try:
+        n = int(n) if n is not None else None
+    except (TypeError, ValueError):
+        n = None
+    if n is not None and 1 <= n <= FOUNDING_NUMBER_MAX:
+        return "founding"
+    return "all"
+
+
+_SUFFIX_OK = frozenset("abcdefghijklmnopqrstuvwxyz0123456789")
+
+
+def citz_suffix(username: Optional[str]) -> str:
+    """The first 3 chars of the email local part, lowercase; any char outside
+    [a-z0-9] becomes "0" in place; shorter than 3 pads with "0". Display
+    only, derived, never stored."""
+    local = str(username or "").split("@", 1)[0].lower()
+    first3 = local[:3].ljust(3, "0")
+    return "".join(c if c in _SUFFIX_OK else "0" for c in first3)
+
+
+def _number_of(doc: Optional[dict]) -> Optional[int]:
+    """The doc's member number as an int, or None -- a malformed value is
+    treated as unnumbered, never a 500."""
+    n = (doc or {}).get("member_number")
+    try:
+        n = int(n) if n is not None else None
+    except (TypeError, ValueError):
+        return None
+    return n if n and n > 0 else None
+
+
+def citz_id(doc: Optional[dict]) -> Optional[str]:
+    d = doc or {}
+    n = _number_of(d)
+    if not n:
+        return None
+    return f"citz-{n:06d}{citz_suffix(d.get('username'))}"
+
+
+def identity_view(doc: Optional[dict]) -> dict:
+    """What /me, /membership/state and the founder rows carry."""
+    d = doc or {}
+    n = _number_of(d)
+    return {
+        "member_number": n,
+        "citizen":       is_citizen(d),
+        "controller":    is_controller(d),
+        "citz_id":       citz_id(d),
+        "cohort":        derive_cohort(d),
+    }
+
+
+def numbering_done_at() -> Optional[float]:
+    """When the one-time numbering pass first completed, or None."""
+    if _backend() == "firestore":
+        snap = _get_firestore().collection(_COUNTER_COLLECTION).document(_MARKER_DOC).get()
+        return (snap.to_dict() or {}).get("done_at") if snap.exists else None
+    return _MEMORY_MARKER.get("done_at")
+
+
+def _set_numbering_done_at(ts: float) -> None:
+    if _backend() == "firestore":
+        _get_firestore().collection(_COUNTER_COLLECTION).document(_MARKER_DOC).set({"done_at": float(ts)})
+    else:
+        _MEMORY_MARKER["done_at"] = float(ts)
+
+
+def _all_user_docs() -> list[dict]:
+    if _backend() == "firestore":
+        docs = []
+        for doc in _users_collection().stream():
+            data = doc.to_dict() or {}
+            data.setdefault("username", doc.id)
+            docs.append(data)
+        return docs
+    return [dict(d, username=d.get("username") or u) for u, d in _MEMORY_USERS.items()]
+
+
+def number_existing_users(*, first=(), controllers=(), now: Optional[float] = None) -> list[tuple[str, int]]:
+    """The ONE-TIME migration at deploy (rule 6), safe on every boot.
+
+    Order of work, each step independent so a failure in one cannot leave
+    the founder locked out by another:
+      1. controllers flagged (controller=True) -- FIRST, before any numbering;
+      2. legacy founder-like cohort strings migrated to the flag, so the
+         one-deploy string shim can actually be deleted next deploy;
+      3. numbering: `first` docs take the lowest numbers in order (the
+         Outlook doc -> 1 on a fresh counter), then every unnumbered doc
+         in created_at order -- but ONLY docs that existed when the pass
+         first completed (the marker). A doc born after that waits for its
+         owner's first click (rule 1), however many cold starts happen.
+    A `first` / `controllers` entry with no doc is logged, not skipped
+    silently. Returns [(username, number)] assigned THIS run; each
+    assignment is logged as user_ref + number."""
+    now = time.time() if now is None else float(now)
+    assigned: list[tuple[str, int]] = []
+    # 1. controllers, first and on their own
+    for u in controllers:
+        if not u:
+            continue
+        try:
+            doc = get_user(u)
+            if doc is None:
+                logger.warning("controller.missing_doc user_ref=%s", _uref(u))
+                continue
+            if not doc.get("controller"):
+                update_user(u, {"controller": True})
+                logger.info("controller.flagged user_ref=%s", _uref(u))
+        except Exception as exc:  # noqa: BLE001 -- one doc must not stop the rest
+            logger.warning("controller.flag_failed user_ref=%s err=%s", _uref(u), type(exc).__name__)
+    done_at = numbering_done_at()
+    docs = _all_user_docs()
+    # 2. legacy strings -> the flag (existing docs only; writers no longer write them)
+    for d in docs:
+        u = d.get("username")
+        if u and d.get("cohort") in _LEGACY_CONTROLLER_COHORTS and not d.get("controller"):
+            try:
+                update_user(u, {"controller": True})
+                logger.info("controller.migrated_from_cohort user_ref=%s", _uref(u))
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("controller.migrate_failed user_ref=%s err=%s", _uref(u), type(exc).__name__)
+    # 3. numbering
+    for u in first:
+        if not u:
+            continue
+        doc = get_user(u)
+        if doc is None:
+            logger.warning("member_numbering.first_missing_doc user_ref=%s", _uref(u))
+            continue
+        if not doc.get("member_number"):
+            n = assign_member_number(u)
+            if n:
+                assigned.append((u, n))
+    cutoff = done_at  # None on the first run: every existing doc qualifies
+    already = {u for u, _ in assigned}  # the snapshot predates the `first` mints
+    docs.sort(key=lambda d: float(d.get("created_at") or 0.0))
+    for d in docs:
+        u = d.get("username")
+        if not u or d.get("member_number") or u in already:
+            continue
+        if cutoff is not None and float(d.get("created_at") or 0.0) >= cutoff:
+            continue  # born after the migration: waits for the first click
+        n = assign_member_number(u)
+        if n:
+            assigned.append((u, n))
+    if done_at is None:
+        _set_numbering_done_at(now)
+    return assigned
+
+
 def list_users(limit: int = 50, offset: int = 0) -> list[dict]:
     """#150 — a page of user docs, newest first by created_at. The founder
     console's members list. Memory backend sorts the dict; Firestore
@@ -736,3 +1006,5 @@ def list_users_due_for_renewal(now_ts: float) -> list[str]:
 # Test helper: clear in-memory state. Not used in production.
 def _reset_memory_for_tests() -> None:
     _MEMORY_USERS.clear()
+    _MEMORY_COUNTER["next"] = 1  # #124 -- the counter starts over with the users
+    _MEMORY_MARKER["done_at"] = None

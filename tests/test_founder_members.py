@@ -84,7 +84,8 @@ def _member():
 
 RESPONSE_KEYS = {"ok", "created", "activated", "activate_error", "sent", "link_throttled", "email_hash"}
 ROW_KEYS = {"email", "cohort", "membership_status", "membership_tier",
-            "created_at", "last_seen", "balance_display", "auth_method"}
+            "created_at", "last_seen", "balance_display", "auth_method",
+            "member_number", "citizen", "controller", "citz_id"}
 
 
 # ===========================================================================
@@ -111,8 +112,9 @@ def test_create_births_the_same_doc_shape_as_a_magic_link_click(client, sender):
     assert doc is not None
 
     # identical field set; the values that must differ do
-    assert set(doc.keys()) == set(link_doc.keys())
-    assert doc["cohort"] == "member" == link_doc["cohort"]
+    # #124 -- a link click also MINTS a number; the console path does not.
+    assert set(doc.keys()) | {"member_number"} == set(link_doc.keys())
+    assert "cohort" not in doc and "cohort" not in link_doc  # no cohort string is written any more
     assert doc["auth_method"] == "magic_link"
     assert doc["tier"] == "free"
     assert str(doc["operator_id"]).startswith("op_") and doc["operator_id"] != link_doc["operator_id"]
@@ -220,7 +222,7 @@ def test_list_projects_rows_without_secrets_newest_first_and_pages(client, sende
         assert secret not in dumped
     emails = [m["email"] for m in body["members"]]
     assert emails == ["l3@example.com", "l2@example.com"]  # newest first
-    assert body["members"][0]["cohort"] == "member"
+    assert body["members"][0]["cohort"] == "all"  # #124 -- derived label
     assert body["members"][0]["balance_display"] == "$0.00"  # a fresh doc, exactly
 
     r2 = client.get("/founder/members?limit=2&offset=2", headers=h).json()

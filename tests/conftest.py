@@ -290,6 +290,13 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- #124 citizens numbered / cohort derived / founder = controller ----
+    # runtime_spine: both founder gates + /me + /membership/state.
+    # privacy_surface: the founder rows carry no hash / salt / operator id.
+    "test_citizens.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- #150 founder creates accounts + members list ----
     # runtime_spine: two founder routes members are refused on.
     # privacy_surface: no hash / salt / operator id / token / raw email on

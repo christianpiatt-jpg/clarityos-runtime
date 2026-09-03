@@ -330,6 +330,15 @@ def _flag_entry(name: str) -> dict:
     return e
 
 
+# #124 -- derived-label -> legacy-string aliases for flag lookups. Delete
+# with the gates' string shim next deploy.
+_COHORT_LABEL_ALIASES: dict = {
+    "controller": ("founder", "admin", "founder_exception"),
+    "founding":   ("founding_500", "member"),
+    "all":        ("member",),
+}
+
+
 def feature_enabled(name: str, *, user: Optional[str] = None, cohort: Optional[str] = None) -> bool:
     """Default-off unless declared in ``_DEFAULT_FLAGS``. User overrides
     take precedence over defaults; cohort-level overrides take precedence
@@ -340,9 +349,13 @@ def feature_enabled(name: str, *, user: Optional[str] = None, cohort: Optional[s
         if user and user in e["user_overrides"]:
             return bool(e["user_overrides"][user])
         if cohort:
-            ck = f"cohort:{cohort}"
-            if ck in e["user_overrides"]:
-                return bool(e["user_overrides"][ck])
+            # #124 -- the session cohort is now a DERIVED label; overrides set
+            # for the legacy strings still apply to it (one-deploy shim: the
+            # label's own key wins, then its aliases in order).
+            for c in (cohort, *_COHORT_LABEL_ALIASES.get(cohort, ())):
+                ck = f"cohort:{c}"
+                if ck in e["user_overrides"]:
+                    return bool(e["user_overrides"][ck])
         return bool(e["default"])
 
 

@@ -415,10 +415,11 @@ def test_hop_a_paid_doc_with_null_cohort_opens(app_module):
     user, sid = _make_user(app_module, "ava", cohort=None)
     _seat(user)
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] == membership_store.FOUNDING_COHORT
+    # #124 -- the hop is retired: cohort is the DERIVED label. An unnumbered
+    # doc is "all" (v43's "member"); the v28 gate opens for it.
+    assert sess["cohort"] == "all"
     assert h.feature_enabled("v28_surfaces", user=user, cohort=sess["cohort"]) is True
-    # Read path ONLY. The doc is the record of what was granted; the hop
-    # never writes to it.
+    # Read path ONLY. Nothing is written to the doc.
     assert "cohort" not in (users_store.get_user(user) or {})
 
 
@@ -426,11 +427,15 @@ def test_hop_b_unpaid_doc_stays_closed(app_module):
     """D1, direction two. Neither field says paid -> cohort stays None and
     the 403 is TRUE. This is the assertion that forbids `or "member"`."""
     import v29_hardening as h
+    import users_store
     _arm_v43_flags()
     user, sid = _make_user(app_module, "lurker", cohort=None)
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] is None
-    assert h.feature_enabled("v28_surfaces", user=user, cohort=None) is False
+    # #124 rule 2 -- default label "all": every account gets the member
+    # surfaces (v43's ruling), and NOTHING founder-like is derived.
+    assert sess["cohort"] == "all"
+    assert app_module.users_store.is_controller(users_store.get_user(user)) is False
+    assert h.feature_enabled("founder_tier_enabled", user=user, cohort=sess["cohort"]) is False
 
 
 def test_hop_c_present_cohort_is_never_touched(app_module):
@@ -439,8 +444,9 @@ def test_hop_c_present_cohort_is_never_touched(app_module):
     _require_founder, which reads the doc directly."""
     user, sid = _make_user(app_module, "chris", cohort="founder_exception")
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] == "founder_exception"
-    assert sess["cohort"] in app_module.FOUNDER_LIKE_COHORTS
+    # #124 -- the legacy string is honoured by the one-deploy shim: the
+    # derived label is "controller" and the founder gate opens.
+    assert sess["cohort"] == "controller"
     assert app_module._require_founder(session=sess) is sess
 
 
@@ -450,15 +456,16 @@ def test_hop_d_cancelled_member_derives_no_cohort(app_module):
     membership_status and only "active" derives. Nothing is deleted --
     the doc still says founding_500/cancelled -- but no cohort is
     derived from it and the v28 gate stays shut."""
-    import v29_hardening as h, membership_store
+    import v29_hardening as h, membership_store, users_store
     _arm_v43_flags()
     user, sid = _make_user(app_module, "cxl", cohort=None)
     _seat(user, status="cancelled")
     membership_store.remove_member(user)
     assert membership_store.is_member(user) is False
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] is None
-    assert h.feature_enabled("v28_surfaces", user=user, cohort=None) is False
+    # #124 -- cancelled: not a citizen; the label is the default "all".
+    assert sess["cohort"] == "all"
+    assert users_store.is_citizen(users_store.get_user(user)) is False
 
 
 def test_hop_e_blob_seat_with_active_status(app_module):
@@ -469,7 +476,7 @@ def test_hop_e_blob_seat_with_active_status(app_module):
     membership_store.add_member(user)
     users_store.set_membership(user, tier=None, price=None, status="active")
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] == membership_store.FOUNDING_COHORT
+    assert sess["cohort"] == "all"  # #124 -- no number yet; the label does not read the seat
 
 
 def test_hop_e2_blob_seat_with_no_status_stays_closed(app_module):
@@ -481,7 +488,7 @@ def test_hop_e2_blob_seat_with_no_status_stays_closed(app_module):
     user, sid = _make_user(app_module, "blobonly2", cohort=None)
     membership_store.add_member(user)
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] is None
+    assert sess["cohort"] == "all"  # #124
 
 
 def test_hop_f_explicit_member_cohort_untouched(app_module):
@@ -490,7 +497,7 @@ def test_hop_f_explicit_member_cohort_untouched(app_module):
     user, sid = _make_user(app_module, "mem", cohort="member")
     _seat(user)
     sess = app_module.require_session(x_session_id=sid)
-    assert sess["cohort"] == "member"
+    assert sess["cohort"] == "all"  # #124 -- "member" was always "all"
 
 
 def test_hop_g_get_me_echoes_the_derived_cohort(app_module, client):
@@ -504,10 +511,11 @@ def test_hop_g_get_me_echoes_the_derived_cohort(app_module, client):
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
-    assert body["cohort"] == "founding_500"
+    assert body["cohort"] == "all"  # #124 -- derived; unnumbered until first click
     assert body["features"]["v28_surfaces"] is True
-    # Not founder-like: operator stays False, exactly as before.
+    # Not a controller: operator stays False, exactly as before.
     assert body["operator"] is False
+    assert body["citizen"] is True and body["member_number"] is None
 
 
 # ===========================================================================

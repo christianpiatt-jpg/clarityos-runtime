@@ -389,13 +389,11 @@ def ensure_user(email: str, now: float) -> bool:
     )
     try:
         users_store.update_user(
-            email, {"operator_id": "op_" + secrets.token_urlsafe(12), "auth_method": "magic_link",
-                    # v43 — CT-1 ruling 2026-08-27: every new account is cohort
-                    # "member" (= app.py COHORT_MEMBER; literal here because
-                    # app.py imports this module — the constant cannot be
-                    # imported without a cycle). This is the birth path for
-                    # both magic-link sign-ups and Stripe-webhook buyers.
-                    "cohort": "member"}
+            email, {"operator_id": "op_" + secrets.token_urlsafe(12), "auth_method": "magic_link"}
+            # #124 -- no cohort string is written any more. `cohort` is a label
+            # DERIVED at read from the member number (users_store.derive_cohort:
+            # default "all", which is what v43's "member" meant). The number
+            # itself is minted at FIRST LOGIN (verify_magic_link), never here.
         )
     except Exception:  # pragma: no cover — defensive against backend hiccups
         pass
@@ -541,6 +539,16 @@ def verify_magic_link(
     email = record["email"]
     ehash = _email_hash(email)
     created = ensure_user(email, now)
+    # #124 rule 1 -- MINT AT FIRST LOGIN. Idempotent: an existing number is
+    # returned, never re-minted. A console-created doc gets its number here,
+    # the first time its owner clicks.
+    # The token is already burnt: a mint failure must NEVER cost the member
+    # their click. None here; the next login or the boot pass mints.
+    try:
+        member_number = users_store.assign_member_number(email)
+    except Exception as exc:  # noqa: BLE001
+        member_number = None
+        _log("member_number.mint_failed", email_hash=ehash, err=type(exc).__name__)
     active = _is_active_member(email, now)
 
     session_id = secrets.token_urlsafe(32)
@@ -551,7 +559,8 @@ def verify_magic_link(
     redirect_url = _final_redirect_url(resolved_path)
 
     _log("magic_link.verified", token_id=record.get("id"), email_hash=ehash,
-         ip=ip or "-", redirect=resolved_path, created=created, active=active)
+         ip=ip or "-", redirect=resolved_path, created=created, active=active,
+         member_number=member_number)
     return {
         "status": "ok",
         "session_id": session_id,
@@ -561,6 +570,7 @@ def verify_magic_link(
         "email_hash": ehash,
         "created": created,
         "active": active,
+        "member_number": member_number,
     }
 
 

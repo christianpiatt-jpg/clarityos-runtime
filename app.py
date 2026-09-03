@@ -345,6 +345,21 @@ ALLOWED_VAULT_TYPES = ("note", "session", "elins_raw")
 QUOTA_FOUNDER_BYTES = 1_000_000_000   # 1 GB
 QUOTA_DEFAULT_BYTES = 500_000_000     # 500 MB
 FOUNDER_LIKE_COHORTS = {COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_ADMIN}
+# #124 -- the derived labels (users_store.derive_cohort). `cohort` on a
+# session is one of these from now on; the strings above are legacy values
+# still found on docs and accepted by the gates for ONE deploy (shim).
+COHORT_LABEL_CONTROLLER = "controller"
+COHORT_LABEL_FOUNDING = "founding"
+COHORT_LABEL_ALL = "all"
+# The controller docs: flagged controller=True at the deploy-time numbering
+# pass, the Outlook doc first so it takes number 1 on a fresh counter. The
+# bootstrap admin login is also a controller. Env-overridable, code default
+# (no --set-env-vars needed).
+CONTROLLER_EMAILS = tuple(
+    e.strip().lower()
+    for e in os.environ.get("CLARITYOS_CONTROLLER_EMAILS", "christian.piatt@outlook.com").split(",")
+    if e.strip()
+)
 THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60
 
 # CORS — comma-separated list of allowed origins. Browsers will refuse to
@@ -410,7 +425,7 @@ def _create_user(
     username: str,
     password: str,
     tier: str = "free",
-    cohort: Optional[str] = COHORT_MEMBER,
+    cohort: Optional[str] = None,  # #124 -- no default cohort string (label derived at read)
     operator_id: Optional[str] = None,
     billing_expires_at: Optional[float] = None,
     billing_subscription_id: Optional[str] = None,
@@ -474,9 +489,11 @@ def _bootstrap_admin() -> str:
     # predates the invite system gets upgraded to "founder".
     if users_store.user_exists(user):
         existing = users_store.get_user(user) or {}
-        if existing.get("cohort") != COHORT_FOUNDER:
+        # #124 -- the admin login is a CONTROLLER (doc.controller); no cohort
+        # string is written any more.
+        if not existing.get("controller") or not existing.get("operator_id"):
             users_store.update_user(user, {
-                "cohort": COHORT_FOUNDER,
+                "controller": True,
                 "operator_id": existing.get("operator_id") or _new_operator_id(),
             })
         return "existing"
@@ -511,11 +528,52 @@ def _bootstrap_admin() -> str:
         print(f"   password: {pwd}", flush=True)
         print(" Set CLARITYOS_ADMIN_USER / CLARITYOS_ADMIN_PASSWORD to override.", flush=True)
         print(bar, flush=True)
-    _create_user(user, pwd, cohort=COHORT_FOUNDER, operator_id=_new_operator_id())
+    _create_user(user, pwd, cohort=None, operator_id=_new_operator_id())
+    users_store.update_user(user, {"controller": True})  # #124
     return source
 
 
 _admin_pwd_source = _bootstrap_admin()
+
+# #124 rule 6 -- EXISTING docs numbered once, created_at order, at deploy.
+# Idempotent on every boot (numbered docs are skipped), so a restart or a
+# second instance changes nothing. The Outlook doc goes first (-> 1 on a
+# fresh counter) and the controllers are flagged. Each assignment is
+# logged as user_ref + number.
+def _backfill_membership_granted() -> int:
+    """First run only: a pre-#124 founder grant or beta comp reads as a
+    PAID membership to is_citizen. A grant is recognisable by its ledger --
+    every membership_activation carries metadata.manual and there is no
+    checkout_session_completed -- so mark those docs membership_granted.
+    Rule 7 is not retroactive by itself; this makes it so."""
+    marked = 0
+    for d in users_store._all_user_docs():
+        u = d.get("username")
+        if not u or d.get("membership_status") != "active" or d.get("membership_granted"):
+            continue
+        try:
+            txs = membership_store._load_tx(u)
+        except Exception:  # noqa: BLE001
+            continue
+        acts = [t for t in txs if t.get("type") == "membership_activation"]
+        paid = any(t.get("type") == "checkout_session_completed" for t in txs)
+        if acts and not paid and all((t.get("metadata") or {}).get("manual") for t in acts):
+            users_store.update_user(u, {"membership_granted": True})
+            logger.info("membership_granted.backfilled user_ref=%s", _user_ref(u))
+            marked += 1
+    return marked
+
+
+try:
+    _first_numbering_run = users_store.numbering_done_at() is None
+    _numbered = users_store.number_existing_users(
+        first=CONTROLLER_EMAILS, controllers=(*CONTROLLER_EMAILS, ADMIN_USER),
+    )
+    logger.info("member_numbering.run assigned=%d first_run=%s", len(_numbered), _first_numbering_run)
+    if _first_numbering_run:
+        logger.info("membership_granted.backfill marked=%d", _backfill_membership_granted())
+except Exception as _e:  # never block boot on a numbering failure
+    logger.warning("member_numbering.failed err=%s", type(_e).__name__)
 
 # v29 — Cohort 1 default flag overrides. Founders + Terrace 1 see v28
 # surfaces by default; everyone else stays default-off until a server-side
@@ -527,8 +585,12 @@ _admin_pwd_source = _bootstrap_admin()
 # membership_tier / the cohort blob when the doc has cohort=None (the
 # pre-v43 case). That hop is at require_session -- it was described here
 # for a week before it existed (#107).
+# #124 -- the derived labels carry the same defaults as the strings they
+# replace (all == member; controller == founder). Flags are keyed by the
+# session cohort, which is now a label.
 for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_TERRACE_1,
-             COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT):
+             COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT,
+             COHORT_LABEL_CONTROLLER, COHORT_LABEL_FOUNDING, COHORT_LABEL_ALL):
     v29_hardening.set_flag("v28_surfaces", True, cohort=_coh)
     v29_hardening.set_flag("onboarding_v1", True, cohort=_coh)
     v29_hardening.set_flag("whats_new_v28", True, cohort=_coh)
@@ -539,7 +601,7 @@ for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_TERRACE_1,
 v29_hardening._DEFAULT_FLAGS.setdefault("founder_tier_enabled", False)
 v29_hardening._DEFAULT_FLAGS.setdefault("g_credits_enabled", False)
 v29_hardening._DEFAULT_FLAGS.setdefault("membership_ui_enabled", False)
-for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION):
+for _coh in (COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION, COHORT_LABEL_CONTROLLER):
     v29_hardening.set_flag("founder_tier_enabled", True, cohort=_coh)
     v29_hardening.set_flag("g_credits_enabled", True, cohort=_coh)
     v29_hardening.set_flag("membership_ui_enabled", True, cohort=_coh)
@@ -550,7 +612,8 @@ v29_hardening.set_flag("membership_ui_enabled", True, cohort=COHORT_TERRACE_1)
 # feature_disabled on /elins/daily/feed for a real member account while the
 # free invite pool had it. founder_tier_enabled deliberately NOT extended:
 # that is a sales offer, not a member feature.
-for _coh in (COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT):
+for _coh in (COHORT_MEMBER, COHORT_ADMIN, membership_store.FOUNDING_COHORT,
+             COHORT_LABEL_FOUNDING, COHORT_LABEL_ALL):
     v29_hardening.set_flag("g_credits_enabled", True, cohort=_coh)
     v29_hardening.set_flag("membership_ui_enabled", True, cohort=_coh)
 
@@ -666,12 +729,14 @@ def require_session(x_session_id: Optional[str] = Header(default=None)) -> dict:
         # drops the blob seat; this read derives NOTHING for it, and None
         # is not active. Nothing is deleted: doc, vault, threads and
         # library metadata are untouched, because this is a read.
-        if cohort is None:
-            _u = session["user"]
-            if (u.get("membership_status") == "active"
-                    and (u.get("membership_tier") == membership_store.FOUNDING_COHORT
-                         or membership_store.is_member(_u))):
-                cohort = membership_store.FOUNDING_COHORT
+        # #124 -- THE HOP IS RETIRED. `cohort` is no longer read off the doc
+        # or derived from membership fields: it is the label users_store
+        # .derive_cohort computes from the member number and the controller
+        # flag ("controller" / "founding" / "all"). The stored string, if
+        # any, is legacy; the gates' one-deploy shim still honours it.
+        # A live session with NO doc derives nothing (the old guard against
+        # entitlement-from-absence stands): None, never "all".
+        cohort = users_store.derive_cohort(u) if u else None
     except Exception:  # pragma: no cover — defensive against backend hiccups
         cohort = None
     return {"session_id": x_session_id, "user": session["user"], "cohort": cohort}
@@ -1465,7 +1530,10 @@ def _require_founder(session: dict = Depends(require_session)) -> dict:
     """Cohort-based gate. Distinct from _require_admin (which checks the
     bootstrap admin username). Used by the ELINS ingest routes."""
     user_doc = users_store.get_user(session["user"]) or {}
-    if user_doc.get("cohort") not in FOUNDER_LIKE_COHORTS:
+    # #124 -- the founder is doc.controller. users_store.is_controller is the
+    # ONE predicate (runtime_http.require_founder reads the same one); it
+    # carries the one-deploy string shim. Delete the shim next deploy.
+    if not users_store.is_controller(user_doc):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=error_response("forbidden", "Founder cohort required"),
@@ -2292,7 +2360,10 @@ def me(request: Request, session: dict = Depends(require_session)):
     # (invite redemption, quota resolution) so the boundary stays
     # consistent across the engine. Token-bearing requests are operator
     # regardless of cohort — that path is unchanged from Card 16.
-    operator = _is_operator_token(request) or (cohort in FOUNDER_LIKE_COHORTS)
+    # #124 -- operator identity is the controller flag (+ the legacy strings
+    # for one deploy), read off the doc through the ONE predicate.
+    operator = _is_operator_token(request) or users_store.is_controller(user_doc)
+    identity = users_store.identity_view(user_doc)
 
     # Card 16 — vault_ready: non-throwing probe so a misconfigured
     # vault never causes /me to 500. (This is what bit us in Card 15.)
@@ -2322,6 +2393,12 @@ def me(request: Request, session: dict = Depends(require_session)):
         "operator_id": user_doc.get("operator_id"),
         "tier": user_doc.get("tier", "free"),
         "billing_expires_at": user_doc.get("billing_expires_at"),
+        # #124 -- the citizen number and what is derived from it. The suffix
+        # is computed from the doc key at read; nothing here is stored.
+        "member_number": identity["member_number"],
+        "citizen": identity["citizen"],
+        "controller": identity["controller"],
+        "citz_id": identity["citz_id"],
         # v29 — feature gates that the surface needs to know about up front.
         "features": {
             "v28_surfaces": v29_hardening.feature_enabled(
@@ -2496,8 +2573,7 @@ def get_config(session: dict = Depends(require_session)):
 # ===========================================================================
 def _quota_for(user: str) -> int:
     user_doc = users_store.get_user(user) or {}
-    cohort = user_doc.get("cohort")
-    return QUOTA_FOUNDER_BYTES if cohort in FOUNDER_LIKE_COHORTS else QUOTA_DEFAULT_BYTES
+    return QUOTA_FOUNDER_BYTES if users_store.is_controller(user_doc) else QUOTA_DEFAULT_BYTES
 
 
 def _envelope_check(payload_bytes: int, max_bytes: int, kind: str) -> None:
@@ -10338,6 +10414,8 @@ def _membership_view(user: str) -> dict:
     next_price = _founding_price_for(user, user_doc)
     return {
         "user": user,
+        # #124 -- /membership shows the id.
+        "identity": users_store.identity_view(user_doc),
         "membership": {
             "tier": user_doc.get("membership_tier"),
             "status": user_doc.get("membership_status"),
@@ -12269,7 +12347,9 @@ def model_route(
     """
     user = session["user"]
     cohort = session.get("cohort")
-    operator = _is_operator_token(request) or (cohort in FOUNDER_LIKE_COHORTS)
+    # #124 -- the session cohort is a derived label; "controller" is the one
+    # that carries operator identity (plus the legacy strings for one deploy).
+    operator = _is_operator_token(request) or cohort == COHORT_LABEL_CONTROLLER or (cohort in FOUNDER_LIKE_COHORTS)
 
     try:
         model_id = model_router.select_model(
@@ -14938,6 +15018,10 @@ def _founder_seat_membership(
         renewal_ts=billing_intents.calculate_next_renewal_ts(started_ts),
         renewal_retry_count=0,
     )
+    # #124 rule 7 -- a founder GRANT does not confer citizenship. The marker
+    # is written only here (the one founder seating path); the Stripe and
+    # PaymentIntent paths never touch it. users_store.is_citizen reads it.
+    users_store.update_user(target, {"membership_granted": True})
     membership_store.record_transaction(
         target, type="membership_activation", amount=price, credits_delta=0,
         metadata={
@@ -14969,6 +15053,8 @@ class V150FounderMemberCreateRequest(BaseModel):
 _FOUNDER_MEMBER_ROW_KEYS = (
     "email", "cohort", "membership_status", "membership_tier",
     "created_at", "last_seen", "balance_display", "auth_method",
+    # #124
+    "member_number", "citizen", "controller", "citz_id",
 )
 
 
@@ -14976,9 +15062,14 @@ def _founder_member_row(doc: dict) -> dict:
     """Project a user doc for the founder console. No password hash, no
     salt, no operator id, no Stripe ids. last_seen is null: no surface
     stores one today (a null is honest; an invented timestamp is not)."""
+    identity = users_store.identity_view(doc)
     row = {
         "email":             doc.get("username"),
-        "cohort":            doc.get("cohort"),
+        "cohort":            identity["cohort"],   # #124 -- the DERIVED label, not the stored string
+        "member_number":     identity["member_number"],
+        "citizen":           identity["citizen"],
+        "controller":        identity["controller"],
+        "citz_id":           identity["citz_id"],
         "membership_status": doc.get("membership_status"),
         "membership_tier":   doc.get("membership_tier"),
         "created_at":        doc.get("created_at"),

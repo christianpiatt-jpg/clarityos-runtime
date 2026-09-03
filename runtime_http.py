@@ -236,7 +236,10 @@ def require_founder(
     import users_store as _users  # lazy — matches the require_operator pattern
     user, operator_id = _resolve_authed_identity(x_session_id)
     user_doc = _users.get_user(user) or {}
-    if user_doc.get("cohort") not in _FOUNDER_COHORTS:
+    # #124 -- the founder is doc.controller; users_store.is_controller is the
+    # ONE predicate both this gate and app._require_founder read (drift guard
+    # in tests/test_citizens.py). It carries the one-deploy string shim.
+    if not _users.is_controller(user_doc):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Founder cohort required",
