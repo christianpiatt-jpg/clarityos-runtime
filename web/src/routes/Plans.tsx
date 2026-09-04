@@ -19,12 +19,12 @@ const TIERS = [
     cohort: "terrace_1",
     label: "TERRACE-1",
     price: "$50",
-    sub: "monthly recurring or one-time (30 days)",
+    sub: "$50 a month, recurring until you cancel",
     bullets: [
       "All engines, all interpreters",
       "Vault + continuity",
       "Operator envelope",
-      "500-seat cap; one-time-paid expires permanently",
+      "500-seat cap; your price stays locked while your membership stands",
     ],
     featured: true,
   },
@@ -74,7 +74,7 @@ export default function Plans() {
             <div className="k">remaining</div>
             <div className="v">{(cfg.terrace_1_cap ?? 500) - (cfg.terrace_1_redeemed ?? 0)}</div>
             <div className="k">billing system</div>
-            <div className="v">{cfg.billing_configured ? "online" : "offline (free invites only)"}</div>
+            <div className="v">{cfg.billing_configured ? "online" : "offline"}</div>
           </div>
         </div>
       ) : null}
@@ -119,9 +119,12 @@ export default function Plans() {
 
       <div className="panel">
         <h2>WHAT YOU PAY FOR</h2>
-        <p className="muted">
-          Compute meters by calls to the engine routes (markov / galileo / tizzy / library).
-          Vault is local; nothing is billed for storage today.
+        {/* #162 (f) -- CT-1 ruled 09-04: one membership, $50 recurring until
+            cancelled; the price lock stays until CT-1 removes it. No one-time
+            path exists and none is sold here. */}
+        <p className="muted" data-testid="plans-terms">
+          One membership: $50 a month, recurring until you cancel. Your price
+          stays locked for as long as your membership stands.
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ApiError, getProfile, me, type MeResponse } from "../lib/api";
+import { ApiError, getProfile, me, membershipState, type MeResponse, type MembershipStateView } from "../lib/api";
 import { signOut } from "../lib/auth";
 import MeBillingBadge from "../components/membership/MeBillingBadge";
 import ModelPreferences from "../components/settings/ModelPreferences";
@@ -9,25 +9,38 @@ import MemoryVaultPanel from "../components/settings/MemoryVaultPanel";
 import SetPasswordPanel from "../components/settings/SetPasswordPanel";
 
 // A-WEB-CLARITY-3 §2 — presentation-only friendly names (UI mapping; no fetch,
-// no backend). Maps the app's REAL categoricals: cohort (the meaningful one —
-// Founding 500) and tier (currently only "free"). operator_id is a unique
-// identifier, not a categorical, so it is shown raw — no table applies.
+// no backend). Maps the app's REAL categorical: cohort (the meaningful one —
+// Founding 500). The frozen `tier` field is no longer shown (#162: the
+// membership STATE is). operator_id is a unique identifier, not a
+// categorical, so it is shown raw — no table applies.
 const COHORT_NAMES: Record<string, string> = {
   founder: "Founding 500",
   founder_exception: "Founding 500 (exception)",
 };
-const TIER_NAMES: Record<string, string> = {
-  free: "Free Plan",
-};
 function friendly(map: Record<string, string>, raw: string | null | undefined): string {
   if (!raw) return "—";
   return map[raw] ?? `${raw} (raw)`;
+}
+// #162 (f) -- "Free Plan" was a label on the frozen `tier` field. The
+// membership STATE is what the member has: status, tier, the locked price.
+function membershipLine(s: MembershipStateView | null): string {
+  if (!s) return "—";
+  const m = s.membership;
+  if (!m.status) return "none";
+  const tier = m.tier ? ` · ${m.tier}` : "";
+  // The lock is a claim about the FUTURE price; a cancelled membership has
+  // forfeited it (app._membership_view sets price_lock_forfeit), so the
+  // suffix rides only while the membership stands.
+  const lock = typeof m.price_locked === "number" && m.status === "active" && !m.price_lock_forfeit
+    ? ` · $${m.price_locked} locked` : "";
+  return `${m.status}${tier}${lock}`;
 }
 
 export default function Account() {
   const [data, setData] = useState<MeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mstate, setMstate] = useState<MembershipStateView | null>(null);
   const cached = getProfile();
 
   useEffect(() => {
@@ -36,6 +49,10 @@ export default function Account() {
       try {
         const r = await me();
         if (!cancelled) setData(r);
+        try {
+          const s = await membershipState();
+          if (!cancelled) setMstate(s.state);
+        } catch { /* the envelope renders without it */ }
       } catch (e: any) {
         if (!cancelled) {
           setError(e instanceof ApiError ? e.message : (e?.message || "Could not load /me"));
@@ -70,8 +87,8 @@ export default function Account() {
             <div className="v">{friendly(COHORT_NAMES, data?.cohort || cached?.cohort)}</div>
             <div className="k">operator id</div>
             <div className="v">{data?.operator_id || cached?.operator_id || "—"}</div>
-            <div className="k">tier</div>
-            <div className="v">{friendly(TIER_NAMES, data?.tier || cached?.tier)}</div>
+            <div className="k">membership</div>
+            <div className="v" data-testid="account-membership">{membershipLine(mstate)}</div>
             <div className="k">billing expires</div>
             <div className="v">
               {data?.billing_expires_at

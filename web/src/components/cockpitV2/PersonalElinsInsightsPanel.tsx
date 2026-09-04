@@ -19,6 +19,7 @@
  */
 import { useCockpit } from "../../state/cockpitStore";
 import type { TrustSignal, TurnRecord } from "../../lib/api";
+import { basinHopLine } from "../../lib/trustSignal";
 import {
   SectionAttractor,
   SectionCollapseRisk,
@@ -87,6 +88,10 @@ export default function PersonalElinsInsightsPanel() {
                     <dd className="cv2-mono" data-testid="rel-last-sealed">{lastSealed(detail.turns)}</dd>
                   </div>
                 </dl>
+                {/* #162 (d) -- the awaiting rail speaks the status. */}
+                <div className="cv2-muted cv2-mono" data-testid="math-rail-basin-hop">
+                  {basinHopLine(detail.trust_signal)}
+                </div>
                 {detail.turns.length > 0 && (
                   <ul className="cv2-rel-turns" data-testid="rel-turns">
                     {detail.turns.map((t) => (

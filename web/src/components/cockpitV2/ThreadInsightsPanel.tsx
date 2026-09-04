@@ -106,6 +106,11 @@ function relativeTime(ts: number | null | undefined): string {
 
 export default function ThreadInsightsPanel() {
   const thread = useCockpit((s) => s.thread);
+  // #162 (d) -- the active thread's trust signal when it is a relationship
+  // whose turns have been read (#23); null otherwise. Stable reference.
+  const threadTrust = useCockpit((s) =>
+    s.thread.meta ? s.relationships.detail[s.thread.meta.thread_id]?.trust_signal ?? null : null,
+  );
   const { meta, messages, tab, busy, elins, physics } = thread;
   // #127 -- the sha of the code RUNNING, so the card can say whether the
   // summary was made by it. Null until /health answers; null reads stale.
@@ -286,6 +291,7 @@ export default function ThreadInsightsPanel() {
                 envelope={elins}
                 runOn={runOn}
                 onRun={cockpit.thread.actions.setElins}
+                trust={threadTrust}
               />
             </>
           ) : (

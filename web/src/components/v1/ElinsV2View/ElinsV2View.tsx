@@ -27,7 +27,9 @@ import {
   type GeographyTier,
   type PKey,
 } from "../../../lib/elinsV2";
-import { ApiError } from "../../../lib/api";
+import { ApiError, type TrustSignal } from "../../../lib/api";
+import { labelFor } from "../../../lib/labels";
+import { basinHopLine } from "../../../lib/trustSignal";
 import SendToCorpus from "./SendToCorpus";
 import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
 import styles from "./ElinsV2View.module.css";
@@ -45,9 +47,13 @@ interface Props {
   runOn?: { rawText: string; region?: string | null } | null;
   /** Optional callback fired on every successful run, including initial. */
   onRun?: (env: ElinsV2Envelope) => void;
+  /** #162 (d) -- the relationship's trust signal (#23), when the caller
+   *  has one. The math rail's basin_hop row speaks its status. Absent ->
+   *  the row reads as it always did. */
+  trust?: TrustSignal | null;
 }
 
-export default function ElinsV2View({ envelope, runOn, onRun }: Props) {
+export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const [view, setView] = useState<ElinsV2Envelope | null>(envelope ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +138,7 @@ export default function ElinsV2View({ envelope, runOn, onRun }: Props) {
         distribution={outputs.state_distribution}
         attractor={outputs.attractor}
       />
-      <MathRail view={view} />
+      <MathRail view={view} trust={trust} />
       <CollapseBlock collapse={outputs.collapse_state} />
       <P0P8Block grid={outputs.P0_P8} timeline={outputs.timeline} />
       <GeographyBlock tier={outputs.geography_tier} />
@@ -227,7 +233,7 @@ function EtfPill({ label, value }: { label: string; value: number }) {
 //
 // ★ Every WAITING quantity is rendered, one line each, with its named
 // blocker. A hidden waiting row is the defect this rail ends.
-function MathRail({ view }: { view: ElinsV2Envelope }) {
+function MathRail({ view, trust }: { view: ElinsV2Envelope; trust?: TrustSignal | null }) {
   const { outputs, pipeline } = view;
   const weights = Object.values(outputs.state_distribution ?? {}).filter(
     (x): x is number => typeof x === "number" && Number.isFinite(x),
@@ -237,10 +243,13 @@ function MathRail({ view }: { view: ElinsV2Envelope }) {
   // H_max differ in the last bit. "-0.0000" is not a reading. Display-side
   // only; the math and the word are taken from the true value.
   const ciShown = cx.kind === "ci" ? (Math.abs(cx.ci) < 1e-12 ? 0 : cx.ci) : 0;
-  const layers: Array<{ key: string; label: string }> = [
-    { key: "L5_pressure",  label: "pressure"  },
-    { key: "L6_drift",     label: "drift"     },
-    { key: "L9_alignment", label: "alignment" },
+  // #162 (e) -- the WORDS come from the one dictionary; the keys stay, and
+  // the DOM ids (data-testid) are fixed slugs per key, so a word can change
+  // in labels.ts without moving an identifier.
+  const layers: Array<{ key: string; slug: string; label: string }> = [
+    { key: "L5_pressure",  slug: "pressure",  label: labelFor("L5_pressure").word  },
+    { key: "L6_drift",     slug: "drift",     label: labelFor("L6_drift").word     },
+    { key: "L9_alignment", slug: "alignment", label: labelFor("L9_alignment").word },
   ];
   // ElinsV2Pipeline is a closed interface (no index signature); the rail reads
   // it by string key on purpose so a missing layer degrades to "no edges".
@@ -287,7 +296,7 @@ function MathRail({ view }: { view: ElinsV2Envelope }) {
         </div>
       ) : null}
 
-      {layers.map(({ key, label }) => {
+      {layers.map(({ key, slug, label }) => {
         const layer = pipe[key] as { intensity?: unknown; edge_count?: unknown } | undefined;
         const edges =
           typeof layer?.edge_count === "number" && Number.isFinite(layer.edge_count)
@@ -299,10 +308,10 @@ function MathRail({ view }: { view: ElinsV2Envelope }) {
           <div
             key={key}
             className={styles.railRow}
-            data-testid={`math-rail-${label}`}
+            data-testid={`math-rail-${slug}`}
             data-edges={edges}
           >
-            <span className={styles.railKey}>{label}</span>
+            <span className={styles.railKey} title={key}>{label}</span>
             {edges > 0 && intensity !== null ? (
               <>
                 <span className={styles.railVal}>{intensity.toFixed(3)}</span>
@@ -326,7 +335,8 @@ function MathRail({ view }: { view: ElinsV2Envelope }) {
       })}
 
       <div className={styles.railWaiting} data-testid="math-rail-waiting">
-        <div>basin_hop -- awaiting a second read</div>
+        {/* #162 (d) -- bound to the relationship's trust_signal (#23). */}
+        <div data-testid="math-rail-basin-hop">{basinHopLine(trust)}</div>
         <div>fog_of_war -- awaiting PRO-tier ingest</div>
         <div>cohesion -- awaiting PRO-tier ingest</div>
         <div>E/r curvature -- awaiting a region graph</div>
@@ -352,7 +362,7 @@ function AttractorBlock({
   );
   return (
     <div className={styles.section}>
-      <div className={styles.sectionLabel}>Attractor</div>
+      <div className={styles.sectionLabel} title="attractor">{labelFor("attractor").word}</div>
       <div className={styles.attractorRow}>
         {states.map((s) => {
           const v = clamp01(distribution[s] ?? 0);
@@ -409,7 +419,7 @@ function stateDescriptor(s: Attractor): string {
 function CollapseBlock({ collapse }: { collapse: CollapseState }) {
   return (
     <div className={styles.section}>
-      <div className={styles.sectionLabel}>Collapse</div>
+      <div className={styles.sectionLabel} title="collapse_state">{labelFor("collapse_state").word}</div>
       <div className={styles.collapseRow}>
         <span className={styles.collapseValue} data-state={collapse}>
           {collapse}

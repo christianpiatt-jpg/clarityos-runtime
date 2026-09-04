@@ -133,7 +133,7 @@ export default function Operator() {
             <div className="k">invite-only mode</div>
             <div className="v">{cfg.invite_only ? "ON" : "off"}</div>
             <div className="k">stripe configured</div>
-            <div className="v">{cfg.billing_configured ? "yes" : "no (free invites only)"}</div>
+            <div className="v">{cfg.billing_configured ? "yes" : "no"}</div>
           </div>
         </div>
       ) : null}

@@ -1,8 +1,10 @@
 // web/src/components/v1/EmotionalPhysicsView/EmotionalPhysicsView.tsx
 //
-// Web mirror of desktop EmotionalPhysicsView.tsx. Verbatim copy — the
+// Web mirror of desktop EmotionalPhysicsView.tsx. Was a verbatim copy; at
+// #162 the web copy gained the five named bearings and the stop mark
+// (lib/bearings, lib/labels) and the desktop mirror is BEHIND. The
 // relative imports (../../../lib/emotionalPhysics, ../../../lib/api)
-// resolve identically in both projects.
+// still resolve identically in both projects.
 //
 // Compact Emotional Physics view for the v1 InsightsPanel. Renders the
 // four layers (field_curvature / edge_pressure / relational_primitives /
@@ -14,7 +16,9 @@ import {
   analyzeEmotionalPhysics,
   type EmotionalPhysicsResponse,
 } from "../../../lib/emotionalPhysics";
-import { ApiError } from "../../../lib/api";
+import { ApiError, type RelationalPrimitives } from "../../../lib/api";
+import { bearingRows, stopMark } from "../../../lib/bearings";
+import { labelFor } from "../../../lib/labels";
 import styles from "./EmotionalPhysicsView.module.css";
 
 interface Props {
@@ -174,6 +178,8 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
   const meta = view._meta ?? {};
   const modelId = typeof meta.model_id === "string" ? meta.model_id : null;
   const parseError = typeof meta.parse_error === "string" ? meta.parse_error : null;
+  // #162 (b) -- the stop mark: a reply the provider cut off.
+  const stopped = stopMark(meta.stop_reason);
 
   return (
     <section className={styles.root} aria-label="Emotional Physics view">
@@ -187,14 +193,25 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
           parse error: {parseError}
         </div>
       ) : null}
+      {stopped ? (
+        <div role="status" className={styles.warning} data-testid="stop-mark">
+          stopped early: {stopped}
+        </div>
+      ) : null}
 
-      {LAYER_ORDER.map((key) => (
-        <LayerBlock
-          key={key}
-          label={LAYER_LABEL[key]}
-          data={view[key] as Record<string, unknown> | undefined}
-        />
-      ))}
+      {LAYER_ORDER.map((key) =>
+        key === "relational_primitives" ? (
+          // #162 (a) -- the five bearings are NAMED rows, not whatever
+          // keys happened to arrive.
+          <BearingsBlock key={key} data={view.relational_primitives} />
+        ) : (
+          <LayerBlock
+            key={key}
+            label={LAYER_LABEL[key]}
+            data={view[key] as Record<string, unknown> | undefined}
+          />
+        ),
+      )}
 
       <footer className={styles.footer}>
         {/* ★ No stamp renders nothing at all, rather than a reassuring
@@ -318,6 +335,48 @@ function LayerBlock({
       {narrative ? (
         <div className={styles.narrative}>{narrative}</div>
       ) : null}
+    </div>
+  );
+}
+
+/** #162 (a) -- layer 3 as five NAMED rows. Missing key -> an em dash (a
+ *  different kind from a reading); "unclear" -> the word; the label
+ *  carries the instrument ("physics \u00b7 model-read", R5.3); the internal
+ *  key rides in a title attribute; notes stays prose. */
+function BearingsBlock({ data }: { data: RelationalPrimitives | undefined }) {
+  const rows = bearingRows(data);
+  const notes = typeof data?.notes === "string" && data.notes.trim() ? data.notes.trim() : null;
+  const patterns: string[] = Array.isArray(data?.dominant_pattern)
+    ? data.dominant_pattern.filter((p) => typeof p === "string")
+    : [];
+  const label = labelFor("relational_primitives");
+  return (
+    <div className={styles.layer} data-testid="bearings">
+      <div className={styles.layerLabel} title="relational_primitives">
+        {label.word} · {label.instrument}
+      </div>
+      <dl className={styles.paramGrid}>
+        {rows.map((r) => (
+          <Fragment key={r.key}>
+            <dt className={styles.paramKey} title={r.key}>{r.label}</dt>
+            <dd
+              className={styles.paramValue}
+              data-testid={`bearing-${r.key}`}
+              data-missing={r.missing ? "true" : undefined}
+              title={r.value}
+            >
+              {r.value}
+            </dd>
+          </Fragment>
+        ))}
+        {patterns.length > 0 ? (
+          <Fragment key="dominant_pattern">
+            <dt className={styles.paramKey} title="dominant_pattern">pattern</dt>
+            <dd className={styles.paramValue} title={patterns.join(", ")}>{patterns.join(", ")}</dd>
+          </Fragment>
+        ) : null}
+      </dl>
+      {notes ? <div className={styles.narrative}>{notes}</div> : null}
     </div>
   );
 }

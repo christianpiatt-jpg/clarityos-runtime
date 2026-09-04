@@ -18,7 +18,11 @@ import {
   runEmotionalPhysics,
   type ElinsV2Envelope,
   type EmotionalPhysicsResponse,
+  type RelationalPrimitives,
 } from "../lib/api";
+import { useCockpit } from "../state/cockpitStore";
+import { bearingRows, stopMark } from "../lib/bearings";
+import { labelFor } from "../lib/labels";
 import {
   getAuthSnapshot,
   signOut,
@@ -48,15 +52,20 @@ export default function PersonalElins() {
   const [lastRunTs, setLastRunTs] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  // #162 (c) -- ONE KEY, TWO DOORS. The cockpit's personal view sent the
+  // relationship id (cockpitStore personal.run); this door did not, so a
+  // run from here could never accumulate under the relationship the
+  // member had selected. The store is the app's one selection; read it.
+  const relationshipId = useCockpit((s) => s.relationships.activeId);
 
-  const run = useCallback(async (text: string) => {
+  const run = useCallback(async (text: string, rel: string | null) => {
     setLoading(true);
     setError(null);
     try {
-      const epRes = await runEmotionalPhysics(text);
+      const epRes = await runEmotionalPhysics(text, rel);
       setEp(epRes);
       try {
-        const elinsRes = await runElinsV2(text);
+        const elinsRes = await runElinsV2(text, null, rel);
         setElins(elinsRes);
       } catch {
         // ELINS v2 failure is non-fatal — leave panel empty.
@@ -71,13 +80,16 @@ export default function PersonalElins() {
   }, []);
 
   useEffect(() => {
-    void run(DEFAULT_SEED);
+    // The mount run is the DEFAULT seed -- boilerplate, not the member's
+    // text about anyone -- so it is never recorded against a relationship.
+    // Re-run carries the selected relationship: a run on it saves a turn.
+    void run(DEFAULT_SEED, null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onReRun = useCallback(() => {
-    void run(seed);
-  }, [run, seed]);
+    void run(seed, relationshipId);
+  }, [run, seed, relationshipId]);
 
   const onNavigate = useCallback((label: string) => {
     // ★ THE MISSING EDGE. /threads and /personal-elins each own the full
@@ -139,6 +151,7 @@ export default function PersonalElins() {
           error={error}
           ep={ep}
           elins={elins}
+          relationshipId={relationshipId}
         />
       }
       insights={null}
@@ -158,10 +171,12 @@ interface ViewProps {
   error: string | null;
   ep: EmotionalPhysicsResponse | null;
   elins: ElinsV2Envelope | null;
+  /** #162 (c) -- the relationship a Re-run saves a turn under. */
+  relationshipId?: string | null;
 }
 
 function PersonalElinsView({
-  seed, onSeedChange, onReRun, lastRunTs, loading, error, ep, elins,
+  seed, onSeedChange, onReRun, lastRunTs, loading, error, ep, elins, relationshipId,
 }: ViewProps) {
   return (
     <div
@@ -194,6 +209,14 @@ function PersonalElinsView({
             ? `updated ${relativeTime(lastRunTs)}`
             : "not yet run"}
         </div>
+        {relationshipId ? (
+          <div
+            data-testid="personal-relationship"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}
+          >
+            re-runs save a turn under relationship {relationshipId}
+          </div>
+        ) : null}
       </header>
 
       {error ? (
@@ -328,16 +351,29 @@ export function SeedComposer({
 }
 
 export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }) {
+  // #162 (b) -- the stop mark: a reply the provider cut off.
+  const stopped = stopMark(ep?._meta?.stop_reason);
   return (
     <section data-testid="section-emotional-physics">
       <SectionHeader>1. Emotional Physics</SectionHeader>
+      {stopped ? (
+        <div
+          role="status"
+          data-testid="stop-mark"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-accent-red, #E74C3C)", marginBottom: 6 }}
+        >
+          stopped early: {stopped}
+        </div>
+      ) : null}
       {!ep ? (
         <Muted>Awaiting first run…</Muted>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <LayerCard label="Field curvature" body={ep.field_curvature} />
           <LayerCard label="Edge pressure" body={ep.edge_pressure} />
-          <LayerCard label="Relational primitives" body={ep.relational_primitives} />
+          {/* #162 (a) -- five NAMED bearings; LayerCard's first-four slice
+              used to drop the fifth. */}
+          <BearingsCard rp={ep.relational_primitives} />
           <LayerCard label="External expression" body={ep.external_expression} />
         </div>
       )}
@@ -345,10 +381,54 @@ export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse |
   );
 }
 
+/** #162 (a) -- layer 3 as five named rows. Missing key -> an em dash;
+ *  "unclear" -> the word; the internal key in a title attribute; notes
+ *  stays prose. Same reading logic as the v1 physics view (lib/bearings). */
+function BearingsCard({ rp }: { rp: RelationalPrimitives | undefined }) {
+  const rows = bearingRows(rp);
+  const notes = typeof rp?.notes === "string" && rp.notes.trim() ? rp.notes.trim() : null;
+  return (
+    <div
+      data-testid="bearings-card"
+      style={{
+        border: "1px solid rgba(20, 24, 28, 0.12)",
+        background: "var(--color-bg-surface)",
+        padding: 10,
+      }}
+    >
+      <div
+        title="relational_primitives"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          color: "var(--color-text-secondary)",
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+          marginBottom: 6,
+        }}
+      >
+        Relational primitives · {labelFor("relational_primitives").instrument}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+        {rows.map((r) => (
+          <Tag key={r.key} tone="muted">
+            <span title={r.key}>{r.label}</span>: <span data-testid={`bearing-${r.key}`}>{r.value}</span>
+          </Tag>
+        ))}
+      </div>
+      {notes ? (
+        <div style={{ marginTop: 8, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.4 }}>
+          {notes}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
   return (
     <section data-testid="section-attractor">
-      <SectionHeader>2. Attractor State</SectionHeader>
+      <SectionHeader><span title="attractor">2. {labelFor("attractor").word}</span></SectionHeader>
       {!elins ? (
         <Muted>ELINS v2 unavailable.</Muted>
       ) : (
@@ -542,7 +622,9 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
         <Muted>—</Muted>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-          {entries.slice(0, 4).map(([k, v]) => {
+          {/* #162 -- every reading. The first-four slice dropped layer 2's
+              fifth key (risk_of_misread) and, when notes landed early, two. */}
+          {entries.map(([k, v]) => {
             if (k === "notes") return null;
             return (
               <Tag key={k} tone="muted">

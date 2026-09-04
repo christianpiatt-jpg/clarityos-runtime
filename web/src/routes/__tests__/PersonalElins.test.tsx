@@ -156,9 +156,11 @@ describe("PersonalElins route", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/may read as distant/i)).toBeInTheDocument();
     expect(screen.getByText(/boundary needs naming/i)).toBeInTheDocument();
+    // #162 -- LayerCard now renders EVERY reading, so next_step and the
+    // notes both carry this phrase; the pin is that it lands, not once.
     expect(
-      screen.getByText(/send a 3-line clarification/i),
-    ).toBeInTheDocument();
+      screen.getAllByText(/send a 3-line clarification/i).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   test("ELINS v2 run updates state on Re-run click", async () => {

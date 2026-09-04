@@ -694,6 +694,10 @@ export interface MembershipStateView {
     cancelled_ts: number | null;
     next_price: number;
     price_lock_forfeit: boolean;
+    // #162 -- on the wire (app._membership_view); optional here because
+    // older readers never needed them.
+    confirmed?: boolean;
+    confirmed_ts?: number | null;
   };
   // v31 — billing lifecycle metadata
   billing: {
@@ -1496,8 +1500,9 @@ export const founderAnalyticsSummary = () =>
 // v44 — Multi-model router
 // ===========================================================================
 // #126 -- the SERVER owns the model ids. This union used to enumerate
-// gpt-4.2 / claude-3.7 / gemini-2.0, ids model_router.is_valid_model
-// rejects; a picker built on it offered options the router refused. The
+// stale vendor ids that model_router.is_valid_model rejects (#162: the
+// literals are gone from here too -- a model id is read, never written);
+// a picker built on it offered options the router refused. The
 // registry comes from GET /runtime/providers/models (useRegistryModels);
 // the type is a plain string because the client no longer knows the set.
 export type V44ModelId = string;
@@ -2112,10 +2117,40 @@ export const founderMembersList = (params: { limit?: number; offset?: number; em
 };
 
 // ---------- v52 — Emotional Physics (Path C-compliant kernel) ----------
+// #162 (a) -- layer 3 TYPED as the PROMPT CONTRACT at intelligence_kernel
+// .py:1753-1766, which the kernel forwards raw (:2019-2023 copy each layer
+// dict without per-field validation): FLAT enum strings, FIVE bearings,
+// each with an "unclear" member; dominant_pattern a subset of seven names;
+// notes is PROSE and is never rendered as a reading. ABSENT is a MISSING
+// KEY in the layer dict; a parse failure leaves the layer {} and sets
+// _meta.parse_error. Readers (lib/bearings) treat anything that is not a
+// non-empty string as missing, so a model that strays from the contract
+// renders an em dash, never a number.
+export type BearingTrust     = "low" | "medium" | "high" | "fluctuating" | "unclear";
+export type BearingAlignment = "aligned" | "partially_aligned" | "misaligned" | "unclear";
+export type BearingBoundary  = "clear" | "soft" | "collapsed" | "rigid" | "contested" | "unclear";
+export type BearingAgency    = "full" | "partial" | "constrained" | "outsourced" | "unclear";
+export type BearingDistance  = "close" | "moderate" | "distant" | "increasing" | "decreasing" | "unclear";
+export type DominantPattern  =
+  | "pressure_asymmetry" | "boundary_uncertainty" | "role_confusion" | "narrative_drift"
+  | "identity_compression" | "avoidance_cycle" | "pursuit_cycle";
+export const BEARING_KEYS = ["trust", "alignment", "boundary", "agency", "distance"] as const;
+export type BearingKey = (typeof BEARING_KEYS)[number];
+// a type alias (not an interface) so it still satisfies Record<string, unknown> readers
+export type RelationalPrimitives = {
+  trust?:            BearingTrust;
+  alignment?:        BearingAlignment;
+  boundary?:         BearingBoundary;
+  agency?:           BearingAgency;
+  distance?:         BearingDistance;
+  dominant_pattern?: DominantPattern[];
+  /** PROSE -- never render raw as a reading. */
+  notes?:            string;
+};
 export interface EmotionalPhysicsLayers {
   field_curvature:       Record<string, unknown>;
   edge_pressure:         Record<string, unknown>;
-  relational_primitives: Record<string, unknown>;
+  relational_primitives: RelationalPrimitives;
   external_expression:   Record<string, unknown>;
 }
 export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
@@ -2123,6 +2158,9 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     model_id:    string | null;
     ts_ms:       number;
     parse_error: string | null;
+    // #162 (b) -- #128 shipped the provider stop signal, raw; null on
+    // mock. The panels mark a reply whose stop_reason is not end_turn.
+    stop_reason?: string | null;
   };
 }
 // ★ thread_id is the RELATIONSHIP KEY, and it is spelled identically

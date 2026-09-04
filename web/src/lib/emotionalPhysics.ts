@@ -13,7 +13,7 @@
 // the ``analyzeEmotionalPhysics`` runner with a stricter shape than
 // the looser legacy helper.
 
-import { ApiError, getSession } from "./api";
+import { ApiError, getSession, type RelationalPrimitives } from "./api";
 import { getApiBase } from "./config";
 
 // Four top-level layer keys. Canonical naming.
@@ -25,7 +25,8 @@ import { getApiBase } from "./config";
 export interface EmotionalPhysicsLayers {
   field_curvature:       Record<string, unknown>;
   edge_pressure:         Record<string, unknown>;
-  relational_primitives: Record<string, unknown>;
+  // #162 (a) -- ONE definition of the bearings: lib/api.ts owns it.
+  relational_primitives: RelationalPrimitives;
   external_expression:   Record<string, unknown>;
 }
 
@@ -34,6 +35,8 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     model_id?:    string | null;
     ts_ms?:       number | null;
     parse_error?: string | null;
+    // #162 (b) -- the provider stop signal (#128); null on mock.
+    stop_reason?: string | null;
     [k: string]:  unknown;
   };
   [k: string]: unknown;
