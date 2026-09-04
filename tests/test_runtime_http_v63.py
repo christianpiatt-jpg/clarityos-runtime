@@ -142,6 +142,7 @@ class TestSessionDetail:
         assert set(entry.keys()) == {
             "timestamp", "intent_type", "text",
             "runtime_decision", "engine",
+            "model_id", "mock",  # #147 -- the record names the model
         }
 
 

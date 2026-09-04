@@ -86,6 +86,8 @@ SESSION STATE SHAPE (locked)
           "text":             str,
           "runtime_decision": "allow | warn | block",
           "engine":           "copilot | claude | gemini | grok | local",
+          "model_id":         str,    # #147 -- the model that answered
+          "mock":             bool,   # #147 -- True when no provider answered
         },
         ...
       ],
@@ -269,8 +271,10 @@ def step_session(session_state,
         session_state: prior session_state (typically returned from
             ``start_session`` or a previous ``step_session``).
         text: operator's input text. Free-form; the runtime layer
-            doesn't currently inspect it semantically — the model
-            router only uses it for the prompt preview.
+            (kernel, dispatcher, long-arc) never inspects it. #147: it
+            is the body of the prompt the model reads, capped at
+            ``model_router.OPERATOR_TEXT_MAX_CHARS``; it is stored in
+            full on the history entry and never in a preview field.
         intent_type: locked vocabulary
             (``query | action | plan | diagnostic``). Defaults to
             ``"query"``.
@@ -379,12 +383,23 @@ def step_session(session_state,
     # history entry as an optional ``provider_error`` field so
     # operators can see which steps degraded to mock. Absent on
     # success.
+    # #147 -- the record names the model that answered. ``engine`` is the
+    # dispatcher's routing label, chosen BEFORE the call
+    # (runtime_dispatcher._select_engine); the vault preference replaces
+    # the model in model_router.route_model_request, so the label may not
+    # name the answerer. model_id is what route_model_request resolved;
+    # mock says whether a real provider answered.
+    model_block = step_result.get("model") if isinstance(step_result.get("model"), dict) else {}
+    model_request = model_block.get("request") if isinstance(model_block.get("request"), dict) else {}
+    model_meta = model_block.get("metadata") if isinstance(model_block.get("metadata"), dict) else {}
     history_entry: dict = {
         "timestamp":        timestamp,
         "intent_type":      intent_type,
         "text":             text,
         "runtime_decision": runtime_decision,
         "engine":           engine,
+        "model_id":         str(model_request.get("model_id") or ""),
+        "mock":             bool(model_meta.get("mock", True)),
     }
     model_response = (
         step_result.get("model", {}).get("response", {})

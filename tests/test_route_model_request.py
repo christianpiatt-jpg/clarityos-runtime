@@ -148,6 +148,21 @@ class TestHardPinnedRouting:
 # D. Prompt shaping
 # ===========================================================================
 class TestPromptShaping:
+    """#147 -- the model reads the operator's text."""
+    FRAME = "[ClarityOS operator step] intent=query"
+
+    def _captured(self, monkeypatch, intent, engine="claude"):
+        seen: dict = {}
+        real = mr.route_request
+
+        def spy(model_id, prompt, **kw):
+            seen["prompt"] = prompt
+            return real(model_id, prompt, **kw)
+
+        monkeypatch.setattr(mr, "route_request", spy)
+        out = mr.route_model_request(intent, _route(engine))
+        return out, seen["prompt"]
+
     def test_prompt_preview_capped_at_60_chars(self):
         out = mr.route_model_request(_operator_intent(), _route("claude"))
         assert len(out["request"]["prompt_preview"]) <= 60
@@ -156,31 +171,80 @@ class TestPromptShaping:
         out = mr.route_model_request(
             _operator_intent(intent_type="plan"), _route("claude"),
         )
-        # intent_type appears in the prompt; whether it survives the
-        # 60-char cap depends on the rest of the field. Check the cap
-        # accommodates the leading "intent=plan" token.
         assert "intent=plan" in out["request"]["prompt_preview"]
 
-    def test_prompt_carries_runtime_mode(self):
-        # The mock route_request truncates its text preview to 60 chars,
-        # which clips the runtime_mode field. Test the shaper directly
-        # instead so the differing-prompt invariant is unambiguous.
-        a = mr._shape_prompt_from_intent(
-            _operator_intent(runtime_mode="normal"),
-        )
-        b = mr._shape_prompt_from_intent(
-            _operator_intent(runtime_mode="strict"),
-        )
-        assert "runtime_mode=normal" in a
-        assert "runtime_mode=strict" in b
-        assert a != b
+    def test_prompt_is_the_frame_then_the_operator_text(self, monkeypatch):
+        intent = _operator_intent(session_id="sess_0123456789abcdef", operator_id="op_alice_long_id")
+        intent["payload"]["text"] = "MARKER-7f3a what should the operator do next?"
+        _, prompt = self._captured(monkeypatch, intent)
+        assert prompt == self.FRAME + "\n\nMARKER-7f3a what should the operator do next?"
+        # the envelope never reaches the model
+        for envelope in ("sess_0123456789abcdef", "op_alice_long_id", "runtime_mode",
+                         "override", "elins_inputs_keys", "session=", "operator="):
+            assert envelope not in prompt
 
-    def test_prompt_handles_malformed_payload_gracefully(self):
+    def test_prompt_preview_is_the_frame_only(self, monkeypatch):
+        intent = _operator_intent()
+        intent["payload"]["text"] = "MARKER-7f3a what should the operator do next?"
+        out, _ = self._captured(monkeypatch, intent)
+        assert out["request"]["prompt_preview"] == self.FRAME
+
+    def test_text_is_capped_by_the_module_constant(self, monkeypatch):
+        intent = _operator_intent()
+        intent["payload"]["text"] = "x" * (mr.OPERATOR_TEXT_MAX_CHARS + 500)
+        _, prompt = self._captured(monkeypatch, intent)
+        assert prompt == self.FRAME + "\n\n" + "x" * mr.OPERATOR_TEXT_MAX_CHARS
+
+    def test_missing_text_gives_the_frame_and_an_empty_body(self, monkeypatch):
+        _, prompt = self._captured(monkeypatch, _operator_intent())
+        assert prompt == self.FRAME + "\n\n"
+
+    def test_the_envelope_goes_to_the_log_line_not_the_prompt(self, monkeypatch, caplog):
+        caplog.set_level("INFO", logger="clarityos.model_router")
+        intent = _operator_intent(session_id="sess_0123456789abcdef", runtime_mode="strict")
+        intent["payload"]["text"] = "MARKER-7f3a"
+        _, prompt = self._captured(monkeypatch, intent)
+        lines = [r.getMessage() for r in caplog.records
+                 if r.getMessage().startswith("route_model_request ")]
+        assert len(lines) == 1
+        line = lines[0]
+        assert "runtime_mode=strict" in line and "elins_inputs_keys=2" in line
+        assert "session_ref=sess_012..." in line          # a redacted ref
+        assert "sess_0123456789abcdef" not in line
+        assert "MARKER" not in line and "text_chars=11" in line  # never the text
+        assert "runtime_mode" not in prompt
+
+    def test_the_mock_reply_carries_no_member_text(self):
+        # the suite sets no provider key, so route_request answers with the
+        # mock; its 60-char preview used to be of the WHOLE prompt
+        intent = _operator_intent()
+        intent["payload"]["text"] = "MARKER-7f3a what should the operator do next?"
+        out = mr.route_model_request(intent, _route("claude"))
+        assert out["response"]["mock"] is True
+        assert out["response"]["text"] == f"[mock {out['request']['model_id']}] {self.FRAME}"
+
+    def test_a_non_string_intent_type_frames_as_unknown(self, monkeypatch):
+        intent = _operator_intent()
+        intent["intent_type"] = {"x": "MEMBER"}
+        _, prompt = self._captured(monkeypatch, intent)
+        assert prompt.startswith("[ClarityOS operator step] intent=unknown\n\n")
+        assert "MEMBER" not in prompt
+
+    def test_prompt_handles_malformed_payload_gracefully(self, monkeypatch):
         intent = _operator_intent()
         intent["payload"] = "not a dict"
-        # Should not crash.
-        out = mr.route_model_request(intent, _route("claude"))
+        out, prompt = self._captured(monkeypatch, intent)
+        assert prompt == self.FRAME + "\n\n"
         assert isinstance(out["request"]["prompt_preview"], str)
+
+    def test_the_vault_preferred_model_names_the_answerer(self):
+        intent = _operator_intent()
+        intent["payload"]["preferred_model_id"] = "google:gemini-2.5-flash"
+        out = mr.route_model_request(intent, _route("claude"))
+        assert out["engine"] == "claude"  # the label, chosen before the call
+        assert out["request"]["model_id"] == "google:gemini-2.5-flash"
+        assert out["request"]["model_id"] != mr.TASK_DEFAULTS[mr._ENGINE_TO_TASK["claude"]]
+        assert out["request"]["task"] == "(vault-preferred)"
 
 
 # ===========================================================================

@@ -199,6 +199,7 @@ class TestHistory:
         required = {
             "timestamp", "intent_type", "text",
             "runtime_decision", "engine",
+            "model_id", "mock",  # #147 -- the record names the model
         }
         assert required <= set(entry.keys())
         # And the only allowed extra is provider_error (v65-additive).
@@ -252,6 +253,65 @@ class TestEnginePropagation:
         out = sl_mod.step_session(state, "?")
         decision = out["session_state"]["history"][0]["runtime_decision"]
         assert decision in {"allow", "warn", "block"}
+
+
+# ===========================================================================
+# #147 -- the model reads the operator's text; the record names the model
+# ===========================================================================
+class TestModelReadsTheTextAndTheRecordNamesTheModel:
+    def _capture_prompt(self, monkeypatch):
+        seen: dict = {}
+        real = mr.route_request
+
+        def spy(model_id, prompt, **kw):
+            seen["prompt"] = prompt
+            return real(model_id, prompt, **kw)
+
+        monkeypatch.setattr(mr, "route_request", spy)
+        return seen
+
+    def test_the_step_prompt_carries_the_text_and_not_the_session_id(self, monkeypatch):
+        seen = self._capture_prompt(monkeypatch)
+        state = sl_mod.start_session("op_alice")
+        sl_mod.step_session(state, "MARKER-9c2e what should the operator do next?")
+        prompt = seen["prompt"]
+        assert prompt.startswith("[ClarityOS operator step] intent=query\n\n")
+        assert "MARKER-9c2e what should the operator do next?" in prompt
+        assert state["session_id"] not in prompt
+        assert "op_alice" not in prompt
+
+    def test_the_history_entry_names_the_model_that_answered(self):
+        state = sl_mod.start_session("op_alice")
+        out = sl_mod.step_session(state, "?", intent_type="plan")
+        entry = out["session_state"]["history"][0]
+        assert entry["model_id"] == out["step_result"]["model"]["request"]["model_id"]
+        assert entry["model_id"] in mr.SUPPORTED_MODELS
+        assert entry["engine"] == "claude"
+        assert entry["mock"] is True  # the suite sets no provider key
+
+    def test_the_vault_preference_names_the_answerer_not_the_engine_default(self):
+        import runtime_providers
+        vault = runtime_providers.set_operator_model_preference_in_vault(
+            {}, "gemini", "gemini-2.5-flash",
+        )
+        rp_mod.save_vault("op_alice", vault)
+        state = sl_mod.start_session("op_alice")
+        out = sl_mod.step_session(state, "?", intent_type="query")
+        entry = out["session_state"]["history"][0]
+        assert entry["engine"] == "copilot"  # the label, chosen before the call
+        assert entry["model_id"] == "google:gemini-2.5-flash"  # the answerer
+        assert entry["model_id"] != mr.TASK_DEFAULTS[mr._ENGINE_TO_TASK["copilot"]]
+
+    def test_a_diagnostic_step_names_the_answerer_not_local(self):
+        # local is hard-pinned only when nothing else answers; the vault
+        # chain (a preference, else the first configured provider, else
+        # the anthropic fallback) names the model that actually answered.
+        state = sl_mod.start_session("op_alice")
+        out = sl_mod.step_session(state, "?", intent_type="diagnostic")
+        entry = out["session_state"]["history"][0]
+        assert entry["engine"] == "local"
+        assert entry["model_id"] == out["step_result"]["model"]["request"]["model_id"]
+        assert entry["model_id"].startswith("anthropic:")
 
 
 # ===========================================================================

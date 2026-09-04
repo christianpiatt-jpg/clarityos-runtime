@@ -411,7 +411,8 @@ def step(
 # field names if their UI wants different labels (the spec's
 # {input, intent, runtime_response, model_response} terminology doesn't
 # match v59's {text, intent_type, runtime_decision, engine}; we don't
-# break the lock).
+# break the lock). #147 added model_id + mock to every new entry: the
+# record names the model that answered, not only the engine label.
 #
 # No mutation. No auth (matches /start + /step which are also open —
 # pre-existing privacy posture, fix is a future auth-wiring unit).

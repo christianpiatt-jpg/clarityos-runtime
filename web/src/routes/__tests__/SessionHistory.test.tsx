@@ -10,7 +10,7 @@ import type {
   SessionListResponse,
   SessionState,
 } from "../../lib/api";
-import SessionHistory from "../SessionHistory";
+import SessionHistory, { modelLabel } from "../SessionHistory";
 
 // C1: operator_id comes from the auth snapshot (hydrated profile);
 // refresh() re-reads getProfile(). Tests assign SNAP.profile pre-render.
@@ -208,5 +208,49 @@ describe("SessionHistory route", () => {
     renderRoute();
     await screen.findByText("ALLOW");
     expect(screen.getByText("WARN")).toBeInTheDocument();
+  });
+});
+
+
+// --------------------------------------------------------------------
+// #147 -- the record names the model that answered
+// --------------------------------------------------------------------
+const HAIKU = "anthropic:claude-haiku-4-5-20251001";
+
+function makeModelDetailResponse(sessionId: string = "sess-001"): SessionDetailResponse {
+  const state: SessionState = {
+    session_id:  sessionId,
+    operator_id: "op_anon",
+    vault_state: {},
+    history: [
+      { timestamp: "2026-09-03T10:00:01+00:00", intent_type: "plan", text: "planned step",
+        runtime_decision: "allow", engine: "claude", model_id: HAIKU, mock: false },
+      { timestamp: "2026-09-03T10:00:02+00:00", intent_type: "query", text: "asked step",
+        runtime_decision: "allow", engine: "copilot", model_id: HAIKU, mock: true },
+      { timestamp: "2026-09-03T10:00:03+00:00", intent_type: "query", text: "old step",
+        runtime_decision: "allow", engine: "copilot" },
+    ],
+  };
+  return { session_state: state };
+}
+
+describe("SessionHistory names the model that answered (#147)", () => {
+  test("rows lead with model_id; the engine shows only when it is not the answerer", async () => {
+    mockList.mockResolvedValueOnce(makeListResponse());
+    mockDetail.mockResolvedValueOnce(makeModelDetailResponse("sess-001"));
+    renderRoute();
+    await screen.findByText(`model=${HAIKU}`);
+    expect(screen.getByText(`engine copilot \u2192 routed ${HAIKU} \u00b7 mock`)).toBeInTheDocument();
+    expect(screen.getByText("engine=copilot")).toBeInTheDocument();  // a row written before #147
+  });
+
+  test("modelLabel: the vault preference outranks the engine label", () => {
+    expect(modelLabel({ engine: "claude", model_id: "google:gemini-2.5-flash", mock: false }))
+      .toBe("engine claude \u2192 routed google:gemini-2.5-flash");
+    expect(modelLabel({ engine: "local", model_id: HAIKU, mock: false }))
+      .toBe(`engine local \u2192 routed ${HAIKU}`);
+    expect(modelLabel({ engine: "local", model_id: "local:llama3.1", mock: true }))
+      .toBe("model=local:llama3.1 \u00b7 mock");
+    expect(modelLabel({ engine: "grok" })).toBe("engine=grok");
   });
 });

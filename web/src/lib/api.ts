@@ -2139,6 +2139,11 @@ export interface SessionHistoryEntry {
   text:             string;
   runtime_decision: "allow" | "warn" | "block";
   engine:           "copilot" | "claude" | "gemini" | "grok" | "local";
+  // #147 -- the record names the model that answered; `engine` is the
+  // routing label chosen before the call. Absent on rows written before
+  // #147, so both are optional on the wire.
+  model_id?:        string;
+  mock?:            boolean;
 }
 
 export interface SessionState {

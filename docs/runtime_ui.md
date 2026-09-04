@@ -40,8 +40,10 @@ resolved server-side from the authed session.
 A two-column layout: the left column lists sessions (`session_id`,
 `history_len`, last timestamp); the right column shows the selected session's
 detail — every history entry with its `timestamp`, `intent_type`, `text`,
-`runtime_decision` (the UI styles `warn` and `block` distinctly), and `engine`.
-No mutation.
+`runtime_decision` (the UI styles `warn` and `block` distinctly), and the
+model that answered (#147): the row leads with `model_id` and shows the
+`engine` label only when it is not the answerer (`engine copilot → routed
+<model_id>`); rows written before #147 keep `engine=<label>`. No mutation.
 
 ## Runtime Panel and the envelope
 

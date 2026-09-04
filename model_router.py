@@ -485,8 +485,15 @@ def _mock_result(
     ``runtime_privacy.prompt_preview`` so every place that emits a
     redacted prompt fragment (this mock path, the dispatcher's
     ``route_model_request`` preview, future log lines) shares the
-    same cap and None-safety semantics."""
-    preview = runtime_privacy.prompt_preview(prompt)
+    same cap and None-safety semantics.
+
+    #147 -- the preview is of the prompt's FIRST LINE only. The operator
+    step prompt is now a frame line followed by the member's text; a
+    60-char preview of the whole prompt carried ~20 chars of that text.
+    Member text never rides a preview field. Single-line prompts are
+    unchanged byte-for-byte."""
+    first_line = prompt.split("\n", 1)[0] if isinstance(prompt, str) else prompt
+    preview = runtime_privacy.prompt_preview(first_line)
     out = {
         "ok": True,
         "model_id": model_id,
@@ -1136,36 +1143,70 @@ _VALID_ENGINES: tuple = tuple(
 )
 
 
-def _shape_prompt_from_intent(operator_intent: dict) -> str:
-    """Compress an operator intent into a model-facing prompt.
+# #147 -- the model reads the operator's text. The prompt is a one-line
+# frame plus the text, capped here; the envelope (session, operator,
+# runtime_mode, override, elins input keys) goes to the LOG line in
+# route_model_request, never to the model.
+OPERATOR_TEXT_MAX_CHARS: int = 4000
+_PROMPT_FRAME: str = "[ClarityOS operator step] intent={intent_type}"
 
-    Deterministic, length-capped, no raw payload text passthrough. The
-    dispatcher (Unit 36) has already validated structure; we just emit
-    a structured summary so the model can see what kind of operator
-    step is being evaluated. Real provider calls today still return
-    mock payloads — this prompt becomes load-bearing once live
-    providers replace the mock handlers."""
+
+def _intent_envelope(operator_intent) -> dict:
+    """The fields route_model_request logs, plus the two the prompt
+    carries (intent_type, text). Tolerates malformed shapes: every
+    field has a benign default."""
     if not isinstance(operator_intent, dict):
         operator_intent = {}
-    intent_type = str(operator_intent.get("intent_type") or "unknown")
-    session_id = str(operator_intent.get("session_id") or "")
-    operator_id = str(operator_intent.get("operator_id") or "")
     payload = operator_intent.get("payload") or {}
     if not isinstance(payload, dict):
         payload = {}
-    runtime_mode = str(payload.get("runtime_mode") or "normal")
     override = payload.get("override") or {}
     if not isinstance(override, dict):
         override = {}
-    override_decision = str(override.get("override_decision") or "-")
     elins_inputs = payload.get("elins_inputs") or {}
-    n_keys = len(elins_inputs) if isinstance(elins_inputs, dict) else 0
-    return (
-        f"[ClarityOS operator step] "
-        f"intent={intent_type} session={session_id[:8]} "
-        f"operator={operator_id[:8]} runtime_mode={runtime_mode} "
-        f"override={override_decision} elins_inputs_keys={n_keys}"
-    )
+    text = payload.get("text")
+    intent_type = operator_intent.get("intent_type")
+    return {
+        "intent_type":       intent_type if isinstance(intent_type, str) and intent_type else "unknown",
+        "session_id":        str(operator_intent.get("session_id") or ""),
+        "operator_id":       str(operator_intent.get("operator_id") or ""),
+        "runtime_mode":      str(payload.get("runtime_mode") or "normal"),
+        "override_decision": str(override.get("override_decision") or "-"),
+        "elins_inputs_keys": len(elins_inputs) if isinstance(elins_inputs, dict) else 0,
+        "text":              text if isinstance(text, str) else "",
+    }
+
+
+def _prompt_frame(env: dict) -> str:
+    """The first line of the shaped prompt -- the frame, no member text.
+    This is all prompt_preview shows (#147: preview the frame only)."""
+    return _PROMPT_FRAME.format(intent_type=env["intent_type"])
+
+
+def _shape_prompt_from_intent(operator_intent: dict) -> str:
+    """Shape the model-facing prompt from an operator intent.
+
+    #147 -- the model reads the operator's text::
+
+        [ClarityOS operator step] intent={intent_type}
+
+        {text}
+
+    Deterministic; the text is capped at ``OPERATOR_TEXT_MAX_CHARS`` (the
+    cap promise of the v57 shaper, kept). Nothing else reaches the model:
+    session id, operator id, runtime_mode, override and the elins input
+    keys are logged by ``route_model_request`` instead. (The v57 shaper
+    put those six fields IN the prompt and dropped the text -- a mock-era
+    choice; five texts stored on 09-03 drew five replies that echoed the
+    envelope.) The dispatcher (Unit 36) has already validated structure.
+    """
+    return _shape_prompt_from_env(_intent_envelope(operator_intent))
+
+
+def _shape_prompt_from_env(env: dict) -> str:
+    """The shaper proper, over an envelope already pulled once."""
+    text = env["text"][:OPERATOR_TEXT_MAX_CHARS]
+    return f"{_prompt_frame(env)}\n\n{text}"
 
 
 def _resolve_model_id_for_engine(engine: str, user) -> tuple[str, str]:
@@ -1206,7 +1247,7 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
               "request": {
                 "model_id":       str,
                 "task":           str,   # task bucket or "(pinned)"
-                "prompt_preview": str,   # first 60 chars of the shaped prompt
+                "prompt_preview": str,   # the prompt's frame line only (#147: never member text)
               },
               "response": <raw route_request output>,
               "metadata": {
@@ -1267,7 +1308,21 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
         task = "(vault-preferred)"
     else:
         model_id, task = _resolve_model_id_for_engine(engine, user)
-    prompt = _shape_prompt_from_intent(operator_intent)
+    env = _intent_envelope(operator_intent)
+    prompt = _shape_prompt_from_env(env)
+    # #147 -- the envelope goes to the LOG line, not to the model. Refs are
+    # redacted (runtime_privacy.session_ref / user_ref); the text itself is
+    # never logged, only its length.
+    logger.info(
+        "route_model_request engine=%s model=%s task=%s session_ref=%s "
+        "operator_ref=%s runtime_mode=%s override=%s elins_inputs_keys=%d "
+        "text_chars=%d",
+        engine, model_id, task,
+        runtime_privacy.session_ref(env["session_id"]),
+        runtime_privacy.user_ref(env["operator_id"]),
+        env["runtime_mode"], env["override_decision"],
+        env["elins_inputs_keys"], len(env["text"]),
+    )
     response = route_request(model_id, prompt)
 
     return {
@@ -1275,7 +1330,9 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
         "request": {
             "model_id":       model_id,
             "task":           task,
-            "prompt_preview": runtime_privacy.prompt_preview(prompt),
+            # #147 -- the preview is the FRAME only (the first line): member
+            # text never rides a preview field. CT-1 confirms on return.
+            "prompt_preview": runtime_privacy.prompt_preview(_prompt_frame(env)),
         },
         "response": response,
         "metadata": {

@@ -305,6 +305,19 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "privacy_surface",
     },
+    # ---- #147 the model reads the operator's text; the record names the model ----
+    # runtime_spine: the /operator/session/step path (session_loop ->
+    # route_model_request) and the history record shape.
+    # privacy_surface: the prompt never carries the session id or the
+    # operator id; the log line carries redacted refs and never the text.
+    "test_route_model_request.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
+    "test_session_loop.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- v54 ingestion bus + the corpus front door ----
     # runtime_spine: /ingest/manual and /ingest/feeds/* are member routes
     # and persist_to_library is the one library write outside app.py.

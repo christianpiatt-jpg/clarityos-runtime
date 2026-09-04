@@ -65,7 +65,14 @@ it.
   ergonomic persistence callers.
 - **`session_state`** (the `session_loop` façade) — `{session_id, operator_id,
   vault_state, history[{timestamp, intent_type, text, runtime_decision,
-  engine}, …]}`.
+  engine, model_id, mock}, …]}`. `engine` is the dispatcher's routing label,
+  chosen before the call; `model_id` (#147) is the model that answered, which
+  the vault preference can make differ from the label; `mock` says whether a
+  real provider answered. The prompt the model reads is
+  `[ClarityOS operator step] intent={intent_type}` + a blank line + the
+  operator's text (capped at `OPERATOR_TEXT_MAX_CHARS`); the envelope
+  (session, operator, runtime_mode, override, elins keys) goes to a log line
+  with redacted refs, never to the model.
 - **Persistence keys** — vault by `operator_id`, session by `session_id`;
   both validated against the strict regex `^[A-Za-z0-9._-]{1,128}$`
   (anti-path-traversal) and JSON-validated at save.

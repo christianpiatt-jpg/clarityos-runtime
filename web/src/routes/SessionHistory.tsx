@@ -12,6 +12,10 @@
 // runtime_response, model_response} but those would require breaking
 // the v59 lock that 7 versions of tests depend on. The UI labels map
 // the v59 names to operator-friendly text instead.
+//
+// #147: entries also carry {model_id, mock} (optional on the wire --
+// absent on rows written before #147). The row names the model that
+// answered; see modelLabel below.
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import {
@@ -20,6 +24,7 @@ import {
   getProfile,
   listOperatorSessions,
   type SessionDetailResponse,
+  type SessionHistoryEntry,
   type SessionSummary,
 } from "../lib/api";
 import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
@@ -260,7 +265,7 @@ function SessionDetailPanel({ detail }: { detail: SessionDetailResponse }) {
                 <span>#{i + 1}</span>
                 <span>{entry.timestamp}</span>
                 <span>intent={entry.intent_type}</span>
-                <span>engine={entry.engine}</span>
+                <span>{modelLabel(entry)}</span>
                 <span style={{ color: decisionColor(entry.runtime_decision) }}>
                   {entry.runtime_decision.toUpperCase()}
                 </span>
@@ -272,6 +277,30 @@ function SessionDetailPanel({ detail }: { detail: SessionDetailResponse }) {
       )}
     </div>
   );
+}
+
+// #147 -- the record names the model that answered. `engine` is the
+// dispatcher's routing label, chosen BEFORE the call; the vault
+// preference can replace the model, and "copilot" names no provider at
+// all. So the row leads with model_id and shows the engine only when the
+// two disagree. Rows written before #147 carry no model_id: they keep
+// the old engine= label.
+const ENGINE_PROVIDER: Record<string, string> = {
+  claude: "anthropic",
+  gemini: "google",
+  grok:   "xai",
+  local:  "local",
+};
+
+export function modelLabel(
+  entry: Pick<SessionHistoryEntry, "engine" | "model_id" | "mock">,
+): string {
+  const id = entry.model_id;
+  if (!id) return `engine=${entry.engine}`;
+  const provider = id.includes(":") ? id.slice(0, id.indexOf(":")) : id;
+  const mock = entry.mock ? " \u00b7 mock" : "";
+  if (ENGINE_PROVIDER[entry.engine] === provider) return `model=${id}${mock}`;
+  return `engine ${entry.engine} \u2192 routed ${id}${mock}`;
 }
 
 function decisionColor(decision: string): string {
