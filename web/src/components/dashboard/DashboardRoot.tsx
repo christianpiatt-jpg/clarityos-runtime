@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { elinsDashboard, type V38DashboardSnapshot } from "../../lib/api";
+import { useIsController } from "../RequireAdmin";
 import GlobalPanel from "./GlobalPanel";
 import RegionalGrid from "./RegionalGrid";
 import MacroSummary from "./MacroSummary";
@@ -14,6 +15,9 @@ export default function DashboardRoot() {
   const [snapshot, setSnapshot] = useState<V38DashboardSnapshot | null>(null);
   const [busy, setBusy] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  // #145 -- the page is the WINDOW every member may look through; the
+  // doors (the five "open ->" links and this footer) are the admin's.
+  const admin = useIsController();
 
   const load = useCallback(async () => {
     setBusy(true); setError(null);
@@ -68,10 +72,12 @@ export default function DashboardRoot() {
         </div>
       )}
 
-      <footer style={footerStyle}>
-        <Link to="/elins" style={footerLinkStyle}>Cockpit ELINS feed →</Link>
-        <Link to="/founder" style={footerLinkStyle}>Founder console →</Link>
-      </footer>
+      {admin ? (
+        <footer style={footerStyle}>
+          <Link to="/elins" style={footerLinkStyle}>Cockpit ELINS feed →</Link>
+          <Link to="/founder" style={footerLinkStyle}>Founder console →</Link>
+        </footer>
+      ) : null}
     </div>
   );
 }

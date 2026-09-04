@@ -3,6 +3,7 @@
 
 import { Link } from "react-router-dom";
 import type { V38DashboardSnapshot } from "../../lib/api";
+import { useIsController } from "../RequireAdmin";
 
 export interface EntitySummaryProps {
   entityGraph: V38DashboardSnapshot["entity_graph"];
@@ -10,11 +11,12 @@ export interface EntitySummaryProps {
 
 export default function EntitySummary({ entityGraph }: EntitySummaryProps) {
   const top = entityGraph.top_entities || [];
+  const admin = useIsController();   // #145 -- the door is the admin's
   return (
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Entity graph</h2>
-        <Link to="/founder" style={mutedLinkStyle}>open entity graph →</Link>
+        {admin ? <Link to="/founder" style={mutedLinkStyle}>open entity graph →</Link> : null}
       </header>
       {entityGraph.available ? (
         <div>

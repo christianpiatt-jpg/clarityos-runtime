@@ -3,6 +3,7 @@
 
 import type { V38DashboardSection } from "../../lib/api";
 import { Link } from "react-router-dom";
+import { useIsController } from "../RequireAdmin";
 
 const REGION_ORDER: string[] = ["US", "EU", "MEA", "APAC", "Markets", "Tech"];
 
@@ -11,11 +12,12 @@ export interface RegionalGridProps {
 }
 
 export default function RegionalGrid({ regional }: RegionalGridProps) {
+  const admin = useIsController();   // #145 -- the door is the admin's
   return (
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Regional</h2>
-        <Link to="/founder" style={mutedLinkStyle}>open regional surface →</Link>
+        {admin ? <Link to="/founder" style={mutedLinkStyle}>open regional surface →</Link> : null}
       </header>
       <div style={gridStyle}>
         {REGION_ORDER.map((region) => {

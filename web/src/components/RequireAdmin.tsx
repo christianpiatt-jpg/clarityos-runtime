@@ -29,6 +29,14 @@ export function isController(profile: { controller?: boolean; cohort?: string | 
   return profile?.controller === true || isAdminCohort(profile?.cohort);
 }
 
+/** #145 -- the one flag the rails and the dashboard doors read. Subscribed,
+ *  so a sign-in or sign-out re-renders whoever reads it. A null profile --
+ *  the load window, a signed-out visitor -- fails closed (false). */
+export function useIsController(): boolean {
+  const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
+  return isController(auth.profile);
+}
+
 export default function RequireAdmin() {
   // Subscribed, not sampled: a bare getAuthSnapshot() call never re-renders
   // when auth changes, so a sign-out would leave the console on screen.

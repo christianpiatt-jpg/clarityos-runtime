@@ -3,17 +3,19 @@
 
 import { Link } from "react-router-dom";
 import type { V38DashboardSnapshot } from "../../lib/api";
+import { useIsController } from "../RequireAdmin";
 
 export interface MacroSummaryProps {
   macro: V38DashboardSnapshot["macro"];
 }
 
 export default function MacroSummary({ macro }: MacroSummaryProps) {
+  const admin = useIsController();   // #145 -- the door is the admin's
   return (
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Macro-ELINS</h2>
-        <Link to="/founder" style={mutedLinkStyle}>open macro view →</Link>
+        {admin ? <Link to="/founder" style={mutedLinkStyle}>open macro view →</Link> : null}
       </header>
       {macro.last_run_id ? (
         <div>

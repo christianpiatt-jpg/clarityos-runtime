@@ -44,7 +44,7 @@ export default function SetPasswordPrompt() {
       <p className="muted" style={{ margin: 0, fontSize: "0.85rem" }}>
         You are signed in with an emailed link. If you would rather not wait on
         your inbox next time, you can{" "}
-        <Link to="/account" onClick={dismiss}>set a password</Link>. Optional —
+        <Link to="/membership" onClick={dismiss}>set a password</Link>. Optional —
         the link keeps working either way.
       </p>
       <button

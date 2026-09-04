@@ -10,6 +10,7 @@ import {
 import { probeBackend, type BackendStatus, type Profile } from "../lib/api";
 import { getResumeOptions } from "../lib/continuity";
 import { APP_CONFIG } from "../lib/config";
+import { isController } from "./RequireAdmin";
 
 /**
  * Cockpit shell — top bar / left rail / main pane / status bar.
@@ -64,6 +65,12 @@ export default function Layout() {
   const [backend, setBackend] = useState<BackendStatus | null>(null);
   const [resumeCount, setResumeCount] = useState(0);
   const location = useLocation();
+  // #145 -- the one flag. /me.controller (RequireAdmin.isController, the
+  // same predicate the route gate reads). A null profile -- the load
+  // window, a signed-out visitor, a member -- fails closed to the member
+  // rail. The route table is what keeps a typed URL out; the backend is
+  // the boundary.
+  const admin = isController(auth.profile);
 
   // Probe backend at mount.
   useEffect(() => {
@@ -109,52 +116,52 @@ export default function Layout() {
       </header>
 
       <nav className="rail">
-        <RailSection label="HOME">
+        {/* #145 -- TWO RAILS, ONE FLAG. CT-1 RULED 09-04: the MEMBER rail
+            is the member's own stores and the door out -- Cockpit · Library
+            · Vault · Timeline · Membership · Sign out -- and nothing else.
+            Everything else is the OPERATOR rail, one group, rendered only
+            for the controller. /plans and /account fold into /membership
+            (#141); /threads is /cockpit (#144); neither is a link any more.
+            Sign out is the same call the topbar makes. */}
+        <RailSection label="MEMBER">
           <RailLink to="/cockpit">Cockpit</RailLink>
-          <RailLink to="/dashboard">Dashboard</RailLink>
-          <RailLink to="/elins">EL/INS Overview</RailLink>
-        </RailSection>
-        <RailSection label="OPERATOR">
-          <RailLink to="/operator">Operator</RailLink>
-          <RailLink to="/sessions">Sessions</RailLink>
-          <RailLink to="/continuity">Continuity</RailLink>
-        </RailSection>
-        <RailSection label="ENGINE">
-          <RailLink to="/markov">Markov QC</RailLink>
-          <RailLink to="/system">System</RailLink>
-        </RailSection>
-        <RailSection label="OPERATOR ENVELOPE">
-          <RailLink to="/vault">Vault</RailLink>
           <RailLink to="/library">Library</RailLink>
+          <RailLink to="/vault">Vault</RailLink>
           <RailLink to="/timeline">Timeline</RailLink>
-          <RailLink to="/plans">Plans</RailLink>
           <RailLink to="/membership">Membership</RailLink>
-          <RailLink to="/account">Account</RailLink>
+          {auth.session ? (
+            <Link to="/" onClick={signOut} data-testid="rail-signout">Sign out</Link>
+          ) : null}
         </RailSection>
-        <RailSection label="CONVERSE">
-          <RailLink to="/threads">Threads</RailLink>
-        </RailSection>
-        <RailSection label="RUNTIME">
-          <RailLink to="/session">Session</RailLink>
-          <RailLink to="/session/history">History</RailLink>
-          <RailLink to="/operator-vault">Operator Vault</RailLink>
-          <RailLink to="/model-preferences">Model</RailLink>
-          <RailLink to="/provider-health">Provider Health</RailLink>
-          <RailLink to="/operator/providers">Providers</RailLink>
-          <RailLink to="/operator/timeline">Operator Timeline</RailLink>
-          <RailLink to="/org/el_ins/timeline">Org Timeline</RailLink>
-        </RailSection>
-        <RailSection label="EXECUTION LAYER">
-          <RailLink to="/operator/el_ins">EL/INS</RailLink>
-          <RailLink to="/operator/el_ins/macro">EL/INS Macro</RailLink>
-          <RailLink to="/operator/el_ins/dashboard">EL/INS Dashboard</RailLink>
-          <RailLink to="/operator/el_ins/export">EL/INS Export</RailLink>
-          <RailLink to="/operator/el_ins/anomalies">EL/INS Anomalies</RailLink>
-          <RailLink to="/operator/el_ins/rollup">EL/INS Roll-Up</RailLink>
-        </RailSection>
-        <RailSection label="BRIDGES">
-          <RailLink to="/iframe">Iframe</RailLink>
-        </RailSection>
+        {admin ? (
+          <RailSection label="OPERATOR">
+            <RailLink to="/founder">Founder console</RailLink>
+            <RailLink to="/dashboard">Dashboard</RailLink>
+            <RailLink to="/elins">EL/INS Overview</RailLink>
+            <RailLink to="/operator">Operator</RailLink>
+            <RailLink to="/sessions">Sessions</RailLink>
+            <RailLink to="/continuity">Continuity</RailLink>
+            <RailLink to="/markov">Markov QC</RailLink>
+            <RailLink to="/system">System</RailLink>
+            <RailLink to="/session">Session</RailLink>
+            <RailLink to="/session/history">History</RailLink>
+            {/* #34 -- one thing is called Vault (the member's store above);
+                the runtime inspector is the Runtime Vault. Path unchanged. */}
+            <RailLink to="/operator-vault">Runtime Vault</RailLink>
+            <RailLink to="/model-preferences">Model</RailLink>
+            <RailLink to="/provider-health">Provider Health</RailLink>
+            <RailLink to="/operator/providers">Providers</RailLink>
+            <RailLink to="/operator/timeline">Operator Timeline</RailLink>
+            <RailLink to="/org/el_ins/timeline">Org Timeline</RailLink>
+            <RailLink to="/operator/el_ins">EL/INS</RailLink>
+            <RailLink to="/operator/el_ins/macro">EL/INS Macro</RailLink>
+            <RailLink to="/operator/el_ins/dashboard">EL/INS Dashboard</RailLink>
+            <RailLink to="/operator/el_ins/export">EL/INS Export</RailLink>
+            <RailLink to="/operator/el_ins/anomalies">EL/INS Anomalies</RailLink>
+            <RailLink to="/operator/el_ins/rollup">EL/INS Roll-Up</RailLink>
+            <RailLink to="/iframe">Iframe</RailLink>
+          </RailSection>
+        ) : null}
       </nav>
 
       <main className="main">

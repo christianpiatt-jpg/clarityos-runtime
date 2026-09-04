@@ -10,8 +10,10 @@ export default function Cancel() {
 
       <p>Nothing was charged.</p>
 
+      {/* #145 -- /plans folded into /membership, which needs a session
+          this buyer does not have. The way back is the front page. */}
       <p style={{ marginTop: 24 }}>
-        <Link className="btn" to="/plans">BACK TO PLANS</Link>
+        <Link className="btn" to="/">BACK TO THE FRONT PAGE</Link>
       </p>
     </div>
   );

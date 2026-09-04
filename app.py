@@ -1539,16 +1539,21 @@ def _require_admin(session: dict = Depends(require_session)) -> dict:
 
 
 def _require_founder(session: dict = Depends(require_session)) -> dict:
-    """Cohort-based gate. Distinct from _require_admin (which checks the
-    bootstrap admin username). Used by the ELINS ingest routes."""
+    """The controller gate. Distinct from _require_admin (which checks the
+    bootstrap admin username). Every /founder/* handler (31 at #145) and
+    the ELINS ingest routes depend on it.
+
+    #145 -- CT-1 RULED 09-04: /founder is admin only. A non-controller
+    session is refused 403 {"error": "admin_only"}. The refusal names the
+    rule, not a cohort: nothing here compares a cohort string."""
     user_doc = users_store.get_user(session["user"]) or {}
     # #124 -- the founder is doc.controller. users_store.is_controller is the
     # ONE predicate (runtime_http.require_founder reads the same one); it
-    # carries the one-deploy string shim. Delete the shim next deploy.
+    # carries the one-deploy string shim. Delete the shim next deploy (#157).
     if not users_store.is_controller(user_doc):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=error_response("forbidden", "Founder cohort required"),
+            detail=error_response("admin_only", "Admin only: this console is the controller's"),
         )
     return session
 

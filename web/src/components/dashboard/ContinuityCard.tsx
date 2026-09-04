@@ -4,6 +4,7 @@
 
 import { Link } from "react-router-dom";
 import type { V38DashboardSnapshot } from "../../lib/api";
+import { useIsController } from "../RequireAdmin";
 
 export interface ContinuityCardProps {
   continuity: V38DashboardSnapshot["continuity"];
@@ -11,11 +12,12 @@ export interface ContinuityCardProps {
 
 export default function ContinuityCard({ continuity }: ContinuityCardProps) {
   const c = continuity;
+  const admin = useIsController();   // #145 -- the door is the admin's
   return (
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Continuity</h2>
-        <Link to="/founder" style={mutedLinkStyle}>operator profile →</Link>
+        {admin ? <Link to="/founder" style={mutedLinkStyle}>operator profile →</Link> : null}
       </header>
       {!c || c.history_count === 0 ? (
         <div style={{ fontSize: 12, color: "var(--os-text-tertiary, #585858)" }}>

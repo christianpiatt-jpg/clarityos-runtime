@@ -1,4 +1,7 @@
-// routes/MembershipPage.tsx — Founding cohort + #G credits page (v31).
+// routes/MembershipPage.tsx — Founding cohort + #G credits page (v31) and,
+// since #145 / #141, the member's ACCOUNT: the terms, a password, the model
+// preference and sign-out live here. /plans and /account redirect to this
+// page; the two routes are gone.
 //
 // Composes the membership components:
 //   * MembershipStatusCard   — tier / locked price / cohort fill / waitlist
@@ -9,22 +12,41 @@
 //   * BillingHistoryPanel    — full transaction + intent history (v31)
 //
 // Plus the activate / cancel actions, gated on the membership_ui_enabled
-// flag. The activate flow now creates a PaymentIntent and surfaces the
+// flag. The activate flow creates a PaymentIntent and surfaces the
 // confirmation modal; in mock auto-confirm mode the side-effect lands
 // inline so the modal closes immediately.
+//
+// ★ The ACCOUNT block below the membership body is NOT behind the flag: a
+// member whose membership UI is off still has a password to set and a way
+// out. /account never gated on it either.
 
 import { useState } from "react";
 import { useFlags } from "../hooks/useFlags";
 import { useMembership } from "../hooks/useMembership";
+import { signOut } from "../lib/auth";
 import MembershipStatusCard from "../components/membership/MembershipStatusCard";
 import RenewalStatusCard from "../components/membership/RenewalStatusCard";
 import GCreditsPanel from "../components/membership/GCreditsPanel";
 import PurchaseCreditsModal from "../components/membership/PurchaseCreditsModal";
 import PaymentModal from "../components/membership/PaymentModal";
 import BillingHistoryPanel from "../components/membership/BillingHistoryPanel";
+import SetPasswordPanel from "../components/settings/SetPasswordPanel";
+import ModelPreferences from "../components/settings/ModelPreferences";
+import LocalModelPanel from "../components/settings/LocalModelPanel";
+import MemoryVaultPanel from "../components/settings/MemoryVaultPanel";
 import type { PaymentIntentView } from "../lib/api";
 
 export default function MembershipPage() {
+  return (
+    <div className="membership" style={{ maxWidth: 720 }}>
+      <h1>Membership</h1>
+      <MembershipBody />
+      <AccountBlock />
+    </div>
+  );
+}
+
+function MembershipBody() {
   const { flags, loading: flagsLoading } = useFlags();
   const {
     state, loading, error, refresh,
@@ -42,50 +64,34 @@ export default function MembershipPage() {
   const uiEnabled = flags.membership_ui_enabled === true;
 
   if (flagsLoading || loading) {
-    return (
-      <div className="membership">
-        <h1>Membership</h1>
-        <p style={{ color: "#666" }}>Loading…</p>
-      </div>
-    );
+    return <p style={{ color: "#666" }}>Loading…</p>;
   }
 
   if (!uiEnabled) {
     return (
-      <div className="membership">
-        <h1>Membership</h1>
-        <p style={{ color: "#666" }}>
-          Membership is not enabled for your account yet. Contact an admin to
-          opt in.
-        </p>
-      </div>
+      <p style={{ color: "#666" }} data-testid="membership-disabled">
+        Membership is not enabled for your account yet. Contact an admin to
+        opt in.
+      </p>
     );
   }
 
   if (error) {
     return (
-      <div className="membership">
-        <h1>Membership</h1>
-        <div style={{
-          padding: 12,
-          background: "#fee",
-          border: "1px solid #f99",
-          marginBottom: 12,
-        }}>
-          {error}
-          <button onClick={() => void refresh()} style={{ marginLeft: 8 }}>Retry</button>
-        </div>
+      <div style={{
+        padding: 12,
+        background: "#fee",
+        border: "1px solid #f99",
+        marginBottom: 12,
+      }}>
+        {error}
+        <button onClick={() => void refresh()} style={{ marginLeft: 8 }}>Retry</button>
       </div>
     );
   }
 
   if (!state) {
-    return (
-      <div className="membership">
-        <h1>Membership</h1>
-        <p style={{ color: "#666" }}>No membership state available.</p>
-      </div>
-    );
+    return <p style={{ color: "#666" }}>No membership state available.</p>;
   }
 
   const founderTierEnabled = flags.founder_tier_enabled === true;
@@ -147,9 +153,7 @@ export default function MembershipPage() {
   };
 
   return (
-    <div className="membership" style={{ maxWidth: 720 }}>
-      <h1>Membership</h1>
-
+    <>
       <MembershipStatusCard state={state} />
 
       <RenewalStatusCard
@@ -167,17 +171,11 @@ export default function MembershipPage() {
       )}
 
       {founderTierEnabled && !isActive && (
-        <section style={{
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          padding: 16,
-          background: "#fff",
-          marginBottom: 16,
-        }}>
-          <h2 style={{ margin: "0 0 8px 0", fontSize: 16 }}>
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>
             {m.status === "cancelled" ? "Reactivate membership" : "Activate Founding membership"}
           </h2>
-          <p style={{ color: "#555", fontSize: 13, marginTop: 0 }}>
+          <p style={pStyle}>
             {m.status === "cancelled"
               ? `Reactivation pays the full price ($${m.next_price.toFixed(2)}). Founding price lock is forfeited.`
               : `Locked at $${m.next_price.toFixed(2)} for the life of your membership. Cancellation forfeits the lock permanently.`}
@@ -201,22 +199,16 @@ export default function MembershipPage() {
       )}
 
       {isActive && (
-        <section style={{
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          padding: 16,
-          background: "#fff",
-          marginBottom: 16,
-        }}>
-          <h2 style={{ margin: "0 0 8px 0", fontSize: 16 }}>Cancel</h2>
-          <p style={{ color: "#555", fontSize: 13, marginTop: 0 }}>
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Cancel</h2>
+          <p style={pStyle}>
             Cancellation forfeits the $50 price lock permanently. You can come
             back later but reactivation costs $150.
           </p>
           <button
             onClick={() => void onCancel()}
             disabled={busyAction === "cancel"}
-            style={{ background: "#fee", color: "#922", borderColor: "#f99" }}
+            style={dangerButtonStyle}
           >
             {busyAction === "cancel" ? "Cancelling…" : "Cancel membership"}
           </button>
@@ -242,6 +234,67 @@ export default function MembershipPage() {
         busy={paymentBusy}
         error={paymentError}
       />
-    </div>
+    </>
   );
 }
+
+// #145 / #141 -- THE ACCOUNT, folded from /account and /plans: the terms
+// (#162's copy, the one paragraph /plans still had a reason for), a
+// password (pen ruling 2026-08-12), the model preference, the member's own
+// memory-vault notes and local-model panels (their only surface; a member
+// keeps them), and sign-out. NOT carried: Account's envelope kv (user /
+// cohort / operator id / billing expires -- the topbar and the status card
+// carry the member's identity), its billing badge (RenewalStatusCard above
+// is the renewal), the System link (the admin's page now); Plans' tier
+// cards and the /config state panel (one membership exists, CT-1 09-04,
+// and the status card shows the cohort fill).
+function AccountBlock() {
+  return (
+    <>
+      <section style={sectionStyle} data-testid="membership-terms">
+        <h2 style={h2Style}>What you pay for</h2>
+        {/* #162 (f) -- CT-1 ruled 09-04: one membership, $50 recurring until
+            cancelled; the price lock stays until CT-1 removes it. No one-time
+            path exists and none is sold here. */}
+        <p style={pStyle} data-testid="plans-terms">
+          One membership: $50 a month, recurring until you cancel. Your price
+          stays locked for as long as your membership stands.
+        </p>
+      </section>
+
+      <SetPasswordPanel />
+
+      <ModelPreferences />
+
+      <LocalModelPanel />
+
+      <MemoryVaultPanel />
+
+      <section style={sectionStyle}>
+        <h2 style={h2Style}>Sign out</h2>
+        <p style={pStyle}>
+          Clears the session token from this browser. Local Vault items are preserved.
+        </p>
+        <button
+          type="button"
+          onClick={signOut}
+          style={dangerButtonStyle}
+          data-testid="membership-signout"
+        >
+          Sign out
+        </button>
+      </section>
+    </>
+  );
+}
+
+const sectionStyle: React.CSSProperties = {
+  border: "1px solid #ddd",
+  borderRadius: 6,
+  padding: 16,
+  background: "#fff",
+  marginBottom: 16,
+};
+const h2Style: React.CSSProperties = { margin: "0 0 8px 0", fontSize: 16 };
+const pStyle: React.CSSProperties = { color: "#555", fontSize: 13, marginTop: 0 };
+const dangerButtonStyle: React.CSSProperties = { background: "#fee", color: "#922", borderColor: "#f99" };

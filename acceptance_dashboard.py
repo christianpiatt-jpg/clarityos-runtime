@@ -31,9 +31,10 @@ def _founder_gate(x_session_id: Optional[str] = Header(default=None)) -> dict:
     """Founder gate for every route below (applied router-level).
 
     Composes app.require_session (session validity + the cohort hop) with
-    app._require_founder (cohort check) at REQUEST time. The import is lazy
-    on purpose: app.py includes these routers at module load (app.py:178),
-    before it defines _require_founder (app.py:1432), so a top-level
+    app._require_founder (the controller gate: users_store.is_controller,
+    403 admin_only to anyone else -- #145) at REQUEST time. The import is
+    lazy on purpose: app.py includes these routers at module load
+    (app.py:178), before it defines _require_founder, so a top-level
     ``from app import ...`` here would bind against a half-initialised app
     and fail. By the time a request arrives, app is fully loaded. One
     definition of each gate, reused -- no second copy of the session or

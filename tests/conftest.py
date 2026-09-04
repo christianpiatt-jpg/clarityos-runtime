@@ -335,6 +335,14 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "privacy_surface",
     },
+    # ---- #145 two rails, one flag: /founder is admin only ----
+    # runtime_spine: the controller gate on every /founder/* route (a
+    # route-table sweep) + the refusal envelope on a read and a write.
+    # privacy_surface: the refusal carries no address and names no cohort.
+    "test_admin_only.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- v54 ingestion bus + the corpus front door ----
     # runtime_spine: /ingest/manual and /ingest/feeds/* are member routes
     # and persist_to_library is the one library write outside app.py.

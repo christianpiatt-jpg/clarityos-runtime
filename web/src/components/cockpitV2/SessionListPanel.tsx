@@ -29,7 +29,7 @@
  * was TRUE and this panel rendered "No sessions." correctly, forever.
  * Not a stale interface: a stale STORE.
  */
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useCockpit, cockpit } from "../../state/cockpitStore";
 import type { ThreadMeta } from "../../lib/api";
@@ -78,6 +78,15 @@ export default function SessionListPanel() {
 
   const [naming, setNaming] = useState(false);
   const [draftName, setDraftName] = useState("");
+  // #179 -- ONE CREATE PER CLICK. The HAR of 09-04 shows three creates of
+  // one name in four seconds: Enter (or Create) pressed again while the
+  // first POST was in flight. `inFlight` is a ref because a second key
+  // press can land before React has re-rendered the disabled button;
+  // `creating` is the state that renders it. A name already in the list
+  // opens THAT relationship and says so -- it never mints a twin.
+  const [creating, setCreating] = useState(false);
+  const inFlight = useRef(false);
+  const [alreadyHere, setAlreadyHere] = useState(false);
 
   const heading = isPersonal ? "Relationships" : "Sessions";
   const items = isPersonal ? relItems : threadItems;
@@ -101,7 +110,25 @@ export default function SessionListPanel() {
   async function submitName(): Promise<void> {
     const name = draftName.trim();
     if (!name) return;             // required -- the button is disabled too
-    await cockpit.relationships.actions.create(name);
+    if (inFlight.current) return;  // #179 -- the first press is the create
+    const twin = relItems.find(
+      (t) => (t.title ?? "").trim().toLowerCase() === name.toLowerCase(),
+    );
+    if (twin) {
+      // #179 -- same name exists: focus it, say so, create nothing.
+      setAlreadyHere(true);
+      void cockpit.relationships.actions.open(twin.thread_id);
+      return;
+    }
+    inFlight.current = true;
+    setCreating(true);
+    setAlreadyHere(false);
+    try {
+      await cockpit.relationships.actions.create(name);
+    } finally {
+      inFlight.current = false;
+      setCreating(false);
+    }
     setDraftName("");
     setNaming(false);
   }
@@ -135,20 +162,23 @@ export default function SessionListPanel() {
               autoFocus
               value={draftName}
               placeholder="me and Ava · Ava and Sproesser"
-              onChange={(e) => setDraftName(e.target.value)}
+              onChange={(e) => { setDraftName(e.target.value); setAlreadyHere(false); }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") void submitName();
-                if (e.key === "Escape") { setNaming(false); setDraftName(""); }
+                if (e.key === "Escape") { setNaming(false); setDraftName(""); setAlreadyHere(false); }
               }}
             />
             <button
               type="button"
               className="cv2-btn"
-              disabled={!draftName.trim()}
+              disabled={!draftName.trim() || creating}
               onClick={() => void submitName()}
             >
-              Create
+              {creating ? "Creating…" : "Create"}
             </button>
+            {alreadyHere ? (
+              <span className="cv2-muted" data-testid="rel-already-here">already here</span>
+            ) : null}
           </div>
         )}
 
