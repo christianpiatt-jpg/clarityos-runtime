@@ -66,6 +66,22 @@ def _auth(sid):
     return {"X-Session-ID": sid}
 
 
+# * The three balance tests (ed31 / fay31 / gabe31) run as "terrace_1", not
+#   "founder": under the #124 shim "founder" is a CONTROLLER and a
+#   controller's balance is UNLIMITED (#142). The activation tests keep
+#   "founder" (the founding-tier offer is a founder-cohort flag).
+@pytest.fixture(autouse=True)
+def _arm_member_flags(reset_stores):
+    """A non-controller's session cohort is a DERIVED label ("all" /
+    "founding"); the flags resolve through the label's alias "member",
+    never through the doc's stored string. Arm what production arms for
+    members (app.py flag bootstrap) so a member here is a member there."""
+    import v29_hardening
+    for flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
+        v29_hardening.set_flag(flag, True, cohort="member")
+    yield
+
+
 # ---------------------------------------------------------------------------
 # billing_intents — pure-Python unit tests (no FastAPI)
 # ---------------------------------------------------------------------------
@@ -111,11 +127,12 @@ def test_confirm_payment_intent_lands_credits(reset_stores, manual_confirm):
     import billing_intents as bi
     import users_store
     users_store.create_user("u2", b"x", "", "free", time.time())
-    intent = bi.create_payment_intent("u2", 1.0, "single", kind="g_credit_pack")
+    intent = bi.create_payment_intent("u2", 20.0, "pack", kind="g_credit_pack")
     assert users_store.get_g_credit_balance("u2") == 0
     confirmed = bi.confirm_payment_intent(intent["intent_id"])
     assert confirmed["status"] == "succeeded"
-    assert users_store.get_g_credit_balance("u2") == 1
+    # the pack lands its constant, in micro-dollars
+    assert users_store.get_g_credit_balance("u2") == bi.G_CREDIT_PACK_MICRO == 20_000_000
 
 
 def test_confirm_is_idempotent(reset_stores, manual_confirm):
@@ -125,7 +142,7 @@ def test_confirm_is_idempotent(reset_stores, manual_confirm):
     intent = bi.create_payment_intent("u3", 20.0, "pack", kind="g_credit_pack")
     bi.confirm_payment_intent(intent["intent_id"])
     bi.confirm_payment_intent(intent["intent_id"])  # second call: no-op
-    assert users_store.get_g_credit_balance("u3") == 20
+    assert users_store.get_g_credit_balance("u3") == bi.G_CREDIT_PACK_MICRO
 
 
 def test_failed_intent_transitions_membership_renewal(reset_stores, manual_confirm):
@@ -357,9 +374,10 @@ def test_billing_confirm_belongs_to_user(app_module, client, manual_confirm):
 
 
 def test_billing_history_combines_transactions_and_intents(app_module, client):
-    user, sid = _make_user(app_module, "ed31", cohort="founder")
-    # Buy a single credit (auto-confirmed → both an intent + a tx).
-    client.post("/membership/g/buy_single", headers=_auth(sid))
+    user, sid = _make_user(app_module, "ed31", cohort="terrace_1")
+    # Buy the pack (auto-confirmed → both an intent + a tx). The single
+    # is retired (402 bad_kind) and lands neither.
+    client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.get("/billing/history", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -370,9 +388,10 @@ def test_billing_history_combines_transactions_and_intents(app_module, client):
 # ---------------------------------------------------------------------------
 # /membership/g/buy_* — async flow
 # ---------------------------------------------------------------------------
-def test_buy_single_pending_until_webhook(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "fay31", cohort="founder")
-    r = client.post("/membership/g/buy_single", headers=_auth(sid))
+def test_buy_pack_pending_until_webhook(app_module, client, manual_confirm):
+    # (was buy_single; the single is retired -- the pack is the one SKU)
+    user, sid = _make_user(app_module, "fay31", cohort="terrace_1")
+    r = client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     body = r.json()
     assert body["pending"] is True
     assert body["balance"] == 0  # not landed yet
@@ -381,12 +400,14 @@ def test_buy_single_pending_until_webhook(app_module, client, manual_confirm):
     event = {"type": "payment_intent.succeeded", "data": {"object": {"id": intent_id}}}
     client.post("/billing/webhook", json=event)
 
+    import billing_intents
     state = client.get("/membership/state", headers=_auth(sid)).json()["state"]
-    assert state["g_credits"]["balance"] == 1
+    assert state["g_credits"]["balance"] == billing_intents.G_CREDIT_PACK_MICRO
+    assert state["g_credits"]["balance_display"] == "$20.00"
 
 
 def test_buy_pack_pending_then_failed_keeps_balance_zero(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "gabe31", cohort="founder")
+    user, sid = _make_user(app_module, "gabe31", cohort="terrace_1")
     r = client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     intent_id = r.json()["intent"]["intent_id"]
     event = {

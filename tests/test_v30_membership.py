@@ -46,6 +46,18 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
+@pytest.fixture(autouse=True)
+def _arm_member_flags(reset_stores):
+    """A non-controller's session cohort is a DERIVED label ("all" /
+    "founding"); the flags resolve through the label's alias "member",
+    never through the doc's stored string. Arm what production arms for
+    members (app.py flag bootstrap) so a member here is a member there."""
+    import v29_hardening
+    for flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
+        v29_hardening.set_flag(flag, True, cohort="member")
+    yield
+
+
 def _make_user(app_module, username, cohort="founder"):
     import secrets, time as _t
     import users_store, sessions_store, bcrypt
@@ -82,7 +94,9 @@ def test_add_g_credits_increments_and_appends_history(reset_stores):
     )
     assert bal == 20
     doc = users_store.get_user("u1")
-    assert doc["g_credits"] == 20
+    # the ledger is balance_micro; the retired ``g_credits`` field is never written
+    assert doc["balance_micro"] == 20
+    assert "g_credits" not in doc
     assert len(doc["g_credit_history"]) == 1
 
 
@@ -177,6 +191,9 @@ def test_membership_state_default_for_founder(app_module, client):
 
 def test_membership_state_blocked_when_flag_off(app_module, client):
     user, sid = _make_user(app_module, "ghost", cohort=None)
+    # the flag is OFF for this user (a user override outranks the cohort)
+    import v29_hardening
+    v29_hardening.set_flag("membership_ui_enabled", False, user=user)
     r = client.get("/membership/state", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -272,34 +289,44 @@ def test_cancel_when_not_active_rejected(app_module, client):
 # ---------------------------------------------------------------------------
 # #G credit purchases + history
 # ---------------------------------------------------------------------------
-def test_buy_single_increments_balance(app_module, client):
-    user, sid = _make_user(app_module, "barry", cohort="founder")
+# * The credit-path users below are "terrace_1", not "founder": under the
+#   #124 one-deploy shim "founder" is a CONTROLLER, and a controller's
+#   balance is UNLIMITED (#142) -- never gated, never debited, "unlimited".
+def test_buy_single_is_retired(app_module, client):
+    # billing_intents.RETIRED_KINDS: the $1 single was retired under the
+    # micro-dollar ledger; the route answers 402 bad_kind and lands nothing.
+    user, sid = _make_user(app_module, "barry", cohort="terrace_1")
     r = client.post("/membership/g/buy_single", headers=_auth(sid))
-    assert r.status_code == 200, r.json()
-    body = r.json()
-    assert body["balance"] == 1
-    assert body["purchase"]["units"] == 1
-    assert body["purchase"]["amount"] == 1.00
+    assert r.status_code == 402, r.json()
+    assert r.json()["error"] == "bad_kind"
+    import users_store
+    assert users_store.get_g_credit_balance(user) == 0
 
 
 def test_buy_pack_20_increments_balance(app_module, client):
-    user, sid = _make_user(app_module, "bea", cohort="founder")
+    user, sid = _make_user(app_module, "bea", cohort="terrace_1")
     r = client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
-    assert body["balance"] == 20
+    # #142 -- the "20-pack ($20.00)" lands $20.00 = 20_000_000 micro-dollars
+    import billing_intents
+    assert billing_intents.G_CREDIT_PACK_MICRO == 20_000_000
+    assert body["balance"] == 20_000_000
     assert body["purchase"]["units"] == 20
     assert body["purchase"]["amount"] == 20.00
 
 
 def test_buy_blocked_when_g_credits_disabled(app_module, client):
     user, sid = _make_user(app_module, "guest2", cohort=None)
+    # the flag is OFF for this user (a user override outranks the cohort)
+    import v29_hardening
+    v29_hardening.set_flag("g_credits_enabled", False, user=user)
     r = client.post("/membership/g/buy_single", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_history_returns_recent_first(app_module, client):
-    user, sid = _make_user(app_module, "henri", cohort="founder")
+    user, sid = _make_user(app_module, "henri", cohort="terrace_1")
     client.post("/membership/g/buy_single", headers=_auth(sid))
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.get("/membership/g/history", headers=_auth(sid))
@@ -315,7 +342,7 @@ def test_history_returns_recent_first(app_module, client):
 # /elins/g/run + credit consumption
 # ---------------------------------------------------------------------------
 def test_g_run_blocks_with_402_when_no_credits(app_module, client):
-    user, sid = _make_user(app_module, "rhea", cohort="founder")
+    user, sid = _make_user(app_module, "rhea", cohort="terrace_1")
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
         json={"scenario_text": "scenario"},
@@ -325,7 +352,7 @@ def test_g_run_blocks_with_402_when_no_credits(app_module, client):
 
 
 def test_g_run_consumes_one_credit_on_success(app_module, client):
-    user, sid = _make_user(app_module, "rin", cohort="founder")
+    user, sid = _make_user(app_module, "rin", cohort="terrace_1")
     # Buy a pack first.
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.post(
@@ -334,20 +361,22 @@ def test_g_run_consumes_one_credit_on_success(app_module, client):
     )
     assert r.status_code == 200, r.json()
     body = r.json()
-    assert body["g_credits_remaining"] == 19
+    # #153 -- "$1.00 buys one #G run": 20_000_000 - 1_000_000
+    assert body["g_credits_remaining"] == 19_000_000
 
 
 def test_g_run_does_not_consume_credit_on_failure(app_module, client):
-    user, sid = _make_user(app_module, "ria", cohort="founder")
+    user, sid = _make_user(app_module, "ria", cohort="terrace_1")
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
         json={"scenario_text": ""},  # empty fails validation pre-credit check
     )
     assert r.status_code == 400
-    # Balance unchanged.
+    # Balance unchanged (micro-dollars).
     state = client.get("/membership/state", headers=_auth(sid)).json()["state"]
-    assert state["g_credits"]["balance"] == 20
+    assert state["g_credits"]["balance"] == 20_000_000
+    assert state["g_credits"]["balance_display"] == "$20.00"
 
 
 # ---------------------------------------------------------------------------

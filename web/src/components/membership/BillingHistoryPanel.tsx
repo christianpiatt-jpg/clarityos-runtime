@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { billingHistory, type BillingHistoryIntent, type MembershipTransaction } from "../../lib/api";
+import { fmtDelta } from "../../lib/money";
 
 function fmtUsd(n: number | null | undefined): string {
   if (typeof n !== "number") return "—";
@@ -20,8 +21,13 @@ const TX_LABELS: Record<string, string> = {
   membership_renewal: "Membership renewal",
   membership_cancel: "Membership cancelled",
   g_credit_single: "Credit (single)",
-  g_credit_pack: "Credit (20-pack)",
-  g_consume: "Credit consumed",
+  g_credit_single_retired: "Credit (single, retired)",
+  g_credit_pack: "20-pack ($20.00)",
+  g_consume: "#G run",
+  founder_grant: "Adjust (grant)",
+  founder_revoke: "Adjust (revoke)",
+  adjust: "Adjust",
+  signup_grant: "Signup grant",
   failed_payment: "Failed payment",
   refund: "Refund",
 };
@@ -94,8 +100,8 @@ export default function BillingHistoryPanel() {
             <tr>
               <th style={{ textAlign: "left" }}>When</th>
               <th style={{ textAlign: "left" }}>Type</th>
-              <th style={{ textAlign: "right" }}>Δ credits</th>
-              <th style={{ textAlign: "right" }}>$</th>
+              <th style={{ textAlign: "right" }}>Δ balance</th>
+              <th style={{ textAlign: "right" }}>paid</th>
             </tr>
           </thead>
           <tbody>
@@ -103,13 +109,19 @@ export default function BillingHistoryPanel() {
               <tr key={i}>
                 <td>{fmtTs(t.ts)}</td>
                 <td>{TX_LABELS[t.type] ?? t.type}</td>
-                <td style={{
-                  textAlign: "right",
-                  color: t.credits_delta < 0 ? "#922" : t.credits_delta > 0 ? "#147" : "#888",
-                }}>
-                  {t.credits_delta > 0 ? "+" : ""}{t.credits_delta || "—"}
+                {/* #142 -- the ledger is micro-dollars; the member sees dollars. */}
+                <td
+                  data-testid="billing-delta"
+                  style={{
+                    textAlign: "right",
+                    color: t.credits_delta < 0 ? "#922" : t.credits_delta > 0 ? "#147" : "#888",
+                  }}
+                >
+                  {t.credits_delta ? fmtDelta(t.credits_delta) : "—"}
                 </td>
-                <td style={{ textAlign: "right" }}>{fmtUsd(t.amount)}</td>
+                <td style={{ textAlign: "right" }}>
+                  {typeof t.amount === "number" && t.amount > 0 ? fmtUsd(t.amount) : "—"}
+                </td>
               </tr>
             ))}
           </tbody>

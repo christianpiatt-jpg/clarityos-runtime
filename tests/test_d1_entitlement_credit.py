@@ -23,7 +23,7 @@ import sessions_store                  # noqa: E402
 client = TestClient(appmod.app)
 
 
-def _mk_session(user, *, active=True, credits=0, cohort="founder"):
+def _mk_session(user, *, active=True, credits=0, cohort="terrace_1"):
     """Create a user (+ optional active membership + a balance); return a session id.
 
     v56 — ``credits`` is now MICRO-DOLLARS, the ledger unit, not cents.
@@ -63,6 +63,12 @@ def _reset(reset_stores):
             users_store._MEMORY_DEBITS.clear()
         except Exception:
             pass
+    # #142 -- the members here are "terrace_1" (not the controller string
+    # "founder", whose balance is now unlimited); their session label is
+    # "all", which resolves the flags through the alias "member".
+    import v29_hardening
+    for _flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
+        v29_hardening.set_flag(_flag, True, cohort="member")
     yield
 
 

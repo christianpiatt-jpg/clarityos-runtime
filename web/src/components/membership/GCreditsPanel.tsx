@@ -2,6 +2,7 @@
 // recent activity tail (last few decrements/purchases).
 
 import type { MembershipStateView } from "../../lib/api";
+import { fmtDelta, microToDollars } from "../../lib/money";
 
 function fmtUsd(n: number | null | undefined): string {
   if (typeof n !== "number") return "—";
@@ -16,14 +17,22 @@ function fmtTs(ts: number | null | undefined): string {
 
 interface Props {
   state: MembershipStateView;
-  onBuySingle: () => void;
+  /** Kept for the page's call site; the $1 single SKU is RETIRED
+   *  (billing_intents.RETIRED_KINDS) and no button fires it. */
+  onBuySingle?: () => void;
   onBuyPack20: () => void;
   busy?: string | null;
 }
 
-export default function GCreditsPanel({ state, onBuySingle, onBuyPack20, busy }: Props) {
-  const balance = state.g_credits?.balance ?? 0;
-  const tail = (state.g_credits?.history_tail ?? []).slice(-5).reverse();
+export default function GCreditsPanel({ state, onBuyPack20, busy }: Props) {
+  // #142 -- the big number is DOLLARS: balance_display from the API
+  // ("unlimited" for the controller), the client formatter as the fallback
+  // for a state that predates the field. Never the raw micro figure.
+  const g = state.g_credits;
+  const shown = g?.unlimited
+    ? "unlimited"
+    : (g?.balance_display ?? microToDollars(g?.balance_micro ?? g?.balance ?? 0));
+  const tail = (g?.history_tail ?? []).slice(-5).reverse();
 
   return (
     <section style={{
@@ -33,23 +42,18 @@ export default function GCreditsPanel({ state, onBuySingle, onBuyPack20, busy }:
       background: "#fff",
       marginBottom: 16,
     }}>
-      <h2 style={{ margin: "0 0 8px 0", fontSize: 18 }}>#G credits</h2>
+      <h2 style={{ margin: "0 0 8px 0", fontSize: 18 }}>#G balance</h2>
 
-      <div style={{ fontSize: 36, fontWeight: 600, marginBottom: 8 }}>
-        {balance}
+      <div style={{ fontSize: 36, fontWeight: 600, marginBottom: 8 }} data-testid="g-balance">
+        {shown}
       </div>
       <div style={{ color: "#666", fontSize: 12, marginBottom: 12 }}>
-        One credit = one #G run. Credits never expire.
+        $1.00 buys one #G run. Metered from this balance. Never expires.
       </div>
 
+      {/* #142 -- one SKU. The $1 single is RETIRED on the backend (402
+          bad_kind), so no button offers it. */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button
-          onClick={onBuySingle}
-          disabled={busy === "single"}
-          style={{ flex: 1, padding: "8px 12px" }}
-        >
-          {busy === "single" ? "Charging…" : "Buy 1 credit (" + fmtUsd(1.0) + ")"}
-        </button>
         <button
           onClick={onBuyPack20}
           disabled={busy === "pack20"}
@@ -69,24 +73,38 @@ export default function GCreditsPanel({ state, onBuySingle, onBuyPack20, busy }:
               <tr>
                 <th style={{ textAlign: "left" }}>When</th>
                 <th style={{ textAlign: "left" }}>Type</th>
-                <th style={{ textAlign: "right" }}>Δ</th>
-                <th style={{ textAlign: "right" }}>$</th>
+                <th style={{ textAlign: "right" }}>Δ balance</th>
+                <th style={{ textAlign: "right" }}>paid</th>
               </tr>
             </thead>
             <tbody>
-              {tail.map((t, i) => (
-                <tr key={i}>
-                  <td>{fmtTs(t.ts)}</td>
-                  <td>{t.type}</td>
-                  <td style={{
-                    textAlign: "right",
-                    color: t.credits_delta < 0 ? "#922" : "#147",
-                  }}>
-                    {t.credits_delta > 0 ? "+" : ""}{t.credits_delta}
-                  </td>
-                  <td style={{ textAlign: "right" }}>{fmtUsd(t.amount)}</td>
-                </tr>
-              ))}
+              {tail.map((t, i) => {
+                // #142/#155 -- the delta is MICRO on every producer's row:
+                // credits_delta, or the meter's amount_micro. Shown in
+                // dollars at $0.01. "paid" is the money that changed hands
+                // (a purchase); a grant or a debit paid nothing.
+                const micro = typeof t.credits_delta === "number" ? t.credits_delta
+                  : typeof t.amount_micro === "number" ? t.amount_micro : null;
+                const kind = t.type ?? t.kind ?? "\u2014";
+                return (
+                  <tr key={i} data-testid="g-history-row">
+                    <td>{fmtTs(t.ts)}</td>
+                    <td>{kind}</td>
+                    <td
+                      data-testid="g-history-delta"
+                      style={{
+                        textAlign: "right",
+                        color: (micro ?? 0) < 0 ? "#922" : "#147",
+                      }}
+                    >
+                      {fmtDelta(micro)}
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      {typeof t.amount === "number" && t.amount > 0 ? fmtUsd(t.amount) : "\u2014"}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </details>

@@ -1,5 +1,6 @@
 // hooks/useMembership.ts — read /membership/state and expose mutations.
 
+import { microToDollars } from "../lib/money";
 import { useCallback, useEffect, useState } from "react";
 import {
   billingConfirmIntent,
@@ -76,9 +77,11 @@ export function useMembership(): UseMembershipResult {
       const r = await gBuySingle();
       // Optimistic: mutate the balance in place so the panel updates without
       // a full refresh round-trip. The next refresh resyncs anyway.
+      // #142 -- the display string travels with the raw figure.
       setState((s) => (s ? {
         ...s,
-        g_credits: { ...s.g_credits, balance: r.balance },
+        g_credits: { ...s.g_credits, balance: r.balance, balance_micro: r.balance,
+          balance_display: microToDollars(r.balance) },
       } : s));
       return r;
     } catch (e: unknown) {
@@ -93,7 +96,8 @@ export function useMembership(): UseMembershipResult {
       const r = await gBuyPack20();
       setState((s) => (s ? {
         ...s,
-        g_credits: { ...s.g_credits, balance: r.balance },
+        g_credits: { ...s.g_credits, balance: r.balance, balance_micro: r.balance,
+          balance_display: microToDollars(r.balance) },
       } : s));
       return r;
     } catch (e: unknown) {

@@ -522,27 +522,34 @@ def test_founder_membership_cancel(app_module, client):
 def test_founder_membership_credits_grant_and_revoke(app_module, client):
     import users_store
     f, sid_f = _make_user(app_module, "founderD", cohort="founder")
-    target, _ = _make_user(app_module, "targetD", cohort="founder")
+    target, _ = _make_user(app_module, "targetD", cohort="terrace_1")
 
+    # #142 -- the wire is MICRO-DOLLARS (the console types dollars and
+    # multiplies); the response echoes both units.
     grant = client.post(
         "/founder/membership/credits", headers=_auth(sid_f),
-        json={"user": target, "delta": 10, "reason": "welcome bonus"},
+        json={"user": target, "delta": 15_000_000, "reason": "welcome bonus"},
     )
-    assert grant.status_code == 200
-    assert grant.json()["balance"] == 10
-    assert users_store.get_g_credit_balance(target) == 10
+    assert grant.status_code == 200, grant.text
+    body = grant.json()
+    assert body["balance"] == body["balance_micro"] == 15_000_000
+    assert body["balance_display"] == "$15.00"
+    assert body["delta_display"] == "+$15.00"
+    assert users_store.get_g_credit_balance(target) == 15_000_000
+    assert users_store.get_user(target)["g_credit_history"][-1]["type"] == "adjust"
 
     revoke = client.post(
         "/founder/membership/credits", headers=_auth(sid_f),
-        json={"user": target, "delta": -3, "reason": "refund"},
+        json={"user": target, "delta": -3_000_000, "reason": "refund"},
     )
     assert revoke.status_code == 200
-    assert revoke.json()["balance"] == 7
+    assert revoke.json()["balance"] == 12_000_000
+    assert revoke.json()["delta_display"] == "-$3.00"
 
 
 def test_founder_membership_credits_blocks_negative_balance(app_module, client):
     f, sid_f = _make_user(app_module, "founderE", cohort="founder")
-    target, _ = _make_user(app_module, "targetE", cohort="founder")
+    target, _ = _make_user(app_module, "targetE", cohort="terrace_1")
     r = client.post(
         "/founder/membership/credits", headers=_auth(sid_f),
         json={"user": target, "delta": -5, "reason": "noop"},
@@ -553,7 +560,7 @@ def test_founder_membership_credits_blocks_negative_balance(app_module, client):
 
 def test_founder_membership_credits_zero_delta_rejected(app_module, client):
     f, sid_f = _make_user(app_module, "founderF", cohort="founder")
-    target, _ = _make_user(app_module, "targetF", cohort="founder")
+    target, _ = _make_user(app_module, "targetF", cohort="terrace_1")
     r = client.post(
         "/founder/membership/credits", headers=_auth(sid_f),
         json={"user": target, "delta": 0},

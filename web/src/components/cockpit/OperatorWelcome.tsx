@@ -17,6 +17,7 @@
 //   getSessionDetail()      — /session/history
 //   getOperatorVault()      — /operator-vault
 
+import { cohortWord } from "../../lib/cohortWord";
 import { useEffect, useState } from "react";
 import {
   getProfile,
@@ -176,7 +177,8 @@ export default function OperatorWelcome() {
           <div className="cos-row"><span className="cos-k">Email</span><span className="cos-v">{profile?.user ?? "—"}</span></div>
           <div className="cos-row"><span className="cos-k">Operator</span><span className="cos-v">{profile?.operator_id ?? "—"}</span></div>
           <div className="cos-row"><span className="cos-k">Tier</span><span className="cos-v">{profile?.tier ?? "—"}</span></div>
-          <div className="cos-row"><span className="cos-k">Cohort</span><span className="cos-v">{profile?.cohort ?? "—"}</span></div>
+          {/* #171 -- the one word the surface has: citizen / admin / nothing */}
+          <div className="cos-row"><span className="cos-k">Cohort</span><span className="cos-v">{cohortWord(profile)}</span></div>
           <div className="cos-row"><span className="cos-k">Renewal</span><span className="cos-v">{fmtRenewal(profile?.billing_expires_at)}</span></div>
         </div>
 

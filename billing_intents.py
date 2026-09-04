@@ -26,7 +26,7 @@ Side effects per kind:
                              membership_tier/price/status/started_ts,
                              billing_state=active, renewal_ts=now+30d.
     "membership_renewal":    extends renewal_ts by 30d, resets retry count.
-    "g_credit_pack":         adds a $10 top-up (10,000,000 micro-dollars).
+    "g_credit_pack":         adds the $20 pack (20,000,000 micro-dollars).
 
     ★ RETIRED 2026-08-26: "g_credit_single". Under the micro-dollar ledger
       that SKU sold 1 unit = $0.000001 -- someone could have paid a dollar
@@ -81,11 +81,13 @@ RETIRED_KINDS = (
     "g_credit_single",
 )
 
-# Top-up SKU sizes, in MICRO-DOLLARS. $10 = 10,000,000 micro-dollars.
-# ★ The $10 floor is a margin floor, not a UX preference: Stripe takes
+# Top-up SKU sizes, in MICRO-DOLLARS. The one pack sold is the "20-pack
+# ($20.00)" button on /membership, so it lands $20.00 = 20,000,000 micro-
+# dollars (#142 -- it landed $10 against a $20 button until 09-04).
+# ★ The floor is a margin floor, not a UX preference: Stripe takes
 # 2.9% + $0.30, so break-even is $2.18 and a $5 top-up spends half the
 # markup on fees.
-G_CREDIT_PACK_MICRO = 10_000_000
+G_CREDIT_PACK_MICRO = 20_000_000
 
 # Renewal cadence + retry policy. Module-level so tests can monkey-patch.
 RENEWAL_PERIOD_DAYS = 30

@@ -5,6 +5,7 @@
 // no layout/copy change) + explicit lifetime-lock badge. Status-badge colors
 // match MeBillingBadge (active green / cancelled red / not-joined gray).
 
+import { cohortWord } from "../../lib/cohortWord";
 import type { MembershipStateView } from "../../lib/api";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -59,7 +60,7 @@ export default function MembershipStatusCard({ state }: Props) {
           {m.tier === "founding_500" ? "Founding 500" : "Membership"}
           {ident?.citz_id ? (
             <span data-testid="citz-id" style={{ marginLeft: 10, fontSize: 12, fontFamily: "var(--font-mono, monospace)", opacity: 0.8 }}>
-              {ident.citz_id}{ident.controller ? " · controller" : ident.citizen ? " · citizen" : ""}
+              {ident.citz_id}{cohortWord(ident) === "—" ? "" : ` · ${cohortWord(ident)}`}
             </span>
           ) : null}
         </h2>

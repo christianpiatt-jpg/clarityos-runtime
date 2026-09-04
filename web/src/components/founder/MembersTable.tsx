@@ -3,6 +3,7 @@
 // it for Manual ops. Rows are the server's projection: no hash, no salt, no
 // operator id ever crosses the wire.
 
+import { cohortWord } from "../../lib/cohortWord";
 import { useCallback, useEffect, useState } from "react";
 import { founderMembersList, type FounderMemberRow } from "../../lib/api";
 
@@ -72,7 +73,9 @@ export default function MembersTable({ onSelect, refreshKey = 0, pageSize = 50 }
                 title="select for Manual ops"
               >
                 <td style={td}><code>{m.email}</code></td>
-                <td style={td}>{m.cohort ?? "—"}</td>
+                {/* #171 -- citizen · admin · nothing. The derived label does not reach
+                    the surface, not even as hover text. */}
+                <td style={td} data-testid="members-cohort">{cohortWord(m)}</td>
                 <td style={td}>{m.membership_status ?? "—"}</td>
                 <td style={td}>{m.membership_tier ?? "—"}</td>
                 <td style={td}>{when(m.created_at)}</td>

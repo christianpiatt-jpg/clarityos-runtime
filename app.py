@@ -795,6 +795,11 @@ def metered_compute(
                                   "Idempotency-Key header required for compute calls."),
         )
     user = session["user"]
+    # #142 -- CT-1 RULED 09-04: the controller's balance is UNLIMITED. The
+    # pre-flight 402 below, the meter's reserve and its settle are all
+    # skipped (compute_meter.ComputeMeter(unlimited=True)): the call is
+    # still measured and recorded, never charged or refunded.
+    unlimited = users_store.is_controller(users_store.get_user(user))
     # v56 — PRE-FLIGHT ONLY. The real debit is the meter's reserve, which
     # the handler fires once the prompt exists. Here we can only answer
     # "does this account have anything at all?", so a zero balance 402s
@@ -806,7 +811,7 @@ def metered_compute(
     # debits nothing -- while settle still refunds against a reserve that was
     # never taken, and every metered call PAYS the member. Measured at
     # -48,780 micro per call before this was a read-only peek.
-    if users_store.get_g_credit_balance(user) <= 0:
+    if not unlimited and users_store.get_g_credit_balance(user) <= 0:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail=error_response("no_credits",
@@ -836,6 +841,7 @@ def metered_compute(
     meter = compute_meter.ComputeMeter(
         user=user, request_id=idempotency_key,
         endpoint=str(getattr(response, "_clarityos_route", "") or ""),
+        unlimited=unlimited,
     )
     # Handlers reach the meter through the session dict, so the seven
     # existing `session: dict = Depends(metered_compute)` signatures are
@@ -848,7 +854,7 @@ def metered_compute(
         # consumed tokens, a refund means WE eat a bill we have been
         # charged. meter.should_refund() is False the moment any vendor
         # call reports usage.
-        if not res["replay"] and meter.should_refund():
+        if not res["replay"] and meter.should_refund() and not meter.unlimited:
             users_store.refund_g_credit_tx(user, idempotency_key, cost=meter.reserved_micro)
         else:
             # Vendor-billed failure: keep the reserve and settle what the
@@ -9611,9 +9617,15 @@ def elins_g_run(req: GElinsRunRequest, session: dict = Depends(require_session))
     credits_required = v29_hardening.feature_enabled(
         "g_credits_enabled", user=user, cohort=cohort,
     )
+    # #142 -- CT-1 RULED 09-04: the controller's balance is UNLIMITED. The
+    # gate below and the debit after the run are both skipped for the
+    # controller (the debit site skipped: users_store.consume_g_credit).
+    if credits_required and users_store.is_controller(users_store.get_user(user)):
+        credits_required = False
     if credits_required:
         balance_before = users_store.get_g_credit_balance(user)
-        if balance_before <= 0:
+        # #153 -- "$1.00 buys one #G run": the run costs G_RUN_COST_MICRO
+        if balance_before < users_store.G_RUN_COST_MICRO:
             v29_hardening.log_event(
                 "elins_g_run_no_credits", user=user, route="/elins/g/run",
                 success=False, balance=balance_before,
@@ -9649,17 +9661,20 @@ def elins_g_run(req: GElinsRunRequest, session: dict = Depends(require_session))
         new_balance: int | None = None
         if credits_required:
             try:
+                # #153 -- one run, $1.00, in the ledger's micro-dollars.
                 new_balance = users_store.consume_g_credit(
                     user,
+                    cost=users_store.G_RUN_COST_MICRO,
                     history_entry={
                         "type": "g_consume",
-                        "credits_delta": -1,
+                        "credits_delta": -users_store.G_RUN_COST_MICRO,
                         "amount": 0.0,
                         "ts": time.time(),
                     },
                 )
                 membership_billing.record_transaction(
-                    user, type="g_consume", amount=0.0, credits_delta=-1,
+                    user, type="g_consume", amount=0.0,
+                    credits_delta=-users_store.G_RUN_COST_MICRO,
                     metadata={"route": "/elins/g/run"},
                 )
             except ValueError:
@@ -10463,11 +10478,16 @@ def _membership_view(user: str) -> dict:
         # 10,000 units -- so the promise is about value, not storage.
         # ``balance`` is retained as an alias of the raw micro figure so no
         # client reading it silently gets a number in the wrong unit.
+        # #142 -- CT-1 RULED 09-04: the controller's balance is UNLIMITED.
+        # The raw figure still rides (it is what the doc holds); the
+        # display says what the gates do.
         "g_credits": {
             "balance": int(user_doc.get("balance_micro") or 0),
             "balance_micro": int(user_doc.get("balance_micro") or 0),
-            "balance_display": usage_billing.micro_to_dollars(
-                int(user_doc.get("balance_micro") or 0)),
+            "balance_display": ("unlimited" if users_store.is_controller(user_doc)
+                                else usage_billing.micro_to_dollars(
+                                    int(user_doc.get("balance_micro") or 0))),
+            "unlimited": bool(users_store.is_controller(user_doc)),
             "unit": "micro_dollars",
             "history_tail": list(user_doc.get("g_credit_history") or [])[-USER_DOC_HISTORY_TAIL:],
         },
@@ -15001,9 +15021,14 @@ class V33FounderCancelRequest(BaseModel):
     note: Optional[str] = None
 
 
+#: #142 -- Adjust is in DOLLARS at $0.01; the wire carries MICRO-DOLLARS
+#: (the client multiplies by 1_000_000). The cap is ±$1,000 per call.
+FOUNDER_ADJUST_CAP_MICRO = 1_000_000_000
+
+
 class V33FounderCreditsRequest(BaseModel):
     user: str
-    delta: int                     # positive or negative
+    delta: int                     # MICRO-DOLLARS, positive or negative
     reason: Optional[str] = None
 
 
@@ -15146,7 +15171,9 @@ def _founder_member_row(doc: dict) -> dict:
         "membership_tier":   doc.get("membership_tier"),
         "created_at":        doc.get("created_at"),
         "last_seen":         doc.get("last_seen_ts"),
-        "balance_display":   usage_billing.micro_to_dollars(int(doc.get("balance_micro") or 0)),
+        # #142 -- a controller row reads "unlimited" (the gates never debit it)
+        "balance_display":   ("unlimited" if identity["controller"]
+                              else usage_billing.micro_to_dollars(int(doc.get("balance_micro") or 0))),
         "auth_method":       doc.get("auth_method"),
     }
     assert set(row) == set(_FOUNDER_MEMBER_ROW_KEYS)  # the two cannot drift
@@ -15317,38 +15344,58 @@ def founder_membership_credits(
     req: V33FounderCreditsRequest,
     session: dict = Depends(_require_founder),
 ):
-    """Manually credit / debit a user's #G balance. Positive ``delta``
-    grants credits; negative ``delta`` revokes. Records a transaction
-    with metadata.manual=true."""
+    """Manually credit / debit a member's #G balance. ``delta`` is in
+    MICRO-DOLLARS (the console types dollars at $0.01 and multiplies);
+    positive grants, negative revokes; the cap is ±$1,000 per call
+    (FOUNDER_ADJUST_CAP_MICRO). A controller's balance is UNLIMITED and is
+    refused here with a reason. Records a transaction with
+    metadata.manual=true. The log carries the DOLLAR amount and a hash
+    reference to the target, never the address."""
     founder = session["user"]
     try:
         target = v29_hardening.require_str(req.user, "user", max_len=128)
-        delta = v29_hardening.require_int(req.delta, "delta", min_value=-1000, max_value=1000)
+        delta = v29_hardening.require_int(
+            req.delta, "delta",
+            min_value=-FOUNDER_ADJUST_CAP_MICRO, max_value=FOUNDER_ADJUST_CAP_MICRO,
+        )
     except v29_hardening.ValidationError as e:
         v29_hardening.raise_validation(e)
     if delta == 0:
         v29_hardening.raise_validation(
             v29_hardening.ValidationError("bad_amount", "delta must be non-zero"),
         )
-    if not users_store.user_exists(target):
+    target_doc = users_store.get_user(target)
+    if not target_doc:
         raise HTTPException(
             status_code=404,
             detail=error_response("not_found", f"user {target!r} not found"),
+        )
+    if users_store.is_controller(target_doc):
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError(
+                "controller_unlimited",
+                "the controller's balance is unlimited; there is nothing to adjust",
+            ),
         )
     current = users_store.get_g_credit_balance(target)
     if current + delta < 0:
         v29_hardening.raise_validation(
             v29_hardening.ValidationError(
                 "would_go_negative",
-                f"cannot debit {abs(delta)} credits — balance is {current}",
+                f"cannot debit {usage_billing.micro_to_dollars(abs(delta))} — "
+                f"balance is {usage_billing.micro_to_dollars(current)}",
             ),
         )
+    # The doc's own history row reads "adjust" on the member's panel
+    # ("+$15.00 adjust"); the ledger transaction keeps its grant/revoke type.
     history_entry = {
-        "type": "founder_grant" if delta > 0 else "founder_revoke",
+        "type": "adjust",
         "credits_delta": delta,
         "amount": 0.0,
         "ts": time.time(),
-        "founder": founder,
+        # #154 -- this row is served back to the TARGET on /membership/state;
+        # the operator's address does not cross to another member's wire.
+        "founder_ref": users_store._uref(founder),
     }
     new_balance = users_store.add_g_credits(target, delta, history_entry=history_entry)
     membership_store.record_transaction(
@@ -15360,15 +15407,24 @@ def founder_membership_credits(
             "reason": (req.reason or "")[:500],
         },
     )
+    delta_display = ("+" if delta > 0 else "") + usage_billing.micro_to_dollars(delta)
     v29_hardening.log_event(
         "founder_membership_credits", user=founder,
         route="/founder/membership/credits", success=True,
-        target=target, delta=delta, balance=new_balance,
+        # #154 -- a hash reference to the target, never the address; the
+        # amount in dollars (what the operator typed), never the user.
+        target_ref=users_store._uref(target), delta_display=delta_display,
+        balance_display=usage_billing.micro_to_dollars(new_balance),
     )
     return {
         "ok": True, "user": target,
+        # both units: the ledger's micro figure and the dollars the operator sees
         "balance": new_balance,
+        "balance_micro": new_balance,
+        "balance_display": usage_billing.micro_to_dollars(new_balance),
         "delta": delta,
+        "delta_micro": delta,
+        "delta_display": delta_display,
     }
 
 

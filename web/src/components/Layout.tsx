@@ -1,3 +1,4 @@
+import { cohortWord } from "../lib/cohortWord";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
@@ -191,19 +192,19 @@ export default function Layout() {
   );
 }
 
-// #124 -- the footer names the derived label and, when numbered, the
-// citizen id. The legacy strings keep their old labels for one deploy.
+// #171 -- the footer says the one word the surface has for a member
+// (citizen · admin · nothing) and, when numbered, the citizen id. The
+// derived label and the legacy strings no longer reach the surface. The
+// derived label "controller" and the legacy strings founder /
+// founder_exception / admin all read as admin (the strings for one
+// deploy, #157).
 function cohortLabel(profile: Profile | null): string {
   if (!profile) return "—";
   const id = profile.citz_id ? ` ${profile.citz_id}` : "";
-  if (profile.controller || profile.cohort === "controller") return "CONTROLLER" + id;
-  if (profile.cohort === "founding") return "FOUNDING" + id;
-  if (profile.cohort === "all") return "ALL" + id;
-  if (!profile.cohort) return id ? id.trim() : "—";
-  if (profile.cohort === "founder") return "FOUNDER";
-  if (profile.cohort === "founder_exception") return "FOUNDER·EXC";
-  if (profile.cohort === "terrace_1") return "T-1";
-  return profile.cohort + id;
+  const legacyAdmin = profile.cohort === "controller" || profile.cohort === "founder"
+    || profile.cohort === "founder_exception" || profile.cohort === "admin";
+  const word = cohortWord({ member_number: profile.member_number, controller: !!profile.controller || legacyAdmin });
+  return word === "—" ? (id ? id.trim() : "—") : word + id;
 }
 
 // ---------- Rail bits ----------

@@ -111,8 +111,15 @@ def test_v29_flags_default_off_for_unscoped_user(app_module, client):
 # /elins/g/run
 # ---------------------------------------------------------------------------
 def test_elins_g_run_happy_path(app_module, client):
-    user, sid = _make_user(app_module, "ginny", cohort="founder")
-    # v30 — founders have the g_credits gate on; buy a pack first so the
+    # #142 -- a MEMBER, not "founder": under the #124 shim that string is a
+    # controller, and a controller is unlimited (never debited, no
+    # g_credits_remaining). The member's session label is "all", so the
+    # flags are armed for this user directly.
+    user, sid = _make_user(app_module, "ginny", cohort="terrace_1")
+    import v29_hardening
+    for _flag in ("v28_surfaces", "g_credits_enabled", "membership_ui_enabled"):
+        v29_hardening.set_flag(_flag, True, user=user)
+    # v30 -- buy a pack first so the #G run has a balance to consume.
     # #G run has a credit to consume.
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.post(
@@ -128,8 +135,8 @@ def test_elins_g_run_happy_path(app_module, client):
     assert "qc_summary" in a
     assert "universal_physics" in a
     assert isinstance(a["last_updated_ts"], (int, float))
-    # v30 — credit was consumed.
-    assert body["g_credits_remaining"] == 19
+    # #153 -- one run costs $1.00 off the $20.00 pack (micro-dollars).
+    assert body["g_credits_remaining"] == 19_000_000
 
 
 def test_elins_g_run_empty_scenario_rejected(app_module, client):

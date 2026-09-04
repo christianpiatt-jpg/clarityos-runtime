@@ -314,6 +314,8 @@ def micro_to_dollars(micro: int) -> str:
     """Format µ$ as a dollar string. ★ The ledger is µ$; the member sees
     dollars. "One credit is one penny paid" is unchanged — a penny is
     exactly 10,000 units."""
-    sign = "-" if micro < 0 else ""
-    micro = abs(int(micro))
-    return f"{sign}${micro // 1_000_000}.{micro % 1_000_000 // 10_000:02d}"
+    # #142 -- floored to the cent; a sub-cent figure reads $0.00 with NO
+    # sign (a sign on nothing asserts a direction the cent cannot show).
+    cents = abs(int(micro)) // 10_000
+    sign = "-" if (micro < 0 and cents > 0) else ""
+    return f"{sign}${cents // 100}.{cents % 100:02d}"

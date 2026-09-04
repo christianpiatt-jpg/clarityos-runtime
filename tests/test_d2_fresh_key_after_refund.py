@@ -36,7 +36,7 @@ client = TestClient(appmod.app)
 # ---------------------------------------------------------------------------
 # Helpers — mirror tests/test_d1_entitlement_credit.py::_mk_session
 # ---------------------------------------------------------------------------
-def _mk_user(user, *, credits=5, cohort="founder", active=True):
+def _mk_user(user, *, credits=5, cohort="terrace_1", active=True):
     """Create a user (+ optional active membership + N credits); return username."""
     users_store.create_user(
         username=user,
@@ -72,6 +72,12 @@ def _reset(reset_stores):
             users_store._MEMORY_DEBITS.clear()
         except Exception:
             pass
+    # #142 -- the members here are "terrace_1" (not the controller string
+    # "founder", whose balance is now unlimited); their session label is
+    # "all", which resolves the flags through the alias "member".
+    import v29_hardening
+    for _flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
+        v29_hardening.set_flag(_flag, True, cohort="member")
     yield
 
 

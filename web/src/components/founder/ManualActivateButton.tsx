@@ -7,6 +7,7 @@ import {
   founderMembershipCancel,
   founderMembershipCredits,
 } from "../../lib/api";
+import { dollarsToMicro } from "../../lib/money";
 
 interface Props {
   user: string;
@@ -17,7 +18,8 @@ export default function ManualActivateButton({ user, onChanged }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [delta, setDelta] = useState("1");
+  // #142 -- Adjust is typed in DOLLARS at $0.01; the wire carries micro.
+  const [delta, setDelta] = useState("15.00");
   const [reason, setReason] = useState("");
 
   const wrap = async (label: string, fn: () => Promise<unknown>) => {
@@ -25,8 +27,12 @@ export default function ManualActivateButton({ user, onChanged }: Props) {
     setError(null);
     setInfo(null);
     try {
-      await fn();
-      setInfo(`${label} succeeded`);
+      const out = await fn();
+      // the Adjust response echoes both units; say the dollars back
+      const o = (out ?? {}) as { delta_display?: string; balance_display?: string };
+      setInfo(o.delta_display && o.balance_display
+        ? `${label}: ${o.delta_display} → balance ${o.balance_display}`
+        : `${label} succeeded`);
       onChanged?.();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
@@ -63,14 +69,16 @@ export default function ManualActivateButton({ user, onChanged }: Props) {
           <div style={{
             marginTop: 12, paddingTop: 12, borderTop: "1px solid #eee",
           }}>
-            <div style={{ fontSize: 13, marginBottom: 6 }}>#G credits</div>
+            <div style={{ fontSize: 13, marginBottom: 6 }}>#G balance · adjust in dollars (±$1,000 per call)</div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span aria-hidden="true">$</span>
               <input
                 type="number"
+                step="0.01"
                 value={delta}
                 onChange={(e) => setDelta(e.target.value)}
-                style={{ width: 80, padding: "4px 6px", fontSize: 13 }}
-                aria-label="Delta"
+                style={{ width: 96, padding: "4px 6px", fontSize: 13 }}
+                aria-label="Dollars"
               />
               <input
                 type="text"
@@ -81,13 +89,18 @@ export default function ManualActivateButton({ user, onChanged }: Props) {
                 aria-label="Reason"
               />
               <button
-                onClick={() => void wrap(
-                  "credits",
-                  () => founderMembershipCredits(user, parseInt(delta, 10) || 0, reason || undefined),
-                )}
+                onClick={() => {
+                  const micro = dollarsToMicro(delta);
+                  if (micro === null || micro === 0) {
+                    setError("Enter a dollar amount at $0.01, e.g. 15.00 or -2.50.");
+                    return;
+                  }
+                  void wrap("adjust", () => founderMembershipCredits(user, micro, reason || undefined));
+                }}
                 disabled={busy !== null}
+                data-testid="adjust-submit"
               >
-                {busy === "credits" ? "Working…" : "Adjust credits"}
+                {busy === "adjust" ? "Working…" : "Adjust ($)"}
               </button>
             </div>
           </div>

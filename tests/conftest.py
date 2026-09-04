@@ -326,6 +326,15 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "privacy_surface",
     },
+    # ---- the money leg (#142 #153 #155) ----
+    # runtime_spine: /membership/state, the founder Adjust route, the meter
+    # and /elins/g/run; the controller gate on all of them.
+    # privacy_surface: the Adjust log carries a dollar amount and a hash,
+    # never the target address.
+    "test_money_leg.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- v54 ingestion bus + the corpus front door ----
     # runtime_spine: /ingest/manual and /ingest/feeds/* are member routes
     # and persist_to_library is the one library write outside app.py.

@@ -716,9 +716,22 @@ export interface MembershipStateView {
     is_full: boolean;
   };
   waitlist_position: number | null;
+  // #142 -- the ledger is micro-dollars; balance_display is what the
+  // member sees ("unlimited" for the controller). balance is the raw
+  // micro figure, kept as an alias.
   g_credits: {
     balance: number;
-    history_tail: Array<{ type: string; credits_delta: number; amount: number; ts: number }>;
+    balance_micro?: number;
+    balance_display?: string;
+    unlimited?: boolean;
+    unit?: string;
+    // rows are written by several producers: signup_grant (no amount,
+    // #155), adjust, g_consume, g_credit_pack (amount paid), and the
+    // meter's settle_refund ({kind, amount_micro}). Every field optional.
+    history_tail: Array<{
+      type?: string; kind?: string; credits_delta?: number; amount_micro?: number;
+      amount?: number; ts?: number; source?: string;
+    }>;
   };
 }
 
@@ -2059,8 +2072,13 @@ export const founderMembershipCancel = (user: string, note?: string) =>
     { method: "POST", body: { user, ...(note ? { note } : {}) } },
   );
 
+// #142 -- ``delta`` is MICRO-DOLLARS on the wire (the console types dollars
+// and multiplies by 1_000_000); the response echoes both units.
 export const founderMembershipCredits = (user: string, delta: number, reason?: string) =>
-  request<{ ok: true; user: string; balance: number; delta: number }>(
+  request<{
+    ok: true; user: string; balance: number; balance_micro: number; balance_display: string;
+    delta: number; delta_micro: number; delta_display: string;
+  }>(
     "/founder/membership/credits",
     { method: "POST", body: { user, delta, ...(reason ? { reason } : {}) } },
   );
@@ -2104,6 +2122,12 @@ export interface FounderMemberRow {
   last_seen: number | null;
   balance_display: string;
   auth_method: string | null;
+  // #124 -- the identity the row carries (the founder rows builder emits
+  // all four); #171 reads member_number + controller for the word.
+  member_number?: number | null;
+  citizen?: boolean;
+  controller?: boolean;
+  citz_id?: string | null;
 }
 export const founderMembersList = (params: { limit?: number; offset?: number; email?: string } = {}) => {
   const qp = new URLSearchParams();

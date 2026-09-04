@@ -264,13 +264,25 @@ def add_g_credits(user: str, amount: int, *, history_entry: Optional[dict] = Non
     return new_balance
 
 
-def consume_g_credit(user: str, *, history_entry: Optional[dict] = None) -> int:
-    """Decrement the balance by 1. Raises ValueError if the balance is 0."""
+#: #153 -- "$1.00 buys one #G run". The flat debit of /elins/g/run, in
+#: micro-dollars, so the copy on the panel and the ledger agree. The
+#: metered routes price by tokens (compute_meter); this is the one
+#: flat-fee route left.
+G_RUN_COST_MICRO = 1_000_000
+
+
+def consume_g_credit(user: str, *, cost: int = 1, history_entry: Optional[dict] = None) -> int:
+    """Decrement the balance by ``cost`` micro-dollars (default 1, the
+    pre-#153 unit, kept for its callers). Raises ValueError("no_credits")
+    when the balance cannot cover it."""
+    cost = int(cost)
+    if cost <= 0:
+        raise ValueError("bad_cost")
     doc = get_user(user) or {}
     current = int(doc.get("balance_micro") or 0)
-    if current <= 0:
+    if current < cost:
         raise ValueError("no_credits")
-    new_balance = current - 1
+    new_balance = current - cost
     history = list(doc.get("g_credit_history") or [])
     if history_entry is not None:
         history.append(dict(history_entry))

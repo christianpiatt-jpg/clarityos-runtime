@@ -45,9 +45,9 @@ describe("RequireAdmin.isController (#124)", () => {
 });
 
 describe("MembershipStatusCard — the citizen id (#124)", () => {
-  it("★ renders citz-000001chr · controller beside the title", () => {
+  it("★ renders citz-000001chr · admin beside the title (#171: the word is admin)", () => {
     render(<MembershipStatusCard state={state({ member_number: 1, citizen: false, controller: true, citz_id: "citz-000001chr", cohort: "controller" })} />);
-    expect(screen.getByTestId("citz-id")).toHaveTextContent("citz-000001chr · controller");
+    expect(screen.getByTestId("citz-id")).toHaveTextContent("citz-000001chr · admin");
   });
 
   it("a paid citizen reads · citizen; an unnumbered state shows nothing", () => {

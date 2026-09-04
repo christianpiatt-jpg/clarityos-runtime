@@ -94,10 +94,16 @@ class ComputeMeter:
     ``settle`` is idempotent: calling it twice settles once.
     """
 
-    def __init__(self, *, user: str, request_id: str, endpoint: str):
+    def __init__(self, *, user: str, request_id: str, endpoint: str,
+                 unlimited: bool = False):
         self.user = user
         self.request_id = request_id
         self.endpoint = endpoint
+        # #142 -- CT-1 RULED 09-04: the controller's balance is UNLIMITED.
+        # An unlimited meter still MEASURES (usage is folded in and the
+        # record is written) but never moves money: reserve() debits
+        # nothing and settle() debits and refunds nothing.
+        self.unlimited = bool(unlimited)
         self.reserved_micro = 0
         self.settled = False
         self.calls = 0
@@ -124,6 +130,16 @@ class ComputeMeter:
         self._model_id = model_id
         tokens = estimate_input_tokens(prompt_text)
         amount = usage_billing.reserve_for(model_id, tokens, max_output_tokens)
+        if self.unlimited:
+            # #142 -- THE DEBIT SITE SKIPPED FOR A CONTROLLER: no
+            # consume_g_credit_tx, no reserve, nothing to settle against.
+            self.reserved_micro = 0
+            logger.info(
+                "meter reserve user=%s req=%s model=%s est_in=%d max_out=%d "
+                "reserve=0 unlimited=True",
+                self.user, self.request_id, model_id, tokens, max_output_tokens,
+            )
+            return 0
         res = users_store.consume_g_credit_tx(self.user, self.request_id, cost=amount)
         if res.get("replay"):
             # ★★ A REPLAY MUST BE A FINANCIAL NO-OP, END TO END.
@@ -212,6 +228,10 @@ class ComputeMeter:
             self._usage = usage_billing.Usage(model_id=self._model_id or _DEFAULT_MODEL_ID)
         breakdown = usage_billing.describe(self._usage, reserved=self.reserved_micro)
         delta = breakdown["delta_micro"]
+        if self.unlimited:
+            # #142 -- measured, recorded, never charged. The record keeps
+            # the usage so the controller's cost is still visible.
+            delta = 0
         try:
             if delta > 0:
                 # Derived key -- the settle is its own idempotent debit, so a
@@ -234,9 +254,15 @@ class ComputeMeter:
                 "meter settle shortfall user=%s req=%s delta=%d err=%s",
                 self.user, self.request_id, delta, e,
             )
+        # #142 -- an unlimited meter's row records what was MEASURED and that
+        # nothing was debited (settle_micro 0), so no roll-up counts a
+        # controller's calls as revenue.
+        recorded = dict(breakdown)
+        if self.unlimited:
+            recorded["debited_micro"] = 0
         usage_records.record(
             request_id=self.request_id, user=self.user, endpoint=self.endpoint,
-            breakdown=breakdown, reserve_micro=self.reserved_micro, calls=self.calls,
+            breakdown=recorded, reserve_micro=self.reserved_micro, calls=self.calls,
         )
         logger.info(
             "meter settle user=%s req=%s reserve=%d settle=%d delta=%+d calls=%d "
