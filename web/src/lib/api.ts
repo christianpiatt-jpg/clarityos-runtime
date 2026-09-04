@@ -1805,6 +1805,59 @@ export async function getThread(thread_id: string): Promise<ThreadDetail> {
   );
 }
 
+// #23 W2 -- a relationship shows what it saved. One turn record per run
+// on the relationship, served RAW by the backend: every stored value is a
+// token, a count or a number (turn_record._reject_prose refuses prose at
+// write), so the UI reads bearings and timestamps, never text.
+export interface TurnRecord {
+  turn_index:  number;
+  class:       string;
+  /** nanoseconds since the epoch (time.time_ns on the server) */
+  ts_sealed:   number;
+  ts_observed: number | null;
+  expectation: Record<string, unknown>;
+  observation: Record<string, unknown> | null;
+  provenance?: Record<string, string>;
+  confidence?: Record<string, string>;
+  crossing?:   string;
+}
+
+/** turn_record.trust_signal, as returned. Three KINDS, never a bare 0.0:
+ *  "no_prior_yet" (nothing scored), "undefined" (records but no claim),
+ *  "value" (a rate in [0,1]; `direction` only from the SECOND scored
+ *  turn on -- a direction needs two points). */
+export interface TrustSignal {
+  status:        "no_prior_yet" | "undefined" | "value";
+  value?:        number;
+  direction?:    "rising" | "falling" | "flat";
+  delta?:        number;
+  scored_turns:  number;
+  per_turn?:     (number | null)[];
+  theta_floor:   number;
+  theta_ready:   boolean;
+  reason?:       string;
+}
+
+export interface RelationshipTurns {
+  thread_id:    string;
+  /** everything saved, not the window */
+  turn_count:   number;
+  /** the last `window` records, oldest first */
+  turns:        TurnRecord[];
+  trust_signal: TrustSignal;
+}
+
+/** GET /me/relationships/{id}/turns -- 404 when the caller does not own
+ *  the thread (never 403: existence is not leaked). */
+export async function getRelationshipTurns(
+  thread_id: string,
+  window = 20,
+): Promise<RelationshipTurns> {
+  return request<RelationshipTurns>(
+    `/me/relationships/${encodeURIComponent(thread_id)}/turns?window=${window}`,
+  );
+}
+
 /**
  * Append a user message + dispatch the assistant reply via the kernel.
  * Returns both messages plus the updated meta.

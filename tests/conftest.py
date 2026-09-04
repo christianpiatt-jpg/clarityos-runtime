@@ -318,6 +318,14 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "privacy_surface",
     },
+    # ---- #23 W2 a relationship shows what it saved ----
+    # runtime_spine: the first read-back of a prior store, a member route
+    # with an ownership gate. privacy_surface: the records are served raw
+    # and must carry no member text; a foreign thread is 404, never 403.
+    "test_relationship_turns.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- v54 ingestion bus + the corpus front door ----
     # runtime_spine: /ingest/manual and /ingest/feeds/* are member routes
     # and persist_to_library is the one library write outside app.py.

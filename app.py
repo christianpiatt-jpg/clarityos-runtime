@@ -6473,6 +6473,11 @@ def _emophysics_shadow(user: str, text: str) -> dict:
     counts = primitives_extract.build_metadata(
         primitives_extract.extract_primitives(text)
     )["counts"]
+    # #135 -- the seven grammar counters ride the same payload, counted
+    # and logged, routed on by nothing. 0 here is a TRUE COUNT (a text
+    # with no stative frame has zero of them), not a sentinel: the
+    # sentinel shape belongs to ratios with no denominator (T, N).
+    grammar = primitives_extract.grammar_counts(text)
     # ★ CANDIDATE ONLY. sum(counts) is a defensible dose -- every term is a
     # count of a category occurrence, and 06_primitives_extract.md is
     # explicit that the module cannot grade magnitude ("minor friction" and
@@ -6500,6 +6505,14 @@ def _emophysics_shadow(user: str, text: str) -> dict:
         "D": int(sum(counts.values())),
         "D_status": "CANDIDATE",
         "counts": dict(counts),
+        # #135 -- G1 stative · G2 fused subject · G3 non-local agent ·
+        # G4 reflexive self-reference · G5 objectless evaluation ·
+        # G6 overloaded noun · G7 operator intent. Counts only, never text.
+        "G1": grammar["G1"], "G2": grammar["G2"], "G3": grammar["G3"],
+        "G4": grammar["G4"], "G5": grammar["G5"], "G6": grammar["G6"],
+        "G7": grammar["G7"],
+        "G4_reflexive_only": grammar["G4_reflexive_only"],
+        "G_sentences": grammar["sentences"],
         "T": t_value,
         "T_status": "CANDIDATE" if t_mapped else _EMOPHYSICS_UNMAPPED,
         "N": n_value,
@@ -14360,6 +14373,59 @@ def _record_run_against_thread(user: str, thread_id, text: str) -> None:
             "run_record hook FAILED err=%s: %s",
             type(exc).__name__, exc, exc_info=True,
         )
+
+
+# ---------------------------------------------------------------------
+# #23 W2 -- a relationship shows what it saved. THE FIRST READ-BACK OF A
+# PRIOR STORE: every run on a relationship writes a turn record
+# (_record_run_against_thread, above -> turn_record.record_turn) and
+# until this route nothing read one back (list_turn_records unrouted,
+# trust_signal without a caller). Walk 09-03: "I don't know where it
+# saves."
+# ---------------------------------------------------------------------
+@app.get("/me/relationships/{thread_id}/turns")
+def me_relationship_turns(
+    thread_id: str,
+    window: int = Query(20, ge=1, le=200),
+    session: dict = Depends(require_session),
+):
+    """The turn records of ONE relationship, raw, plus its trust signal.
+
+    ``turns`` is ``turn_record.list_turn_records`` served RAW, oldest to
+    newest inside ``window``: every stored value is a token, a count or a
+    number (``_reject_prose`` at write, turn_record.py:231 refuses any
+    string with whitespace), so there is no text to strip and no view to
+    shape. ``turn_count`` is everything saved, not the window.
+    ``trust_signal`` is returned AS ``turn_record.trust_signal`` returns
+    it: ``no_prior_yet`` at n=0, ``value`` with NO ``direction`` key at
+    n=1 (a direction needs two points), never a bare 0.0. The window is
+    the reader's parameter; the writer holds none.
+
+    OWNERSHIP FIRST. ``thread_id`` is a client string; a thread the
+    session does not own is 404, not 403 -- the same posture as
+    GET /me/threads/{id} (existence is not leaked) and the same gate the
+    writer uses (``threads_vault.get_thread`` in
+    ``_record_run_against_thread``; the meta read is the cheaper form).
+    """
+    user = session["user"]
+    thread_id = _validate_thread_id_path(thread_id)
+    try:
+        threads_vault.get_thread_meta(user, thread_id)      # ownership gate
+    except KeyError:
+        raise HTTPException(status_code=404, detail="thread not found")
+    # * COST, named and not fixed here: memory_vault.vault_list decrypts
+    # the member's WHOLE vault and list_turn_records prefix-filters
+    # AFTER (turn_record.py:434-436). This handler pays that twice --
+    # once for the rows, once inside trust_signal. Small per member
+    # today; a prefix-scoped list is a turn_record/memory_vault change,
+    # not a route change.
+    rows = turn_record.list_turn_records(user, thread_id)
+    return {
+        "thread_id":    thread_id,
+        "turn_count":   len(rows),
+        "turns":        rows[-int(window):],
+        "trust_signal": turn_record.trust_signal(user, thread_id, window=window),
+    }
 
 
 class V52EmotionalPhysicsRequest(BaseModel):

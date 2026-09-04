@@ -378,3 +378,33 @@ def test_computed_is_still_false_with_three_flows_mapped():
     """D, N and T are measured; E is not. `computed` stays False until the
     state is whole — three of four is not a state."""
     assert app_module._emophysics_shadow("u", HIGH)["computed"] is False
+
+
+# --------------------------------------------------------------------------
+# #135 -- the seven grammar counters ride the shadow payload
+# --------------------------------------------------------------------------
+G_KEYS = ("G1", "G2", "G3", "G4", "G5", "G6", "G7")
+
+
+def test_the_payload_carries_the_seven_grammar_counters_as_ints():
+    p = app_module._emophysics_shadow("u", HIGH)
+    for k in G_KEYS:
+        assert isinstance(p[k], int) and not isinstance(p[k], bool), k
+    assert p["G4_reflexive_only"] is True
+    assert isinstance(p["G_sentences"], int)
+
+
+def test_empty_text_gives_true_zero_counts_not_a_sentinel():
+    """0 is a COUNT here (no sentence, nothing to count), unlike T and N,
+    whose empty case is a ratio with no denominator and stays UNMAPPED."""
+    p = app_module._emophysics_shadow("u", "")
+    assert all(p[k] == 0 for k in G_KEYS)
+    assert p["G_sentences"] == 0
+    assert p["N"] == "UNMAPPED" and p["T"] == "UNMAPPED"   # unchanged
+
+
+def test_d1_two_turns_with_different_texts_move_at_least_one_counter():
+    a = app_module._emophysics_shadow(
+        "u", "The system feels unstable and the culture needs accountability.")
+    b = app_module._emophysics_shadow("u", "We shipped the build at nine.")
+    assert any(a[k] != b[k] for k in G_KEYS), (a, b)

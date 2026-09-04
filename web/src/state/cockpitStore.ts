@@ -34,12 +34,14 @@ import {
   createThread,
   createProject,
   getThread,
+  getRelationshipTurns,
   postThreadMessage,
   summarizeThread,
   renameThread,
   deleteThread,
   type ThreadMeta,
   type ThreadMessage,
+  type RelationshipTurns,
 } from "../lib/api";
 import type { DirectiveSurface } from "../components/shared/DirectiveBadges";
 import type { ElinsV2Envelope } from "../lib/elinsV2";
@@ -75,6 +77,15 @@ type AuthStatus = "anon" | "authing" | "authed" | "error";
 /** Per-session envelope returned by GET /markov/envelope/latest. */
 export type SessionEnvelope = Awaited<ReturnType<typeof markovEnvelopeLatest>>;
 
+/** #23 W2 -- one personal run, kept PER RELATIONSHIP so switching shows
+ *  that relationship's last read (or "no run yet"), not the previous
+ *  relationship's. Keyed by thread_id; "" is the no-relationship run. */
+export interface PersonalRun {
+  ep: ApiEmotionalPhysicsResponse | null;
+  elins: ApiElinsV2Envelope | null;
+  lastRunTs: number | null;
+}
+
 export interface CockpitState {
   auth: { status: AuthStatus; user: string | null; sessionId: string | null; error: string | null };
   session: { status: LoadStatus; items: SessionMeta[]; selectedId: string | null; error: string | null };
@@ -92,6 +103,12 @@ export interface CockpitState {
     items: ThreadMeta[];
     activeId: string | null;
     error: string | null;
+    /** #23 W2 -- what the relationship SAVED, keyed by thread_id: its
+     *  turn records (raw) and trust signal. Fetched on open() and
+     *  refreshed after every run on it. */
+    detail: Record<string, RelationshipTurns>;
+    detailStatus: LoadStatus;
+    detailError: string | null;
   };
   /** Personal ELINS. The fetch stays a tier-2 direct call through
    *  lib/api, exactly as routes/PersonalElins.tsx does it -- only the
@@ -103,6 +120,9 @@ export interface CockpitState {
     elins: ApiElinsV2Envelope | null;
     lastRunTs: number | null;
     error: string | null;
+    /** #23 W2 -- every run kept by relationship id ("" = none). ep /
+     *  elins / lastRunTs above always mirror runs[activeId ?? ""]. */
+    runs: Record<string, PersonalRun>;
   };
   thread: {
     status: ThreadStatus;
@@ -142,10 +162,13 @@ function initialState(): CockpitState {
     runtime: { status: "idle", envelope: null, error: null },
     envelope: { status: "idle", forSessionId: null, data: null, error: null },
     view: "thread",   // a member lands where they land today
-    relationships: { status: "idle", items: [], activeId: null, error: null },
+    relationships: {
+      status: "idle", items: [], activeId: null, error: null,
+      detail: {}, detailStatus: "idle", detailError: null,
+    },
     personal: {
       seed: PERSONAL_DEFAULT_SEED, status: "idle", ep: null, elins: null,
-      lastRunTs: null, error: null,
+      lastRunTs: null, error: null, runs: {},
     },
     thread: {
       status: "loading", meta: null, items: [], messages: [], error: null,
@@ -326,6 +349,22 @@ const viewSlice = {
   },
 };
 
+/** #23 W2 -- fetch what one relationship saved into relationships.detail.
+ *  Shared by open() (first read) and personal.run() (the count moves).
+ *  A failure lands in detailError; nothing else is touched. */
+async function loadRelationshipDetail(threadId: string): Promise<void> {
+  setSlice("relationships", { detailStatus: "loading", detailError: null });
+  try {
+    const turns = await getRelationshipTurns(threadId);
+    setSlice("relationships", {
+      detailStatus: "ready",
+      detail: { ...current.relationships.detail, [threadId]: turns },
+    });
+  } catch (e) {
+    setSlice("relationships", { detailStatus: "error", detailError: errMessage(e) });
+  }
+}
+
 const personalSlice = {
   state: (s: CockpitState) => s.personal,
   selectors: {
@@ -359,9 +398,23 @@ const personalSlice = {
         } catch {
           elins = null;   // non-fatal, same as the route
         }
+        const run: PersonalRun = { ep, elins, lastRunTs: Date.now() };
+        // #23 W2 -- the run is kept under its relationship, so the next
+        // switch back shows THIS read and a switch away shows that one.
+        // The MIRROR (ep / elins / lastRunTs) follows the relationship
+        // that is active NOW, not the one this run started under: a
+        // member who switched mid-flight sees the new one's read (or
+        // nothing), never the old run under the new name.
+        const runs = { ...current.personal.runs, [rel ?? ""]: run };
+        const shown = runs[current.relationships.activeId ?? ""] ?? null;
         setSlice("personal", {
-          status: "ready", ep, elins, lastRunTs: Date.now(),
+          status: "ready", runs,
+          ep: shown?.ep ?? null, elins: shown?.elins ?? null,
+          lastRunTs: shown?.lastRunTs ?? null,
         });
+        // The relationship saved a turn just now: re-read what it holds,
+        // so the header count moves without a re-click.
+        if (rel) void loadRelationshipDetail(rel);
       } catch (e) {
         setSlice("personal", { status: "error", error: errMessage(e) });
       }
@@ -421,14 +474,32 @@ const relationshipsSlice = {
           items: [meta, ...current.relationships.items],
           activeId: meta.thread_id,
         });
+        // #23 W2 -- a freshly minted relationship is opened like any
+        // other: the personal read switches to "no run yet" and its
+        // (empty) turns are read, so the panel never shows the previous
+        // relationship's run under the new name.
+        await relationshipsSlice.actions.open(meta.thread_id);
       } catch (e) {
         setSlice("relationships", { status: "error", error: errMessage(e) });
       }
     },
 
-    /** Select one. The next run keys on it. */
-    open(threadId: string): void {
+    /** Select one. The next run keys on it -- and (#23 W2) the panel
+     *  shows what it saved: mirrors thread.open, loading -> ready into
+     *  the detail slot keyed by thread_id. The personal read switches to
+     *  this relationship's last run, or to nothing ("no run yet"); it
+     *  never auto-runs on a switch (a run is a metered vendor call). */
+    async open(threadId: string): Promise<void> {
+      const last = current.personal.runs[threadId] ?? null;
       setSlice("relationships", { activeId: threadId });
+      setSlice("personal", {
+        ep: last?.ep ?? null, elins: last?.elins ?? null,
+        lastRunTs: last?.lastRunTs ?? null, error: null,
+        // "ready" with nothing in it is the honest state: "no run yet".
+        // "idle" would make the composer fire the default seed.
+        status: current.personal.status === "loading" ? "loading" : "ready",
+      });
+      await loadRelationshipDetail(threadId);
     },
   },
 };

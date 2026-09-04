@@ -268,3 +268,223 @@ def format_primitives(prim: Dict) -> str:
     lines.append(_kv("Gradients", h["gradients"]))
     lines.append(_kv("Pressure Points", h["pressure_points"]))
     return "\n".join(lines)
+
+
+# ===========================================================================
+# #135 -- seven grammar counters. The doctrine names seven ways a sentence
+# smuggles judgment in as geometry; nothing measured them. These are
+# regex + lexicon over what already ships (no parser -- spacy/nltk are
+# absent from requirements.txt and stay absent). Counted per sentence via
+# _sentences, summed. Pure functions; declared lexicons, each <= 30 entries.
+#
+# * "it seems / it appears" are ALSO hedges in app._HEDGES (app.py:6269-
+# 6284, the T producer). Not duplicated here: G1 counts the STATIVE FRAME
+# (a state asserted of a subject), T counts hedging per sentence -- two
+# measures that happen to share surface tokens. app.py imports this module,
+# so the twin cannot be imported from here either way.
+# ===========================================================================
+_G_KEYS = ("G1", "G2", "G3", "G4", "G5", "G6", "G7")
+
+#: G1 -- stative verbs. The frame fires when the verb is followed by NO
+#: determiner / noun-phrase start (K3's pattern): "feels unstable" fires,
+#: "feels the load of 400 users" does not, "is 400 users" does not.
+_G1_STATIVE = frozenset({
+    "is", "are", "was", "were", "feel", "feels", "felt",
+    "seem", "seems", "appear", "appears", "remain", "remains",
+})
+#: What a noun phrase starts with: determiners, quantifiers, object
+#: pronouns, wh-words. A digit-initial token counts as one too (a measure).
+_NP_START = frozenset({
+    "the", "a", "an", "this", "that", "these", "those", "my", "your", "his",
+    "her", "its", "our", "their", "some", "any", "no", "every", "each",
+    "all", "both", "it", "them", "him", "me", "us", "you",
+    "what", "which", "who",
+})
+#: Adverbs allowed between the stative verb and an evaluative adjective
+#: ("is just unacceptable") -- G5 looks through these.
+_G_BRIDGE = frozenset({
+    "very", "so", "just", "really", "quite", "simply", "totally", "clearly",
+    "obviously", "completely", "utterly", "frankly", "honestly", "always",
+    "never", "still", "now", "also",
+})
+
+#: G2 -- fused subjects: a PLURAL / collective agent making a decision in
+#: one clause ("the team decided", "everyone wants").
+_G2_PLURAL_AGENTS = (
+    "we", "they", "everyone", "everybody", "people", "the team", "the group",
+    "the board", "leadership", "management", "the family", "the company",
+    "the community", "all of us", "both of us", "the committee",
+    "the department", "the staff", "the crew", "the partners", "the members",
+    "the founders", "the leaders", "the parents", "the kids", "the guys",
+    "the others", "the rest of us", "the whole team", "the organization",
+)
+_G2_DECISION_VERBS = frozenset({
+    "decided", "decides", "decide", "agreed", "agrees", "agree", "chose",
+    "choose", "chooses", "wants", "want", "wanted", "refused", "refuse",
+    "refuses", "insisted", "insist", "insists", "demanded", "demand",
+    "demands", "expects", "expect", "expected", "believes", "believe",
+    "believed", "thinks", "think", "thought",
+})
+
+#: G3 -- non-local agents: an ABSTRACTION acting ("the market demands",
+#: "regulation requires"). Seeded from _TE_WORDS (external tensions).
+_G3_ABSTRACT_AGENTS = (
+    "the competition", "the competitor", "the market",
+    "regulation", "the regulator", "the regulatory", "the external",
+    "demand", "the customer", "the stakeholder", "the threat", "the deadline",
+    "the supplier", "the sanction", "the rivalry", "the system", "the process",
+    "the culture", "the institution", "the economy", "society",
+    "the industry", "the algorithm", "the policy", "history", "the situation",
+    "the world", "the numbers", "the data",
+)
+_G3_VERBS = frozenset({
+    "demands", "demanded", "requires", "required", "forces", "forced",
+    "dictates", "dictated", "decides", "decided", "punishes", "punished",
+    "rewards", "rewarded", "wants", "wanted", "needs", "needed", "expects",
+    "expected", "allows", "allowed", "refuses", "refused", "pushes",
+    "pushed", "drives", "drove", "makes", "made",
+})
+
+#: G4 -- reflexive self-reference, the brief's pattern verbatim. NON-
+#: reflexive coreference ("the team ... the team") needs a parser and is
+#: out of scope: the flag G4_reflexive_only says so in the payload.
+_G4_REFLEXIVE_RE = re.compile(r"\b\w+\s+\w*(itself|themselves|oneself)\b", re.IGNORECASE)
+
+#: G5 -- objectless evaluation: a G1 frame whose complement is an
+#: evaluative adjective ("that is unacceptable"). G5 is a subset of G1 by
+#: construction.
+_G5_EVALUATIVE = frozenset({
+    "unacceptable", "wrong", "inappropriate", "unfair", "absurd", "fine",
+    "ridiculous", "unreasonable", "impossible", "pointless",
+    "unprofessional", "disrespectful", "toxic", "hopeless", "terrible",
+    "awful", "bad", "good", "great", "perfect", "excellent", "insane",
+    "crazy", "stupid", "lazy", "selfish", "rude", "outrageous", "pathetic",
+    "unbelievable",
+})
+
+#: G6 -- overloaded nouns: words that carry a verdict as if they were a
+#: thing. Pure lexicon count (singular or plural).
+_G6_OVERLOADED = frozenset({
+    "leadership", "culture", "accountability", "trauma", "trust",
+    "alignment", "legitimacy", "identity", "values", "respect",
+    "boundaries", "safety", "integrity", "authenticity", "empowerment",
+    "transparency", "ownership", "engagement", "wellness", "narrative",
+    "energy", "vibe", "toxicity", "gaslighting", "closure", "growth",
+    "mindset", "resilience", "loyalty", "entitlement",
+})
+
+#: G7 -- operator intent: first person want/need/expect x how SOMETHING
+#: should read/show/land/say/look ("I want this to land well"). The
+#: frame is precision-leaning on purpose: an OBJECT and "to" must sit
+#: between the modal and the verb, so "I need to read the report" and
+#: "we should show up" (first person doing the verb) do not count.
+_G7_INTENT_RE = re.compile(
+    r"\b(?:I|we)\s+(?:want|wanted|need|needed|should|expect|expected)\s+"
+    r"(?:this|it|that|them|these|those|(?:the|my|our|this|that)\s+\w+)\s+to\s+"
+    r"(?:read|show|land|say|look)\b",
+    re.IGNORECASE,
+)
+
+_G_TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9'\-]*")
+
+
+def _g_tokens(sentence: str) -> List[str]:
+    return [t.lower() for t in _G_TOKEN_RE.findall(sentence)]
+
+
+def _g_is_np_start(tok: str) -> bool:
+    return tok in _NP_START or tok[:1].isdigit()
+
+
+def _g_is_verb(tok: str) -> bool:
+    """G3's verb test: the G3 list, or an action verb in base / -s / -ed /
+    -ing form. Lossy, like every detector in this module."""
+    if tok in _G3_VERBS or tok in _ACTION_VERBS:
+        return True
+    for suffix in ("ing", "ed", "es", "s"):
+        if tok.endswith(suffix) and len(tok) > len(suffix) + 2:
+            base = tok[: -len(suffix)]
+            if base in _ACTION_VERBS or base + "e" in _ACTION_VERBS:
+                return True
+    return False
+
+
+def _g1_g5(sentence: str) -> tuple:
+    toks = _g_tokens(sentence)
+    g1 = g5 = 0
+    for i, tok in enumerate(toks):
+        if tok not in _G1_STATIVE:
+            continue
+        nxt = toks[i + 1] if i + 1 < len(toks) else None
+        if nxt is None:
+            continue                       # "It is." -- no complement, no state asserted
+        if _g_is_np_start(nxt):
+            continue                       # "feels the load" -- a measure, not a state
+        g1 += 1
+        # G5 looks through one bridge adverb: "is just unacceptable".
+        window = [t for t in toks[i + 1:i + 3] if t not in _G_BRIDGE][:1]
+        if window and window[0] in _G5_EVALUATIVE:
+            g5 += 1
+    return g1, g5
+
+
+def _g2(sentence: str) -> int:
+    low = " " + " ".join(_g_tokens(sentence)) + " "
+    if not any(" %s " % agent in low for agent in _G2_PLURAL_AGENTS):
+        return 0
+    return 1 if any(" %s " % v in low for v in _G2_DECISION_VERBS) else 0
+
+
+def _g3(sentence: str) -> int:
+    toks = _g_tokens(sentence)
+    joined = " " + " ".join(toks) + " "
+    hits = 0
+    for agent in _G3_ABSTRACT_AGENTS:
+        needle = " %s " % agent
+        start = 0
+        while True:
+            at = joined.find(needle, start)
+            if at < 0:
+                break
+            # the token index right after the agent phrase
+            after = joined[:at + len(needle)].split()
+            idx = len(after)
+            follow = [t for t in toks[idx:idx + 2] if t not in _G_BRIDGE][:1]
+            if follow and _g_is_verb(follow[0]):
+                hits += 1
+            start = at + 1
+    return hits
+
+
+def _g6(sentence: str) -> int:
+    n = 0
+    for tok in _g_tokens(sentence):
+        if tok in _G6_OVERLOADED or (tok.endswith("s") and tok[:-1] in _G6_OVERLOADED):
+            n += 1
+    return n
+
+
+def grammar_counts(text) -> Dict:
+    """The seven grammar counters over ``text``, summed per sentence.
+
+    Returns ``{G1..G7: int, G4_reflexive_only: True, sentences: int}``.
+    Non-string or empty input returns all zeros with ``sentences`` 0 --
+    a TRUE COUNT (no sentence, nothing counted), not a sentinel.
+    """
+    out = {k: 0 for k in _G_KEYS}
+    out["G4_reflexive_only"] = True
+    out["sentences"] = 0
+    if not isinstance(text, str) or not text.strip():
+        return out
+    sents = _sentences(text)
+    out["sentences"] = len(sents)
+    for sent in sents:
+        g1, g5 = _g1_g5(sent)
+        out["G1"] += g1
+        out["G5"] += g5
+        out["G2"] += _g2(sent)
+        out["G3"] += _g3(sent)
+        out["G4"] += len(_G4_REFLEXIVE_RE.findall(sent))
+        out["G6"] += _g6(sent)
+        out["G7"] += len(_G7_INTENT_RE.findall(sent))
+    return out

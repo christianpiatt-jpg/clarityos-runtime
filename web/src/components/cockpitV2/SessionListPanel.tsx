@@ -94,7 +94,7 @@ export default function SessionListPanel() {
     : "No sessions.";
 
   function openItem(id: string): void {
-    if (isPersonal) cockpit.relationships.actions.open(id);
+    if (isPersonal) void cockpit.relationships.actions.open(id);
     else void cockpit.thread.actions.open(id);
   }
 
