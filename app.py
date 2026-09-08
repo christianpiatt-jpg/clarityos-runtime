@@ -14550,7 +14550,7 @@ def me_regression_first_replay(
 # ---------------------------------------------------------------------
 # The relationship key -- what makes a run ADDRESSABLE
 # ---------------------------------------------------------------------
-def _record_run_against_thread(user: str, thread_id, text: str) -> None:
+def _record_run_against_thread(user: str, thread_id, text: str) -> Optional[str]:
     """Put a standalone run on the recorded path when it names a thread.
 
     *** OPTIONAL BY CONSTRUCTION. A request without ``thread_id`` returns
@@ -14568,15 +14568,18 @@ def _record_run_against_thread(user: str, thread_id, text: str) -> None:
     skip is how the emophysics mount hid for weeks.
     """
     if not isinstance(thread_id, str) or not thread_id.strip():
-        return
+        return None
     tid = thread_id.strip()
     try:
         threads_vault.get_thread(user, tid)          # ownership gate
     except Exception:
         logger.info("run_record skipped: thread not owned or missing")
-        return
+        return None
     try:
-        turn_record.record_turn(user, tid, text)
+        # #114 -- the sealed key comes back so a physics run can seal its
+        # bearings onto ITS OWN turn after the model answers. None on every
+        # path that recorded nothing.
+        return turn_record.record_turn(user, tid, text)["sealed_key"]
     except Exception as exc:
         # No identifiers in the log (INV-H1): the error locates the
         # fault, the member does not need to be in it to do that.
@@ -14584,6 +14587,7 @@ def _record_run_against_thread(user: str, thread_id, text: str) -> None:
             "run_record hook FAILED err=%s: %s",
             type(exc).__name__, exc, exc_info=True,
         )
+        return None
 
 
 # ---------------------------------------------------------------------
@@ -14604,9 +14608,12 @@ def me_relationship_turns(
 
     ``turns`` is ``turn_record.list_turn_records`` served RAW, oldest to
     newest inside ``window``: every stored value is a token, a count or a
-    number (``_reject_prose`` at write, turn_record.py:231 refuses any
-    string with whitespace), so there is no text to strip and no view to
-    shape. ``turn_count`` is everything saved, not the window.
+    number (``_reject_prose`` at write refuses any string with whitespace,
+    and #114's bearings are further held to the prompt's own vocabulary),
+    so there is no text to strip and no view to shape. ``turn_count`` is
+    everything saved, not the window. ``bearings_header`` (#114) is the
+    modal of the five bearings over the last 3 turns that carry them, with
+    the age in turns; null when none does.
     ``trust_signal`` is returned AS ``turn_record.trust_signal`` returns
     it: ``no_prior_yet`` at n=0, ``value`` with NO ``direction`` key at
     n=1 (a direction needs two points), never a bare 0.0. The window is
@@ -14636,6 +14643,10 @@ def me_relationship_turns(
         "turn_count":   len(rows),
         "turns":        rows[-int(window):],
         "trust_signal": turn_record.trust_signal(user, thread_id, window=window),
+        # #114 -- per bearing the modal value over the last 3 turns that carry
+        # bearings ({value, of_n}; a tie reads "split"), and the age in TURNS.
+        # None when no turn carries bearings: the panel reads a dash.
+        "bearings_header": turn_record.bearings_header(rows),
     }
 
 
@@ -14686,7 +14697,7 @@ def me_emotional_physics_analyze(
     window_text, _window = intelligence_kernel.cut_window(
         text, req.surface, req.message_boundaries,
     )
-    _record_run_against_thread(user, req.thread_id, window_text)
+    sealed_key = _record_run_against_thread(user, req.thread_id, window_text)
 
     try:
         out = intelligence_kernel.run_emotional_physics(
@@ -14698,6 +14709,32 @@ def me_emotional_physics_analyze(
             status_code=400,
             detail=error_response("bad_input", str(e)),
         )
+    # #114 -- the five bearings into the seal. The turn was sealed BEFORE
+    # the model call (above); now that the run has answered, its enum
+    # bearings and its run id (_meta.ts_ms) go onto that same turn. Read
+    # from the response only; never into a prompt (R4.1); wrapped, so a
+    # seal failure never costs the response.
+    if sealed_key:
+        try:
+            sealed = turn_record.seal_physics_bearings(
+                user, req.thread_id.strip(), sealed_key, out,
+                run_id=(out.get("_meta") or {}).get("ts_ms"),
+            )
+            # A run that sealed nothing leaves a trace (a silent skip is how
+            # the emophysics mount hid for weeks): the reason and the NAMES
+            # of skipped bearings, never a value, never an id.
+            if not sealed.get("sealed"):
+                logger.info(
+                    "physics bearings not sealed reason=%s skipped=%s",
+                    sealed.get("reason"), sealed.get("skipped") or [],
+                )
+            elif sealed.get("skipped"):
+                logger.info("physics bearings sealed with skips skipped=%s", sealed["skipped"])
+        except Exception as exc:  # noqa: BLE001 -- loud, never fatal
+            logger.warning(
+                "physics bearings seal FAILED err=%s: %s",
+                type(exc).__name__, exc, exc_info=True,
+            )
     return out
 
 

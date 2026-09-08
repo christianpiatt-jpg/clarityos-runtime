@@ -86,6 +86,34 @@ _PREFIX: str = "operator_state.turn_record."
 #: ``expectation`` without changing the record's shape.
 BEARINGS: tuple = ("boundary", "agency", "distance", "alignment")
 
+#: #114 -- the FIVE physics bearings run_emotional_physics returns under
+#: relational_primitives (trust · alignment · boundary · agency · distance,
+#: each an enum string; "unclear" is a value). Sealed onto a run's own turn
+#: by ``seal_physics_bearings``; BEARINGS above (four, no trust) still feeds
+#: score_record / trust_signal and is deliberately untouched.
+PHYSICS_BEARINGS: tuple = ("trust", "alignment", "boundary", "agency", "distance")
+#: #114 -- the vocabulary each bearing may take, verbatim from LAYER 3 of the
+#: kernel's physics prompt (intelligence_kernel._EMOTIONAL_PHYSICS_PROMPT;
+#: tests/test_bearings_seal.py holds the drift guard). A value outside it is
+#: NOT a bearing, whatever its shape: the model writes these, and a steered
+#: model could emit a whitespace-free sentence that _reject_prose alone would
+#: pass. Matched lowercase.
+PHYSICS_BEARING_VOCAB: dict = {
+    "trust":     frozenset({"low", "medium", "high", "fluctuating", "unclear"}),
+    "alignment": frozenset({"aligned", "partially_aligned", "misaligned", "unclear"}),
+    "boundary":  frozenset({"clear", "soft", "collapsed", "rigid", "contested", "unclear"}),
+    "agency":    frozenset({"full", "partial", "constrained", "outsourced", "unclear"}),
+    "distance":  frozenset({"close", "moderate", "distant", "increasing", "decreasing", "unclear"}),
+}
+#: #114 -- ONE lock spans every read-modify-write of a record (observe_return
+#: and seal_physics_bearings), so a physics seal landing while the next run
+#: observes the same key cannot lose either write. Process-local, like
+#: memory_vault's own lock; two instances are a store-level matter.
+_RECORD_LOCK = threading.RLock()
+#: #114 -- the header is the modal value over the last N turns that HAVE
+#: bearings; N is the ruling (CT-1 09-08: "modal of last 3").
+BEARINGS_HEADER_LAST: int = 3
+
 #: RECORD CLASSES -- the allowlist is FOUR, and it is closed.
 #:
 #: geometry     the SHAPE of a reading -- counts, bearings, positions.
@@ -329,6 +357,16 @@ def seal_expectation(
 # --------------------------------------------------------------------------
 def observe_return(user_id: str, record_key: str, observation: dict) -> dict:
     """Attach the observed return and stamp ``ts_observed``.
+
+    #114 -- the whole read-modify-write runs under ``_RECORD_LOCK`` (see
+    ``seal_physics_bearings``, the other writer of the same record).
+    """
+    with _RECORD_LOCK:
+        return _observe_return_locked(user_id, record_key, observation)
+
+
+def _observe_return_locked(user_id: str, record_key: str, observation: dict) -> dict:
+    """The body of ``observe_return``; callers hold ``_RECORD_LOCK``.
 
     REJECTS THE WRITE unless ``ts_sealed < ts_observed``. A record where
     the expectation was not sealed first is a fitted residual: worthless,
@@ -801,6 +839,110 @@ def record_turn(user_id: str, thread_id: str, text: str) -> dict:
         persistence_expectation(read),
     )
     return {"sealed_key": key, "observed_prior": observed}
+
+
+# --------------------------------------------------------------------------
+# #114 -- the bearings into the seal, and the header that reads them back
+# --------------------------------------------------------------------------
+def seal_physics_bearings(
+    user_id: str,
+    thread_id: str,
+    sealed_key: str,
+    physics: Any,
+    run_id: Any = None,
+) -> dict:
+    """Write the five enum bearings of ONE physics run onto that run's own
+    turn record, plus the run id. Reads ONLY ``physics["relational_primitives"]``.
+
+    ★ NEVER A DEFAULT. Each of the five is written only when it arrived as
+    a non-empty string that is IN PHYSICS_BEARING_VOCAB for that bearing
+    (matched lowercase) and passes ``_reject_prose``; otherwise the KEY IS
+    OMITTED -- never "", never {}, never "unclear" invented (an arriving
+    "unclear" is a value and is kept). A value outside the vocabulary is
+    skipped and NAMED in the return (the caller logs the names, never the
+    values). A missing or empty layer writes no ``bearings`` key at all and
+    returns the reason.
+
+    ★ #166e -- the flatten branch in build_geometry_observation (the
+    ``if isinstance(physics, dict)`` block) would fold ALL three physics
+    blocks into single-token strings on the observation; it is deliberately
+    not used here and left as it is.
+
+    ★ The read-modify-write runs under ``_RECORD_LOCK`` with observe_return.
+
+    Returns ``{"sealed": bool, "reason"|"bearings", "run_id"}``. Raises
+    KeyError when the record is not there and ValueError when the key does
+    not belong to ``thread_id`` -- a seal onto another thread's turn is a
+    misfile, not a write.
+    """
+    layer = physics.get("relational_primitives") if isinstance(physics, dict) else None
+    if not isinstance(layer, dict) or not layer:
+        return {"sealed": False, "reason": "relational_primitives absent", "run_id": run_id}
+    bearings: dict = {}
+    skipped: list = []
+    for b in PHYSICS_BEARINGS:
+        v = layer.get(b)
+        if not isinstance(v, str) or not v.strip():
+            continue                                   # absent -> the key is OMITTED
+        tok = v.strip().lower()
+        if tok not in PHYSICS_BEARING_VOCAB[b]:
+            skipped.append(b)                          # not in the vocabulary: not a bearing
+            continue
+        try:
+            bearings[b] = _reject_prose(tok, "bearings." + b)
+        except ValueError:                             # unreachable for a vocabulary word; kept as the guard of record
+            skipped.append(b)
+    if not bearings:
+        return {"sealed": False, "reason": "no enum-valued bearing in the layer",
+                "skipped": skipped, "run_id": run_id}
+    if not isinstance(sealed_key, str) or not sealed_key.startswith(_thread_ns(thread_id)):
+        raise ValueError("sealed_key does not belong to this thread")
+    with _RECORD_LOCK:
+        rec = memory_vault.vault_get(user_id, sealed_key)
+        if not isinstance(rec, dict):
+            raise KeyError("no turn record at %s" % sealed_key)
+        rec = dict(rec)
+        rec["bearings"] = bearings
+        if run_id is not None:                         # absent -> the key is OMITTED, as the bearings are
+            rec["run_id"] = _reject_prose(run_id, "run_id")
+        memory_vault.vault_put(user_id, sealed_key, rec)
+    return {"sealed": True, "bearings": bearings, "skipped": skipped, "run_id": rec.get("run_id")}
+
+
+def bearings_header(rows: list, last: int = BEARINGS_HEADER_LAST) -> Optional[dict]:
+    """Per bearing, the MODAL value over the last ``last`` turns that HAVE
+    bearings, as ``{"value", "of_n"}``: a tie reads "split"; fewer than
+    ``last`` such turns reads "of n"; a bearing none of them carried is
+    ABSENT from the header; no turn with bearings at all -> None.
+
+    ``age`` is in TURNS, never a clock: ``sealed_turn`` = the turn index of
+    the newest record that carries bearings, ``now_turn`` = the newest
+    record's turn index.
+    """
+    with_b = [r for r in (rows or []) if isinstance(r, dict)
+              and isinstance(r.get("bearings"), dict) and r["bearings"]]
+    if not with_b:
+        return None
+    recent = with_b[-int(last):] if int(last) > 0 else with_b
+    out: dict = {}
+    for b in PHYSICS_BEARINGS:
+        vals = [r["bearings"][b] for r in recent if isinstance(r["bearings"].get(b), str)]
+        if not vals:
+            continue
+        counts: dict = {}
+        for v in vals:
+            counts[v] = counts.get(v, 0) + 1
+        top = max(counts.values())
+        leaders = [v for v in counts if counts[v] == top]
+        # value · count (the modal's tally; on a tie, the tied tally) · of_n
+        # (turns that carried this bearing): the line reads "low (2 of 3)".
+        out[b] = {"value": leaders[0] if len(leaders) == 1 else "split",
+                  "count": top, "of_n": len(vals)}
+    out["age"] = {
+        "sealed_turn": int(with_b[-1].get("turn_index", 0)),
+        "now_turn":    int(rows[-1].get("turn_index", 0)),
+    }
+    return out
 
 
 # --------------------------------------------------------------------------

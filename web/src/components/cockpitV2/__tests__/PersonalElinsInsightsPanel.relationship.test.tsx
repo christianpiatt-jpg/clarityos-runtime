@@ -18,7 +18,7 @@ vi.mock("../../../lib/api", async () => {
 });
 
 import * as api from "../../../lib/api";
-import PersonalElinsInsightsPanel, { trustLabel } from "../PersonalElinsInsightsPanel";
+import PersonalElinsInsightsPanel, { trustLabel, bearingsLine, bearingsAge, turnBearings } from "../PersonalElinsInsightsPanel";
 import { cockpit } from "../../../state/cockpitStore";
 
 const REL = { thread_id: "r1", title: "Copilot-me-system_install", created_at: 1, updated_at: 2,
@@ -77,5 +77,57 @@ describe("PersonalElinsInsightsPanel — the relationship header", () => {
     expect(trustLabel({ status: "value", value: 0.5, direction: "falling", delta: -0.5, scored_turns: 2, theta_floor: 7, theta_ready: false }))
       .toBe("0.5 · falling (2 scored)");
     expect(trustLabel(null)).toBe("—");
+  });
+});
+
+
+// --------------------------------------------------------------------------
+// #114 -- the five bearings: the header line in turns, the per-turn five
+// --------------------------------------------------------------------------
+describe("PersonalElinsInsightsPanel — bearings (#114)", () => {
+  const FIVE = { trust: "low", alignment: "misaligned", boundary: "contested", agency: "constrained", distance: "increasing" };
+
+  it("★ the header line reads the modal with its count, a dash for a bearing none carried, and the age in turns", async () => {
+    vi.mocked(api.listThreads).mockResolvedValue([{ ...REL, thread_id: "r2" }] as never);
+    vi.mocked(api.getRelationshipTurns).mockResolvedValue({
+      thread_id: "r2", turn_count: 4,
+      turns: [
+        { turn_index: 2, class: "geometry", ts_sealed: NS, ts_observed: null, expectation: { source: "persistence" },
+          observation: null, bearings: FIVE, run_id: 1788000000000 },
+        { turn_index: 3, class: "geometry", ts_sealed: NS + 1, ts_observed: null, expectation: { source: "persistence" },
+          observation: null },
+      ],
+      trust_signal: { status: "undefined", scored_turns: 1, theta_floor: 7, theta_ready: false },
+      bearings_header: {
+        trust: { value: "low", count: 2, of_n: 3 }, alignment: { value: "split", count: 1, of_n: 3 },
+        boundary: { value: "contested", count: 1, of_n: 1 },
+        age: { sealed_turn: 2, now_turn: 3 },
+      },
+    } as never);
+    render(<PersonalElinsInsightsPanel />);
+    await act(async () => { await cockpit.relationships.actions.load(); });
+    await act(async () => { await cockpit.relationships.actions.open("r2"); });
+
+    expect(screen.getByTestId("rel-bearings")).toHaveTextContent(
+      "trust: low (2 of 3) · alignment: split (1 of 3) · boundary: contested (1 of 1) · agency: — · distance: —",
+    );
+    expect(screen.getByTestId("rel-bearings-age")).toHaveTextContent("sealed turn 2 · now turn 3");
+    // the five ride the turn that carries them, and only that one
+    const rows = screen.getAllByTestId("rel-turn-bearings");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent("trust low · alignment misaligned · boundary contested · agency constrained · distance increasing · run 1788000000000");
+  });
+
+  it("no header -> a dash, never a zero; a partial turn shows dashes for the keys the run did not return", () => {
+    expect(bearingsLine(null)).toBe("—");
+    expect(bearingsLine(undefined)).toBe("—");
+    expect(bearingsAge(null)).toBe("—");
+    expect(bearingsLine({ age: { sealed_turn: 0, now_turn: 0 } })).toBe(
+      "trust: — · alignment: — · boundary: — · agency: — · distance: —",
+    );
+    expect(turnBearings({ turn_index: 0, class: "geometry", ts_sealed: 1, ts_observed: null, expectation: {},
+      observation: null, bearings: { trust: "unclear" } })).toBe(
+      "trust unclear · alignment — · boundary — · agency — · distance —",
+    );
   });
 });

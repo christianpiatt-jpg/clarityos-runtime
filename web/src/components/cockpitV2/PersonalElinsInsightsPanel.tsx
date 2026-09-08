@@ -18,7 +18,7 @@
  * or say there is none yet.
  */
 import { useCockpit } from "../../state/cockpitStore";
-import type { TrustSignal, TurnRecord } from "../../lib/api";
+import type { BearingsHeader, TrustSignal, TurnRecord } from "../../lib/api";
 import { basinHopLine } from "../../lib/trustSignal";
 import {
   SectionAttractor,
@@ -45,6 +45,33 @@ function stamp(ns: number | null | undefined): string {
 function lastSealed(turns: TurnRecord[]): string {
   if (!turns.length) return "—";
   return stamp(Math.max(...turns.map((t) => t.ts_sealed ?? 0)));
+}
+
+/** #114 -- the five, in the ruling's order. */
+export const PHYSICS_BEARINGS = ["trust", "alignment", "boundary", "agency", "distance"] as const;
+
+/** #114 -- the header as one line: "trust: low (2 of 3) · alignment: split
+ *  (1 of 3) · boundary: —". A bearing the header does not carry reads a
+ *  dash; no header at all reads a dash. */
+export function bearingsLine(h: BearingsHeader | null | undefined): string {
+  if (!h) return "—";
+  return PHYSICS_BEARINGS.map((b) => {
+    const m = h[b];
+    return m ? `${b}: ${m.value} (${m.count} of ${m.of_n})` : `${b}: —`;
+  }).join(" · ");
+}
+
+/** #114 -- the age of the header, in TURNS, never a clock. */
+export function bearingsAge(h: BearingsHeader | null | undefined): string {
+  if (!h?.age) return "—";
+  return `sealed turn ${h.age.sealed_turn} · now turn ${h.age.now_turn}`;
+}
+
+/** #114 -- one turn's sealed bearings, the five in order, a dash where the
+ *  run returned nothing for that key. */
+export function turnBearings(t: TurnRecord): string {
+  const b = t.bearings ?? {};
+  return PHYSICS_BEARINGS.map((k) => `${k} ${typeof b[k] === "string" && b[k] ? b[k] : "—"}`).join(" · ");
 }
 
 export default function PersonalElinsInsightsPanel() {
@@ -87,6 +114,16 @@ export default function PersonalElinsInsightsPanel() {
                     <dt>last sealed</dt>
                     <dd className="cv2-mono" data-testid="rel-last-sealed">{lastSealed(detail.turns)}</dd>
                   </div>
+                  {/* #114 -- the five bearings, modal over the last 3 physics
+                      runs, as the backend serves them; the age in turns. */}
+                  <div className="cv2-kv-row" title="bearings_header.<bearing>.value · .count · .of_n">
+                    <dt>bearings</dt>
+                    <dd className="cv2-mono" data-testid="rel-bearings">{bearingsLine(detail.bearings_header)}</dd>
+                  </div>
+                  <div className="cv2-kv-row" title="bearings_header.age.sealed_turn · bearings_header.age.now_turn">
+                    <dt>bearings age</dt>
+                    <dd className="cv2-mono" data-testid="rel-bearings-age">{bearingsAge(detail.bearings_header)}</dd>
+                  </div>
                 </dl>
                 {/* #162 (d) -- the awaiting rail speaks the status. */}
                 <div className="cv2-muted cv2-mono" data-testid="math-rail-basin-hop">
@@ -98,6 +135,12 @@ export default function PersonalElinsInsightsPanel() {
                       <li key={`${t.turn_index}-${t.ts_sealed}`} className="cv2-muted">
                         #{t.turn_index} · sealed {stamp(t.ts_sealed)} ·{" "}
                         {t.ts_observed == null ? "awaiting return" : `observed ${stamp(t.ts_observed)}`}
+                        {/* #114 -- the five, only on a turn that carries them */}
+                        {t.bearings ? (
+                          <span data-testid="rel-turn-bearings" title="turns[].bearings · turns[].run_id">
+                            {" · "}{turnBearings(t)}{t.run_id != null ? ` · run ${t.run_id}` : ""}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

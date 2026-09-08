@@ -2249,7 +2249,10 @@ def run_emotional_physics(
     #    contract so the model can produce a schema-valid response
     #    without needing any out-of-band context.
     prompt = _EMOTIONAL_PHYSICS_PROMPT + "\nSITUATION:\n" + cleaned
-    response = model_router.route_request(model_id, prompt)
+    # #109 (CT-1 ruled 09-08): temperature 0. Measured 09-04: 2 of 5 bearings
+    # moved on identical input at the router's default 0.2. An instrument
+    # that reads a different bearing off the same text is not an instrument.
+    response = model_router.route_request(model_id, prompt, temperature=0.0)
     raw_text = str(response.get("text") or "").strip()
 
     # 3. Parse with graceful degrade. We always emit the four

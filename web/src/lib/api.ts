@@ -1902,6 +1902,33 @@ export interface TurnRecord {
   provenance?: Record<string, string>;
   confidence?: Record<string, string>;
   crossing?:   string;
+  // #114 -- a PHYSICS run's five enum bearings (trust · alignment ·
+  // boundary · agency · distance), sealed onto its own turn after the
+  // model answered; a key the run did not return is OMITTED, never "".
+  // Absent on text-only turns. run_id = that run's _meta.ts_ms.
+  bearings?:   Record<string, string>;
+  run_id?:     string | number | null;
+}
+
+/** #114 -- one bearing's modal value over the last 3 turns that carried
+ *  it: `value` ("split" on a tie), `count` (the modal's tally), `of_n`
+ *  (turns that carried this bearing; fewer than 3 reads "of n"). */
+export interface BearingModal {
+  value: string;
+  count: number;
+  of_n:  number;
+}
+
+/** #114 -- the header the turns route serves: per bearing a modal (a
+ *  bearing none of the last 3 carried is ABSENT), and the age in TURNS,
+ *  never a clock. null when no turn carries bearings. */
+export interface BearingsHeader {
+  trust?:     BearingModal;
+  alignment?: BearingModal;
+  boundary?:  BearingModal;
+  agency?:    BearingModal;
+  distance?:  BearingModal;
+  age?:       { sealed_turn: number; now_turn: number };
 }
 
 /** turn_record.trust_signal, as returned. Three KINDS, never a bare 0.0:
@@ -1927,6 +1954,8 @@ export interface RelationshipTurns {
   /** the last `window` records, oldest first */
   turns:        TurnRecord[];
   trust_signal: TrustSignal;
+  // #114 -- null when no turn carries bearings; absent on an older backend.
+  bearings_header?: BearingsHeader | null;
 }
 
 /** GET /me/relationships/{id}/turns -- 404 when the caller does not own

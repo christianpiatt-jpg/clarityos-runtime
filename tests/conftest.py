@@ -376,6 +376,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_vault_timeline_source.py": {
         "runtime_spine",
     },
+    # ---- #114 the five bearings into the seal · #109 temperature 0 ----
+    # runtime_spine: the physics route seals onto the relationship's turn
+    # and the turns route serves the header. determinism_surface: the
+    # modal header is a pure function of the rows; temperature is pinned.
+    "test_bearings_seal.py": {
+        "runtime_spine", "determinism_surface",
+    },
     # ---- #139 the insight window: tail, sized per surface, kernel cuts ----
     # determinism_surface: cut_window is a pure function whose numbers the
     # browser renders verbatim. runtime_spine: both insight routes and the
