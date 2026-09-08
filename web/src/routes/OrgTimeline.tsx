@@ -49,7 +49,7 @@ export default function OrgTimeline() {
         <p className="muted" style={{ marginTop: 4 }}>
           Read-only aggregated view of operator events. Operator IDs are
           masked (last 6 characters) and payloads are summarised — no
-          raw fields, no thread IDs. Founder cohort required.
+          raw fields, no thread IDs. Admin only.
         </p>
         <div className="row" style={{ gap: 8, marginTop: 8 }} data-testid="el-ins-org-tabs">
           {WINDOWS.map((w) => (

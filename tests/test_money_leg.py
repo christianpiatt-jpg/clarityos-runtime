@@ -32,7 +32,7 @@ def _arm_member_flags(reset_stores):
     members (app.py flag bootstrap) so a member here is a member there."""
     import v29_hardening
     for flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
-        v29_hardening.set_flag(flag, True, cohort="member")
+        v29_hardening.set_flag(flag, True, cohort="all")  # #157 -- the label, no alias
     yield
 
 
@@ -48,13 +48,13 @@ def _session(username: str, *, controller: bool = False, micro: int = 0):
         username=username, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
         salt="", tier="free", created_at=time.time(),
     )
-    # "terrace_1": v28_surfaces + g_credits_enabled + membership_ui_enabled
-    # armed at app import, and NOT a controller string under the #124 shim
-    # ("founder" / "founder_exception" / "admin" are -- and a controller is
-    # unlimited, which is exactly what these tests must not be by accident).
-    patch = {"cohort": "terrace_1", "membership_status": "active", "membership_tier": "founding_500"}
+    # #157 -- no cohort string: the doc derives "all" (a member; the flags
+    # for it are armed by reset_stores) unless the flag makes it the
+    # controller -- and a controller is unlimited, which is exactly what
+    # these tests must not be by accident.
+    patch = {"membership_status": "active", "membership_tier": "founding_500"}
     if controller:
-        patch.update({"controller": True, "cohort": "founder"})
+        patch["controller"] = True
     users_store.update_user(username, patch)
     if micro:
         users_store.add_g_credits(username, micro)

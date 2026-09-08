@@ -78,11 +78,11 @@ describe("CreateMemberBox (#150)", () => {
   });
 
   it("a failed post is shown", async () => {
-    mocked.mockRejectedValue(new Error("Founder cohort required"));
+    mocked.mockRejectedValue(new Error("Admin only: this console is the controller's"));
     render(<CreateMemberBox />);
     fireEvent.change(screen.getByTestId("create-member-email"), { target: { value: "x@example.com" } });
     fireEvent.click(screen.getByTestId("create-member-submit"));
-    await waitFor(() => expect(screen.getByTestId("create-member-error")).toHaveTextContent("Founder cohort required"));
+    await waitFor(() => expect(screen.getByTestId("create-member-error")).toHaveTextContent("Admin only: this console is the controller's"));
   });
 
   it("a prefill lands in the box", () => {

@@ -11,7 +11,7 @@ import {
   config,
   createInvite,
   getProfile,
-  type Cohort,
+  type InviteKind,
   type ConfigResponse,
   type InviteCreated,
 } from "../lib/api";
@@ -37,7 +37,7 @@ export default function Operator() {
   const [cfg, setCfg] = useState<ConfigResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [minting, setMinting] = useState<Cohort | null>(null);
+  const [minting, setMinting] = useState<InviteKind | null>(null);
   const [recent, setRecent] = useState<RecentInvite[]>(loadRecent());
   const profile = getProfile();
 
@@ -61,12 +61,12 @@ export default function Operator() {
   // never "founder" any more); the server gate is username-based and unchanged.
   const isAdmin = isController(profile);
 
-  async function mint(cohort: Cohort) {
+  async function mint(kind: InviteKind) {
     if (minting) return;
-    setMinting(cohort);
+    setMinting(kind);
     setError(null);
     try {
-      const r = await createInvite(cohort as "founder_exception" | "terrace_1");
+      const r = await createInvite(kind);
       const next = [{ ...r, created_at_local: Date.now() }, ...recent];
       setRecent(next);
       saveRecent(next);
@@ -151,14 +151,14 @@ export default function Operator() {
         <div className="row">
           <button
             className="btn"
-            onClick={() => mint("founder_exception" as Cohort)}
+            onClick={() => mint("founder_exception")}
             disabled={!isAdmin || minting !== null}
           >
             {minting === "founder_exception" ? <span className="spinner" /> : "FOUNDER EXCEPTION  ·  free"}
           </button>
           <button
             className="btn"
-            onClick={() => mint("terrace_1" as Cohort)}
+            onClick={() => mint("terrace_1")}
             disabled={!isAdmin || minting !== null}
           >
             {minting === "terrace_1" ? <span className="spinner" /> : "TERRACE-1  ·  $50"}

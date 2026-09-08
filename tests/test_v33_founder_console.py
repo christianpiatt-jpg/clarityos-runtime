@@ -18,6 +18,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -35,7 +36,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder", *, password=b"x"):
+def _make_user(app_module, username, controller=True, *, password=b"x"):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(password, bcrypt.gensalt())
@@ -43,8 +44,8 @@ def _make_user(app_module, username, cohort="founder", *, password=b"x"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -320,7 +321,7 @@ def test_dm_store_note_unknown_dm_returns_none(reset_stores):
 # Endpoints — /elins/{preview, global, qc}
 # ===========================================================================
 def test_elins_preview_returns_all_layers(app_module, client):
-    user, sid = _make_user(app_module, "evan", cohort="founder")
+    user, sid = _make_user(app_module, "evan", controller=True)
     r = client.post(
         "/elins/preview", headers=_auth(sid),
         json={"text": "institutional drift under sustained pressure"},
@@ -332,7 +333,9 @@ def test_elins_preview_returns_all_layers(app_module, client):
 
 
 def test_elins_preview_blocked_when_v28_off(app_module, client):
-    user, sid = _make_user(app_module, "lurker", cohort=None)
+    user, sid = _make_user(app_module, "lurker", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.post(
         "/elins/preview", headers=_auth(sid), json={"text": "x x x x"},
     )
@@ -341,7 +344,7 @@ def test_elins_preview_blocked_when_v28_off(app_module, client):
 
 def test_elins_global_persists_run(app_module, client):
     from ELINS import elins_project as ep
-    user, sid = _make_user(app_module, "frank", cohort="founder")
+    user, sid = _make_user(app_module, "frank", controller=True)
     r = client.post(
         "/elins/global", headers=_auth(sid),
         json={"text": "Court ruling on constitutional pressure"},
@@ -353,7 +356,7 @@ def test_elins_global_persists_run(app_module, client):
 
 
 def test_elins_global_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "guest", cohort=None)
+    user, sid = _make_user(app_module, "guest", controller=False)
     r = client.post(
         "/elins/global", headers=_auth(sid),
         json={"text": "x x x x"},
@@ -363,7 +366,7 @@ def test_elins_global_requires_founder(app_module, client):
 
 def test_elins_qc_returns_pass_for_clean_object(app_module, client):
     from ELINS import standard_elins as se
-    user, sid = _make_user(app_module, "harry", cohort="founder")
+    user, sid = _make_user(app_module, "harry", controller=True)
     elins_obj = se.generate_ELINS("trust collapse under pressure")
     r = client.post(
         "/elins/qc", headers=_auth(sid), json={"elins_object": elins_obj},
@@ -374,7 +377,7 @@ def test_elins_qc_returns_pass_for_clean_object(app_module, client):
 
 
 def test_elins_qc_rejects_non_dict(app_module, client):
-    user, sid = _make_user(app_module, "izzy", cohort="founder")
+    user, sid = _make_user(app_module, "izzy", controller=True)
     r = client.post(
         "/elins/qc", headers=_auth(sid), json={"elins_object": {}},
     )
@@ -385,7 +388,7 @@ def test_elins_qc_rejects_non_dict(app_module, client):
 # Endpoints — /cmt/generate + /c/run
 # ===========================================================================
 def test_cmt_generate_endpoint(app_module, client):
-    user, sid = _make_user(app_module, "jane", cohort="founder")
+    user, sid = _make_user(app_module, "jane", controller=True)
     r = client.post(
         "/cmt/generate", headers=_auth(sid),
         json={"text": "the agency is drifting from its mandate"},
@@ -396,7 +399,7 @@ def test_cmt_generate_endpoint(app_module, client):
 
 
 def test_c_run_mode_comment(app_module, client):
-    user, sid = _make_user(app_module, "kim", cohort="founder")
+    user, sid = _make_user(app_module, "kim", controller=True)
     r = client.post(
         "/c/run", headers=_auth(sid),
         json={"text": "trust between the parties is eroding", "mode": "comment"},
@@ -409,7 +412,7 @@ def test_c_run_mode_comment(app_module, client):
 
 
 def test_c_run_rejects_unknown_mode(app_module, client):
-    user, sid = _make_user(app_module, "lou", cohort="founder")
+    user, sid = _make_user(app_module, "lou", controller=True)
     r = client.post(
         "/c/run", headers=_auth(sid),
         json={"text": "anything", "mode": "totally_made_up"},
@@ -418,7 +421,7 @@ def test_c_run_rejects_unknown_mode(app_module, client):
 
 
 def test_me_advertises_capabilities(app_module, client):
-    user, sid = _make_user(app_module, "max", cohort="founder")
+    user, sid = _make_user(app_module, "max", controller=True)
     r = client.get("/me", headers=_auth(sid))
     body = r.json()
     ids = [c["id"] for c in body.get("capabilities") or []]
@@ -430,13 +433,13 @@ def test_me_advertises_capabilities(app_module, client):
 # Endpoints — /founder/dm/{add,list,notes}
 # ===========================================================================
 def test_founder_dm_add_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "nan", cohort=None)
+    user, sid = _make_user(app_module, "nan", controller=False)
     r = client.post("/founder/dm/add", headers=_auth(sid), json={})
     assert r.status_code == 403
 
 
 def test_founder_dm_add_and_list(app_module, client):
-    user, sid = _make_user(app_module, "olive", cohort="founder")
+    user, sid = _make_user(app_module, "olive", controller=True)
     r = client.post(
         "/founder/dm/add", headers=_auth(sid),
         json={"channel": "linkedin", "subject": "hello", "snippet": "first contact"},
@@ -450,7 +453,7 @@ def test_founder_dm_add_and_list(app_module, client):
 
 
 def test_founder_dm_notes_roundtrip(app_module, client):
-    user, sid = _make_user(app_module, "pat", cohort="founder")
+    user, sid = _make_user(app_module, "pat", controller=True)
     r = client.post(
         "/founder/dm/add", headers=_auth(sid), json={"channel": "manual"},
     )
@@ -466,7 +469,7 @@ def test_founder_dm_notes_roundtrip(app_module, client):
 
 
 def test_founder_dm_notes_unknown_dm_returns_404(app_module, client):
-    user, sid = _make_user(app_module, "quinn", cohort="founder")
+    user, sid = _make_user(app_module, "quinn", controller=True)
     r = client.post(
         "/founder/dm/notes", headers=_auth(sid),
         json={"dm_id": "dm_nope", "body": "x"},
@@ -480,8 +483,8 @@ def test_founder_dm_notes_unknown_dm_returns_404(app_module, client):
 def test_founder_membership_activate(app_module, client):
     """Founder manually activates a target user without going through
     the PaymentIntent flow."""
-    f, sid_f = _make_user(app_module, "founderA", cohort="founder")
-    target, _sid_t = _make_user(app_module, "targetA", cohort="founder")
+    f, sid_f = _make_user(app_module, "founderA", controller=True)
+    target, _sid_t = _make_user(app_module, "targetA", controller=True)
     r = client.post(
         "/founder/membership/activate", headers=_auth(sid_f),
         json={"user": target, "note": "comp"},
@@ -494,7 +497,7 @@ def test_founder_membership_activate(app_module, client):
 
 
 def test_founder_membership_activate_unknown_user_404(app_module, client):
-    f, sid_f = _make_user(app_module, "founderB", cohort="founder")
+    f, sid_f = _make_user(app_module, "founderB", controller=True)
     r = client.post(
         "/founder/membership/activate", headers=_auth(sid_f),
         json={"user": "no_such_user"},
@@ -503,8 +506,8 @@ def test_founder_membership_activate_unknown_user_404(app_module, client):
 
 
 def test_founder_membership_cancel(app_module, client):
-    f, sid_f = _make_user(app_module, "founderC", cohort="founder")
-    target, _ = _make_user(app_module, "targetC", cohort="founder")
+    f, sid_f = _make_user(app_module, "founderC", controller=True)
+    target, _ = _make_user(app_module, "targetC", controller=True)
     client.post(
         "/founder/membership/activate", headers=_auth(sid_f),
         json={"user": target},
@@ -521,8 +524,8 @@ def test_founder_membership_cancel(app_module, client):
 
 def test_founder_membership_credits_grant_and_revoke(app_module, client):
     import users_store
-    f, sid_f = _make_user(app_module, "founderD", cohort="founder")
-    target, _ = _make_user(app_module, "targetD", cohort="terrace_1")
+    f, sid_f = _make_user(app_module, "founderD", controller=True)
+    target, _ = _make_user(app_module, "targetD", controller=False)
 
     # #142 -- the wire is MICRO-DOLLARS (the console types dollars and
     # multiplies); the response echoes both units.
@@ -548,8 +551,8 @@ def test_founder_membership_credits_grant_and_revoke(app_module, client):
 
 
 def test_founder_membership_credits_blocks_negative_balance(app_module, client):
-    f, sid_f = _make_user(app_module, "founderE", cohort="founder")
-    target, _ = _make_user(app_module, "targetE", cohort="terrace_1")
+    f, sid_f = _make_user(app_module, "founderE", controller=True)
+    target, _ = _make_user(app_module, "targetE", controller=False)
     r = client.post(
         "/founder/membership/credits", headers=_auth(sid_f),
         json={"user": target, "delta": -5, "reason": "noop"},
@@ -559,8 +562,8 @@ def test_founder_membership_credits_blocks_negative_balance(app_module, client):
 
 
 def test_founder_membership_credits_zero_delta_rejected(app_module, client):
-    f, sid_f = _make_user(app_module, "founderF", cohort="founder")
-    target, _ = _make_user(app_module, "targetF", cohort="terrace_1")
+    f, sid_f = _make_user(app_module, "founderF", controller=True)
+    target, _ = _make_user(app_module, "targetF", controller=False)
     r = client.post(
         "/founder/membership/credits", headers=_auth(sid_f),
         json={"user": target, "delta": 0},

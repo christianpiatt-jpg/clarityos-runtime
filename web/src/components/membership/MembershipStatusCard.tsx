@@ -71,7 +71,7 @@ export default function MembershipStatusCard({ state }: Props) {
           {ident ? (
             <span
               data-testid="citz-id"
-              title="state.identity.citz_id · state.identity.citizen · state.identity.controller · state.identity.cohort"
+              title="state.identity.citz_id · state.identity.paid · state.identity.controller · state.identity.cohort"
               style={{ marginLeft: 10, fontSize: 12, fontFamily: "var(--font-mono, monospace)", opacity: 0.8 }}
             >
               {ident.citz_id ?? DASH}{cohortWord(ident) === "—" ? "" : ` · ${cohortWord(ident)}`}

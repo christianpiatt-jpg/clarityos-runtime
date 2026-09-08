@@ -11,6 +11,7 @@ Patterns mirrored from tests/test_v44_model_router.py:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 import uuid
@@ -33,7 +34,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username):
     import bcrypt
     import users_store
     import sessions_store
@@ -43,12 +44,12 @@ def _make_user(app_module, username, cohort="founder"):
         tier="free", created_at=time.time(),
     )
     # D1-TEST-MIG-01 — /engine/v1/run is a metered_compute route, so the
-    # caller must hold an active membership + g_credits, and g_credits is
-    # founder-cohort gated. These are functional engine tests (entitled
-    # caller -> 200), so provision entitlement here. cohort=None call-sites
-    # fall back to "founder" (enables g_credits); ample credits keep the
-    # 31-call rate-limit test on the 429 path rather than 402.
-    users_store.update_user(username, {"cohort": cohort or "founder"})
+    # caller must hold an active membership + g_credits. These are functional
+    # engine tests (entitled caller -> 200), so provision entitlement here:
+    # #157 -- every caller was a "founder" string (a controller under the
+    # #124 shim); the flag is the key now. Ample credits keep the 31-call
+    # rate-limit test on the 429 path rather than 402.
+    seed_controller(username)
     users_store.set_membership(username, tier="founding", price=50.0, status="active")
     users_store.add_g_credits(username, 1000)
     sid = "sess_" + secrets.token_urlsafe(16)
@@ -128,7 +129,7 @@ def test_engine_v1_regress_to_origin_builds_path(reset_stores):
 # /engine/v1/run — happy path + shape
 # ---------------------------------------------------------------------------
 def test_engine_v1_endpoint_happy_path(app_module, client):
-    user, sid = _make_user(app_module, "ev1_basic", cohort=None)
+    user, sid = _make_user(app_module, "ev1_basic")
     r = client.post(
         "/engine/v1/run", headers=_auth(sid),
         json={"primitives": [_basic_primitive(pressure=5.0)], "projection_days": 7},
@@ -149,7 +150,7 @@ def test_engine_v1_endpoint_happy_path(app_module, client):
 
 
 def test_engine_v1_endpoint_empty_primitives_nulls_regression(app_module, client):
-    user, sid = _make_user(app_module, "ev1_empty", cohort=None)
+    user, sid = _make_user(app_module, "ev1_empty")
     r = client.post(
         "/engine/v1/run", headers=_auth(sid),
         json={"primitives": [], "projection_days": 30},
@@ -176,7 +177,7 @@ def test_engine_v1_endpoint_rate_limit_enforced(app_module, client, monkeypatch)
     """30/min cap; with enforcement on, the 31st call returns 429."""
     import v29_hardening
     monkeypatch.setattr(v29_hardening, "_RATE_ENFORCE", True)
-    user, sid = _make_user(app_module, "ev1_rl", cohort=None)
+    user, sid = _make_user(app_module, "ev1_rl")
     last_status = 200
     body_json: dict = {}
     for i in range(31):
@@ -193,7 +194,7 @@ def test_engine_v1_endpoint_rate_limit_enforced(app_module, client, monkeypatch)
 
 
 def test_engine_v1_endpoint_multiple_primitives_one_overlay_each(app_module, client):
-    user, sid = _make_user(app_module, "ev1_multi", cohort=None)
+    user, sid = _make_user(app_module, "ev1_multi")
     r = client.post(
         "/engine/v1/run", headers=_auth(sid),
         json={
@@ -216,7 +217,7 @@ def test_engine_v1_endpoint_multiple_primitives_one_overlay_each(app_module, cli
 def test_engine_v1_endpoint_shape_validates_against_pydantic(app_module, client):
     """Wire response must round-trip through EngineResponseV1.model_validate."""
     from app import EngineResponseV1
-    user, sid = _make_user(app_module, "ev1_shape", cohort=None)
+    user, sid = _make_user(app_module, "ev1_shape")
     r = client.post(
         "/engine/v1/run", headers=_auth(sid),
         json={"primitives": [_basic_primitive()]},
@@ -231,7 +232,7 @@ def test_engine_v1_card20_cherrypick_fields_present(app_module, client):
     """Card 20 cherry-pick: metadata lineage, primitive self-refs,
     Godhard overlay fields, diagnostics.interventions all land in the
     response with their documented Phase-1 defaults / computed values."""
-    user, sid = _make_user(app_module, "ev1_cp", cohort=None)
+    user, sid = _make_user(app_module, "ev1_cp")
     r = client.post(
         "/engine/v1/run", headers=_auth(sid),
         json={"primitives": [_basic_primitive(pressure=5.0, flow=4.0, resistance=2.0)]},
@@ -268,7 +269,7 @@ def test_engine_v1_card20_cherrypick_fields_present(app_module, client):
 
 def test_engine_v1_card20_overlay_upper_branch_above_center(app_module, client):
     """pressure > GODHARD_CENTER (5.0) → on_upper_branch=True."""
-    user, sid = _make_user(app_module, "ev1_cp_upper", cohort=None)
+    user, sid = _make_user(app_module, "ev1_cp_upper")
     r = client.post(
         "/engine/v1/run", headers=_auth(sid),
         json={"primitives": [_basic_primitive(pressure=7.0, flow=4.0, resistance=2.0)]},
@@ -284,7 +285,7 @@ def test_engine_v1_card20_overlay_upper_branch_above_center(app_module, client):
 def test_engine_v1_endpoint_determinism_for_same_input(app_module, client):
     """Same input → same overlays + projection. (Observation ids and
     timestamps differ across calls — exclude those from comparison.)"""
-    user, sid = _make_user(app_module, "ev1_det", cohort=None)
+    user, sid = _make_user(app_module, "ev1_det")
     body = {"primitives": [_basic_primitive(pressure=6.0, flow=3.0, resistance=2.0)]}
 
     r1 = client.post("/engine/v1/run", headers=_auth(sid), json=body)

@@ -24,7 +24,7 @@ const DASH = "—";
 
 const FULL = {
   user: "u@example.com", operator_id: "op_x", tier: "free", cohort: "controller",
-  member_number: 1, citizen: true, controller: true, citz_id: "citz-000001chr",
+  member_number: 1, paid: true, controller: true, citz_id: "citz-000001chr",
   billing_expires_at: null, vault_ready: true, eso_source: "none", external_signal_mode: "cloud_only",
   capabilities: [
     { id: "threads", label: "Threads", route: "/me/threads" },

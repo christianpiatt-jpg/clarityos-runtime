@@ -10,6 +10,7 @@ handler under every prefix -- including future ones and the resolve write. The
 last test hits that write directly to prove the WRITE path is closed, not just
 the reads.
 """
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -27,7 +28,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import bcrypt
     import users_store
@@ -36,8 +37,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
         salt="", tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -50,13 +51,13 @@ def test_console_summary_401_without_session(client):
 
 
 def test_console_summary_403_for_non_founder(app_module, client):
-    _, sid = _make_user(app_module, "cg_outsider", cohort=None)
+    _, sid = _make_user(app_module, "cg_outsider", controller=False)
     r = client.get("/founder/console/summary", headers={"X-Session-ID": sid})
     assert r.status_code == 403, (r.status_code, r.text[:200])
 
 
 def test_console_summary_200_for_founder(app_module, client):
-    _, sid = _make_user(app_module, "cg_founder", cohort="founder")
+    _, sid = _make_user(app_module, "cg_founder", controller=True)
     r = client.get("/founder/console/summary", headers={"X-Session-ID": sid})
     assert r.status_code == 200, (r.status_code, r.text[:200])
 

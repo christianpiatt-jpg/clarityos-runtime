@@ -17,6 +17,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -37,7 +38,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder", *,
+def _make_user(app_module, username, controller=True, *,
                signal_mode=None, g_credits=10):
     import secrets
     import users_store, sessions_store, bcrypt
@@ -47,8 +48,8 @@ def _make_user(app_module, username, cohort="founder", *,
         tier="free", created_at=time.time(),
     )
     patch = {}
-    if cohort:
-        patch["cohort"] = cohort
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     if signal_mode is not None:
         patch["external_signal_mode"] = signal_mode
     if g_credits:
@@ -372,7 +373,7 @@ def test_scheduler_delegates_to_kernel(reset_stores):
 # Endpoint contracts — same shape as before the refactor
 # ---------------------------------------------------------------------------
 def test_endpoint_c_run_unchanged(app_module, client):
-    user, sid = _make_user(app_module, "ec_a", cohort="founder")
+    user, sid = _make_user(app_module, "ec_a", controller=True)
     r = client.post(
         "/c/run", headers=_auth(sid),
         json={"text": "the agency is drifting from its mandate", "mode": "comment"},
@@ -385,7 +386,7 @@ def test_endpoint_c_run_unchanged(app_module, client):
 
 
 def test_endpoint_elins_preview_unchanged(app_module, client):
-    user, sid = _make_user(app_module, "ep_a", cohort="founder")
+    user, sid = _make_user(app_module, "ep_a", controller=True)
     r = client.post(
         "/elins/preview", headers=_auth(sid),
         json={"text": "trust between partners is eroding under tariff pressure"},
@@ -401,7 +402,7 @@ def test_endpoint_elins_preview_unchanged(app_module, client):
 
 def test_endpoint_elins_global_unchanged(app_module, client):
     from ELINS import elins_project
-    user, sid = _make_user(app_module, "eg_a", cohort="founder")
+    user, sid = _make_user(app_module, "eg_a", controller=True)
     r = client.post(
         "/elins/global", headers=_auth(sid),
         json={"text": "Court ruling on constitutional pressure"},
@@ -416,7 +417,7 @@ def test_endpoint_elins_global_unchanged(app_module, client):
 
 
 def test_endpoint_elins_regional_run_unchanged(app_module, client):
-    user, sid = _make_user(app_module, "er_a", cohort="founder")
+    user, sid = _make_user(app_module, "er_a", controller=True)
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "US"},
@@ -432,7 +433,7 @@ def test_endpoint_elins_g_run_records_g_history(app_module, client):
     """When /elins/g/run succeeds, operator_state should have a fresh
     #G entry — proves the kernel wraps the runner."""
     import operator_state as os_
-    user, sid = _make_user(app_module, "egr_a", cohort="founder", g_credits=5)
+    user, sid = _make_user(app_module, "egr_a", controller=True, g_credits=5)
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
         json={"scenario_text": "tariffs are creating pressure on the courts"},
@@ -446,7 +447,7 @@ def test_endpoint_elins_g_run_records_g_history(app_module, client):
 # /founder/intelligence/kernel/status
 # ---------------------------------------------------------------------------
 def test_endpoint_kernel_status_shape(app_module, client):
-    user, sid = _make_user(app_module, "ks_a", cohort="founder")
+    user, sid = _make_user(app_module, "ks_a", controller=True)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     kernel = r.json()["kernel"]
@@ -462,14 +463,14 @@ def test_endpoint_kernel_status_after_macro_run(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "ks_b", cohort="founder")
+    user, sid = _make_user(app_module, "ks_b", controller=True)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     kernel = r.json()["kernel"]
     assert kernel["last_macro_run_ts"] is not None
 
 
 def test_endpoint_kernel_status_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "ks_outsider", cohort=None)
+    user, sid = _make_user(app_module, "ks_outsider", controller=False)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -478,7 +479,7 @@ def test_endpoint_kernel_status_requires_founder(app_module, client):
 # /me intelligence_kernel block
 # ---------------------------------------------------------------------------
 def test_me_includes_intelligence_kernel_block(app_module, client):
-    user, sid = _make_user(app_module, "me_a", cohort="founder")
+    user, sid = _make_user(app_module, "me_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -492,7 +493,7 @@ def test_me_includes_intelligence_kernel_block(app_module, client):
 
 def test_me_intelligence_kernel_reflects_user_preferences(app_module, client):
     import operator_state as os_
-    user, sid = _make_user(app_module, "me_b", cohort="founder")
+    user, sid = _make_user(app_module, "me_b", controller=True)
     os_.record_elins_interaction(
         user, "sc_1", {"topic": "x", "region": "MEA", "domain": "geopolitical"},
     )
@@ -502,7 +503,7 @@ def test_me_intelligence_kernel_reflects_user_preferences(app_module, client):
 
 
 def test_me_advertises_intelligence_kernel_capability(app_module, client):
-    user, sid = _make_user(app_module, "cap_a", cohort="founder")
+    user, sid = _make_user(app_module, "cap_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "intelligence_kernel" in ids

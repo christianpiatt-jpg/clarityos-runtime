@@ -17,6 +17,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import math
 import time
 
@@ -307,7 +308,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -315,8 +316,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -327,7 +328,7 @@ def _auth(sid):
 
 
 def test_endpoint_elins_forecast_returns_block(app_module, client):
-    user, sid = _make_user(app_module, "fp_a", cohort="founder")
+    user, sid = _make_user(app_module, "fp_a", controller=True)
     r = client.post(
         "/elins/forecast", headers=_auth(sid),
         json={
@@ -351,7 +352,7 @@ def test_endpoint_elins_forecast_returns_block(app_module, client):
 
 
 def test_endpoint_elins_forecast_with_chain(app_module, client):
-    user, sid = _make_user(app_module, "fp_b", cohort="founder")
+    user, sid = _make_user(app_module, "fp_b", controller=True)
     r = client.post(
         "/elins/forecast", headers=_auth(sid),
         json={
@@ -374,7 +375,7 @@ def test_endpoint_elins_forecast_with_chain(app_module, client):
 
 
 def test_endpoint_elins_forecast_with_domain_subset(app_module, client):
-    user, sid = _make_user(app_module, "fp_c", cohort="founder")
+    user, sid = _make_user(app_module, "fp_c", controller=True)
     r = client.post(
         "/elins/forecast", headers=_auth(sid),
         json={
@@ -389,7 +390,7 @@ def test_endpoint_elins_forecast_with_domain_subset(app_module, client):
 
 
 def test_endpoint_elins_forecast_rejects_bad_domain(app_module, client):
-    user, sid = _make_user(app_module, "fp_d", cohort="founder")
+    user, sid = _make_user(app_module, "fp_d", controller=True)
     r = client.post(
         "/elins/forecast", headers=_auth(sid),
         json={
@@ -401,7 +402,7 @@ def test_endpoint_elins_forecast_rejects_bad_domain(app_module, client):
 
 
 def test_endpoint_elins_forecast_rejects_empty_primitives(app_module, client):
-    user, sid = _make_user(app_module, "fp_e", cohort="founder")
+    user, sid = _make_user(app_module, "fp_e", controller=True)
     r = client.post(
         "/elins/forecast", headers=_auth(sid),
         json={"primitives": []},
@@ -410,7 +411,9 @@ def test_endpoint_elins_forecast_rejects_empty_primitives(app_module, client):
 
 
 def test_endpoint_elins_forecast_blocked_when_v28_off(app_module, client):
-    user, sid = _make_user(app_module, "fp_lurker", cohort=None)
+    user, sid = _make_user(app_module, "fp_lurker", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.post(
         "/elins/forecast", headers=_auth(sid),
         json={"primitives": [{"key": "pressure", "intensity": 0.5}]},
@@ -434,7 +437,7 @@ def test_endpoint_elins_forecast_example_public(app_module, client):
 
 def test_endpoint_founder_elins_forecast_run_persists(app_module, client):
     from ELINS import elins_project as ep
-    user, sid = _make_user(app_module, "fp_founder", cohort="founder")
+    user, sid = _make_user(app_module, "fp_founder", controller=True)
     r = client.post(
         "/founder/elins/forecast/run", headers=_auth(sid),
         json={"text": "Court ruling on constitutional pressure", "days": 5},
@@ -447,7 +450,7 @@ def test_endpoint_founder_elins_forecast_run_persists(app_module, client):
 
 
 def test_endpoint_founder_elins_forecast_run_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "fp_outsider", cohort=None)
+    user, sid = _make_user(app_module, "fp_outsider", controller=False)
     r = client.post(
         "/founder/elins/forecast/run", headers=_auth(sid),
         json={"text": "x x x x"},
@@ -456,7 +459,7 @@ def test_endpoint_founder_elins_forecast_run_requires_founder(app_module, client
 
 
 def test_endpoint_founder_elins_forecast_run_custom_days(app_module, client):
-    user, sid = _make_user(app_module, "fp_days", cohort="founder")
+    user, sid = _make_user(app_module, "fp_days", controller=True)
     r = client.post(
         "/founder/elins/forecast/run", headers=_auth(sid),
         json={"text": "tension under sustained pressure", "days": 10},

@@ -21,6 +21,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import json
 import time
 
@@ -42,7 +43,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -50,8 +51,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     # v44 gate-alignment: /model/route sits behind require_active_entitlement
@@ -366,7 +367,7 @@ def test_kernel_status_includes_models_block(reset_stores):
 # Endpoints
 # ---------------------------------------------------------------------------
 def test_endpoint_set_preferred_model(app_module, client):
-    user, sid = _make_user(app_module, "mp_a", cohort="founder")
+    user, sid = _make_user(app_module, "mp_a", controller=True)
     r = client.post(
         "/me/operator_state/model", headers=_auth(sid),
         json={"preferred_model": "anthropic:claude-haiku-4-5-20251001"},
@@ -377,7 +378,7 @@ def test_endpoint_set_preferred_model(app_module, client):
 
 
 def test_endpoint_set_preferred_model_clear_with_null(app_module, client):
-    user, sid = _make_user(app_module, "mp_b", cohort="founder")
+    user, sid = _make_user(app_module, "mp_b", controller=True)
     client.post(
         "/me/operator_state/model", headers=_auth(sid),
         json={"preferred_model": "anthropic:claude-haiku-4-5-20251001"},
@@ -391,7 +392,7 @@ def test_endpoint_set_preferred_model_clear_with_null(app_module, client):
 
 
 def test_endpoint_set_preferred_model_rejects_unknown(app_module, client):
-    user, sid = _make_user(app_module, "mp_c", cohort="founder")
+    user, sid = _make_user(app_module, "mp_c", controller=True)
     r = client.post(
         "/me/operator_state/model", headers=_auth(sid),
         json={"preferred_model": "not_a_model"},
@@ -400,7 +401,7 @@ def test_endpoint_set_preferred_model_rejects_unknown(app_module, client):
 
 
 def test_endpoint_founder_models_status_shape(app_module, client):
-    user, sid = _make_user(app_module, "fm_a", cohort="founder")
+    user, sid = _make_user(app_module, "fm_a", controller=True)
     r = client.get("/founder/models/status", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -412,13 +413,13 @@ def test_endpoint_founder_models_status_shape(app_module, client):
 
 
 def test_endpoint_founder_models_status_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "fm_outsider", cohort=None)
+    user, sid = _make_user(app_module, "fm_outsider", controller=False)
     r = client.get("/founder/models/status", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_endpoint_founder_models_override_round_trip(app_module, client):
-    user, sid = _make_user(app_module, "fmo_a", cohort="founder")
+    user, sid = _make_user(app_module, "fmo_a", controller=True)
     r = client.post(
         "/founder/models/override", headers=_auth(sid),
         json={"default_model": "google:gemini-2.5-flash"},
@@ -436,7 +437,7 @@ def test_endpoint_founder_models_override_round_trip(app_module, client):
 
 
 def test_endpoint_founder_models_override_validates(app_module, client):
-    user, sid = _make_user(app_module, "fmo_b", cohort="founder")
+    user, sid = _make_user(app_module, "fmo_b", controller=True)
     r = client.post(
         "/founder/models/override", headers=_auth(sid),
         json={"default_model": "not_a_model"},
@@ -445,7 +446,7 @@ def test_endpoint_founder_models_override_validates(app_module, client):
 
 
 def test_endpoint_founder_models_override_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "fmo_outsider", cohort=None)
+    user, sid = _make_user(app_module, "fmo_outsider", controller=False)
     r = client.post(
         "/founder/models/override", headers=_auth(sid),
         json={"default_model": "anthropic:claude-haiku-4-5-20251001"},
@@ -457,7 +458,7 @@ def test_endpoint_founder_models_override_requires_founder(app_module, client):
 # /me — preferred_model + last_model_used surfaced via intelligence_kernel block
 # ---------------------------------------------------------------------------
 def test_me_includes_preferred_and_last_model(app_module, client):
-    user, sid = _make_user(app_module, "me_a", cohort="founder")
+    user, sid = _make_user(app_module, "me_a", controller=True)
     client.post(
         "/me/operator_state/model", headers=_auth(sid),
         json={"preferred_model": "anthropic:claude-haiku-4-5-20251001"},
@@ -477,7 +478,7 @@ def test_me_includes_preferred_and_last_model(app_module, client):
 
 
 def test_me_advertises_model_router_capability(app_module, client):
-    user, sid = _make_user(app_module, "cap_a", cohort="founder")
+    user, sid = _make_user(app_module, "cap_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "model_router" in ids
@@ -490,7 +491,7 @@ def test_card_19_model_route_basic_task_default(app_module, client):
     """Intent maps to a TASK_DEFAULTS bucket; no overrides set → reason
     is ``task_default`` and the model matches TASK_DEFAULTS[intent]."""
     import model_router as mr
-    user, sid = _make_user(app_module, "mr_basic", cohort=None)
+    user, sid = _make_user(app_module, "mr_basic", controller=False)
     r = client.post(
         "/model/route", headers=_auth(sid),
         json={"intent": "ELINS"},
@@ -504,7 +505,7 @@ def test_card_19_model_route_basic_task_default(app_module, client):
 
 def test_card_19_model_route_explicit_override(app_module, client):
     """An explicit override wins precedence → reason is ``override``."""
-    user, sid = _make_user(app_module, "mr_override", cohort=None)
+    user, sid = _make_user(app_module, "mr_override", controller=False)
     r = client.post(
         "/model/route", headers=_auth(sid),
         json={"intent": "ELINS", "override": "openai:gpt-5.4"},
@@ -518,7 +519,7 @@ def test_card_19_model_route_explicit_override(app_module, client):
 def test_card_19_model_route_user_preference(app_module, client):
     """User preferred_model wins when no override + no founder default."""
     import operator_state
-    user, sid = _make_user(app_module, "mr_pref", cohort=None)
+    user, sid = _make_user(app_module, "mr_pref", controller=False)
     operator_state.set_preferred_model(user, "anthropic:claude-haiku-4-5-20251001")
     r = client.post(
         "/model/route", headers=_auth(sid),
@@ -534,7 +535,7 @@ def test_card_19_model_route_founder_default(app_module, client):
     """Founder global default beats user preferred_model."""
     import model_router as mr
     import operator_state
-    user, sid = _make_user(app_module, "mr_fd", cohort=None)
+    user, sid = _make_user(app_module, "mr_fd", controller=False)
     operator_state.set_preferred_model(user, "openai:gpt-5.4")
     mr.set_founder_default_model("anthropic:claude-haiku-4-5-20251001")
     try:
@@ -551,8 +552,9 @@ def test_card_19_model_route_founder_default(app_module, client):
 
 
 def test_card_19_model_route_operator_flag_founder_cohort(app_module, client):
-    """Card 18 rule: founder cohort flips operator=True without any token."""
-    user, sid = _make_user(app_module, "mr_op_f", cohort="founder")
+    """Card 18 rule: the controller (the flag; #157: never a string) flips
+    operator=True without any token."""
+    user, sid = _make_user(app_module, "mr_op_f", controller=True)
     r = client.post(
         "/model/route", headers=_auth(sid),
         json={"intent": "ELINS"},
@@ -562,8 +564,8 @@ def test_card_19_model_route_operator_flag_founder_cohort(app_module, client):
 
 
 def test_card_19_model_route_operator_flag_regular_user(app_module, client):
-    """No token + non-founder cohort → operator=False."""
-    user, sid = _make_user(app_module, "mr_op_r", cohort="terrace_1")
+    """No token + not the controller → operator=False."""
+    user, sid = _make_user(app_module, "mr_op_r", controller=False)
     r = client.post(
         "/model/route", headers=_auth(sid),
         json={"intent": "ELINS"},
@@ -575,7 +577,7 @@ def test_card_19_model_route_operator_flag_regular_user(app_module, client):
 def test_card_19_model_route_operator_flag_token(app_module, client, monkeypatch):
     """Operator token flips operator=True even when cohort is non-founder."""
     monkeypatch.setenv("CLARITYOS_OPERATOR_TOKEN", "secret-card19-token")
-    user, sid = _make_user(app_module, "mr_op_t", cohort=None)
+    user, sid = _make_user(app_module, "mr_op_t", controller=False)
     r = client.post(
         "/model/route",
         headers={**_auth(sid), "Authorization": "Operator secret-card19-token"},
@@ -587,7 +589,7 @@ def test_card_19_model_route_operator_flag_token(app_module, client, monkeypatch
 
 def test_card_19_model_route_bad_override_rejected(app_module, client):
     """Unknown override model_id → 400 bad_input via v29_hardening."""
-    user, sid = _make_user(app_module, "mr_bad", cohort=None)
+    user, sid = _make_user(app_module, "mr_bad", controller=False)
     r = client.post(
         "/model/route", headers=_auth(sid),
         json={"intent": "ELINS", "override": "not_a_real_model"},
@@ -612,7 +614,7 @@ def test_card_19_5_model_complete_returns_text(app_module, client):
     """Happy path: valid model + prompt → wrapper returns text from
     route_request. With no provider env keys configured, this is the
     deterministic mock; ``mock`` is True and ``text`` is non-empty."""
-    user, sid = _make_user(app_module, "mc_basic", cohort=None)
+    user, sid = _make_user(app_module, "mc_basic", controller=False)
     r = client.post(
         "/model/complete", headers=_auth_mc(sid),
         json={"model": "openai:gpt-5.4-mini", "prompt": "hello world"},
@@ -630,7 +632,7 @@ def test_card_19_5_model_complete_returns_text(app_module, client):
 def test_card_19_5_model_complete_rejects_unknown_model(app_module, client):
     """Unknown model_id → 400 bad_input (route_request raises ValueError,
     adapter routes through v29_hardening.raise_validation)."""
-    user, sid = _make_user(app_module, "mc_bad", cohort=None)
+    user, sid = _make_user(app_module, "mc_bad", controller=False)
     r = client.post(
         "/model/complete", headers=_auth_mc(sid),
         json={"model": "not_a_real_model", "prompt": "x"},
@@ -651,7 +653,7 @@ def test_card_19_5_model_complete_requires_session(app_module, client):
 def test_card_19_5_model_complete_dispatches_per_provider(app_module, client):
     """Different model_ids surface their providers in the response so
     callers can confirm routing without parsing text content."""
-    user, sid = _make_user(app_module, "mc_disp", cohort=None)
+    user, sid = _make_user(app_module, "mc_disp", controller=False)
     cases = [
         ("openai:gpt-5.4",          "openai"),
         ("anthropic:claude-haiku-4-5-20251001",   "anthropic"),
@@ -676,7 +678,7 @@ def test_card_19_5_model_complete_rate_limit_enforced(app_module, client, monkey
     v29_hardening per-user rate limit (cost guardrail)."""
     import v29_hardening
     monkeypatch.setattr(v29_hardening, "_RATE_ENFORCE", True)
-    user, sid = _make_user(app_module, "mc_rl", cohort=None)
+    user, sid = _make_user(app_module, "mc_rl", controller=False)
     last_status = 200
     for i in range(11):
         r = client.post(
@@ -697,7 +699,7 @@ def test_card_19_5_model_complete_no_route_request_changes(app_module, client):
     route_request call for the same input (deterministic mock = same
     string)."""
     import model_router as mr
-    user, sid = _make_user(app_module, "mc_pin", cohort=None)
+    user, sid = _make_user(app_module, "mc_pin", controller=False)
     direct = mr.route_request("openai:gpt-5.4-mini", "anchor-text")
     r = client.post(
         "/model/complete", headers=_auth_mc(sid),

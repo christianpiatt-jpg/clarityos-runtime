@@ -29,6 +29,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import json
 import time
 
@@ -50,7 +51,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder", *, signal_mode=None):
+def _make_user(app_module, username, controller=True, *, signal_mode=None):
     import secrets, time
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -59,8 +60,8 @@ def _make_user(app_module, username, cohort="founder", *, signal_mode=None):
         tier="free", created_at=time.time(),
     )
     patch = {}
-    if cohort:
-        patch["cohort"] = cohort
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     if signal_mode is not None:
         patch["external_signal_mode"] = signal_mode
     if patch:
@@ -451,7 +452,7 @@ def test_kernel_logging_emitted_on_run_paths(reset_stores, caplog):
 # /me — top-level external_signal_mode + eso_source
 # ---------------------------------------------------------------------------
 def test_me_exposes_top_level_signal_mode(app_module, client):
-    user, sid = _make_user(app_module, "me_a", cohort="founder")
+    user, sid = _make_user(app_module, "me_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -460,7 +461,7 @@ def test_me_exposes_top_level_signal_mode(app_module, client):
 
 
 def test_me_eso_source_none_when_cloud_only(app_module, client):
-    user, sid = _make_user(app_module, "me_b", cohort="founder")
+    user, sid = _make_user(app_module, "me_b", controller=True)
     # Default is cloud_only.
     r = client.get("/me", headers=_auth(sid))
     assert r.json()["eso_source"] == "none"
@@ -468,7 +469,7 @@ def test_me_eso_source_none_when_cloud_only(app_module, client):
 
 def test_me_eso_source_mock_when_cloud_perplexity_no_key(app_module, client, monkeypatch):
     monkeypatch.delenv("CLARITYOS_PERPLEXITY_API_KEY", raising=False)
-    user, sid = _make_user(app_module, "me_c", cohort="founder")
+    user, sid = _make_user(app_module, "me_c", controller=True)
     client.post(
         "/me/operator_state", headers=_auth(sid),
         json={"external_signal_mode": "cloud_perplexity"},
@@ -480,7 +481,7 @@ def test_me_eso_source_mock_when_cloud_perplexity_no_key(app_module, client, mon
 
 def test_me_eso_source_perplexity_when_key_set(app_module, client, monkeypatch):
     monkeypatch.setenv("CLARITYOS_PERPLEXITY_API_KEY", "test-key-xyz")
-    user, sid = _make_user(app_module, "me_d", cohort="founder")
+    user, sid = _make_user(app_module, "me_d", controller=True)
     client.post(
         "/me/operator_state", headers=_auth(sid),
         json={"external_signal_mode": "cloud_perplexity"},
@@ -493,7 +494,7 @@ def test_me_eso_source_perplexity_when_key_set(app_module, client, monkeypatch):
 # /founder/intelligence/kernel/status — perplexity block
 # ---------------------------------------------------------------------------
 def test_kernel_status_includes_perplexity_block(app_module, client):
-    user, sid = _make_user(app_module, "ks_a", cohort="founder")
+    user, sid = _make_user(app_module, "ks_a", controller=True)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     assert r.status_code == 200
     kernel = r.json()["kernel"]
@@ -506,7 +507,7 @@ def test_kernel_status_includes_perplexity_block(app_module, client):
 
 def test_kernel_status_perplexity_live_when_key_set(app_module, client, monkeypatch):
     monkeypatch.setenv("CLARITYOS_PERPLEXITY_API_KEY", "test-key-xyz")
-    user, sid = _make_user(app_module, "ks_b", cohort="founder")
+    user, sid = _make_user(app_module, "ks_b", controller=True)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     p = r.json()["kernel"]["perplexity"]
     assert p["configured"] is True
@@ -515,7 +516,7 @@ def test_kernel_status_perplexity_live_when_key_set(app_module, client, monkeypa
 
 def test_kernel_status_perplexity_mock_when_key_unset(app_module, client, monkeypatch):
     monkeypatch.delenv("CLARITYOS_PERPLEXITY_API_KEY", raising=False)
-    user, sid = _make_user(app_module, "ks_c", cohort="founder")
+    user, sid = _make_user(app_module, "ks_c", controller=True)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     p = r.json()["kernel"]["perplexity"]
     assert p["configured"] is False
@@ -525,7 +526,7 @@ def test_kernel_status_perplexity_mock_when_key_unset(app_module, client, monkey
 def test_kernel_status_perplexity_last_error_after_failure(app_module, client, monkeypatch):
     import perplexity_oracle as po
     po._record_error("simulated 503")
-    user, sid = _make_user(app_module, "ks_d", cohort="founder")
+    user, sid = _make_user(app_module, "ks_d", controller=True)
     r = client.get("/founder/intelligence/kernel/status", headers=_auth(sid))
     p = r.json()["kernel"]["perplexity"]
     assert p["last_error_ts"] is not None
@@ -536,7 +537,7 @@ def test_kernel_status_perplexity_last_error_after_failure(app_module, client, m
 # ---------------------------------------------------------------------------
 def test_endpoint_regional_run_returns_eso_source_field(app_module, client):
     user, sid = _make_user(
-        app_module, "ee_a", cohort="founder",
+        app_module, "ee_a", controller=True,
         signal_mode="cloud_perplexity",
     )
     r = client.post(

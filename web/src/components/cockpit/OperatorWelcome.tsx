@@ -195,7 +195,7 @@ export default function OperatorWelcome() {
           <div className="cos-row" title="operator_id"><span className="cos-k">Operator</span><span className="cos-v">{profile?.operator_id ?? "—"}</span></div>
           <div className="cos-row" title="tier"><span className="cos-k">Tier</span><span className="cos-v">{profile?.tier ?? "—"}</span></div>
           {/* #171 -- the one word the surface has: citizen / admin / nothing */}
-          <div className="cos-row" title="cohort · member_number · citizen · controller · citz_id"><span className="cos-k">Cohort</span><span className="cos-v">{cohortWord(profile)}</span></div>
+          <div className="cos-row" title="cohort · member_number · paid · controller · citz_id"><span className="cos-k">Cohort</span><span className="cos-v">{cohortWord(profile)}</span></div>
           <div className="cos-row" title="billing_expires_at"><span className="cos-k">Renewal</span><span className="cos-v">{fmtRenewal(profile?.billing_expires_at)}</span></div>
           {/* #180b (3) -- vault_ready as a word; absent = the server did not say */}
           <div className="cos-row" title="vault_ready"><span className="cos-k">Vault</span><span className="cos-v" data-testid="vault-ready">{profile?.vault_ready === true ? "ready" : profile?.vault_ready === false ? "not ready" : DASH}</span></div>

@@ -8,6 +8,7 @@ deferred behind billing WIP and surfaced as such.
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -26,7 +27,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(username, cohort="founder"):
+def _make_user(username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -35,8 +36,8 @@ def _make_user(username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -163,7 +164,7 @@ def test_summary_shape_and_live_webhook(reset_stores):
 # endpoint — GET /founder/alerts
 # ---------------------------------------------------------------------------
 def test_founder_alerts_endpoint_ok(client):
-    _u, sid = _make_user("founder1", cohort="founder")
+    _u, sid = _make_user("founder1", controller=True)
     resp = client.get("/founder/alerts", headers=_auth(sid))
     assert resp.status_code == 200
     body = resp.json()
@@ -173,7 +174,7 @@ def test_founder_alerts_endpoint_ok(client):
 
 
 def test_founder_alerts_endpoint_requires_founder(client):
-    _u, sid = _make_user("member1", cohort="member")
+    _u, sid = _make_user("member1", controller=False)
     resp = client.get("/founder/alerts", headers=_auth(sid))
     assert resp.status_code == 403
 

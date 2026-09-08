@@ -201,16 +201,13 @@ export default function Layout() {
 
 // #171 -- the footer says the one word the surface has for a member
 // (citizen · admin · nothing) and, when numbered, the citizen id. The
-// derived label and the legacy strings no longer reach the surface. The
-// derived label "controller" and the legacy strings founder /
-// founder_exception / admin all read as admin (the strings for one
-// deploy, #157).
+// derived label never reaches the surface. #157 -- "admin" is the
+// controller FLAG and nothing else; no label and no legacy string reads
+// as admin any more.
 function cohortLabel(profile: Profile | null): string {
   if (!profile) return "—";
   const id = profile.citz_id ? ` ${profile.citz_id}` : "";
-  const legacyAdmin = profile.cohort === "controller" || profile.cohort === "founder"
-    || profile.cohort === "founder_exception" || profile.cohort === "admin";
-  const word = cohortWord({ member_number: profile.member_number, controller: !!profile.controller || legacyAdmin });
+  const word = cohortWord({ member_number: profile.member_number, controller: !!profile.controller });
   return word === "—" ? (id ? id.trim() : "—") : word + id;
 }
 

@@ -14,6 +14,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import logging
 import secrets
 import threading
@@ -42,7 +43,7 @@ def _register_user(app_module, username: str) -> None:
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    users_store.update_user(username, {"cohort": "founder"})
+    seed_controller(username)  # #157 -- the flag, never a string
 
 
 # ===========================================================================
@@ -404,7 +405,7 @@ class TestB4LoggingSurfaceUnderDeployment:
             username=username, password_hash=pwd_hash, salt="",
             tier="free", created_at=time.time(),
         )
-        users_store.update_user(username, {"cohort": "founder"})
+        seed_controller(username)  # #157 -- the flag, never a string
         sid = "sess_" + secrets.token_urlsafe(16)
         sessions_store.create_session(
             sid, username, expires_at=time.time() + 3600,

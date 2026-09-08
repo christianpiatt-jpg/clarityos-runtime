@@ -14,7 +14,7 @@ const DASH = "—";
 
 const FULL = {
   user: "u",
-  identity: { member_number: 17, citizen: true, controller: false, citz_id: "citz-000017ava", cohort: "founding" },
+  identity: { member_number: 17, paid: true, controller: false, citz_id: "citz-000017ava", cohort: "founding" },
   membership: {
     tier: "founding_500", status: "active", price_locked: 50, started_ts: 1_781_536_458, cancelled_ts: null,
     next_price: 50, price_lock_forfeit: false, confirmed: true, confirmed_ts: 1_783_420_269,
@@ -27,7 +27,7 @@ const FULL = {
 
 const SPARSE = {
   user: "u",
-  identity: { member_number: null, citizen: false, controller: false, citz_id: "citz-000099xyz", cohort: "all" },
+  identity: { member_number: null, paid: false, controller: false, citz_id: "citz-000099xyz", cohort: "all" },
   membership: { tier: null, status: null, price_locked: null, started_ts: null, cancelled_ts: null, next_price: 50, price_lock_forfeit: false },
   billing: { state: null, renewal_ts: null, renewal_retry_count: 0, renewal_grace_until_ts: null, next_amount: 50 },
   cohort: {},

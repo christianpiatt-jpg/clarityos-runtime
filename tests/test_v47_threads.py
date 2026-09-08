@@ -29,6 +29,7 @@ Endpoint coverage:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -50,7 +51,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -59,8 +60,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -322,7 +323,7 @@ def test_kernel_view_for_user_includes_thread_metrics(reset_stores):
 # Endpoints — /me/threads round-trip
 # ===========================================================================
 def test_me_threads_endpoints_round_trip(app_module, client):
-    user, sid = _make_user(app_module, "thr_a", cohort="founder")
+    user, sid = _make_user(app_module, "thr_a", controller=True)
     # 1. POST /me/threads → create
     r = client.post(
         "/me/threads", headers=_auth(sid), json={"title": "first thread"},
@@ -388,15 +389,15 @@ def test_me_threads_endpoints_round_trip(app_module, client):
 
 
 def test_me_threads_create_no_title(app_module, client):
-    user, sid = _make_user(app_module, "thr_b", cohort="founder")
+    user, sid = _make_user(app_module, "thr_b", controller=True)
     r = client.post("/me/threads", headers=_auth(sid), json={})
     assert r.status_code == 200
     assert r.json()["title"] is None
 
 
 def test_me_threads_isolated_per_user(app_module, client):
-    a_user, a_sid = _make_user(app_module, "thr_alice", cohort="founder")
-    b_user, b_sid = _make_user(app_module, "thr_bob", cohort="founder")
+    a_user, a_sid = _make_user(app_module, "thr_alice", controller=True)
+    b_user, b_sid = _make_user(app_module, "thr_bob", controller=True)
     client.post("/me/threads", headers=_auth(a_sid), json={"title": "alice's"})
     client.post("/me/threads", headers=_auth(b_sid), json={"title": "bob's"})
     a = client.get("/me/threads", headers=_auth(a_sid)).json()["threads"]
@@ -406,7 +407,7 @@ def test_me_threads_isolated_per_user(app_module, client):
 
 
 def test_me_threads_get_unknown_returns_404(app_module, client):
-    user, sid = _make_user(app_module, "thr_c", cohort="founder")
+    user, sid = _make_user(app_module, "thr_c", controller=True)
     r = client.get(
         "/me/threads/no_such_thread_id", headers=_auth(sid),
     )
@@ -414,7 +415,7 @@ def test_me_threads_get_unknown_returns_404(app_module, client):
 
 
 def test_me_threads_message_unknown_returns_404(app_module, client):
-    user, sid = _make_user(app_module, "thr_d", cohort="founder")
+    user, sid = _make_user(app_module, "thr_d", controller=True)
     r = client.post(
         "/me/threads/no_such_thread_id/message",
         headers=_auth(sid), json={"content": "hi"},
@@ -423,7 +424,7 @@ def test_me_threads_message_unknown_returns_404(app_module, client):
 
 
 def test_me_threads_message_empty_content_400(app_module, client):
-    user, sid = _make_user(app_module, "thr_e", cohort="founder")
+    user, sid = _make_user(app_module, "thr_e", controller=True)
     cr = client.post("/me/threads", headers=_auth(sid), json={"title": "x"})
     tid = cr.json()["thread_id"]
     r = client.post(
@@ -434,7 +435,7 @@ def test_me_threads_message_empty_content_400(app_module, client):
 
 
 def test_me_threads_rename_unknown_returns_404(app_module, client):
-    user, sid = _make_user(app_module, "thr_f", cohort="founder")
+    user, sid = _make_user(app_module, "thr_f", controller=True)
     r = client.post(
         "/me/threads/no_such_thread_id/rename",
         headers=_auth(sid), json={"title": "x"},
@@ -444,7 +445,7 @@ def test_me_threads_rename_unknown_returns_404(app_module, client):
 
 def test_me_threads_delete_unknown_is_idempotent(app_module, client):
     """Deleting a missing thread is a no-op (mirrors vault_delete)."""
-    user, sid = _make_user(app_module, "thr_g", cohort="founder")
+    user, sid = _make_user(app_module, "thr_g", controller=True)
     r = client.post(
         "/me/threads/no_such_thread_id/delete",
         headers=_auth(sid), json={},
@@ -456,7 +457,7 @@ def test_me_threads_delete_unknown_is_idempotent(app_module, client):
 def test_me_threads_path_validation_blocks_dot_in_id(app_module, client):
     """Dots in thread ids are reserved for the message key separator —
     the app layer surfaces a clean 400 before reaching the vault."""
-    user, sid = _make_user(app_module, "thr_h", cohort="founder")
+    user, sid = _make_user(app_module, "thr_h", controller=True)
     r = client.get(
         "/me/threads/has.dot.id", headers=_auth(sid),
     )
@@ -467,7 +468,7 @@ def test_me_threads_path_validation_blocks_dot_in_id(app_module, client):
 # /me capability + /health version
 # ===========================================================================
 def test_me_capabilities_includes_threads(app_module, client):
-    user, sid = _make_user(app_module, "cap_t", cohort="founder")
+    user, sid = _make_user(app_module, "cap_t", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "threads" in ids
@@ -475,7 +476,7 @@ def test_me_capabilities_includes_threads(app_module, client):
 
 def test_me_kernel_view_includes_thread_count(app_module, client):
     """v47 — /me intelligence_kernel block carries thread_count."""
-    user, sid = _make_user(app_module, "cap_t2", cohort="founder")
+    user, sid = _make_user(app_module, "cap_t2", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ik_block = r.json()["intelligence_kernel"]
     assert "thread_count" in ik_block

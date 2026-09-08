@@ -10,6 +10,7 @@ Strategy:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -50,7 +51,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username="alice", cohort="founder"):
+def _make_user(app_module, username="alice", controller=True):
     """Create a user with the given cohort and return a session dict that
     matches what require_session would yield. Bypasses the invite/billing
     flow — tests target post-signup state."""
@@ -64,8 +65,8 @@ def _make_user(app_module, username="alice", cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -91,7 +92,7 @@ def test_health_version(client):
 
 
 def test_v29_flags_returns_user_view(app_module, client):
-    user, sid = _make_user(app_module, "flagsuser", cohort="founder")
+    user, sid = _make_user(app_module, "flagsuser", controller=True)
     r = client.get("/v29/flags", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -100,8 +101,14 @@ def test_v29_flags_returns_user_view(app_module, client):
     assert body["flags"]["v28_surfaces"] is True
 
 
-def test_v29_flags_default_off_for_unscoped_user(app_module, client):
-    user, sid = _make_user(app_module, "lurker", cohort=None)
+def test_v29_flags_off_for_a_user_scoped_off(app_module, client):
+    """#157 -- a member's label "all" carries v28_surfaces in production
+    (v43); the OFF path is a user-scoped override, and /v29/flags reports
+    it. (Under the old harness a member simply had no flags; that was the
+    harness, not the product.)"""
+    user, sid = _make_user(app_module, "lurker", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)
     r = client.get("/v29/flags", headers=_auth(sid))
     assert r.status_code == 200
     assert r.json()["flags"]["v28_surfaces"] is False
@@ -115,7 +122,7 @@ def test_elins_g_run_happy_path(app_module, client):
     # controller, and a controller is unlimited (never debited, no
     # g_credits_remaining). The member's session label is "all", so the
     # flags are armed for this user directly.
-    user, sid = _make_user(app_module, "ginny", cohort="terrace_1")
+    user, sid = _make_user(app_module, "ginny", controller=False)
     import v29_hardening
     for _flag in ("v28_surfaces", "g_credits_enabled", "membership_ui_enabled"):
         v29_hardening.set_flag(_flag, True, user=user)
@@ -140,7 +147,7 @@ def test_elins_g_run_happy_path(app_module, client):
 
 
 def test_elins_g_run_empty_scenario_rejected(app_module, client):
-    user, sid = _make_user(app_module, "gina", cohort="founder")
+    user, sid = _make_user(app_module, "gina", controller=True)
     r = client.post(
         "/elins/g/run", headers=_auth(sid), json={"scenario_text": "   "},
     )
@@ -151,7 +158,7 @@ def test_elins_g_run_empty_scenario_rejected(app_module, client):
 
 
 def test_elins_g_run_oversize_rejected(app_module, client):
-    user, sid = _make_user(app_module, "gigi", cohort="founder")
+    user, sid = _make_user(app_module, "gigi", controller=True)
     payload = {"scenario_text": "x" * (app_module.SCENARIO_MAX_LEN + 100)}
     r = client.post("/elins/g/run", headers=_auth(sid), json=payload)
     assert r.status_code == 400
@@ -159,7 +166,9 @@ def test_elins_g_run_oversize_rejected(app_module, client):
 
 
 def test_elins_g_run_blocked_when_flag_off(app_module, client):
-    user, sid = _make_user(app_module, "guest", cohort=None)
+    user, sid = _make_user(app_module, "guest", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
         json={"scenario_text": "anything"},
@@ -174,7 +183,7 @@ def test_elins_g_run_blocked_when_flag_off(app_module, client):
 def test_elins_daily_queue_then_scheduler_delivers(app_module, client):
     import elins_distribution_store
 
-    user, sid = _make_user(app_module, "danny", cohort="founder")
+    user, sid = _make_user(app_module, "danny", controller=True)
     r = client.post(
         "/elins/daily/queue",
         headers=_auth(sid),
@@ -204,7 +213,7 @@ def test_elins_daily_queue_then_scheduler_delivers(app_module, client):
 
 
 def test_elins_daily_queue_empty_rejected(app_module, client):
-    user, sid = _make_user(app_module, "denny", cohort="founder")
+    user, sid = _make_user(app_module, "denny", controller=True)
     r = client.post(
         "/elins/daily/queue", headers=_auth(sid),
         json={"scenario_text": ""},
@@ -213,7 +222,7 @@ def test_elins_daily_queue_empty_rejected(app_module, client):
 
 
 def test_elins_daily_queue_bad_hour_rejected(app_module, client):
-    user, sid = _make_user(app_module, "drake", cohort="founder")
+    user, sid = _make_user(app_module, "drake", controller=True)
     r = client.post(
         "/elins/daily/queue", headers=_auth(sid),
         json={"scenario_text": "x", "local_hour": 99},
@@ -226,7 +235,7 @@ def test_elins_daily_queue_bad_hour_rejected(app_module, client):
 # /mesh/sync — oversize + LRU
 # ---------------------------------------------------------------------------
 def test_mesh_sync_happy(app_module, client):
-    user, sid = _make_user(app_module, "marvin", cohort="founder")
+    user, sid = _make_user(app_module, "marvin", controller=True)
     r = client.post(
         "/mesh/sync", headers=_auth(sid),
         json={"device_id": "dev-1", "metadata": {"events_count": 7}},
@@ -236,7 +245,7 @@ def test_mesh_sync_happy(app_module, client):
 
 
 def test_mesh_sync_oversize_rejected(app_module, client):
-    user, sid = _make_user(app_module, "morgan", cohort="founder")
+    user, sid = _make_user(app_module, "morgan", controller=True)
     huge = {"x": "y" * (16 * 1024 + 1)}
     r = client.post(
         "/mesh/sync", headers=_auth(sid),
@@ -251,7 +260,7 @@ def test_mesh_sync_lru_at_eight(app_module, client):
     assertion isn't sensitive to the host clock's resolution (Windows
     time.time() can repeat across rapid calls)."""
     import mesh_metadata_store
-    user, _sid = _make_user(app_module, "milo", cohort="founder")
+    user, _sid = _make_user(app_module, "milo", controller=True)
     for i in range(10):
         mesh_metadata_store.upsert_device(
             user, f"dev-{i}", {"i": i}, now_ts=1000.0 + i,
@@ -265,7 +274,9 @@ def test_mesh_sync_lru_at_eight(app_module, client):
 
 
 def test_mesh_state_blocked_when_flag_off(app_module, client):
-    user, sid = _make_user(app_module, "mira", cohort=None)
+    user, sid = _make_user(app_module, "mira", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.get("/mesh/state", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -274,7 +285,7 @@ def test_mesh_state_blocked_when_flag_off(app_module, client):
 # /continuity/snapshot — shape contract
 # ---------------------------------------------------------------------------
 def test_continuity_snapshot_shape(app_module, client):
-    user, sid = _make_user(app_module, "carol", cohort="founder")
+    user, sid = _make_user(app_module, "carol", controller=True)
     r = client.get("/continuity/snapshot", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     snap = r.json()["snapshot"]
@@ -292,7 +303,7 @@ def test_continuity_snapshot_shape(app_module, client):
 # /sessions and /engines — minimal surface
 # ---------------------------------------------------------------------------
 def test_sessions_list_empty(app_module, client):
-    user, sid = _make_user(app_module, "shilo", cohort="founder")
+    user, sid = _make_user(app_module, "shilo", controller=True)
     r = client.get("/sessions", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -302,7 +313,7 @@ def test_sessions_list_empty(app_module, client):
 
 
 def test_sessions_list_bad_limit_rejected(app_module, client):
-    user, sid = _make_user(app_module, "sam", cohort="founder")
+    user, sid = _make_user(app_module, "sam", controller=True)
     # FastAPI coerces ?limit=abc to 422 before our validator sees it; we test
     # the in-app validator using a negative int.
     r = client.get("/sessions?limit=-1", headers=_auth(sid))
@@ -310,7 +321,7 @@ def test_sessions_list_bad_limit_rejected(app_module, client):
 
 
 def test_engines_returns_catalog(app_module, client):
-    user, sid = _make_user(app_module, "ed", cohort="founder")
+    user, sid = _make_user(app_module, "ed", controller=True)
     r = client.get("/engines", headers=_auth(sid))
     assert r.status_code == 200
     engines = r.json()["engines"]
@@ -323,7 +334,7 @@ def test_engines_returns_catalog(app_module, client):
 def test_runtime_envelope_strips_vectors_and_renders_layers(app_module, client):
     import envelopes_store
 
-    user, sid = _make_user(app_module, "ronan", cohort="founder")
+    user, sid = _make_user(app_module, "ronan", controller=True)
     # Seed a fully-populated envelope so the renderer's 21 layers are present.
     big_vec = [0.1] * 768
     envelopes_store.set_envelope(user, {
@@ -388,7 +399,7 @@ def test_runtime_envelope_strips_vectors_and_renders_layers(app_module, client):
 # /v29/onboarding flow
 # ---------------------------------------------------------------------------
 def test_onboarding_state_then_complete(app_module, client):
-    user, sid = _make_user(app_module, "olive", cohort="founder")
+    user, sid = _make_user(app_module, "olive", controller=True)
 
     r = client.get("/v29/onboarding/state", headers=_auth(sid))
     assert r.status_code == 200
@@ -408,7 +419,7 @@ def test_onboarding_state_then_complete(app_module, client):
 
 
 def test_onboarding_complete_rejects_unknown_step(app_module, client):
-    user, sid = _make_user(app_module, "owen", cohort="founder")
+    user, sid = _make_user(app_module, "owen", controller=True)
     r = client.post(
         "/v29/onboarding/complete", headers=_auth(sid),
         json={"step": "not_a_real_step"},
@@ -419,7 +430,7 @@ def test_onboarding_complete_rejects_unknown_step(app_module, client):
 def test_demo_seed_idempotent(app_module, client):
     import vault_store
 
-    user, sid = _make_user(app_module, "dani", cohort="founder")
+    user, sid = _make_user(app_module, "dani", controller=True)
     r = client.post("/v29/onboarding/seed", headers=_auth(sid))
     assert r.status_code == 200
     summary = r.json()["summary"]

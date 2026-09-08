@@ -48,7 +48,7 @@ def _session(username: str = "member_a"):
     )
     # active founding member on the legacy string: the flags re-arm for it
     users_store.update_user(username, {
-        "cohort": "founding_500", "membership_status": "active",
+        "membership_status": "active",
         "membership_tier": "founding_500",
     })
     sid = "sess_" + secrets.token_urlsafe(16)

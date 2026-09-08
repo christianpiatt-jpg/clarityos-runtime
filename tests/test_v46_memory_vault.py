@@ -34,6 +34,7 @@ Endpoints:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -55,7 +56,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -64,8 +65,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -626,7 +627,7 @@ def test_kernel_view_for_user_includes_vault_counts(reset_stores):
 # Endpoints — /me/vault/status + notes + embeddings
 # ---------------------------------------------------------------------------
 def test_endpoint_me_vault_status_shape(app_module, client):
-    user, sid = _make_user(app_module, "vault_a", cohort="founder")
+    user, sid = _make_user(app_module, "vault_a", controller=True)
     r = client.get("/me/vault/status", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -638,7 +639,7 @@ def test_endpoint_me_vault_status_shape(app_module, client):
 
 
 def test_endpoint_notes_round_trip(app_module, client):
-    user, sid = _make_user(app_module, "vault_b", cohort="founder")
+    user, sid = _make_user(app_module, "vault_b", controller=True)
     # Empty list initially.
     r = client.get("/me/vault/notes", headers=_auth(sid))
     assert r.status_code == 200
@@ -677,7 +678,7 @@ def test_endpoint_notes_round_trip(app_module, client):
 def test_endpoint_notes_rejects_dotted_key(app_module, client):
     """Sub-keys must not contain '.', '/', or '\\\\' — the namespace
     is added by the server."""
-    user, sid = _make_user(app_module, "vault_c", cohort="founder")
+    user, sid = _make_user(app_module, "vault_c", controller=True)
     r = client.post(
         "/me/vault/notes", headers=_auth(sid),
         json={"key": "bad.key", "text": "x"},
@@ -686,7 +687,7 @@ def test_endpoint_notes_rejects_dotted_key(app_module, client):
 
 
 def test_endpoint_embeddings_round_trip(app_module, client):
-    user, sid = _make_user(app_module, "vault_d", cohort="founder")
+    user, sid = _make_user(app_module, "vault_d", controller=True)
     r = client.post(
         "/me/vault/embeddings", headers=_auth(sid),
         json={"key": "e1", "vector": [0.1, 0.2, 0.3, 0.4]},
@@ -707,7 +708,7 @@ def test_endpoint_embeddings_round_trip(app_module, client):
 
 
 def test_endpoint_embeddings_caps_dim(app_module, client):
-    user, sid = _make_user(app_module, "vault_e", cohort="founder")
+    user, sid = _make_user(app_module, "vault_e", controller=True)
     huge = [0.0] * 8000
     r = client.post(
         "/me/vault/embeddings", headers=_auth(sid),
@@ -723,7 +724,7 @@ def test_endpoint_founder_vault_users_lists_only_users_with_entries(
     app_module, client,
 ):
     import memory_vault as mv
-    user, sid = _make_user(app_module, "fv_admin", cohort="founder")
+    user, sid = _make_user(app_module, "fv_admin", controller=True)
     # Create vault entries for two users.
     mv.vault_put("user_a", "notes.x", "x")
     mv.vault_put("user_b", "operator_state.preferred_model", "anthropic:claude-haiku-4-5-20251001")
@@ -736,14 +737,14 @@ def test_endpoint_founder_vault_users_lists_only_users_with_entries(
 
 
 def test_endpoint_founder_vault_users_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "fv_outsider", cohort=None)
+    user, sid = _make_user(app_module, "fv_outsider", controller=False)
     r = client.get("/founder/vault/users", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_endpoint_founder_vault_keys_groups_by_namespace(app_module, client):
     import memory_vault as mv
-    user, sid = _make_user(app_module, "fv_admin2", cohort="founder")
+    user, sid = _make_user(app_module, "fv_admin2", controller=True)
     mv.vault_put("target", "notes.a", "x")
     mv.vault_put("target", "notes.b", "x")
     mv.vault_put("target", "embeddings.e1", [0.1])
@@ -759,7 +760,7 @@ def test_endpoint_founder_vault_keys_groups_by_namespace(app_module, client):
 
 def test_endpoint_founder_vault_item_returns_decrypted_value(app_module, client):
     import memory_vault as mv
-    user, sid = _make_user(app_module, "fv_admin3", cohort="founder")
+    user, sid = _make_user(app_module, "fv_admin3", controller=True)
     mv.vault_put("target", "notes.brief", "weekly notes")
     r = client.get(
         "/founder/vault/target/item/notes.brief", headers=_auth(sid),
@@ -771,7 +772,7 @@ def test_endpoint_founder_vault_item_returns_decrypted_value(app_module, client)
 
 
 def test_endpoint_founder_vault_item_404_on_missing(app_module, client):
-    user, sid = _make_user(app_module, "fv_admin4", cohort="founder")
+    user, sid = _make_user(app_module, "fv_admin4", controller=True)
     r = client.get(
         "/founder/vault/no_user/item/notes.nope", headers=_auth(sid),
     )
@@ -784,7 +785,7 @@ def test_endpoint_founder_vault_item_404_on_missing(app_module, client):
 # /me capability + /health version
 # ---------------------------------------------------------------------------
 def test_endpoint_me_advertises_memory_vault_capability(app_module, client):
-    user, sid = _make_user(app_module, "cap_v", cohort="founder")
+    user, sid = _make_user(app_module, "cap_v", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "memory_vault" in ids

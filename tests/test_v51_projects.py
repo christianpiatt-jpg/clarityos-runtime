@@ -46,6 +46,7 @@ Endpoints:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -67,7 +68,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -76,8 +77,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -349,14 +350,14 @@ def test_kernel_log_carries_project_id(reset_stores, caplog):
 # Endpoints
 # ===========================================================================
 def test_endpoint_list_projects_empty(app_module, client):
-    user, sid = _make_user(app_module, "p_a", cohort="founder")
+    user, sid = _make_user(app_module, "p_a", controller=True)
     r = client.get("/me/projects", headers=_auth(sid))
     assert r.status_code == 200
     assert r.json()["projects"] == []
 
 
 def test_endpoint_create_project_round_trip(app_module, client):
-    user, sid = _make_user(app_module, "p_b", cohort="founder")
+    user, sid = _make_user(app_module, "p_b", controller=True)
     r = client.post(
         "/me/projects", headers=_auth(sid),
         json={
@@ -382,7 +383,7 @@ def test_endpoint_create_project_round_trip(app_module, client):
 
 
 def test_endpoint_create_project_duplicate_400(app_module, client):
-    user, sid = _make_user(app_module, "p_c", cohort="founder")
+    user, sid = _make_user(app_module, "p_c", controller=True)
     body = {"project_id": "VA", "name": "VA"}
     client.post("/me/projects", headers=_auth(sid), json=body)
     r2 = client.post("/me/projects", headers=_auth(sid), json=body)
@@ -390,7 +391,7 @@ def test_endpoint_create_project_duplicate_400(app_module, client):
 
 
 def test_endpoint_create_project_bad_id_400(app_module, client):
-    user, sid = _make_user(app_module, "p_d", cohort="founder")
+    user, sid = _make_user(app_module, "p_d", controller=True)
     r = client.post(
         "/me/projects", headers=_auth(sid),
         json={"project_id": "bad.id", "name": "x"},
@@ -399,14 +400,14 @@ def test_endpoint_create_project_bad_id_400(app_module, client):
 
 
 def test_endpoint_get_project_404_on_missing(app_module, client):
-    user, sid = _make_user(app_module, "p_e", cohort="founder")
+    user, sid = _make_user(app_module, "p_e", controller=True)
     r = client.get("/me/projects/NOPE", headers=_auth(sid))
     assert r.status_code == 404
 
 
 def test_endpoint_threads_filter_by_project_id(app_module, client):
     """GET /me/threads?project_id=X returns only threads tagged with X."""
-    user, sid = _make_user(app_module, "p_f", cohort="founder")
+    user, sid = _make_user(app_module, "p_f", controller=True)
     client.post(
         "/me/projects", headers=_auth(sid),
         json={"project_id": "VA", "name": "VA"},
@@ -439,7 +440,7 @@ def test_endpoint_threads_filter_by_project_id(app_module, client):
 
 
 def test_endpoint_create_thread_with_project_id(app_module, client):
-    user, sid = _make_user(app_module, "p_g", cohort="founder")
+    user, sid = _make_user(app_module, "p_g", controller=True)
     client.post(
         "/me/projects", headers=_auth(sid),
         json={"project_id": "VA", "name": "VA"},
@@ -463,7 +464,7 @@ def test_endpoint_create_thread_with_project_id(app_module, client):
 
 
 def test_endpoint_create_thread_with_unknown_project_404(app_module, client):
-    user, sid = _make_user(app_module, "p_h", cohort="founder")
+    user, sid = _make_user(app_module, "p_h", controller=True)
     r = client.post(
         "/me/threads", headers=_auth(sid),
         json={"title": "x", "project_id": "NOPE"},
@@ -474,7 +475,7 @@ def test_endpoint_create_thread_with_unknown_project_404(app_module, client):
 def test_endpoint_post_message_with_project_id_routes_correctly(app_module, client):
     """A message posted with project_id=VA into a VA-tagged thread
     routes through the project's default_model."""
-    user, sid = _make_user(app_module, "p_i", cohort="founder")
+    user, sid = _make_user(app_module, "p_i", controller=True)
     client.post(
         "/me/projects", headers=_auth(sid),
         json={"project_id": "VA", "name": "VA", "default_model": "claude"},
@@ -493,7 +494,7 @@ def test_endpoint_post_message_with_project_id_routes_correctly(app_module, clie
 
 
 def test_endpoint_post_message_project_id_mismatch_400(app_module, client):
-    user, sid = _make_user(app_module, "p_j", cohort="founder")
+    user, sid = _make_user(app_module, "p_j", controller=True)
     client.post("/me/projects", headers=_auth(sid),
                 json={"project_id": "VA", "name": "VA"})
     client.post("/me/projects", headers=_auth(sid),
@@ -513,7 +514,7 @@ def test_endpoint_post_message_project_id_mismatch_400(app_module, client):
 
 def test_endpoint_post_message_without_project_id_works(app_module, client):
     """Backward compat: existing v47/v50 callers don't pass project_id."""
-    user, sid = _make_user(app_module, "p_k", cohort="founder")
+    user, sid = _make_user(app_module, "p_k", controller=True)
     cr = client.post("/me/threads", headers=_auth(sid), json={"title": "T"})
     tid = cr.json()["thread_id"]
     r = client.post(
@@ -527,7 +528,7 @@ def test_endpoint_post_message_without_project_id_works(app_module, client):
 def test_endpoint_project_threads_index_consistent(app_module, client):
     """GET /me/projects/{id}/threads returns the same set as
     GET /me/threads?project_id={id}."""
-    user, sid = _make_user(app_module, "p_l", cohort="founder")
+    user, sid = _make_user(app_module, "p_l", controller=True)
     client.post("/me/projects", headers=_auth(sid),
                 json={"project_id": "VA", "name": "VA"})
     for title in ("A", "B", "C"):
@@ -542,7 +543,7 @@ def test_endpoint_project_threads_index_consistent(app_module, client):
 
 
 def test_endpoint_me_capability_advertises_projects(app_module, client):
-    user, sid = _make_user(app_module, "p_cap", cohort="founder")
+    user, sid = _make_user(app_module, "p_cap", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "projects" in ids
@@ -563,7 +564,7 @@ def test_health_version_4_5(app_module, client):
 def test_migration_is_no_op(app_module, client):
     """First request for a fresh user returns empty projects list +
     no auto-created entries."""
-    user, sid = _make_user(app_module, "p_mig", cohort="founder")
+    user, sid = _make_user(app_module, "p_mig", controller=True)
     # Hit /me + /me/projects + /me/threads.
     client.get("/me", headers=_auth(sid))
     pr = client.get("/me/projects", headers=_auth(sid)).json()

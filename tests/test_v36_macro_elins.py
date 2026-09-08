@@ -12,6 +12,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -32,7 +33,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -40,8 +41,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -232,7 +233,7 @@ def test_get_macro_run_with_constituents(reset_stores):
 # Endpoints — /founder/elins/scheduler/{status,config}
 # ---------------------------------------------------------------------------
 def test_endpoint_scheduler_status_default(app_module, client):
-    user, sid = _make_user(app_module, "sched_a", cohort="founder")
+    user, sid = _make_user(app_module, "sched_a", controller=True)
     r = client.get("/founder/elins/scheduler/status", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -242,13 +243,13 @@ def test_endpoint_scheduler_status_default(app_module, client):
 
 
 def test_endpoint_scheduler_status_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "sched_outsider", cohort=None)
+    user, sid = _make_user(app_module, "sched_outsider", controller=False)
     r = client.get("/founder/elins/scheduler/status", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_endpoint_scheduler_config_persists_changes(app_module, client):
-    user, sid = _make_user(app_module, "sched_b", cohort="founder")
+    user, sid = _make_user(app_module, "sched_b", controller=True)
     r = client.post(
         "/founder/elins/scheduler/config", headers=_auth(sid),
         json={"cadence": "daily", "external_signal_mode": "cloud_perplexity"},
@@ -263,7 +264,7 @@ def test_endpoint_scheduler_config_persists_changes(app_module, client):
 
 
 def test_endpoint_scheduler_config_rejects_bad_cadence(app_module, client):
-    user, sid = _make_user(app_module, "sched_bad", cohort="founder")
+    user, sid = _make_user(app_module, "sched_bad", controller=True)
     r = client.post(
         "/founder/elins/scheduler/config", headers=_auth(sid),
         json={"cadence": "hourly"},
@@ -272,7 +273,7 @@ def test_endpoint_scheduler_config_rejects_bad_cadence(app_module, client):
 
 
 def test_endpoint_scheduler_config_rejects_bad_signal_mode(app_module, client):
-    user, sid = _make_user(app_module, "sched_bad2", cohort="founder")
+    user, sid = _make_user(app_module, "sched_bad2", controller=True)
     r = client.post(
         "/founder/elins/scheduler/config", headers=_auth(sid),
         json={"external_signal_mode": "totally_made_up"},
@@ -282,7 +283,7 @@ def test_endpoint_scheduler_config_rejects_bad_signal_mode(app_module, client):
 
 def test_endpoint_scheduler_config_enabled_starts_thread(app_module, client):
     import elins_scheduler
-    user, sid = _make_user(app_module, "sched_on", cohort="founder")
+    user, sid = _make_user(app_module, "sched_on", controller=True)
     assert elins_scheduler.is_running() is False
     r = client.post(
         "/founder/elins/scheduler/config", headers=_auth(sid),
@@ -303,7 +304,7 @@ def test_endpoint_scheduler_config_enabled_starts_thread(app_module, client):
 # Endpoint — /founder/elins/macro/run_now
 # ---------------------------------------------------------------------------
 def test_endpoint_run_now_executes_pass(app_module, client):
-    user, sid = _make_user(app_module, "rn_a", cohort="founder")
+    user, sid = _make_user(app_module, "rn_a", controller=True)
     r = client.post("/founder/elins/macro/run_now", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     summary = r.json()["summary"]
@@ -312,7 +313,7 @@ def test_endpoint_run_now_executes_pass(app_module, client):
 
 
 def test_endpoint_run_now_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "rn_outsider", cohort=None)
+    user, sid = _make_user(app_module, "rn_outsider", controller=False)
     r = client.post("/founder/elins/macro/run_now", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -321,7 +322,7 @@ def test_endpoint_run_now_requires_founder(app_module, client):
 # Endpoints — /founder/elins/macro/runs + run/{run_id}
 # ---------------------------------------------------------------------------
 def test_endpoint_macro_runs_returns_list(app_module, client):
-    user, sid = _make_user(app_module, "ml_a", cohort="founder")
+    user, sid = _make_user(app_module, "ml_a", controller=True)
     client.post("/founder/elins/macro/run_now", headers=_auth(sid))
     client.post("/founder/elins/macro/run_now", headers=_auth(sid))
     r = client.get("/founder/elins/macro/runs", headers=_auth(sid))
@@ -332,7 +333,7 @@ def test_endpoint_macro_runs_returns_list(app_module, client):
 
 
 def test_endpoint_macro_run_detail_returns_constituents(app_module, client):
-    user, sid = _make_user(app_module, "md_a", cohort="founder")
+    user, sid = _make_user(app_module, "md_a", controller=True)
     summary = client.post("/founder/elins/macro/run_now", headers=_auth(sid)).json()["summary"]
     run_id = summary["run_id"]
     r = client.get(f"/founder/elins/macro/run/{run_id}", headers=_auth(sid))
@@ -345,13 +346,13 @@ def test_endpoint_macro_run_detail_returns_constituents(app_module, client):
 
 
 def test_endpoint_macro_run_detail_404_unknown(app_module, client):
-    user, sid = _make_user(app_module, "md_b", cohort="founder")
+    user, sid = _make_user(app_module, "md_b", controller=True)
     r = client.get("/founder/elins/macro/run/macro_does_not_exist", headers=_auth(sid))
     assert r.status_code == 404
 
 
 def test_endpoint_macro_runs_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "ml_outsider", cohort=None)
+    user, sid = _make_user(app_module, "ml_outsider", controller=False)
     r = client.get("/founder/elins/macro/runs", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -360,7 +361,7 @@ def test_endpoint_macro_runs_requires_founder(app_module, client):
 # UI shape
 # ---------------------------------------------------------------------------
 def test_ui_shape_for_run_now(app_module, client):
-    user, sid = _make_user(app_module, "ui_a", cohort="founder")
+    user, sid = _make_user(app_module, "ui_a", controller=True)
     r = client.post("/founder/elins/macro/run_now", headers=_auth(sid))
     assert r.status_code == 200
     summary = r.json()["summary"]
@@ -369,7 +370,7 @@ def test_ui_shape_for_run_now(app_module, client):
 
 
 def test_ui_shape_for_macro_run_detail(app_module, client):
-    user, sid = _make_user(app_module, "ui_b", cohort="founder")
+    user, sid = _make_user(app_module, "ui_b", controller=True)
     summary = client.post("/founder/elins/macro/run_now", headers=_auth(sid)).json()["summary"]
     r = client.get(f"/founder/elins/macro/run/{summary['run_id']}", headers=_auth(sid))
     detail = r.json()["run"]

@@ -33,6 +33,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import os
 import secrets
 import time
@@ -55,7 +56,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -64,8 +65,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -448,7 +449,7 @@ def test_kernel_view_for_user_includes_local_usage(reset_stores):
 # Endpoints
 # ---------------------------------------------------------------------------
 def test_endpoint_me_local_model_shape(app_module, client):
-    user, sid = _make_user(app_module, "lm_a", cohort="founder")
+    user, sid = _make_user(app_module, "lm_a", controller=True)
     r = client.get("/me/local_model", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -464,7 +465,7 @@ def test_endpoint_me_local_model_shape(app_module, client):
 def test_endpoint_me_local_model_reflects_usage(app_module, client):
     """After the kernel routes the user through the local model, the
     /me/local_model endpoint should show the bumped counter."""
-    user, sid = _make_user(app_module, "lm_b", cohort="founder")
+    user, sid = _make_user(app_module, "lm_b", controller=True)
     # Set preference → kernel will pick local on the next ELINS run.
     client.post(
         "/me/operator_state/model", headers=_auth(sid),
@@ -482,7 +483,7 @@ def test_endpoint_me_local_model_reflects_usage(app_module, client):
 
 
 def test_endpoint_founder_models_local_shape(app_module, client):
-    user, sid = _make_user(app_module, "lm_f", cohort="founder")
+    user, sid = _make_user(app_module, "lm_f", controller=True)
     r = client.get("/founder/models/local", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -496,13 +497,13 @@ def test_endpoint_founder_models_local_shape(app_module, client):
 
 
 def test_endpoint_founder_models_local_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "lm_outsider", cohort=None)
+    user, sid = _make_user(app_module, "lm_outsider", controller=False)
     r = client.get("/founder/models/local", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_endpoint_me_advertises_local_model_capability(app_module, client):
-    user, sid = _make_user(app_module, "cap_lm", cohort="founder")
+    user, sid = _make_user(app_module, "cap_lm", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "local_model" in ids
@@ -511,7 +512,7 @@ def test_endpoint_me_advertises_local_model_capability(app_module, client):
 def test_endpoint_founder_models_status_includes_local_runtime(app_module, client):
     """v44's /founder/models/status now carries the v45 local_runtime
     block via get_router_status."""
-    user, sid = _make_user(app_module, "lm_router", cohort="founder")
+    user, sid = _make_user(app_module, "lm_router", controller=True)
     r = client.get("/founder/models/status", headers=_auth(sid))
     body = r.json()
     assert "local_runtime" in body["router"]

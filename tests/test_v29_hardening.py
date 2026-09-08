@@ -150,15 +150,24 @@ def test_feature_user_override_wins(flags_clean):
 
 
 def test_feature_cohort_override(flags_clean):
-    h.set_flag("v28_surfaces", True, cohort="founder")
-    assert h.feature_enabled("v28_surfaces", user="charlie", cohort="founder") is True
-    assert h.feature_enabled("v28_surfaces", user="charlie", cohort="terrace_1") is False
+    h.set_flag("v28_surfaces", True, cohort="controller")
+    assert h.feature_enabled("v28_surfaces", user="charlie", cohort="controller") is True
+    assert h.feature_enabled("v28_surfaces", user="charlie", cohort="all") is False
 
 
 def test_feature_user_override_beats_cohort(flags_clean):
-    h.set_flag("v28_surfaces", True, cohort="founder")
+    h.set_flag("v28_surfaces", True, cohort="controller")
     h.set_flag("v28_surfaces", False, user="dan")
-    assert h.feature_enabled("v28_surfaces", user="dan", cohort="founder") is False
+    assert h.feature_enabled("v28_surfaces", user="dan", cohort="controller") is False
+
+
+def test_feature_reads_the_label_only_no_alias(flags_clean):
+    """#157 -- the #124 label->string aliases are deleted: an override set
+    for a legacy string lights NOTHING for the label it once aliased."""
+    for legacy, label in (("founder", "controller"), ("admin", "controller"),
+                          ("member", "all"), ("founding_500", "founding")):
+        h.set_flag("v28_surfaces", True, cohort=legacy)
+        assert h.feature_enabled("v28_surfaces", user="eve", cohort=label) is False, legacy
 
 
 def test_list_flags_includes_defaults(flags_clean):

@@ -87,9 +87,11 @@ describe("Layout — the two rails (#145)", () => {
     expect(texts).not.toContain("Threads");
   });
 
-  it("the legacy admin strings still read as the controller for one deploy (#157)", () => {
-    authState.profile = { cohort: "founder", controller: false };
-    expect(railTexts().length).toBeGreaterThan(6);
+  it("#157 -- no label and no legacy string reads as the controller: the member rail only", () => {
+    for (const cohort of ["controller", "founder", "founder_exception", "admin"]) {
+      authState.profile = { cohort, controller: false };
+      expect(railTexts()).toEqual(MEMBER_RAIL);
+    }
   });
 
   it("a signed-out visitor sees the five member links and no Sign out", () => {

@@ -40,7 +40,7 @@ import MembershipPage from "../MembershipPage";
 
 const STATE = {
   user: "u",
-  identity: { member_number: 17, citizen: true, controller: false, citz_id: "citz-000017ava", cohort: "founding" },
+  identity: { member_number: 17, paid: true, controller: false, citz_id: "citz-000017ava", cohort: "founding" },
   membership: { tier: "founding_500", status: "active", price_locked: 50, started_ts: 1, cancelled_ts: null, next_price: 50, price_lock_forfeit: false },
   billing: { state: "active", renewal_ts: null, renewal_retry_count: 0, renewal_grace_until_ts: null, next_amount: 50 },
   cohort: { cohort: "founding_500", active_count: 4, cap: 500, remaining: 496, waitlist_count: 0, is_full: false },

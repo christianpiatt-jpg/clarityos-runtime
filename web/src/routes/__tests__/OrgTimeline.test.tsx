@@ -95,9 +95,9 @@ describe("OrgTimeline route", () => {
   });
 
   test("403 from server surfaces in banner", async () => {
-    // Caller is not in the founder cohort.
-    const err = Object.assign(new Error("Founder cohort required"), {
-      code: "http_error",
+    // Caller is not the controller (#181: the one refusal, admin_only).
+    const err = Object.assign(new Error("Admin only: this console is the controller's"), {
+      code: "admin_only",
       status: 403,
     });
     mockOrg.mockRejectedValueOnce(err);

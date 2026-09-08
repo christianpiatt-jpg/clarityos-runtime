@@ -14,6 +14,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -35,7 +36,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(username, cohort="founder"):
+def _make_user(username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -44,8 +45,8 @@ def _make_user(username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(
         sid, username, expires_at=time.time() + 3600,
@@ -327,7 +328,7 @@ class TestMeEntitlementEndpoint:
 class TestFounderEntitlementEndpoint:
     def test_founder_reads_any_user(self, client):
         _make_founding_active("alice")
-        _, founder_sid = _make_user("thefounder", cohort="founder")
+        _, founder_sid = _make_user("thefounder", controller=True)
         r = client.get(
             "/founder/entitlement/alice", headers=_auth(founder_sid),
         )
@@ -337,8 +338,8 @@ class TestFounderEntitlementEndpoint:
 
     def test_non_founder_gets_403(self, client):
         _make_founding_active("alice")
-        # cohort=None → not founder-like.
-        _, plain_sid = _make_user("plain", cohort=None)
+        # controller=False → not founder-like.
+        _, plain_sid = _make_user("plain", controller=False)
         r = client.get(
             "/founder/entitlement/alice", headers=_auth(plain_sid),
         )
@@ -350,7 +351,7 @@ class TestFounderEntitlementEndpoint:
 
     def test_unknown_user_returns_200_exists_false(self, client):
         # Projection never 404s — unknown user is 200 with exists:False.
-        _, founder_sid = _make_user("thefounder", cohort="founder")
+        _, founder_sid = _make_user("thefounder", controller=True)
         r = client.get(
             "/founder/entitlement/ghost", headers=_auth(founder_sid),
         )
@@ -363,7 +364,7 @@ class TestFounderEntitlementEndpoint:
         # single-segment route) BEFORE the handler's `"/" in user_id`
         # 400 guard runs. Either way the request is rejected, never
         # processed into an entitlement view — that's the invariant.
-        _, founder_sid = _make_user("thefounder", cohort="founder")
+        _, founder_sid = _make_user("thefounder", controller=True)
         r = client.get(
             "/founder/entitlement/bad%2Fslash", headers=_auth(founder_sid),
         )

@@ -12,6 +12,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -49,16 +50,17 @@ def client(app_module):
 @pytest.fixture(autouse=True)
 def _arm_member_flags(reset_stores):
     """A non-controller's session cohort is a DERIVED label ("all" /
-    "founding"); the flags resolve through the label's alias "member",
-    never through the doc's stored string. Arm what production arms for
+    "founding"); #157: the flags read the label's own key and nothing
+    else (the "member" alias is gone). Arm what production arms for
     members (app.py flag bootstrap) so a member here is a member there."""
     import v29_hardening
     for flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
-        v29_hardening.set_flag(flag, True, cohort="member")
+        for label in ("all", "founding"):
+            v29_hardening.set_flag(flag, True, cohort=label)
     yield
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets, time as _t
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"test-pass-123", bcrypt.gensalt())
@@ -66,8 +68,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=_t.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=_t.time() + 3600)
     return username, sid
@@ -179,7 +181,7 @@ def test_record_transaction_caps_at_max(reset_stores, monkeypatch):
 # /membership/state
 # ---------------------------------------------------------------------------
 def test_membership_state_default_for_founder(app_module, client):
-    user, sid = _make_user(app_module, "minnie", cohort="founder")
+    user, sid = _make_user(app_module, "minnie", controller=True)
     r = client.get("/membership/state", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     state = r.json()["state"]
@@ -190,7 +192,7 @@ def test_membership_state_default_for_founder(app_module, client):
 
 
 def test_membership_state_blocked_when_flag_off(app_module, client):
-    user, sid = _make_user(app_module, "ghost", cohort=None)
+    user, sid = _make_user(app_module, "ghost", controller=False)
     # the flag is OFF for this user (a user override outranks the cohort)
     import v29_hardening
     v29_hardening.set_flag("membership_ui_enabled", False, user=user)
@@ -202,14 +204,14 @@ def test_membership_state_blocked_when_flag_off(app_module, client):
 # /membership/activate
 # ---------------------------------------------------------------------------
 def test_activate_requires_terms(app_module, client):
-    user, sid = _make_user(app_module, "abby", cohort="founder")
+    user, sid = _make_user(app_module, "abby", controller=True)
     r = client.post("/membership/activate", headers=_auth(sid), json={"accept_terms": False})
     assert r.status_code == 400
     assert r.json()["error"] == "terms_required"
 
 
 def test_activate_happy_path(app_module, client):
-    user, sid = _make_user(app_module, "alex", cohort="founder")
+    user, sid = _make_user(app_module, "alex", controller=True)
     r = client.post(
         "/membership/activate", headers=_auth(sid), json={"accept_terms": True},
     )
@@ -226,7 +228,7 @@ def test_activate_happy_path(app_module, client):
 
 
 def test_activate_idempotent_when_already_active(app_module, client):
-    user, sid = _make_user(app_module, "ari", cohort="founder")
+    user, sid = _make_user(app_module, "ari", controller=True)
     client.post("/membership/activate", headers=_auth(sid), json={"accept_terms": True})
     r = client.post("/membership/activate", headers=_auth(sid), json={"accept_terms": True})
     assert r.status_code == 200
@@ -236,9 +238,9 @@ def test_activate_idempotent_when_already_active(app_module, client):
 def test_activate_when_cap_full_returns_waitlist(app_module, client, monkeypatch):
     import membership_store
     monkeypatch.setattr(membership_store, "FOUNDING_CAP", 2)
-    u1, sid1 = _make_user(app_module, "first", cohort="founder")
-    u2, sid2 = _make_user(app_module, "second", cohort="founder")
-    u3, sid3 = _make_user(app_module, "third", cohort="founder")
+    u1, sid1 = _make_user(app_module, "first", controller=True)
+    u2, sid2 = _make_user(app_module, "second", controller=True)
+    u3, sid3 = _make_user(app_module, "third", controller=True)
 
     assert client.post("/membership/activate", headers=_auth(sid1), json={"accept_terms": True}).status_code == 200
     assert client.post("/membership/activate", headers=_auth(sid2), json={"accept_terms": True}).status_code == 200
@@ -255,7 +257,7 @@ def test_activate_when_cap_full_returns_waitlist(app_module, client, monkeypatch
 # /membership/cancel — price-lock forfeit
 # ---------------------------------------------------------------------------
 def test_cancel_then_state_shows_full_price(app_module, client):
-    user, sid = _make_user(app_module, "casey", cohort="founder")
+    user, sid = _make_user(app_module, "casey", controller=True)
     client.post("/membership/activate", headers=_auth(sid), json={"accept_terms": True})
     r = client.post("/membership/cancel", headers=_auth(sid))
     assert r.status_code == 200, r.json()
@@ -268,7 +270,7 @@ def test_cancel_then_state_shows_full_price(app_module, client):
 
 
 def test_reactivate_after_cancel_pays_full_price(app_module, client):
-    user, sid = _make_user(app_module, "carla", cohort="founder")
+    user, sid = _make_user(app_module, "carla", controller=True)
     client.post("/membership/activate", headers=_auth(sid), json={"accept_terms": True})
     client.post("/membership/cancel", headers=_auth(sid))
     r = client.post("/membership/activate", headers=_auth(sid), json={"accept_terms": True})
@@ -280,7 +282,7 @@ def test_reactivate_after_cancel_pays_full_price(app_module, client):
 
 
 def test_cancel_when_not_active_rejected(app_module, client):
-    user, sid = _make_user(app_module, "noah", cohort="founder")
+    user, sid = _make_user(app_module, "noah", controller=True)
     r = client.post("/membership/cancel", headers=_auth(sid))
     assert r.status_code == 400
     assert r.json()["error"] == "not_active"
@@ -295,7 +297,7 @@ def test_cancel_when_not_active_rejected(app_module, client):
 def test_buy_single_is_retired(app_module, client):
     # billing_intents.RETIRED_KINDS: the $1 single was retired under the
     # micro-dollar ledger; the route answers 402 bad_kind and lands nothing.
-    user, sid = _make_user(app_module, "barry", cohort="terrace_1")
+    user, sid = _make_user(app_module, "barry", controller=False)
     r = client.post("/membership/g/buy_single", headers=_auth(sid))
     assert r.status_code == 402, r.json()
     assert r.json()["error"] == "bad_kind"
@@ -304,7 +306,7 @@ def test_buy_single_is_retired(app_module, client):
 
 
 def test_buy_pack_20_increments_balance(app_module, client):
-    user, sid = _make_user(app_module, "bea", cohort="terrace_1")
+    user, sid = _make_user(app_module, "bea", controller=False)
     r = client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -317,7 +319,7 @@ def test_buy_pack_20_increments_balance(app_module, client):
 
 
 def test_buy_blocked_when_g_credits_disabled(app_module, client):
-    user, sid = _make_user(app_module, "guest2", cohort=None)
+    user, sid = _make_user(app_module, "guest2", controller=False)
     # the flag is OFF for this user (a user override outranks the cohort)
     import v29_hardening
     v29_hardening.set_flag("g_credits_enabled", False, user=user)
@@ -326,7 +328,7 @@ def test_buy_blocked_when_g_credits_disabled(app_module, client):
 
 
 def test_history_returns_recent_first(app_module, client):
-    user, sid = _make_user(app_module, "henri", cohort="terrace_1")
+    user, sid = _make_user(app_module, "henri", controller=False)
     client.post("/membership/g/buy_single", headers=_auth(sid))
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.get("/membership/g/history", headers=_auth(sid))
@@ -342,7 +344,7 @@ def test_history_returns_recent_first(app_module, client):
 # /elins/g/run + credit consumption
 # ---------------------------------------------------------------------------
 def test_g_run_blocks_with_402_when_no_credits(app_module, client):
-    user, sid = _make_user(app_module, "rhea", cohort="terrace_1")
+    user, sid = _make_user(app_module, "rhea", controller=False)
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
         json={"scenario_text": "scenario"},
@@ -352,7 +354,7 @@ def test_g_run_blocks_with_402_when_no_credits(app_module, client):
 
 
 def test_g_run_consumes_one_credit_on_success(app_module, client):
-    user, sid = _make_user(app_module, "rin", cohort="terrace_1")
+    user, sid = _make_user(app_module, "rin", controller=False)
     # Buy a pack first.
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.post(
@@ -366,7 +368,7 @@ def test_g_run_consumes_one_credit_on_success(app_module, client):
 
 
 def test_g_run_does_not_consume_credit_on_failure(app_module, client):
-    user, sid = _make_user(app_module, "ria", cohort="terrace_1")
+    user, sid = _make_user(app_module, "ria", controller=False)
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
@@ -403,7 +405,7 @@ def test_membership_endpoints_require_session(app_module, client, path, method, 
 # ---------------------------------------------------------------------------
 # WHAT THESE PIN. Three stores, one read. A paid member carries
 # membership_tier on the doc AND a cohort-blob entry AND, if the doc predates
-# v43 (2026-08-27), cohort=None. Every flag gate reads session["cohort"] and
+# v43 (2026-08-27), controller=False. Every flag gate reads session["cohort"] and
 # nothing else, so a pre-v43 paying member 403'd on their own surfaces
 # (26 x 403 on the founder's own session). The hop derives cohort from the two real fields when the
 # doc says None -- and ONLY then. Nothing here defaults; an unpaid doc stays
@@ -414,15 +416,11 @@ def test_membership_endpoints_require_session(app_module, client, path, method, 
 
 
 def _arm_v43_flags():
-    """Mirror app.py:527-531 EXACTLY. conftest.reset_stores re-arms v28 for
-    founder / founder_exception / terrace_1 only -- its comment says it
-    mirrors app startup, but it predates v43 and omits member, admin and
-    founding_500. Without this, (a) would fail for a stale-harness reason
-    rather than a real one."""
+    """Mirror app.py's v28 bootstrap for the DERIVED labels (#157: a session
+    carries a label and the flags read the label's own key only). reset_stores
+    arms the same three; this keeps the hop tests explicit about it."""
     import v29_hardening as h
-    import membership_store
-    for coh in ("founder", "founder_exception", "terrace_1",
-                "member", "admin", membership_store.FOUNDING_COHORT):
+    for coh in ("controller", "founding", "all"):
         h.set_flag("v28_surfaces", True, cohort=coh)
 
 
@@ -441,7 +439,7 @@ def test_hop_a_paid_doc_with_null_cohort_opens(app_module):
     cohort None. The session derives founding_500 and the v28 gate opens."""
     import v29_hardening as h, membership_store, users_store
     _arm_v43_flags()
-    user, sid = _make_user(app_module, "ava", cohort=None)
+    user, sid = _make_user(app_module, "ava", controller=False)
     _seat(user)
     sess = app_module.require_session(x_session_id=sid)
     # #124 -- the hop is retired: cohort is the DERIVED label. An unnumbered
@@ -458,7 +456,7 @@ def test_hop_b_unpaid_doc_stays_closed(app_module):
     import v29_hardening as h
     import users_store
     _arm_v43_flags()
-    user, sid = _make_user(app_module, "lurker", cohort=None)
+    user, sid = _make_user(app_module, "lurker", controller=False)
     sess = app_module.require_session(x_session_id=sid)
     # #124 rule 2 -- default label "all": every account gets the member
     # surfaces (v43's ruling), and NOTHING founder-like is derived.
@@ -467,16 +465,28 @@ def test_hop_b_unpaid_doc_stays_closed(app_module):
     assert h.feature_enabled("founder_tier_enabled", user=user, cohort=sess["cohort"]) is False
 
 
-def test_hop_c_present_cohort_is_never_touched(app_module):
-    """A doc that already carries a cohort is left alone -- the hop only
-    fills None. founder_exception stays founder-like and passes
-    _require_founder, which reads the doc directly."""
-    user, sid = _make_user(app_module, "chris", cohort="founder_exception")
+def test_hop_c_the_flag_derives_controller_and_opens_the_gate(app_module):
+    """#157 -- the controller FLAG derives "controller" and passes
+    _require_founder, which reads the doc directly. (This was the
+    founder_exception string under the #124 shim; the string opens nothing
+    now -- pinned in test_hop_c2.)"""
+    user, sid = _make_user(app_module, "chris", controller=True)
     sess = app_module.require_session(x_session_id=sid)
-    # #124 -- the legacy string is honoured by the one-deploy shim: the
-    # derived label is "controller" and the founder gate opens.
     assert sess["cohort"] == "controller"
     assert app_module._require_founder(session=sess) is sess
+
+
+def test_hop_c2_a_founder_exception_string_derives_all_and_is_refused(app_module):
+    """#157 / #173 -- the invite kind on a doc is not a controller."""
+    import users_store
+    from fastapi import HTTPException
+    user, sid = _make_user(app_module, "chris2", controller=False)
+    users_store.update_user(user, {"cohort": "founder_exception"})  # the raw string, on purpose
+    sess = app_module.require_session(x_session_id=sid)
+    assert sess["cohort"] == "all"
+    with pytest.raises(HTTPException) as ei:
+        app_module._require_founder(session=sess)
+    assert ei.value.status_code == 403 and ei.value.detail["error"] == "admin_only"
 
 
 def test_hop_d_cancelled_member_derives_no_cohort(app_module):
@@ -487,21 +497,21 @@ def test_hop_d_cancelled_member_derives_no_cohort(app_module):
     derived from it and the v28 gate stays shut."""
     import v29_hardening as h, membership_store, users_store
     _arm_v43_flags()
-    user, sid = _make_user(app_module, "cxl", cohort=None)
+    user, sid = _make_user(app_module, "cxl", controller=False)
     _seat(user, status="cancelled")
     membership_store.remove_member(user)
     assert membership_store.is_member(user) is False
     sess = app_module.require_session(x_session_id=sid)
     # #124 -- cancelled: not a citizen; the label is the default "all".
     assert sess["cohort"] == "all"
-    assert users_store.is_citizen(users_store.get_user(user)) is False
+    assert users_store.is_paid(users_store.get_user(user)) is False
 
 
 def test_hop_e_blob_seat_with_active_status(app_module):
     """A seat in the blob with membership_status active but no tier on the
     doc: status says active, the blob says seated, the hop derives."""
     import users_store, membership_store
-    user, sid = _make_user(app_module, "blobonly", cohort=None)
+    user, sid = _make_user(app_module, "blobonly", controller=False)
     membership_store.add_member(user)
     users_store.set_membership(user, tier=None, price=None, status="active")
     sess = app_module.require_session(x_session_id=sid)
@@ -514,16 +524,16 @@ def test_hop_e2_blob_seat_with_no_status_stays_closed(app_module):
     None is not active: the hop derives nothing. The seat is not deleted;
     it is simply not enough on its own."""
     import membership_store
-    user, sid = _make_user(app_module, "blobonly2", cohort=None)
+    user, sid = _make_user(app_module, "blobonly2", controller=False)
     membership_store.add_member(user)
     sess = app_module.require_session(x_session_id=sid)
     assert sess["cohort"] == "all"  # #124
 
 
 def test_hop_f_explicit_member_cohort_untouched(app_module):
-    """A v43-born account (cohort="member") is not upgraded by a seat the
+    """A v43-born account (controller=False) is not upgraded by a seat the
     hop never consults -- the hop fills None and nothing else."""
-    user, sid = _make_user(app_module, "mem", cohort="member")
+    user, sid = _make_user(app_module, "mem", controller=False)
     _seat(user)
     sess = app_module.require_session(x_session_id=sid)
     assert sess["cohort"] == "all"  # #124 -- "member" was always "all"
@@ -535,7 +545,7 @@ def test_hop_g_get_me_echoes_the_derived_cohort(app_module, client):
     opened -- the footer read "COHORT --" on an account whose surfaces were
     all live. me() now reads the session cohort the hop produced."""
     _arm_v43_flags()
-    user, sid = _make_user(app_module, "ava_me", cohort=None)
+    user, sid = _make_user(app_module, "ava_me", controller=False)
     _seat(user)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200, r.json()
@@ -544,7 +554,8 @@ def test_hop_g_get_me_echoes_the_derived_cohort(app_module, client):
     assert body["features"]["v28_surfaces"] is True
     # Not a controller: operator stays False, exactly as before.
     assert body["operator"] is False
-    assert body["citizen"] is True and body["member_number"] is None
+    assert body["paid"] is True and body["member_number"] is None  # #174 -- paid, not citizen
+    assert "citizen" not in body
 
 
 # ===========================================================================
@@ -607,7 +618,7 @@ def test_founder_activate_route_clears_a_prior_cancellation(app_module, client):
     """The named writer, through its route: a cancelled member the founder
     re-activates carries no cancelled_ts afterwards."""
     import users_store
-    founder, fsid = _make_user(app_module, "founder_123", cohort="founder")
+    founder, fsid = _make_user(app_module, "founder_123", controller=True)
     _seed_user("comeback")
     users_store.set_membership(
         "comeback", tier="founding_500", price=50.0, status="cancelled",

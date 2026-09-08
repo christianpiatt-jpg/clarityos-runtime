@@ -12,6 +12,7 @@ Architecture invariant tests:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import math
 import secrets
 import time
@@ -34,7 +35,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -43,8 +44,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -474,7 +475,7 @@ def test_run_elins_v2_emits_kernel_log_line(reset_stores, caplog):
 # Endpoint — POST /elins/v2/run
 # ===========================================================================
 def test_endpoint_v2_run_basic(app_module, client):
-    user, sid = _make_user(app_module, "ev2_a", cohort="founder")
+    user, sid = _make_user(app_module, "ev2_a", controller=True)
     r = client.post(
         "/elins/v2/run",
         headers=_auth(sid),
@@ -500,7 +501,7 @@ def test_endpoint_v2_run_basic(app_module, client):
 
 
 def test_endpoint_v2_run_with_region(app_module, client):
-    user, sid = _make_user(app_module, "ev2_b", cohort="founder")
+    user, sid = _make_user(app_module, "ev2_b", controller=True)
     r = client.post(
         "/elins/v2/run",
         headers=_auth(sid),
@@ -517,7 +518,7 @@ def test_endpoint_v2_run_with_region(app_module, client):
 
 
 def test_endpoint_v2_run_400_on_empty_text(app_module, client):
-    user, sid = _make_user(app_module, "ev2_c", cohort="founder")
+    user, sid = _make_user(app_module, "ev2_c", controller=True)
     r = client.post(
         "/elins/v2/run",
         headers=_auth(sid),
@@ -527,7 +528,7 @@ def test_endpoint_v2_run_400_on_empty_text(app_module, client):
 
 
 def test_endpoint_v2_run_400_on_invalid_region(app_module, client):
-    user, sid = _make_user(app_module, "ev2_d", cohort="founder")
+    user, sid = _make_user(app_module, "ev2_d", controller=True)
     r = client.post(
         "/elins/v2/run",
         headers=_auth(sid),
@@ -548,7 +549,7 @@ def test_endpoint_v2_run_401_when_unauth(app_module, client):
 
 
 def test_me_capabilities_includes_elins_v2(app_module, client):
-    user, sid = _make_user(app_module, "ev2_cap", cohort="founder")
+    user, sid = _make_user(app_module, "ev2_cap", controller=True)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200
     caps = r.json().get("capabilities") or []
@@ -628,7 +629,7 @@ def test_build_v2_envelope_l1_drops_user_and_text_keeps_the_counts(reset_stores)
 
 
 def test_endpoint_v2_run_response_has_no_address_and_no_pasted_text(app_module, client):
-    user, sid = _make_user(app_module, "ev2_p@example.com", cohort="founder")
+    user, sid = _make_user(app_module, "ev2_p@example.com", controller=True)
     text = "the institutional pressure is escalating sharply across the region"
     r = client.post(
         "/elins/v2/run",

@@ -25,7 +25,7 @@ import { MemoryRouter } from "react-router-dom";
 const authState: {
   session: string | null;
   user: string | null;
-  profile: { cohort: string | null } | null;
+  profile: { cohort: string | null; controller?: boolean } | null;
 } = { session: null, user: null, profile: null };
 
 vi.mock("../../lib/auth", async () => {
@@ -80,10 +80,17 @@ describe("member routing", () => {
     expect(await screen.findByTestId("cockpit-v2")).toBeTruthy();
   });
 
-  it("an admin cohort DOES reach /admin/cockpit", async () => {
-    authState.profile = { cohort: "founder" };
+  it("the controller (the flag) DOES reach /admin/cockpit", async () => {
+    authState.profile = { cohort: "controller", controller: true };
     at("/admin/cockpit");
     expect(await screen.findByTestId("cockpit-v1")).toBeTruthy();
+  });
+
+  it("#157 -- a legacy admin string without the flag is redirected like any member", async () => {
+    authState.profile = { cohort: "founder" };
+    at("/admin/cockpit");
+    await waitFor(() => expect(screen.queryByTestId("cockpit-v1")).toBeNull());
+    expect(await screen.findByTestId("cockpit-v2")).toBeTruthy();
   });
 
   it("a signed-out visitor at /admin/cockpit goes to login, not the console", async () => {

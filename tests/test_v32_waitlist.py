@@ -15,6 +15,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -48,7 +49,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"test-pass-123", bcrypt.gensalt())
@@ -56,8 +57,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -258,7 +259,7 @@ def test_public_cohort_status_reflects_full(app_module, client, monkeypatch):
 # /founder/waitlist + /founder/waitlist/update
 # ---------------------------------------------------------------------------
 def test_founder_list_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "lurker", cohort=None)
+    user, sid = _make_user(app_module, "lurker", controller=False)
     r = client.get("/founder/waitlist", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -268,7 +269,7 @@ def test_founder_list_returns_entries(app_module, client):
     waitlist_store.add_waitlist_entry(email="a@example.com")
     waitlist_store.add_waitlist_entry(email="b@example.com")
 
-    user, sid = _make_user(app_module, "founder1", cohort="founder")
+    user, sid = _make_user(app_module, "founder1", controller=True)
     r = client.get("/founder/waitlist", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -283,7 +284,7 @@ def test_founder_list_filter_by_status(app_module, client):
     rec = waitlist_store.add_waitlist_entry(email="b@example.com")
     waitlist_store.update_status(rec["id"], status="contacted")
 
-    user, sid = _make_user(app_module, "founder2", cohort="founder")
+    user, sid = _make_user(app_module, "founder2", controller=True)
     r = client.get("/founder/waitlist?status=contacted", headers=_auth(sid))
     body = r.json()
     assert len(body["entries"]) == 1
@@ -291,7 +292,7 @@ def test_founder_list_filter_by_status(app_module, client):
 
 
 def test_founder_list_rejects_bad_status(app_module, client):
-    user, sid = _make_user(app_module, "founder3", cohort="founder")
+    user, sid = _make_user(app_module, "founder3", controller=True)
     r = client.get("/founder/waitlist?status=garbage", headers=_auth(sid))
     assert r.status_code == 400
 
@@ -300,7 +301,7 @@ def test_founder_update_status_transition(app_module, client):
     import waitlist_store
     rec = waitlist_store.add_waitlist_entry(email="t@example.com")
 
-    user, sid = _make_user(app_module, "founder4", cohort="founder")
+    user, sid = _make_user(app_module, "founder4", controller=True)
     r = client.post(
         "/founder/waitlist/update",
         headers=_auth(sid),
@@ -316,7 +317,7 @@ def test_founder_update_converted_requires_user_id(app_module, client):
     import waitlist_store
     rec = waitlist_store.add_waitlist_entry(email="conv@example.com")
 
-    user, sid = _make_user(app_module, "founder5", cohort="founder")
+    user, sid = _make_user(app_module, "founder5", controller=True)
     r = client.post(
         "/founder/waitlist/update",
         headers=_auth(sid),
@@ -330,7 +331,7 @@ def test_founder_update_converted_with_user_id(app_module, client):
     import waitlist_store
     rec = waitlist_store.add_waitlist_entry(email="ok@example.com")
 
-    user, sid = _make_user(app_module, "founder6", cohort="founder")
+    user, sid = _make_user(app_module, "founder6", controller=True)
     r = client.post(
         "/founder/waitlist/update",
         headers=_auth(sid),
@@ -343,7 +344,7 @@ def test_founder_update_converted_with_user_id(app_module, client):
 
 
 def test_founder_update_unknown_id(app_module, client):
-    user, sid = _make_user(app_module, "founder7", cohort="founder")
+    user, sid = _make_user(app_module, "founder7", controller=True)
     r = client.post(
         "/founder/waitlist/update",
         headers=_auth(sid),
@@ -356,7 +357,7 @@ def test_founder_update_requires_founder(app_module, client):
     import waitlist_store
     rec = waitlist_store.add_waitlist_entry(email="z@example.com")
 
-    user, sid = _make_user(app_module, "stranger", cohort=None)
+    user, sid = _make_user(app_module, "stranger", controller=False)
     r = client.post(
         "/founder/waitlist/update",
         headers=_auth(sid),
@@ -372,14 +373,14 @@ def test_activate_when_cohort_full_returns_friendly_message(app_module, client, 
     import membership_store
     monkeypatch.setattr(membership_store, "FOUNDING_CAP", 1)
     # First user fills the cohort.
-    u1, sid1 = _make_user(app_module, "first", cohort="founder")
+    u1, sid1 = _make_user(app_module, "first", controller=True)
     r1 = client.post(
         "/membership/activate", headers=_auth(sid1), json={"accept_terms": True},
     )
     assert r1.status_code == 200
 
     # Second user gets the friendly waitlist message.
-    u2, sid2 = _make_user(app_module, "second", cohort="founder")
+    u2, sid2 = _make_user(app_module, "second", controller=True)
     r2 = client.post(
         "/membership/activate", headers=_auth(sid2), json={"accept_terms": True},
     )

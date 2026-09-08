@@ -210,25 +210,29 @@ org_timeline_router = APIRouter(
 )
 
 
-# v73 / Unit 83 — Founder-cohort gate. Mirrors the app.py
-# _require_founder pattern but lives here so /org/timeline/* doesn't
-# need to import app.py back (avoids the circular import that bit
-# v64). #149 (2026-09-03): this set MUST equal app.py's
-# FOUNDER_LIKE_COHORTS = {COHORT_FOUNDER, COHORT_FOUNDER_EXCEPTION,
-# COHORT_ADMIN}. It had drifted by "admin": an admin doc opened every
-# /founder/* page and was refused only on /org/timeline/*. A drift guard
-# in tests/test_el_ins_org_timeline.py asserts the two sets are equal;
-# change both or neither. The 403 text is unchanged.
-_FOUNDER_COHORTS: frozenset[str] = frozenset({"founder", "founder_exception", "admin"})
+# v73 / Unit 83 — the controller gate for /org/timeline/*. Lives here so
+# the router doesn't import app.py back (the circular import that bit v64).
+# #181 (2026-09-08): ONE refusal for both controller gates. app.py's
+# _require_founder raises this same dict (it imports the name from here,
+# the lower module), so /founder/* and /org/timeline/* refuse a
+# non-controller with one status and one body:
+#   403 {"ok": false, "error": "admin_only", "message": ...}
+# The shape is app.error_response's; a drift guard in tests/test_citizens.py
+# pins the two equal. The old cohort-worded text is gone.
+ADMIN_ONLY_REFUSAL: dict = {
+    "ok": False,
+    "error": "admin_only",
+    "message": "Admin only: this console is the controller's",
+}
 
 
 def require_founder(
     x_session_id: Optional[str] = Header(default=None),
 ) -> str:
-    """Cohort-based gate. Returns the authed operator_id when the user
-    is in a founder-like cohort (``founder`` / ``founder_exception`` /
-    ``admin`` -- the same set as app.py FOUNDER_LIKE_COHORTS); otherwise
-    raises 403 — same status code as app.py's ``_require_founder``.
+    """The controller gate. Returns the authed operator_id when the user's
+    doc carries the controller flag (users_store.is_controller, the ONE
+    predicate -- #157: no cohort string opens it); otherwise raises 403
+    with ADMIN_ONLY_REFUSAL, byte-equal to app.py's ``_require_founder``.
 
     v87 — goes through ``_resolve_authed_identity`` so the users doc is
     looked up by EMAIL (its key), not by the minted operator_id.
@@ -236,13 +240,10 @@ def require_founder(
     import users_store as _users  # lazy — matches the require_operator pattern
     user, operator_id = _resolve_authed_identity(x_session_id)
     user_doc = _users.get_user(user) or {}
-    # #124 -- the founder is doc.controller; users_store.is_controller is the
-    # ONE predicate both this gate and app._require_founder read (drift guard
-    # in tests/test_citizens.py). It carries the one-deploy string shim.
     if not _users.is_controller(user_doc):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Founder cohort required",
+            detail=dict(ADMIN_ONLY_REFUSAL),
         )
     return operator_id
 

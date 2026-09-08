@@ -12,6 +12,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 from datetime import timedelta
 
@@ -210,16 +211,17 @@ def client():
     el_ins._reset_all_for_tests()
 
 
-def _auth(user: str = "founder_alice", *, cohort: str = "founder") -> dict[str, str]:
-    # Seed a user doc so require_founder can read its cohort. The
-    # users_store API uses (username, password_hash, salt, tier,
-    # created_at); we don't care about auth-hash fidelity here so
+def _auth(user: str = "founder_alice", *, controller: bool = True) -> dict[str, str]:
+    # Seed a user doc so require_founder can read its FLAG (#157: the flag is
+    # the only key). The users_store API uses (username, password_hash, salt,
+    # tier, created_at); we don't care about auth-hash fidelity here so
     # placeholder strings + a current timestamp are fine.
     if not users_store.get_user(user):
         users_store.create_user(
             user, "x", "x", tier="standard", created_at=time.time(),
         )
-    users_store.update_user(user, {"cohort": cohort})
+    if controller:
+        seed_controller(user)
     sid = f"auth-org-{user}"
     sessions_store.create_session(sid, user, expires_at=time.time() + 3600)
     return {"X-Session-ID": sid}
@@ -236,28 +238,33 @@ class TestOrgTimelineEndpoints:
         assert client.get("/org/timeline/30d").status_code == 401
 
     def test_non_founder_returns_403(self, client):
-        # Authed but no founder cohort → 403.
+        # Authed but no controller flag → 403, the one refusal (#181).
         r = client.get(
             "/org/timeline/24h",
-            headers=_auth("regular_user", cohort="terrace_1"),
+            headers=_auth("regular_user", controller=False),
         )
         assert r.status_code == 403
+        # this harness mounts the bare router (no app.py handler): the dict
+        # rides under FastAPI's "detail"; the live app unwraps it to the top
+        # level -- pinned on the real app in test_citizens / test_admin_only.
+        assert r.json()["detail"] == rh_mod.ADMIN_ONLY_REFUSAL
 
     def test_founder_returns_200(self, client):
         r = client.get(
-            "/org/timeline/24h", headers=_auth(cohort="founder"),
+            "/org/timeline/24h", headers=_auth(controller=True),
         )
         assert r.status_code == 200
         body = r.json()
         assert body["window"] == "24h"
         assert body["entries"] == []
 
-    def test_founder_exception_also_allowed(self, client):
-        r = client.get(
-            "/org/timeline/24h",
-            headers=_auth("fe_user", cohort="founder_exception"),
-        )
-        assert r.status_code == 200
+    def test_a_founder_exception_string_opens_nothing(self, client):
+        """#157 -- the invite kind on a doc (what a redeemed invite records)
+        is not a controller; refused."""
+        h = _auth("fe_user", controller=False)
+        users_store.update_user("fe_user", {"cohort": "founder_exception"})
+        r = client.get("/org/timeline/24h", headers=h)
+        assert r.status_code == 403
 
     def test_7d_endpoint_window_label(self, client):
         r = client.get("/org/timeline/7d", headers=_auth())
@@ -323,22 +330,34 @@ class TestNoLeakage:
 # #149 -- the two founder sets agree (the drift was "admin")
 # ===========================================================================
 class TestFounderSetParity:
-    def test_admin_cohort_is_allowed(self, client):
-        """An admin doc opened every /founder/* page (app.py FOUNDER_LIKE_
-        COHORTS) and was refused ONLY here. Same set now."""
-        r = client.get("/org/timeline/24h", headers=_auth("adm_user", cohort="admin"))
-        assert r.status_code == 200
+    def test_an_admin_string_is_refused(self, client):
+        """#157 -- "admin" on a doc was a founder-like string under the #124
+        shim (and, before #149, opened /founder/* while this route refused
+        it). The set is deleted: the string opens neither gate."""
+        h = _auth("adm_user", controller=False)
+        users_store.update_user("adm_user", {"cohort": "admin"})
+        assert client.get("/org/timeline/24h", headers=h).status_code == 403
 
-    def test_founding_500_stays_403_the_set_is_not_widened(self, client):
-        """A paying member is not founder-like. The walk's 403 was a
-        founding_500 doc refused CORRECTLY (settled 09-03); the text is kept."""
-        r = client.get("/org/timeline/24h", headers=_auth("member_user", cohort="founding_500"))
+    def test_founding_500_stays_403_with_the_one_refusal(self, client):
+        """A paying member is not a controller. The walk's 403 was a
+        founding_500 doc refused CORRECTLY (settled 09-03); the body is now
+        the ONE refusal (#181), not the old text."""
+        h = _auth("member_user", controller=False)
+        users_store.update_user("member_user", {"cohort": "founding_500", "member_number": 12})
+        r = client.get("/org/timeline/24h", headers=h)
         assert r.status_code == 403
-        assert "Founder cohort required" in r.text
+        assert r.json()["detail"] == rh_mod.ADMIN_ONLY_REFUSAL  # bare-router harness: under "detail"
+        assert "Founder cohort required" not in r.text
 
-    def test_drift_guard_the_two_sets_are_equal(self):
-        """Change both or neither. app.py owns the names; runtime_http mirrors
-        them because importing app back would be a cycle."""
+    def test_drift_guard_the_two_refusals_are_one(self, client):
+        """#181 -- runtime_http owns the refusal (the lower module); app.py's
+        _require_founder raises the same dict, error_response's shape. (Both
+        gates on the REAL app, one member, one body: test_citizens and
+        test_admin_only -- this harness mounts only the org router.)"""
         import app as app_mod
-        assert frozenset(app_mod.FOUNDER_LIKE_COHORTS) == rh_mod._FOUNDER_COHORTS
-        assert "admin" in rh_mod._FOUNDER_COHORTS
+        assert rh_mod.ADMIN_ONLY_REFUSAL == app_mod.error_response(
+            "admin_only", "Admin only: this console is the controller's")
+        assert set(rh_mod.ADMIN_ONLY_REFUSAL) == {"ok", "error", "message"}
+        h = _auth("parity_member", controller=False)
+        r = client.get("/org/timeline/24h", headers=h)
+        assert r.status_code == 403 and r.json()["detail"] == rh_mod.ADMIN_ONLY_REFUSAL

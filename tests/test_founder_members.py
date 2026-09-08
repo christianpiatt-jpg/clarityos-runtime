@@ -19,6 +19,7 @@ captured, never real.
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -64,33 +65,33 @@ def sender(monkeypatch):
     return box
 
 
-def _make_user(username, cohort="founder", *, active=False):
+def _make_user(username, controller=True, *, active=False):
     import bcrypt
     users_store.create_user(
         username=username, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
         salt="", tier="free", created_at=time.time(),
     )
-    patch = {"cohort": cohort}
     if active:
-        patch.update({"membership_status": "active", "membership_tier": "founding_500"})
-    users_store.update_user(username, patch)
+        users_store.update_user(username, {"membership_status": "active", "membership_tier": "founding_500"})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, not a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return {"X-Session-ID": sid}
 
 
 def _founder():
-    return _make_user("founder_x", cohort="founder")
+    return _make_user("founder_x", controller=True)
 
 
 def _member():
-    return _make_user("member_x", cohort="founding_500", active=True)
+    return _make_user("member_x", controller=False, active=True)
 
 
 RESPONSE_KEYS = {"ok", "created", "activated", "activate_error", "sent", "link_throttled", "email_hash"}
 ROW_KEYS = {"email", "cohort", "membership_status", "membership_tier",
             "created_at", "last_seen", "balance_display", "auth_method",
-            "member_number", "citizen", "controller", "citz_id"}
+            "member_number", "paid", "controller", "citz_id"}  # #174 -- paid, not citizen
 
 
 # ===========================================================================

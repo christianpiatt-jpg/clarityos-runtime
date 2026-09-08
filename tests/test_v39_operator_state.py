@@ -17,6 +17,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -37,7 +38,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder", *, signal_mode=None,
+def _make_user(app_module, username, controller=True, *, signal_mode=None,
                g_credits=10):
     import secrets
     import users_store, sessions_store, bcrypt
@@ -47,8 +48,8 @@ def _make_user(app_module, username, cohort="founder", *, signal_mode=None,
         tier="free", created_at=time.time(),
     )
     patch = {}
-    if cohort:
-        patch["cohort"] = cohort
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     if signal_mode is not None:
         patch["external_signal_mode"] = signal_mode
     if g_credits:
@@ -231,7 +232,7 @@ def test_continuity_context_includes_last_region(reset_stores):
 # Endpoint — /me/operator_state
 # ---------------------------------------------------------------------------
 def test_endpoint_me_state_default(app_module, client):
-    user, sid = _make_user(app_module, "ms_a", cohort="founder")
+    user, sid = _make_user(app_module, "ms_a", controller=True)
     r = client.get("/me/operator_state", headers=_auth(sid))
     assert r.status_code == 200
     state = r.json()["state"]
@@ -240,7 +241,7 @@ def test_endpoint_me_state_default(app_module, client):
 
 
 def test_endpoint_me_state_update(app_module, client):
-    user, sid = _make_user(app_module, "ms_b", cohort="founder")
+    user, sid = _make_user(app_module, "ms_b", controller=True)
     r = client.post(
         "/me/operator_state", headers=_auth(sid),
         json={"external_signal_mode": "cloud_perplexity"},
@@ -253,7 +254,7 @@ def test_endpoint_me_state_update(app_module, client):
 
 
 def test_endpoint_me_state_update_rejects_bad_mode(app_module, client):
-    user, sid = _make_user(app_module, "ms_c", cohort="founder")
+    user, sid = _make_user(app_module, "ms_c", controller=True)
     r = client.post(
         "/me/operator_state", headers=_auth(sid),
         json={"external_signal_mode": "totally_made_up"},
@@ -265,7 +266,7 @@ def test_endpoint_me_state_update_mirrors_to_users_store(app_module, client):
     """Setting cloud_perplexity here should let the regional ELINS
     pipeline pick up the ESO from a subsequent /elins/regional/run."""
     import users_store
-    user, sid = _make_user(app_module, "ms_d", cohort="founder")
+    user, sid = _make_user(app_module, "ms_d", controller=True)
     client.post(
         "/me/operator_state", headers=_auth(sid),
         json={"external_signal_mode": "cloud_perplexity"},
@@ -279,9 +280,9 @@ def test_endpoint_me_state_update_mirrors_to_users_store(app_module, client):
 # ---------------------------------------------------------------------------
 def test_endpoint_founder_operator_state_happy(app_module, client):
     import operator_state as os_
-    target, _ = _make_user(app_module, "target", cohort=None)
+    target, _ = _make_user(app_module, "target", controller=False)
     os_.record_elins_interaction(target, "sc_1", {"topic": "t", "region": "US"})
-    user, sid = _make_user(app_module, "fop_a", cohort="founder")
+    user, sid = _make_user(app_module, "fop_a", controller=True)
     r = client.get(f"/founder/operator/{target}/state", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     state = r.json()["state"]
@@ -290,14 +291,14 @@ def test_endpoint_founder_operator_state_happy(app_module, client):
 
 
 def test_endpoint_founder_operator_state_404(app_module, client):
-    user, sid = _make_user(app_module, "fop_b", cohort="founder")
+    user, sid = _make_user(app_module, "fop_b", controller=True)
     r = client.get("/founder/operator/no_such_user/state", headers=_auth(sid))
     assert r.status_code == 404
 
 
 def test_endpoint_founder_operator_state_requires_founder(app_module, client):
-    target, _ = _make_user(app_module, "target_b", cohort=None)
-    user, sid = _make_user(app_module, "fop_outsider", cohort=None)
+    target, _ = _make_user(app_module, "target_b", controller=False)
+    user, sid = _make_user(app_module, "fop_outsider", controller=False)
     r = client.get(f"/founder/operator/{target}/state", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -307,7 +308,7 @@ def test_endpoint_founder_operator_state_requires_founder(app_module, client):
 # ---------------------------------------------------------------------------
 def test_elins_preview_records_interaction(app_module, client):
     import operator_state as os_
-    user, sid = _make_user(app_module, "ep_a", cohort="founder")
+    user, sid = _make_user(app_module, "ep_a", controller=True)
     r = client.post(
         "/elins/preview", headers=_auth(sid),
         json={"text": "trust between partners is eroding under tariff pressure"},
@@ -320,7 +321,7 @@ def test_elins_preview_records_interaction(app_module, client):
 
 def test_elins_regional_run_records_with_region(app_module, client):
     import operator_state as os_
-    user, sid = _make_user(app_module, "er_a", cohort="founder")
+    user, sid = _make_user(app_module, "er_a", controller=True)
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "MEA", "topic_hint": "Gulf shipping"},
@@ -336,7 +337,7 @@ def test_elins_regional_run_records_with_region(app_module, client):
 
 def test_elins_g_run_records_g_history(app_module, client):
     import operator_state as os_
-    user, sid = _make_user(app_module, "eg_a", cohort="founder", g_credits=5)
+    user, sid = _make_user(app_module, "eg_a", controller=True, g_credits=5)
     r = client.post(
         "/elins/g/run", headers=_auth(sid),
         json={"scenario_text": "tariffs are creating pressure on the courts"},
@@ -354,7 +355,7 @@ def test_no_raw_text_persisted_via_endpoints(app_module, client):
     """Defensive — the recorded entries must NOT contain the raw scenario
     text under any guise."""
     import operator_state as os_
-    user, sid = _make_user(app_module, "raw_a", cohort="founder")
+    user, sid = _make_user(app_module, "raw_a", controller=True)
     raw = "this is a uniquely-worded scenario string FNORD123"
     client.post(
         "/elins/preview", headers=_auth(sid), json={"text": raw},
@@ -372,7 +373,7 @@ def test_no_raw_text_persisted_via_endpoints(app_module, client):
 # ---------------------------------------------------------------------------
 def test_dashboard_includes_continuity_section(app_module, client):
     import operator_state as os_
-    user, sid = _make_user(app_module, "dc_a", cohort="founder")
+    user, sid = _make_user(app_module, "dc_a", controller=True)
     os_.record_elins_interaction(
         user, "sc_1", {"topic": "fed rate", "region": "US", "domain": "economic"},
     )
@@ -391,7 +392,7 @@ def test_dashboard_includes_continuity_section(app_module, client):
 # Capability surface
 # ---------------------------------------------------------------------------
 def test_me_advertises_operator_state_capability(app_module, client):
-    user, sid = _make_user(app_module, "cap_a", cohort="founder")
+    user, sid = _make_user(app_module, "cap_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     ids = [c["id"] for c in r.json().get("capabilities") or []]
     assert "operator_state" in ids

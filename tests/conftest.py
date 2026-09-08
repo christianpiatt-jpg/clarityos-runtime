@@ -55,6 +55,16 @@ os.environ.setdefault(
 import pytest
 
 
+def seed_controller(username: str) -> None:
+    """#157 -- the ONE way a test makes a controller: the flag on the doc,
+    and a member number (the live controller carries one). This replaces
+    every ``{"cohort": "founder"}`` seed: no cohort string opens anything any
+    more (#173), and nothing in production writes one. The doc must exist."""
+    import users_store
+    users_store.update_user(username, {"controller": True})
+    users_store.assign_member_number(username)
+
+
 class AppClient:
     """Tiny sync test client compatible with httpx >=0.28 when starlette's
     bundled TestClient is from a version that still passes ``app=`` to httpx.
@@ -233,8 +243,11 @@ def reset_stores():
     v29_hardening._reset_rate_limits_for_tests()
     v29_hardening._reset_flags_for_tests()
     # Mirror app.py's startup flag bootstrap so cohort-based defaults match
-    # what production sees post-deploy.
-    for _coh in ("founder", "founder_exception", "terrace_1"):
+    # what production sees post-deploy. #157: a session's cohort is ALWAYS a
+    # derived label (controller / founding / all) and the legacy-string
+    # aliases are deleted, so the labels are the only keys armed here --
+    # exactly what app.py arms for them.
+    for _coh in ("controller", "founding", "all"):
         v29_hardening.set_flag("v28_surfaces", True, cohort=_coh)
         v29_hardening.set_flag("onboarding_v1", True, cohort=_coh)
         v29_hardening.set_flag("whats_new_v28", True, cohort=_coh)
@@ -242,12 +255,12 @@ def reset_stores():
     v29_hardening._DEFAULT_FLAGS.setdefault("founder_tier_enabled", False)
     v29_hardening._DEFAULT_FLAGS.setdefault("g_credits_enabled", False)
     v29_hardening._DEFAULT_FLAGS.setdefault("membership_ui_enabled", False)
-    for _coh in ("founder", "founder_exception"):
-        v29_hardening.set_flag("founder_tier_enabled", True, cohort=_coh)
+    v29_hardening.set_flag("founder_tier_enabled", True, cohort="controller")
+    # v43b -- the paying cohort and every member get g_credits + the
+    # membership UI (app.py); founder_tier_enabled stays the controller's.
+    for _coh in ("controller", "founding", "all"):
         v29_hardening.set_flag("g_credits_enabled", True, cohort=_coh)
         v29_hardening.set_flag("membership_ui_enabled", True, cohort=_coh)
-    v29_hardening.set_flag("g_credits_enabled", True, cohort="terrace_1")
-    v29_hardening.set_flag("membership_ui_enabled", True, cohort="terrace_1")
     yield None
 
 

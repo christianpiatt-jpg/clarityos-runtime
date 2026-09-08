@@ -14,6 +14,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -34,7 +35,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -42,8 +43,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -386,7 +387,7 @@ def test_macro_scheduler_safe_with_no_prior_graph(reset_stores):
 # Endpoints
 # ---------------------------------------------------------------------------
 def test_endpoint_search_no_graph_yet(app_module, client):
-    user, sid = _make_user(app_module, "es_a", cohort="founder")
+    user, sid = _make_user(app_module, "es_a", controller=True)
     r = client.get("/elins/entities/search?q=fed", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -397,7 +398,7 @@ def test_endpoint_search_after_macro_pass(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "es_b", cohort="founder")
+    user, sid = _make_user(app_module, "es_b", controller=True)
     r = client.get("/elins/entities/search?q=federal", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -407,7 +408,9 @@ def test_endpoint_search_after_macro_pass(app_module, client):
 
 
 def test_endpoint_search_blocked_when_v28_off(app_module, client):
-    user, sid = _make_user(app_module, "es_lurker", cohort=None)
+    user, sid = _make_user(app_module, "es_lurker", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.get("/elins/entities/search?q=x", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -416,7 +419,7 @@ def test_endpoint_neighbors_returns_graph(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "en_a", cohort="founder")
+    user, sid = _make_user(app_module, "en_a", controller=True)
     # Pick an anchor name that the macro pass produces.
     name = "Federal Reserve rate path"
     r = client.get(
@@ -430,7 +433,7 @@ def test_endpoint_neighbors_returns_graph(app_module, client):
 
 
 def test_endpoint_neighbors_404_unknown(app_module, client):
-    user, sid = _make_user(app_module, "en_b", cohort="founder")
+    user, sid = _make_user(app_module, "en_b", controller=True)
     r = client.get(
         "/elins/entities/Definitely Not An Entity/neighbors", headers=_auth(sid),
     )
@@ -442,7 +445,7 @@ def test_endpoint_timeseries_returns_appearances(app_module, client):
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "et_a", cohort="founder")
+    user, sid = _make_user(app_module, "et_a", controller=True)
     r = client.get(
         "/elins/entities/Federal Reserve rate path/timeseries", headers=_auth(sid),
     )
@@ -453,7 +456,7 @@ def test_endpoint_timeseries_returns_appearances(app_module, client):
 
 
 def test_endpoint_timeseries_404_unknown(app_module, client):
-    user, sid = _make_user(app_module, "et_b", cohort="founder")
+    user, sid = _make_user(app_module, "et_b", controller=True)
     r = client.get(
         "/elins/entities/Nope/timeseries", headers=_auth(sid),
     )
@@ -461,7 +464,7 @@ def test_endpoint_timeseries_404_unknown(app_module, client):
 
 
 def test_endpoint_raw_graph_founder_only(app_module, client):
-    user, sid = _make_user(app_module, "rg_outsider", cohort=None)
+    user, sid = _make_user(app_module, "rg_outsider", controller=False)
     r = client.get("/founder/elins/entity_graph/raw", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -469,7 +472,7 @@ def test_endpoint_raw_graph_founder_only(app_module, client):
 def test_endpoint_raw_graph_returns_payload(app_module, client):
     import elins_scheduler
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "rg_a", cohort="founder")
+    user, sid = _make_user(app_module, "rg_a", controller=True)
     r = client.get("/founder/elins/entity_graph/raw", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -480,7 +483,7 @@ def test_endpoint_raw_graph_returns_payload(app_module, client):
 
 
 def test_endpoint_raw_graph_empty_when_no_pass(app_module, client):
-    user, sid = _make_user(app_module, "rg_b", cohort="founder")
+    user, sid = _make_user(app_module, "rg_b", controller=True)
     r = client.get("/founder/elins/entity_graph/raw", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -494,7 +497,7 @@ def test_endpoint_raw_graph_empty_when_no_pass(app_module, client):
 def test_ui_shape_for_search(app_module, client):
     import elins_scheduler
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "ui_s", cohort="founder")
+    user, sid = _make_user(app_module, "ui_s", controller=True)
     r = client.get("/elins/entities/search", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -508,7 +511,7 @@ def test_ui_shape_for_neighbors(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "ui_n", cohort="founder")
+    user, sid = _make_user(app_module, "ui_n", controller=True)
     r = client.get(
         "/elins/entities/Federal Reserve rate path/neighbors",
         headers=_auth(sid),

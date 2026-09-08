@@ -26,6 +26,7 @@ Endpoints:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import json
 import secrets
 import time
@@ -48,7 +49,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -57,8 +58,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -355,7 +356,7 @@ def test_endpoint_analyze_happy_path(app_module, client, monkeypatch):
     payload = _valid_payload()
     _install_fake_handler(monkeypatch, json.dumps(payload))
 
-    user, sid = _make_user(app_module, "ep_a", cohort="founder")
+    user, sid = _make_user(app_module, "ep_a", controller=True)
     r = client.post(
         "/me/emotional_physics/analyze",
         headers=_auth(sid),
@@ -374,7 +375,7 @@ def test_endpoint_analyze_graceful_degrade(app_module, client, monkeypatch):
     parse_error in _meta. Never 5xx."""
     _install_fake_handler(monkeypatch, "not json")
 
-    user, sid = _make_user(app_module, "ep_b", cohort="founder")
+    user, sid = _make_user(app_module, "ep_b", controller=True)
     r = client.post(
         "/me/emotional_physics/analyze",
         headers=_auth(sid),
@@ -387,7 +388,7 @@ def test_endpoint_analyze_graceful_degrade(app_module, client, monkeypatch):
 
 
 def test_endpoint_analyze_400_on_empty_text(app_module, client):
-    user, sid = _make_user(app_module, "ep_c", cohort="founder")
+    user, sid = _make_user(app_module, "ep_c", controller=True)
     r = client.post(
         "/me/emotional_physics/analyze",
         headers=_auth(sid),
@@ -410,7 +411,7 @@ def test_endpoint_analyze_401_when_unauth(app_module, client):
 # /me capabilities + /health version
 # ===========================================================================
 def test_me_capabilities_lists_emotional_physics(app_module, client):
-    user, sid = _make_user(app_module, "cap_a", cohort="founder")
+    user, sid = _make_user(app_module, "cap_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200
     caps = r.json().get("capabilities") or []

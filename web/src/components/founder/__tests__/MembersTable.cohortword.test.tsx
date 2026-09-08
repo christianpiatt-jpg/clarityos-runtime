@@ -15,7 +15,7 @@ import MembersTable from "../MembersTable";
 
 const row = (email: string, extra: Record<string, unknown>) => ({
   email, cohort: "all", membership_status: null, membership_tier: null, created_at: 1, last_seen: null,
-  balance_display: "$0.00", auth_method: "magic_link", member_number: null, citizen: false, controller: false,
+  balance_display: "$0.00", auth_method: "magic_link", member_number: null, paid: false, controller: false,
   citz_id: null, ...extra,
 });
 

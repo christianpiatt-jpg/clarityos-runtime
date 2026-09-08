@@ -22,9 +22,11 @@ function writeStorage(k: string, v: string | null): void {
 }
 
 // ---------- Types ----------
-// #124 -- `cohort` is a label DERIVED on the server ("controller" |
-// "founding" | "all"); the legacy strings may still appear for one deploy.
-export type Cohort = "controller" | "founding" | "all" | "founder" | "founder_exception" | "terrace_1" | "member" | "admin" | string;
+// #124 / #157 -- `cohort` is a label DERIVED on the server and is ONLY
+// ever one of these three. The legacy strings are gone from the wire; the
+// invite KINDS ("founder_exception" | "terrace_1") are a different thing
+// and ride on the invite types below, not here.
+export type Cohort = "controller" | "founding" | "all";
 
 // #180b (3) -- the /me kernel block and capability list, carried on the
 // profile so the cockpit welcome card can render them. Every field is
@@ -54,9 +56,11 @@ export interface Profile {
   operator_id?: string | null;
   tier?: string;
   billing_expires_at?: number | null;
-  // #124 -- the citizen number and what is derived from it
+  // #124 -- the citizen number and what is derived from it. #174 -- `paid`
+  // is a STATE (an active founding membership that was paid for); citizen
+  // is the number. The old `citizen` boolean is gone from the wire.
   member_number?: number | null;
-  citizen?: boolean;
+  paid?: boolean;
   controller?: boolean;
   citz_id?: string | null;
   // #180b (3) -- absent = the server did not say; false = it said no.
@@ -75,9 +79,9 @@ export interface MeResponse {
   operator_id?: string | null;
   tier?: string;
   billing_expires_at?: number | null;
-  // #124
+  // #124 / #174
   member_number?: number | null;
-  citizen?: boolean;
+  paid?: boolean;
   controller?: boolean;
   citz_id?: string | null;
   // #180b (3)
@@ -269,7 +273,7 @@ export async function refreshProfile(): Promise<Profile | null> {
       tier: m.tier,
       billing_expires_at: m.billing_expires_at ?? null,
       member_number: m.member_number ?? null,
-      citizen: m.citizen === true,
+      paid: m.paid === true,
       controller: m.controller === true,
       citz_id: m.citz_id ?? null,
       // #180b (3) -- the kernel block, the capability list and the vault
@@ -536,13 +540,16 @@ export interface InviteCreated {
   invite_id: string;
   token: string;
   url: string;
-  cohort: Cohort;
+  cohort: InviteKind;  // the invite KIND, not a derived label
   price: number;
   billing_required: boolean;
   expires_at: number;
 }
 
-export const createInvite = (cohort: "founder_exception" | "terrace_1", expires_in_days?: number) =>
+/** #157 -- what an invite is FOR. A kind on a redeemed doc opens nothing;
+ *  the two kinds are the server's (/invite/create). Not a Cohort. */
+export type InviteKind = "founder_exception" | "terrace_1";
+export const createInvite = (cohort: InviteKind, expires_in_days?: number) =>
   request<InviteCreated>("/invite/create", {
     method: "POST",
     body: { cohort, ...(expires_in_days ? { expires_in_days } : {}) },
@@ -738,10 +745,10 @@ export type V31BillingState =
 
 export interface MembershipStateView {
   user: string;
-  // #124 -- the citizen id, shown on /membership
+  // #124 -- the citizen id, shown on /membership; #174 -- `paid`, a state
   identity?: {
     member_number: number | null;
-    citizen: boolean;
+    paid: boolean;
     controller: boolean;
     citz_id: string | null;
     cohort: string;
@@ -2218,7 +2225,7 @@ export interface FounderMemberRow {
   // #124 -- the identity the row carries (the founder rows builder emits
   // all four); #171 reads member_number + controller for the word.
   member_number?: number | null;
-  citizen?: boolean;
+  paid?: boolean;  // #174
   controller?: boolean;
   citz_id?: string | null;
 }

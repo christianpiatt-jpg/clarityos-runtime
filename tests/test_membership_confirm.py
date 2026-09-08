@@ -11,6 +11,7 @@ Covers POST /membership/confirm:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -44,7 +45,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets, time as _t
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"test-pass-123", bcrypt.gensalt())
@@ -52,8 +53,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=_t.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=_t.time() + 3600)
     return username, sid
@@ -79,7 +80,7 @@ def _activate(client, sid):
 # Happy path
 # ---------------------------------------------------------------------------
 def test_confirm_membership_success(app_module, client):
-    user, sid = _make_user(app_module, "felix", cohort="founder")
+    user, sid = _make_user(app_module, "felix", controller=True)
     # Pre-condition: user has paid and is active in the cohort.
     r0 = _activate(client, sid)
     assert r0.status_code == 200, r0.json()
@@ -105,7 +106,7 @@ def test_confirm_membership_success(app_module, client):
 # Subscription inactive
 # ---------------------------------------------------------------------------
 def test_confirm_membership_subscription_inactive(app_module, client):
-    user, sid = _make_user(app_module, "gina", cohort="founder")
+    user, sid = _make_user(app_module, "gina", controller=True)
     # Skip /activate — the user has not paid yet.
     r = client.post(
         "/membership/confirm",
@@ -120,7 +121,7 @@ def test_confirm_membership_subscription_inactive(app_module, client):
 # Idempotency
 # ---------------------------------------------------------------------------
 def test_confirm_membership_idempotent(app_module, client):
-    user, sid = _make_user(app_module, "hank", cohort="founder")
+    user, sid = _make_user(app_module, "hank", controller=True)
     _activate(client, sid)
 
     r1 = client.post(
@@ -156,10 +157,10 @@ def test_confirm_membership_cohort_full(app_module, client, monkeypatch):
     monkeypatch.setattr(membership_store, "FOUNDING_CAP", 1)
     # Pre-fill the cohort directly (skipping /activate so we don't
     # trip the v29 flag gate on a no-cohort user).
-    _make_user(app_module, "filler", cohort="founder")
+    _make_user(app_module, "filler", controller=True)
     membership_store.add_member("filler")
 
-    user, sid = _make_user(app_module, "ivy", cohort="founder")
+    user, sid = _make_user(app_module, "ivy", controller=True)
     # Mark ivy active in users_store WITHOUT adding to membership_store —
     # simulates the race where the webhook flipped status before
     # cohort assignment landed.
@@ -191,7 +192,7 @@ def test_confirm_membership_anonymous_rejected(app_module, client):
 
 
 def test_confirm_membership_terms_required(app_module, client):
-    user, sid = _make_user(app_module, "jay", cohort="founder")
+    user, sid = _make_user(app_module, "jay", controller=True)
     _activate(client, sid)
 
     r = client.post(

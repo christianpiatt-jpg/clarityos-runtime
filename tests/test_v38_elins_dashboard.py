@@ -12,6 +12,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -32,7 +33,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -40,8 +41,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -190,7 +191,7 @@ def test_for_date_pins_to_specific_day(reset_stores):
 # Endpoint — /elins/dashboard
 # ---------------------------------------------------------------------------
 def test_endpoint_dashboard_default_user(app_module, client):
-    user, sid = _make_user(app_module, "ed_a", cohort="founder")
+    user, sid = _make_user(app_module, "ed_a", controller=True)
     r = client.get("/elins/dashboard", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -204,7 +205,7 @@ def test_endpoint_dashboard_after_macro_pass(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "ed_b", cohort="founder")
+    user, sid = _make_user(app_module, "ed_b", controller=True)
     r = client.get("/elins/dashboard", headers=_auth(sid))
     assert r.status_code == 200
     snap = r.json()["snapshot"]
@@ -213,13 +214,15 @@ def test_endpoint_dashboard_after_macro_pass(app_module, client):
 
 
 def test_endpoint_dashboard_blocked_when_v28_off(app_module, client):
-    user, sid = _make_user(app_module, "ed_lurker", cohort=None)
+    user, sid = _make_user(app_module, "ed_lurker", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.get("/elins/dashboard", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_endpoint_dashboard_for_date_happy_path(app_module, client):
-    user, sid = _make_user(app_module, "ed_c", cohort="founder")
+    user, sid = _make_user(app_module, "ed_c", controller=True)
     r = client.get("/elins/dashboard/2026-05-06", headers=_auth(sid))
     assert r.status_code == 200
     snap = r.json()["snapshot"]
@@ -227,13 +230,15 @@ def test_endpoint_dashboard_for_date_happy_path(app_module, client):
 
 
 def test_endpoint_dashboard_for_date_validation(app_module, client):
-    user, sid = _make_user(app_module, "ed_d", cohort="founder")
+    user, sid = _make_user(app_module, "ed_d", controller=True)
     r = client.get("/elins/dashboard/not-a-date", headers=_auth(sid))
     assert r.status_code == 400
 
 
 def test_endpoint_dashboard_for_date_blocked_when_v28_off(app_module, client):
-    user, sid = _make_user(app_module, "ed_lurker2", cohort=None)
+    user, sid = _make_user(app_module, "ed_lurker2", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.get("/elins/dashboard/2026-05-06", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -245,7 +250,7 @@ def test_endpoint_overview_returns_counts(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "fo_a", cohort="founder")
+    user, sid = _make_user(app_module, "fo_a", controller=True)
     r = client.get("/founder/elins/dashboard/overview", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     overview = r.json()["overview"]
@@ -259,13 +264,13 @@ def test_endpoint_overview_returns_counts(app_module, client):
 
 
 def test_endpoint_overview_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "fo_outsider", cohort=None)
+    user, sid = _make_user(app_module, "fo_outsider", controller=False)
     r = client.get("/founder/elins/dashboard/overview", headers=_auth(sid))
     assert r.status_code == 403
 
 
 def test_endpoint_overview_empty_state(app_module, client):
-    user, sid = _make_user(app_module, "fo_empty", cohort="founder")
+    user, sid = _make_user(app_module, "fo_empty", controller=True)
     r = client.get("/founder/elins/dashboard/overview", headers=_auth(sid))
     assert r.status_code == 200
     overview = r.json()["overview"]
@@ -278,7 +283,7 @@ def test_endpoint_overview_empty_state(app_module, client):
 # Capabilities advertise the new id
 # ---------------------------------------------------------------------------
 def test_me_advertises_dashboard_capability(app_module, client):
-    user, sid = _make_user(app_module, "cap_a", cohort="founder")
+    user, sid = _make_user(app_module, "cap_a", controller=True)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200
     ids = [c["id"] for c in r.json().get("capabilities") or []]
@@ -292,7 +297,7 @@ def test_ui_shape_for_dashboard_response(app_module, client):
     import elins_scheduler, elins_scheduler_config
     elins_scheduler_config.set_config({"external_signal_mode": "cloud_perplexity"})
     elins_scheduler._run_macro_elins_once(force=True)
-    user, sid = _make_user(app_module, "ui_d", cohort="founder")
+    user, sid = _make_user(app_module, "ui_d", controller=True)
     r = client.get("/elins/dashboard", headers=_auth(sid))
     snap = r.json()["snapshot"]
     g = snap["global"]

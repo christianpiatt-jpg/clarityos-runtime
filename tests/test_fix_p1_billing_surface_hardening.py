@@ -26,6 +26,7 @@ unchanged.
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import logging
 import secrets
 import time
@@ -48,7 +49,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, *, cohort="founder",
+def _make_user(app_module, username, *, controller=True,
                billing_state=None, renewal_ts=None):
     import bcrypt
     import sessions_store
@@ -59,8 +60,8 @@ def _make_user(app_module, username, *, cohort="founder",
         tier="free", created_at=time.time(),
     )
     patch: dict = {}
-    if cohort:
-        patch["cohort"] = cohort
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     if billing_state is not None:
         patch["billing_state"] = billing_state
     if renewal_ts is not None:
@@ -87,7 +88,7 @@ class TestConfirmRedaction:
 
     def test_confirm_response_omits_client_secret(self, app_module, client, manual_confirm):
         import billing_intents
-        user, sid = _make_user(app_module, "p1_confirm_a", cohort="founder")
+        user, sid = _make_user(app_module, "p1_confirm_a", controller=True)
         intent = billing_intents.create_payment_intent(
             user, 1.0, "single credit", kind="g_credit_pack",
         )
@@ -115,7 +116,7 @@ class TestConfirmRedaction:
 
     def test_confirm_response_omits_raw_metadata(self, app_module, client, manual_confirm):
         import billing_intents
-        user, sid = _make_user(app_module, "p1_confirm_b", cohort="founder")
+        user, sid = _make_user(app_module, "p1_confirm_b", controller=True)
         intent = billing_intents.create_payment_intent(
             user, 1.0, "single credit", kind="g_credit_pack",
             metadata={"campaign": "spring-2026", "internal_note": "test"},
@@ -140,7 +141,7 @@ class TestConfirmRedaction:
         mode, description, created/confirmed timestamps, and any
         failure indicator. Mirrors /billing/history's projection."""
         import billing_intents
-        user, sid = _make_user(app_module, "p1_confirm_c", cohort="founder")
+        user, sid = _make_user(app_module, "p1_confirm_c", controller=True)
         intent = billing_intents.create_payment_intent(
             user, 1.0, "single credit", kind="g_credit_pack",
         )
@@ -166,7 +167,7 @@ class TestConfirmRedaction:
         """The top-level shape (``ok`` + ``intent``) is preserved.
         FIX-P1 only narrows the contents of ``intent``."""
         import billing_intents
-        user, sid = _make_user(app_module, "p1_confirm_d", cohort="founder")
+        user, sid = _make_user(app_module, "p1_confirm_d", controller=True)
         intent = billing_intents.create_payment_intent(
             user, 1.0, "x", kind="g_credit_pack",
         )
@@ -188,7 +189,7 @@ class TestMeBillingStatusMapping:
         """The headline FIX-P1 mapping: ``failed`` no longer collapses
         into ``none``."""
         user, sid = _make_user(
-            app_module, "p1_status_failed", cohort="founder",
+            app_module, "p1_status_failed", controller=True,
             billing_state="failed",
         )
         r = client.get("/me/billing", headers=_auth(sid))
@@ -199,14 +200,14 @@ class TestMeBillingStatusMapping:
 
     def test_none_billing_state_maps_to_none(self, app_module, client):
         """A user with no billing_state at all is still ``none``."""
-        user, sid = _make_user(app_module, "p1_status_none", cohort="founder")
+        user, sid = _make_user(app_module, "p1_status_none", controller=True)
         r = client.get("/me/billing", headers=_auth(sid))
         assert r.status_code == 200
         assert r.json()["status"] == "none"
 
     def test_existing_active_mapping_unchanged(self, app_module, client):
         user, sid = _make_user(
-            app_module, "p1_status_active", cohort="founder",
+            app_module, "p1_status_active", controller=True,
             billing_state="active", renewal_ts=time.time() + 86400 * 30,
         )
         r = client.get("/me/billing", headers=_auth(sid))
@@ -214,7 +215,7 @@ class TestMeBillingStatusMapping:
 
     def test_existing_past_due_mapping_unchanged(self, app_module, client):
         user, sid = _make_user(
-            app_module, "p1_status_past_due", cohort="founder",
+            app_module, "p1_status_past_due", controller=True,
             billing_state="past_due",
         )
         r = client.get("/me/billing", headers=_auth(sid))
@@ -225,7 +226,7 @@ class TestMeBillingStatusMapping:
         88cd5b4 (previously collapsed into past_due); the FIX-P1 hardening
         is otherwise unchanged."""
         user, sid = _make_user(
-            app_module, "p1_status_grace", cohort="founder",
+            app_module, "p1_status_grace", controller=True,
             billing_state="grace_period",
         )
         r = client.get("/me/billing", headers=_auth(sid))
@@ -233,7 +234,7 @@ class TestMeBillingStatusMapping:
 
     def test_existing_cancelled_mapping_unchanged(self, app_module, client):
         user, sid = _make_user(
-            app_module, "p1_status_cancelled", cohort="founder",
+            app_module, "p1_status_cancelled", controller=True,
             billing_state="cancelled",
         )
         r = client.get("/me/billing", headers=_auth(sid))
@@ -243,7 +244,7 @@ class TestMeBillingStatusMapping:
         """The set of response keys is preserved; FIX-P1 only adjusts
         the mapping logic, never the contract."""
         user, sid = _make_user(
-            app_module, "p1_keys", cohort="founder",
+            app_module, "p1_keys", controller=True,
             billing_state="failed",
         )
         r = client.get("/me/billing", headers=_auth(sid))
@@ -265,7 +266,7 @@ class TestNoSensitiveLogging:
         self, app_module, client, manual_confirm, caplog,
     ):
         import billing_intents
-        user, sid = _make_user(app_module, "p1_log_a", cohort="founder")
+        user, sid = _make_user(app_module, "p1_log_a", controller=True)
         intent = billing_intents.create_payment_intent(
             user, 1.0, "x", kind="g_credit_pack",
             metadata={"campaign": "spring-2026"},
@@ -303,7 +304,7 @@ class TestNoSensitiveLogging:
         scope — but defensively confirm no record carries the
         ``client_secret`` literal or any Stripe id prefix."""
         user, sid = _make_user(
-            app_module, "p1_log_b", cohort="founder",
+            app_module, "p1_log_b", controller=True,
             billing_state="failed",
         )
         caplog.set_level(logging.DEBUG)

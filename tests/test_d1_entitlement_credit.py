@@ -6,6 +6,7 @@ Harness-wired APPLIED form (D1-APPLY-01.AMEND.1 §3): _mk_session parameterized
 to the repo helpers, conftest.TestClient (httpx>=0.28-compat), reset_stores
 isolation + _MEMORY_DEBITS clear, @skip removed. Each test maps to brief §5.
 """
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import os
 import uuid
 import time
@@ -23,7 +24,7 @@ import sessions_store                  # noqa: E402
 client = TestClient(appmod.app)
 
 
-def _mk_session(user, *, active=True, credits=0, cohort="terrace_1"):
+def _mk_session(user, *, active=True, credits=0, controller=False):
     """Create a user (+ optional active membership + a balance); return a session id.
 
     v56 — ``credits`` is now MICRO-DOLLARS, the ledger unit, not cents.
@@ -37,7 +38,8 @@ def _mk_session(user, *, active=True, credits=0, cohort="terrace_1"):
         tier="free",
         created_at=time.time(),
     )
-    users_store.update_user(user, {"cohort": cohort})  # g_credits_enabled is founder-cohort gated
+    if controller:
+        seed_controller(user)  # #157 -- the flag, never a string
     if active:
         users_store.set_membership(user, tier="founding", price=50.0, status="active")
     if credits:
@@ -68,7 +70,7 @@ def _reset(reset_stores):
     # "all", which resolves the flags through the alias "member".
     import v29_hardening
     for _flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
-        v29_hardening.set_flag(_flag, True, cohort="member")
+        v29_hardening.set_flag(_flag, True, cohort="all")  # #157 -- the label, no alias
     yield
 
 

@@ -10,6 +10,7 @@ These tests pin the invariants the v29 readiness report cites:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import json
 import logging
 import time
@@ -61,7 +62,7 @@ def test_runtime_envelope_strips_all_vectors(app_module):
     import bcrypt
     pwd = bcrypt.hashpw(b"x", bcrypt.gensalt())
     users_store.create_user(user, pwd, salt="", tier="free", created_at=time.time())
-    users_store.update_user(user, {"cohort": "founder"})
+    seed_controller(user)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, user, expires_at=time.time() + 3600)
 
@@ -93,7 +94,7 @@ def test_dewey_metadata_endpoint_never_returns_origin_vector(app_module):
     user = "deweyuser"
     pwd = bcrypt.hashpw(b"x", bcrypt.gensalt())
     users_store.create_user(user, pwd, salt="", tier="free", created_at=time.time())
-    users_store.update_user(user, {"cohort": "founder"})
+    seed_controller(user)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, user, expires_at=time.time() + 3600)
 

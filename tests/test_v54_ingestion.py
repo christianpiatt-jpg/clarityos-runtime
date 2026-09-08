@@ -14,6 +14,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import io
 import secrets
 import time
@@ -49,7 +50,7 @@ def _no_vertex_probe(monkeypatch):
     monkeypatch.setattr(dewey_pipeline, "_real_embed", lambda text: None)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -58,8 +59,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -518,7 +519,7 @@ def test_run_ingestion_cycle_aggregates_across_feeds(reset_stores, monkeypatch):
 # Endpoints
 # ===========================================================================
 def test_endpoint_manual_ingestion_200(app_module, client):
-    user, sid = _make_user(app_module, "ing_a", cohort="founder")
+    user, sid = _make_user(app_module, "ing_a", controller=True)
     r = client.post(
         "/ingest/manual",
         headers=_auth(sid),
@@ -532,7 +533,7 @@ def test_endpoint_manual_ingestion_200(app_module, client):
 
 
 def test_endpoint_manual_ingestion_400_on_empty(app_module, client):
-    user, sid = _make_user(app_module, "ing_b", cohort="founder")
+    user, sid = _make_user(app_module, "ing_b", controller=True)
     r = client.post(
         "/ingest/manual",
         headers=_auth(sid),
@@ -547,7 +548,7 @@ def test_endpoint_manual_ingestion_401_when_unauth(app_module, client):
 
 
 def test_endpoint_register_feed_200(app_module, client):
-    user, sid = _make_user(app_module, "ing_c", cohort="founder")
+    user, sid = _make_user(app_module, "ing_c", controller=True)
     r = client.post(
         "/ingest/feeds/register",
         headers=_auth(sid),
@@ -561,7 +562,7 @@ def test_endpoint_register_feed_200(app_module, client):
 
 
 def test_endpoint_register_feed_400_on_bad_url(app_module, client):
-    user, sid = _make_user(app_module, "ing_d", cohort="founder")
+    user, sid = _make_user(app_module, "ing_d", controller=True)
     r = client.post(
         "/ingest/feeds/register",
         headers=_auth(sid),
@@ -571,7 +572,7 @@ def test_endpoint_register_feed_400_on_bad_url(app_module, client):
 
 
 def test_endpoint_register_feed_400_on_5_cap(app_module, client):
-    user, sid = _make_user(app_module, "ing_e", cohort="founder")
+    user, sid = _make_user(app_module, "ing_e", controller=True)
     for i in range(5):
         r = client.post(
             "/ingest/feeds/register", headers=_auth(sid),
@@ -586,7 +587,7 @@ def test_endpoint_register_feed_400_on_5_cap(app_module, client):
 
 
 def test_endpoint_list_feeds_returns_user_feeds(app_module, client):
-    user, sid = _make_user(app_module, "ing_f", cohort="founder")
+    user, sid = _make_user(app_module, "ing_f", controller=True)
     client.post(
         "/ingest/feeds/register", headers=_auth(sid),
         json={"name": "x", "url": "https://example.com/x"},
@@ -600,7 +601,7 @@ def test_endpoint_list_feeds_returns_user_feeds(app_module, client):
 
 
 def test_endpoint_delete_feed_success(app_module, client):
-    user, sid = _make_user(app_module, "ing_g", cohort="founder")
+    user, sid = _make_user(app_module, "ing_g", controller=True)
     r = client.post(
         "/ingest/feeds/register", headers=_auth(sid),
         json={"name": "x", "url": "https://example.com/x"},
@@ -623,7 +624,7 @@ def test_endpoint_delete_feed_success(app_module, client):
 def test_endpoint_feeds_run_200_with_specific_feed(
     app_module, client, monkeypatch,
 ):
-    user, sid = _make_user(app_module, "ing_h", cohort="founder")
+    user, sid = _make_user(app_module, "ing_h", controller=True)
     # Register a feed then stub urlopen so the run succeeds.
     rr = client.post(
         "/ingest/feeds/register", headers=_auth(sid),
@@ -647,7 +648,7 @@ def test_endpoint_feeds_run_200_with_specific_feed(
 
 
 def test_endpoint_feeds_run_200_all_feeds(app_module, client, monkeypatch):
-    user, sid = _make_user(app_module, "ing_i", cohort="founder")
+    user, sid = _make_user(app_module, "ing_i", controller=True)
     client.post(
         "/ingest/feeds/register", headers=_auth(sid),
         json={"name": "a", "url": "https://example.com/a"},
@@ -670,7 +671,7 @@ def test_endpoint_feeds_run_200_all_feeds(app_module, client, monkeypatch):
 
 
 def test_endpoint_feeds_run_404_on_missing_feed(app_module, client):
-    user, sid = _make_user(app_module, "ing_j", cohort="founder")
+    user, sid = _make_user(app_module, "ing_j", controller=True)
     r = client.post(
         "/ingest/feeds/run", headers=_auth(sid),
         json={"feed_id": "no_such_feed"},
@@ -695,7 +696,7 @@ def test_endpoint_feeds_run_401_when_unauth(app_module, client):
 # /me capability + /health
 # ===========================================================================
 def test_me_capabilities_includes_ingestion(app_module, client):
-    user, sid = _make_user(app_module, "ing_cap", cohort="founder")
+    user, sid = _make_user(app_module, "ing_cap", controller=True)
     r = client.get("/me", headers=_auth(sid))
     assert r.status_code == 200
     caps = r.json().get("capabilities") or []
@@ -1044,7 +1045,7 @@ def test_138_rss_ingest_names_its_route_and_nothing_else(reset_stores, monkeypat
 
 def test_138_endpoint_manual_accepts_the_fields_and_rejects_nothing_new(app_module, client):
     import library_store
-    user, sid = _make_user(app_module, "ing_138", cohort="founder")
+    user, sid = _make_user(app_module, "ing_138", controller=True)
     r = client.post(
         "/ingest/manual", headers=_auth(sid),
         json={"raw_text": "kept from the personal box", "source": "cockpit",

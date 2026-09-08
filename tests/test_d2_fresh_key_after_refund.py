@@ -15,6 +15,7 @@ Maps to D2_SPEC §7 (D2-T1…T7) and invariants §3:
   I2 — a fresh Idempotency-Key after a refund succeeds (no key blocklist)
   I3 — double-refund on the same key is a no-op (regression guard)
 """
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import os
 import time
 import secrets
@@ -36,7 +37,7 @@ client = TestClient(appmod.app)
 # ---------------------------------------------------------------------------
 # Helpers — mirror tests/test_d1_entitlement_credit.py::_mk_session
 # ---------------------------------------------------------------------------
-def _mk_user(user, *, credits=5, cohort="terrace_1", active=True):
+def _mk_user(user, *, credits=5, controller=False, active=True):
     """Create a user (+ optional active membership + N credits); return username."""
     users_store.create_user(
         username=user,
@@ -45,7 +46,8 @@ def _mk_user(user, *, credits=5, cohort="terrace_1", active=True):
         tier="free",
         created_at=time.time(),
     )
-    users_store.update_user(user, {"cohort": cohort})  # g_credits is founder-cohort gated
+    if controller:
+        seed_controller(user)  # #157 -- the flag, never a string
     if active:
         users_store.set_membership(user, tier="founding", price=50.0, status="active")
     if credits:
@@ -77,7 +79,7 @@ def _reset(reset_stores):
     # "all", which resolves the flags through the alias "member".
     import v29_hardening
     for _flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
-        v29_hardening.set_flag(_flag, True, cohort="member")
+        v29_hardening.set_flag(_flag, True, cohort="all")  # #157 -- the label, no alias
     yield
 
 

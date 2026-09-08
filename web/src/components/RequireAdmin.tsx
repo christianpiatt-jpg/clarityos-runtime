@@ -14,19 +14,12 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { getAuthSnapshot, subscribeAuth } from "../lib/auth";
 
-/** Cohorts allowed to see the V1 console. Mirrors the server's founder-like
- *  cohorts (app.py COHORT_FOUNDER / COHORT_FOUNDER_EXCEPTION / admin); the
- *  server re-checks every call regardless. */
-// #124 -- the founder is /me.controller; the derived label "controller"
-// and the legacy strings are accepted for one deploy (the server's shim).
-const ADMIN_COHORTS = new Set(["controller", "founder", "founder_exception", "admin"]);
-
-export function isAdminCohort(cohort: string | null | undefined): boolean {
-  return typeof cohort === "string" && ADMIN_COHORTS.has(cohort);
-}
-
+/** #124 / #157 -- the founder is /me.controller and NOTHING else: no cohort
+ *  label, no legacy string (the server's #124 shim is deleted, #157; a
+ *  string on a doc opens nothing there either). The server re-checks every
+ *  call regardless. */
 export function isController(profile: { controller?: boolean; cohort?: string | null } | null | undefined): boolean {
-  return profile?.controller === true || isAdminCohort(profile?.cohort);
+  return profile?.controller === true;  // the label is accepted in the type and read by nothing
 }
 
 /** #145 -- the one flag the rails and the dashboard doors read. Subscribed,

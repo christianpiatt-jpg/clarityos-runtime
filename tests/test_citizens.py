@@ -7,7 +7,10 @@ once in created_at order with the Outlook doc first; the founder is
 doc.controller and both gates read ONE predicate (drift guard); a
 founder-granted walker is not a citizen; the derived labels for 1 / 500 /
 501 / controller; the display suffix rule; /me and the founder rows carry
-the identity; the one-deploy string shim still opens the gates.
+the identity. #157: the string shim is DELETED -- a legacy string on a doc
+opens nothing on either gate and is never flipped into the flag; the two
+gates share ONE refusal (#181); `paid` replaces `citizen` on the wire (#174);
+an invite never mints a controller (#173).
 """
 from __future__ import annotations
 
@@ -150,19 +153,36 @@ def test_gates_admit_a_controller_and_refuse_a_citizen(client):
     h_cit = _session_for("cit@example.com", member_number=7, membership_status="active",
                          membership_tier="founding_500", membership_price=50.0)
     assert client.get("/founder/members", headers=h_ctrl).status_code == 200
-    assert client.get("/founder/members", headers=h_cit).status_code == 403
     assert client.get("/org/timeline/24h", headers=h_ctrl).status_code == 200
-    r = client.get("/org/timeline/24h", headers=h_cit)
-    assert r.status_code == 403 and "Founder cohort required" in r.text
+    a = client.get("/founder/members", headers=h_cit)
+    b = client.get("/org/timeline/24h", headers=h_cit)
+    # #181 -- ONE refusal: same status, same body, on both gates
+    assert a.status_code == b.status_code == 403
+    assert a.json() == b.json() == rh.ADMIN_ONLY_REFUSAL
+    assert "Founder cohort required" not in b.text
 
 
-def test_the_one_deploy_shim_still_opens_the_gates_for_the_old_strings(client):
-    for old in ("founder", "founder_exception", "admin"):
+def test_a_legacy_string_opens_nothing_on_either_gate(client):
+    """#157 -- the #124 shim is deleted. "founder" is a role and confers
+    nothing (#173); "admin" and the invite kind are strings on a doc and
+    open neither gate. The refusal is the one refusal."""
+    for old in ("founder", "founder_exception", "admin", "member"):
         h = _session_for(f"legacy_{old}@example.com", cohort=old)
-        assert client.get("/founder/members", headers=h).status_code == 200, old
-        assert client.get("/org/timeline/24h", headers=h).status_code == 200, old
-    h = _session_for("legacy_member@example.com", cohort="member")
-    assert client.get("/founder/members", headers=h).status_code == 403
+        a = client.get("/founder/members", headers=h)
+        b = client.get("/org/timeline/24h", headers=h)
+        assert a.status_code == b.status_code == 403, old
+        assert a.json() == b.json() == rh.ADMIN_ONLY_REFUSAL, old
+        assert users_store.derive_cohort(users_store.get_user(f"legacy_{old}@example.com")) == "all", old
+
+
+def test_drift_guard_the_one_refusal_is_error_response_shaped(app_module):
+    """#181 -- runtime_http owns the dict (the lower module); it must be
+    exactly what app.error_response would build, so a reader of either gate
+    sees {ok, error, message} and nothing else."""
+    assert rh.ADMIN_ONLY_REFUSAL == app_module.error_response(
+        "admin_only", "Admin only: this console is the controller's")
+    assert set(rh.ADMIN_ONLY_REFUSAL) == {"ok", "error", "message"}
+    assert "@" not in rh.ADMIN_ONLY_REFUSAL["message"] and "cohort" not in rh.ADMIN_ONLY_REFUSAL["message"].lower()
 
 
 def test_drift_guard_both_gates_read_users_store_is_controller(client, monkeypatch):
@@ -187,11 +207,11 @@ def test_founder_activated_walker_is_not_a_citizen(client, sender):
     doc = users_store.get_user("walker@example.com")
     assert doc["membership_status"] == "active" and doc["membership_tier"] == "founding_500"
     assert doc["membership_granted"] is True
-    assert users_store.is_citizen(doc) is False
-    # a paid founding membership IS citizenship
+    assert users_store.is_paid(doc) is False
+    # a paid founding membership IS paid (#174: citizen is the number; paid is a state)
     paid = _session_for("paid@example.com", membership_status="active", membership_tier="founding_500",
                         membership_price=50.0)
-    assert users_store.is_citizen(users_store.get_user("paid@example.com")) is True
+    assert users_store.is_paid(users_store.get_user("paid@example.com")) is True
     _ = paid
 
 
@@ -221,12 +241,13 @@ def test_suffix_rule():
 # rule 4 -- /me and the founder rows carry the identity; cohort is derived
 # ===========================================================================
 def _arm_member_flags():
-    """reset_stores re-arms v28 for the three legacy invite cohorts only. Arm
-    the LEGACY "member" string and expect the derived labels to light through
-    the alias shim -- the same path a legacy operator override takes in prod."""
+    """#157 -- the flags read a label's OWN key (the alias shim is deleted);
+    reset_stores arms the three labels the way app.py does. Arm them again
+    here so these tests say what they rely on."""
     import v29_hardening as h
-    h.set_flag("v28_surfaces", True, cohort="member")
-    h.set_flag("membership_ui_enabled", True, cohort="member")
+    for label in ("founding", "all"):
+        h.set_flag("v28_surfaces", True, cohort=label)
+        h.set_flag("membership_ui_enabled", True, cohort=label)
 
 
 def test_me_carries_number_citizen_controller_and_citz_id(client, sender):
@@ -243,7 +264,8 @@ def test_me_carries_number_citizen_controller_and_citz_id(client, sender):
     # a walker
     _login_via_link(sender, "walker2@example.com")
     w = client.get("/me", headers=_session_for("walker2@example.com")).json()
-    assert w["member_number"] == 2 and w["citizen"] is False and w["controller"] is False
+    assert w["member_number"] == 2 and w["paid"] is False and w["controller"] is False
+    assert "citizen" not in w  # #174 -- paid is the state; citizen is the number
     assert w["citz_id"] == "citz-000002wal" and w["cohort"] == "founding"
     assert w["features"]["v28_surfaces"] is True  # the cockpit works
 
@@ -256,7 +278,8 @@ def test_membership_state_shows_the_id(client, sender):
     assert r.status_code == 200, r.text
     ident = r.json()["state"]["identity"]
     assert ident["member_number"] == 1 and ident["citz_id"] == "citz-000001sho"
-    assert ident["citizen"] is False and ident["controller"] is False
+    assert ident["paid"] is False and ident["controller"] is False
+    assert "citizen" not in ident
 
 
 def test_founder_members_rows_carry_numbers_in_created_at_order(client, sender):
@@ -270,7 +293,8 @@ def test_founder_members_rows_carry_numbers_in_created_at_order(client, sender):
     assert by_email["r1@example.com"]["member_number"] < by_email["r2@example.com"]["member_number"] < by_email["r3@example.com"]["member_number"]
     assert by_email["r1@example.com"]["citz_id"].startswith("citz-")
     assert by_email["r1@example.com"]["cohort"] in ("founding", "all")
-    assert by_email["r1@example.com"]["citizen"] is False
+    assert by_email["r1@example.com"]["paid"] is False
+    assert "citizen" not in by_email["r1@example.com"]
     assert by_email["founder_x"]["controller"] is True
     for r in rows:
         for secret in ("password_hash", "salt", "operator_id"):
@@ -317,21 +341,33 @@ def test_the_boot_pass_is_one_time_a_doc_born_after_it_waits_for_the_click(reset
     assert _login_via_link(sender, "after@example.com")["member_number"] == 2  # the click mints
 
 
-def test_the_pass_flags_controllers_first_and_migrates_legacy_strings(reset_stores):
+def test_the_pass_flags_named_controllers_and_never_flips_a_string(reset_stores, caplog):
+    """#157 / #156 RULED B -- the boot pass flags the CONFIGURED names and
+    logs (a hashed ref, never the address) a doc whose only claim is the old
+    role / admin string; it never flips that string into the flag. The
+    invite kind "founder_exception" is what a redeemed invite writes and is
+    NOT logged -- an invite never minted a controller (#173)."""
     import bcrypt
-    for u, coh in (("fe@example.com", "founder_exception"), ("adm@example.com", "admin"), ("m@example.com", "member")):
+    caplog.set_level("WARNING")
+    for u, coh in (("old.founder@example.com", "founder"), ("fe@example.com", "founder_exception"),
+                   ("adm@example.com", "admin"), ("m@example.com", "member")):
         users_store.create_user(username=u, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
                                 salt="", tier="free", created_at=100.0)
         users_store.update_user(u, {"cohort": coh})
-    users_store.number_existing_users(controllers=("ghost@example.com",))  # a missing controller is logged, not fatal
-    assert users_store.get_user("fe@example.com")["controller"] is True
-    assert users_store.get_user("adm@example.com")["controller"] is True
+    users_store.number_existing_users(controllers=("ghost@example.com", "adm@example.com"))  # a missing controller is logged, not fatal
+    assert not users_store.get_user("old.founder@example.com").get("controller")  # the string stays a string
+    assert not users_store.get_user("fe@example.com").get("controller")
+    assert users_store.get_user("adm@example.com")["controller"] is True          # named -> flagged
     assert not users_store.get_user("m@example.com").get("controller")
+    msgs = [r.getMessage() for r in caplog.records if "controller.string_only" in r.getMessage()]
+    assert len(msgs) == 1 and users_store._uref("old.founder@example.com") in msgs[0]
+    assert users_store._uref("fe@example.com") not in msgs[0]  # the invite kind is not a claim
+    assert "old.founder" not in msgs[0] and "example.com" not in msgs[0]
 
 
 def test_comp_override_and_malformed_numbers_are_handled(reset_stores):
-    assert users_store.is_citizen({"membership_status": "active", "membership_tier": "founding_500",
-                                   "comp_override": True}) is False
+    assert users_store.is_paid({"membership_status": "active", "membership_tier": "founding_500",
+                                "comp_override": True}) is False
     assert users_store.citz_id({"username": "x@e.com", "member_number": "not-a-number"}) is None
     assert users_store.identity_view({"username": "x@e.com", "member_number": "junk"})["member_number"] is None
 
@@ -358,7 +394,7 @@ def test_the_grant_backfill_marks_manual_only_ledgers_and_logs_no_address(app_mo
     assert marked == 1
     assert users_store.get_user("granted.walker@example.com")["membership_granted"] is True
     assert not users_store.get_user("paid.member@example.com").get("membership_granted")
-    assert users_store.is_citizen(users_store.get_user("paid.member@example.com")) is True
+    assert users_store.is_paid(users_store.get_user("paid.member@example.com")) is True
     msgs = [r.getMessage() for r in caplog.records if "membership_granted.backfilled" in r.getMessage()]
     assert len(msgs) == 1
     assert "granted.walker" not in msgs[0] and "granted.w" not in msgs[0]
@@ -374,3 +410,28 @@ def test_a_session_with_no_doc_derives_nothing(app_module, monkeypatch):
     monkeypatch.setattr(users_store, "get_user", lambda username: None)
     sess = app_module.require_session(x_session_id=sid)
     assert sess["cohort"] is None
+
+
+# ===========================================================================
+# #173 -- an invite never mints a controller
+# ===========================================================================
+def test_a_redeemed_invite_never_mints_a_controller(client, app_module, monkeypatch):
+    """/invite/create (the bootstrap admin) -> /invite/{token}/redeem writes
+    the invite KIND on the new doc and nothing that opens a gate: no
+    controller flag, label "all", both gates refuse with the one refusal."""
+    monkeypatch.setenv("INVITE_HMAC_SECRET", "test-invite-secret-" + "x" * 32)  # tokens._secret reads it per call
+    h_admin = _session_for(app_module.ADMIN_USER)
+    r = client.post("/invite/create", json={"cohort": "founder_exception"}, headers=h_admin)
+    assert r.status_code == 200, r.text
+    token = r.json()["token"]
+    r = client.post(f"/invite/{token}/redeem", json={"username": "invited@example.com", "password": "a-password-1"})
+    assert r.status_code == 200, r.text
+    doc = users_store.get_user("invited@example.com")
+    assert doc is not None and doc.get("cohort") == "founder_exception"
+    assert not doc.get("controller")
+    assert users_store.is_controller(doc) is False and users_store.derive_cohort(doc) == "all"
+    h = {"X-Session-ID": r.json()["session_id"]}
+    a = client.get("/founder/members", headers=h)
+    b = client.get("/org/timeline/24h", headers=h)
+    assert a.status_code == b.status_code == 403
+    assert a.json() == b.json() == rh.ADMIN_ONLY_REFUSAL

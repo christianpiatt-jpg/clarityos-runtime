@@ -25,6 +25,7 @@ Endpoints:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -46,7 +47,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -55,8 +56,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -254,7 +255,7 @@ def test_summarize_thread_emits_log_line(reset_stores, caplog):
 # Endpoints — /me/threads/{id}/summary + /summarize
 # ===========================================================================
 def test_endpoint_get_summary_returns_meta(app_module, client):
-    user, sid = _make_user(app_module, "smy_a", cohort="founder")
+    user, sid = _make_user(app_module, "smy_a", controller=True)
     cr = client.post("/me/threads", headers=_auth(sid), json={"title": "x"})
     tid = cr.json()["thread_id"]
 
@@ -267,13 +268,13 @@ def test_endpoint_get_summary_returns_meta(app_module, client):
 
 
 def test_endpoint_get_summary_404_on_missing(app_module, client):
-    user, sid = _make_user(app_module, "smy_b", cohort="founder")
+    user, sid = _make_user(app_module, "smy_b", controller=True)
     r = client.get("/me/threads/no_such_thread/summary", headers=_auth(sid))
     assert r.status_code == 404
 
 
 def test_endpoint_summarize_round_trip(app_module, client):
-    user, sid = _make_user(app_module, "smy_c", cohort="founder")
+    user, sid = _make_user(app_module, "smy_c", controller=True)
     cr = client.post("/me/threads", headers=_auth(sid), json={"title": "chat"})
     tid = cr.json()["thread_id"]
     # Add a turn so the summariser has something to chew on.
@@ -298,7 +299,7 @@ def test_endpoint_summarize_skip_when_recent_without_force(
     the kernel call is skipped — we verify by counting kernel calls."""
     import intelligence_kernel as ik
 
-    user, sid = _make_user(app_module, "smy_d", cohort="founder")
+    user, sid = _make_user(app_module, "smy_d", controller=True)
     cr = client.post("/me/threads", headers=_auth(sid), json={"title": "x"})
     tid = cr.json()["thread_id"]
     client.post(
@@ -342,7 +343,7 @@ def test_endpoint_summarize_skip_when_recent_without_force(
 
 
 def test_endpoint_summarize_404_on_missing(app_module, client):
-    user, sid = _make_user(app_module, "smy_e", cohort="founder")
+    user, sid = _make_user(app_module, "smy_e", controller=True)
     r = client.post(
         "/me/threads/no_such_thread/summarize",
         headers=_auth(sid), json={"force": True},
@@ -352,7 +353,7 @@ def test_endpoint_summarize_404_on_missing(app_module, client):
 
 def test_endpoint_summarize_400_on_dotted_thread_id(app_module, client):
     """Path-level thread_id validator still applies to the v50 routes."""
-    user, sid = _make_user(app_module, "smy_f", cohort="founder")
+    user, sid = _make_user(app_module, "smy_f", controller=True)
     r = client.post(
         "/me/threads/has.dot.id/summarize",
         headers=_auth(sid), json={"force": True},
@@ -364,7 +365,7 @@ def test_endpoint_summarize_persists_into_list(app_module, client):
     """After a summarize call, /me/threads list should carry the
     summary on the matching meta — confirms list_threads preserves
     the field."""
-    user, sid = _make_user(app_module, "smy_g", cohort="founder")
+    user, sid = _make_user(app_module, "smy_g", controller=True)
     cr = client.post("/me/threads", headers=_auth(sid), json={"title": "x"})
     tid = cr.json()["thread_id"]
     client.post(

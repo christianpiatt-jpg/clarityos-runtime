@@ -9,6 +9,7 @@ founder-cohort session so the feature gates pass.
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -39,7 +40,7 @@ def client_and_user(app_client):
 def client_and_authed(app_client):
     user = "subm"
     users_store.create_user(user, b"pw", "", "free", 0.0)
-    users_store.update_user(user, {"cohort": "founder"})  # founder flags enabled in reset_stores
+    seed_controller(user)  # #157 -- the flag, never a string
     sid = "sess_subm"
     sessions_store.create_session(sid, user, expires_at=time.time() + 3600)
     return app_client, user, {"X-Session-ID": sid}

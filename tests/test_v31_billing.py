@@ -13,6 +13,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import json
 import time
 
@@ -47,7 +48,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder"):
+def _make_user(app_module, username, controller=True):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"test-pass-123", bcrypt.gensalt())
@@ -55,8 +56,8 @@ def _make_user(app_module, username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
     return username, sid
@@ -73,12 +74,13 @@ def _auth(sid):
 @pytest.fixture(autouse=True)
 def _arm_member_flags(reset_stores):
     """A non-controller's session cohort is a DERIVED label ("all" /
-    "founding"); the flags resolve through the label's alias "member",
-    never through the doc's stored string. Arm what production arms for
+    "founding"); #157: the flags read the label's own key and nothing
+    else (the "member" alias is gone). Arm what production arms for
     members (app.py flag bootstrap) so a member here is a member there."""
     import v29_hardening
     for flag in ("g_credits_enabled", "membership_ui_enabled", "v28_surfaces"):
-        v29_hardening.set_flag(flag, True, cohort="member")
+        for label in ("all", "founding"):
+            v29_hardening.set_flag(flag, True, cohort=label)
     yield
 
 
@@ -262,7 +264,7 @@ def test_renewal_scheduler_skips_not_due(reset_stores):
 # /membership/activate — async flow
 # ---------------------------------------------------------------------------
 def test_activate_returns_pending_in_manual_mode(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "alice31", cohort="founder")
+    user, sid = _make_user(app_module, "alice31", controller=True)
     r = client.post(
         "/membership/activate", headers=_auth(sid), json={"accept_terms": True},
     )
@@ -275,7 +277,7 @@ def test_activate_returns_pending_in_manual_mode(app_module, client, manual_conf
 
 
 def test_activate_then_webhook_lands_membership(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "amy31", cohort="founder")
+    user, sid = _make_user(app_module, "amy31", controller=True)
     r = client.post(
         "/membership/activate", headers=_auth(sid), json={"accept_terms": True},
     )
@@ -298,7 +300,7 @@ def test_activate_then_webhook_lands_membership(app_module, client, manual_confi
 
 
 def test_activate_then_failed_webhook_records_failed(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "anya31", cohort="founder")
+    user, sid = _make_user(app_module, "anya31", controller=True)
     r = client.post(
         "/membership/activate", headers=_auth(sid), json={"accept_terms": True},
     )
@@ -319,7 +321,7 @@ def test_activate_then_failed_webhook_records_failed(app_module, client, manual_
 
 
 def test_webhook_idempotent_on_duplicate_event(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "ada31", cohort="founder")
+    user, sid = _make_user(app_module, "ada31", controller=True)
     r = client.post(
         "/membership/activate", headers=_auth(sid), json={"accept_terms": True},
     )
@@ -339,7 +341,7 @@ def test_webhook_idempotent_on_duplicate_event(app_module, client, manual_confir
 # /billing/intent + /billing/intent/confirm + /billing/history
 # ---------------------------------------------------------------------------
 def test_billing_intent_endpoint(app_module, client):
-    user, sid = _make_user(app_module, "ben31", cohort="founder")
+    user, sid = _make_user(app_module, "ben31", controller=True)
     r = client.post(
         "/billing/intent", headers=_auth(sid),
         json={"amount": 1.0, "description": "single credit", "kind": "g_credit_pack"},
@@ -350,7 +352,7 @@ def test_billing_intent_endpoint(app_module, client):
 
 
 def test_billing_intent_rejects_bad_kind(app_module, client):
-    user, sid = _make_user(app_module, "bobby31", cohort="founder")
+    user, sid = _make_user(app_module, "bobby31", controller=True)
     r = client.post(
         "/billing/intent", headers=_auth(sid),
         json={"amount": 1.0, "description": "x", "kind": "totally_invalid"},
@@ -361,8 +363,8 @@ def test_billing_intent_rejects_bad_kind(app_module, client):
 def test_billing_confirm_belongs_to_user(app_module, client, manual_confirm):
     """Users can't confirm someone else's intent."""
     import billing_intents
-    u1, sid1 = _make_user(app_module, "carl31", cohort="founder")
-    u2, sid2 = _make_user(app_module, "dee31", cohort="founder")
+    u1, sid1 = _make_user(app_module, "carl31", controller=True)
+    u2, sid2 = _make_user(app_module, "dee31", controller=True)
     intent = billing_intents.create_payment_intent(
         u1, 1.0, "x", kind="g_credit_pack",
     )
@@ -374,7 +376,7 @@ def test_billing_confirm_belongs_to_user(app_module, client, manual_confirm):
 
 
 def test_billing_history_combines_transactions_and_intents(app_module, client):
-    user, sid = _make_user(app_module, "ed31", cohort="terrace_1")
+    user, sid = _make_user(app_module, "ed31", controller=False)
     # Buy the pack (auto-confirmed → both an intent + a tx). The single
     # is retired (402 bad_kind) and lands neither.
     client.post("/membership/g/buy_pack_20", headers=_auth(sid))
@@ -390,7 +392,7 @@ def test_billing_history_combines_transactions_and_intents(app_module, client):
 # ---------------------------------------------------------------------------
 def test_buy_pack_pending_until_webhook(app_module, client, manual_confirm):
     # (was buy_single; the single is retired -- the pack is the one SKU)
-    user, sid = _make_user(app_module, "fay31", cohort="terrace_1")
+    user, sid = _make_user(app_module, "fay31", controller=False)
     r = client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     body = r.json()
     assert body["pending"] is True
@@ -407,7 +409,7 @@ def test_buy_pack_pending_until_webhook(app_module, client, manual_confirm):
 
 
 def test_buy_pack_pending_then_failed_keeps_balance_zero(app_module, client, manual_confirm):
-    user, sid = _make_user(app_module, "gabe31", cohort="terrace_1")
+    user, sid = _make_user(app_module, "gabe31", controller=False)
     r = client.post("/membership/g/buy_pack_20", headers=_auth(sid))
     intent_id = r.json()["intent"]["intent_id"]
     event = {
@@ -426,7 +428,7 @@ def test_buy_pack_pending_then_failed_keeps_balance_zero(app_module, client, man
 # /membership/cancel
 # ---------------------------------------------------------------------------
 def test_cancel_flips_billing_state(app_module, client):
-    user, sid = _make_user(app_module, "harriet31", cohort="founder")
+    user, sid = _make_user(app_module, "harriet31", controller=True)
     client.post(
         "/membership/activate", headers=_auth(sid), json={"accept_terms": True},
     )

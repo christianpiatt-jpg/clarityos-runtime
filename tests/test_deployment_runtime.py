@@ -18,6 +18,7 @@ test files per the Phase B spec.)
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import logging
 
 import pytest
@@ -372,7 +373,7 @@ import time
 import model_router as mr
 
 
-def _register_user(username: str, cohort: str = "founder") -> str:
+def _register_user(username: str, controller: bool = True) -> str:
     """Direct user creation — sidesteps /register so the deployment
     suite can exercise login/me/preview without polluting the
     registration code path."""
@@ -384,8 +385,8 @@ def _register_user(username: str, cohort: str = "founder") -> str:
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     return username
 
 

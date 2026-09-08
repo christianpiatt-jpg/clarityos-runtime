@@ -28,17 +28,19 @@ def client(reset_stores):
     return TestClient(_app.app)
 
 
-def _session(username: str, *, controller: bool = False, cohort: str = "terrace_1"):
+def _session(username: str, *, controller: bool = False, number: int | None = None):
     import bcrypt
     users_store.create_user(
         username=username, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
         salt="", tier="free", created_at=time.time(),
     )
-    # "terrace_1": a member string, NOT a controller string under the #124
-    # shim ("founder" / "founder_exception" / "admin" are).
-    patch = {"cohort": cohort, "membership_status": "active", "membership_tier": "founding_500"}
+    # #157 -- no cohort string is written anywhere: the flag is the key, the
+    # number is what makes a citizen (label "founding" for 1-500).
+    patch = {"membership_status": "active", "membership_tier": "founding_500"}
     if controller:
         patch["controller"] = True
+    if number is not None:
+        patch["member_number"] = number
     users_store.update_user(username, patch)
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, username, expires_at=time.time() + 3600)
@@ -93,12 +95,11 @@ def test_every_founder_route_refuses_a_member_with_admin_only(client):
 
 def test_the_gate_names_no_cohort_string():
     """The refusal is the flag's, not a string's: nothing in _require_founder
-    compares a cohort value. (The one-deploy shim lives in users_store and
-    is #157's to delete.)"""
+    compares a cohort value, and (#157) nothing in users_store does either."""
     import inspect
     src = inspect.getsource(_app._require_founder)
     assert "is_controller" in src
-    for s in ('"founder"', '"founder_exception"', '"admin"', "FOUNDER_LIKE"):
+    for s in ('"founder"', '"founder_exception"', '"admin"', "_COHORTS", "cohort in"):
         assert s not in src, s
 
 
@@ -139,16 +140,35 @@ def test_the_controller_is_admitted(client):
 
 
 def test_the_flag_admits_whatever_the_string_says(client):
-    """controller=True on a doc whose cohort string is a member string: the
-    flag is what the gate reads."""
-    h = _session("flag145@example.com", controller=True, cohort="terrace_1")
+    """controller=True on a doc that also carries a stray member string: the
+    flag is what the gate reads; the string is inert either way (#157)."""
+    h = _session("flag145@example.com", controller=True)
+    users_store.update_user("flag145@example.com", {"cohort": "terrace_1"})
     assert client.get("/founder/members", headers=h).status_code == 200
 
 
 def test_a_derived_citizen_label_does_not_open_the_gate(client):
-    """"founding" is the derived label of a paying citizen (#124). It is
-    not a controller string and the flag is off: refused."""
-    h = _session("founding145@example.com", cohort="founding")
+    """A numbered citizen derives "founding" (#124). The flag is off:
+    refused, with the one refusal."""
+    h = _session("founding145@example.com", number=7)
+    assert users_store.derive_cohort(users_store.get_user("founding145@example.com")) == "founding"
     r = client.get("/founder/members", headers=h)
     assert r.status_code == 403
     assert r.json()["error"] == "admin_only"
+
+
+def test_a_string_only_doc_is_refused_on_both_gates_with_one_body(client):
+    """#157 / #173 / #181 -- a doc whose ONLY claim is a legacy founder-like
+    string (no flag) is a member: refused on /founder/* AND /org/timeline/*
+    with the SAME status and the SAME body, and the string is never flipped
+    into the flag (#156 RULED B)."""
+    for old in ("founder", "founder_exception", "admin"):
+        u = f"string_{old}@example.com"
+        h = _session(u)
+        users_store.update_user(u, {"cohort": old})
+        a = client.get("/founder/members", headers=h)
+        b = client.get("/org/timeline/24h", headers=h)
+        assert a.status_code == 403 and b.status_code == 403, old
+        assert a.json() == b.json() == {"ok": False, "error": "admin_only",
+                                        "message": "Admin only: this console is the controller's"}, old
+        assert not users_store.get_user(u).get("controller"), old

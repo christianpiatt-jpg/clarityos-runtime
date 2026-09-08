@@ -256,7 +256,6 @@ def _session(user: str) -> dict:
         username=user, password_hash=bcrypt.hashpw(b"x", bcrypt.gensalt()),
         salt="", tier="free", created_at=time.time(),
     )
-    users_store.update_user(user, {"cohort": "terrace_1"})
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(sid, user, expires_at=time.time() + 3600)
     return {"X-Session-ID": sid}

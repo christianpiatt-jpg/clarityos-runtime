@@ -705,15 +705,17 @@ def list_all_usernames() -> list[str]:
 # Now: every account that ever signed in holds a member_number from ONE
 # global counter (minted at first login, never on create alone); `cohort` is
 # a label DERIVED at read from the number (1-500 "founding", else "all",
-# controller "controller"); citizenship is derived (active founding
-# membership that was PAID, not granted); the founder is doc.controller.
-# Writers stop writing cohort strings. A one-deploy SHIM lets the gates also
-# accept the old strings -- delete next deploy.
+# controller "controller"); `paid` is derived (an active founding membership
+# that was PAID for, not granted -- #174: citizen means NUMBERED, paid is a
+# state); the founder is doc.controller. Writers stop writing cohort strings.
+# #157 (2026-09-08): the one-deploy shim that let the old strings open the
+# gates is DELETED. A string on a doc opens nothing and is never flipped
+# into the flag (#156 RULED B); "founder" is a role and confers nothing
+# (#173). The flag is written by number_existing_users(controllers=...) at
+# boot from the configured names, and by nothing else.
 # ---------------------------------------------------------------------------
 FOUNDING_NUMBER_MAX = 500
 FOUNDING_TIER = "founding_500"   # membership_store.FOUNDING_COHORT (literal: that module cannot be imported here without a cycle risk)
-# one-deploy shim -- the old founder-like strings still open the gates
-_LEGACY_CONTROLLER_COHORTS = frozenset({"founder", "founder_exception", "admin"})
 _COUNTER_COLLECTION = "_meta"
 _COUNTER_DOC = "member_counter"
 _MEMORY_COUNTER: dict = {"next": 1}
@@ -792,16 +794,18 @@ def assign_member_number(username: str) -> Optional[int]:
 
 
 def is_controller(doc: Optional[dict]) -> bool:
-    """The founder. doc.controller is the field; the legacy founder-like
-    cohort strings are accepted for ONE deploy (shim) so nothing that opens
-    today closes before the docs are flagged. Delete the shim next deploy."""
+    """The founder. doc.controller is the field and the ONLY key (#157 /
+    #173): no cohort string, no role name, no invite kind opens this. Both
+    gates (app._require_founder, runtime_http.require_founder) read it."""
     d = doc or {}
-    return bool(d.get("controller")) or (d.get("cohort") in _LEGACY_CONTROLLER_COHORTS)
+    return bool(d.get("controller"))
 
 
-def is_citizen(doc: Optional[dict]) -> bool:
-    """CITIZEN = an active founding membership that was PAID for. A founder
-    grant (membership_granted) does not confer citizenship (#124 rule 7)."""
+def is_paid(doc: Optional[dict]) -> bool:
+    """PAID = an active founding membership that was PAID for. A founder
+    grant (membership_granted) or a beta comp is not paid (#124 rule 7).
+    #174: this was the `citizen` boolean on the wire and was misnamed --
+    a citizen is any numbered account; paid is one of its states."""
     d = doc or {}
     return (d.get("membership_status") == "active"
             and d.get("membership_tier") == FOUNDING_TIER
@@ -857,12 +861,13 @@ def citz_id(doc: Optional[dict]) -> Optional[str]:
 
 
 def identity_view(doc: Optional[dict]) -> dict:
-    """What /me, /membership/state and the founder rows carry."""
+    """What /me, /membership/state and the founder rows carry. #174: the
+    key is `paid` (a state), never `citizen` (that is the number)."""
     d = doc or {}
     n = _number_of(d)
     return {
         "member_number": n,
-        "citizen":       is_citizen(d),
+        "paid":          is_paid(d),
         "controller":    is_controller(d),
         "citz_id":       citz_id(d),
         "cohort":        derive_cohort(d),
@@ -901,8 +906,8 @@ def number_existing_users(*, first=(), controllers=(), now: Optional[float] = No
     Order of work, each step independent so a failure in one cannot leave
     the founder locked out by another:
       1. controllers flagged (controller=True) -- FIRST, before any numbering;
-      2. legacy founder-like cohort strings migrated to the flag, so the
-         one-deploy string shim can actually be deleted next deploy;
+      2. (#157) a doc whose only claim is a legacy "founder" / "admin"
+         string is LOGGED (hashed ref), never flipped -- #156 RULED B;
       3. numbering: `first` docs take the lowest numbers in order (the
          Outlook doc -> 1 on a fresh counter), then every unnumbered doc
          in created_at order -- but ONLY docs that existed when the pass
@@ -929,15 +934,17 @@ def number_existing_users(*, first=(), controllers=(), now: Optional[float] = No
             logger.warning("controller.flag_failed user_ref=%s err=%s", _uref(u), type(exc).__name__)
     done_at = numbering_done_at()
     docs = _all_user_docs()
-    # 2. legacy strings -> the flag (existing docs only; writers no longer write them)
+    # 2. #157 -- a legacy string on a doc opens NOTHING and is never flipped
+    # into the flag (#156 RULED B: no auto re-grant). A doc whose only claim
+    # is the old role / admin string is logged (a hashed ref, never the
+    # address) so the operator can see it; it stays refused until a
+    # controller flags it by hand. "founder_exception" is NOT matched: it is
+    # a live invite KIND that /invite/{token}/redeem writes on every invitee,
+    # and an invite never minted a controller (#173) -- nothing to see.
     for d in docs:
         u = d.get("username")
-        if u and d.get("cohort") in _LEGACY_CONTROLLER_COHORTS and not d.get("controller"):
-            try:
-                update_user(u, {"controller": True})
-                logger.info("controller.migrated_from_cohort user_ref=%s", _uref(u))
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("controller.migrate_failed user_ref=%s err=%s", _uref(u), type(exc).__name__)
+        if u and d.get("cohort") in ("founder", "admin") and not d.get("controller"):
+            logger.warning("controller.string_only user_ref=%s", _uref(u))
     # 3. numbering
     for u in first:
         if not u:

@@ -22,6 +22,7 @@ V78 coverage:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import secrets
 import time
 
@@ -43,7 +44,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(username, cohort="founder"):
+def _make_user(username, controller=True):
     import bcrypt
     import sessions_store
     import users_store
@@ -52,8 +53,8 @@ def _make_user(username, cohort="founder"):
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     sid = "sess_" + secrets.token_urlsafe(16)
     sessions_store.create_session(
         sid, username, expires_at=time.time() + 3600,

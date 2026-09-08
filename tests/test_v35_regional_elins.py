@@ -13,6 +13,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import time
 
 import pytest
@@ -33,7 +34,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder", *, signal_mode=None):
+def _make_user(app_module, username, controller=True, *, signal_mode=None):
     import secrets
     import users_store, sessions_store, bcrypt
     pwd_hash = bcrypt.hashpw(b"x", bcrypt.gensalt())
@@ -42,8 +43,8 @@ def _make_user(app_module, username, cohort="founder", *, signal_mode=None):
         tier="free", created_at=time.time(),
     )
     patch = {}
-    if cohort:
-        patch["cohort"] = cohort
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     if signal_mode is not None:
         patch["external_signal_mode"] = signal_mode
     if patch:
@@ -252,7 +253,7 @@ def test_save_regional_run_rejects_unknown_region(reset_stores):
 # /elins/regional/run endpoint
 # ---------------------------------------------------------------------------
 def test_endpoint_regional_run_returns_block(app_module, client):
-    user, sid = _make_user(app_module, "rr_a", cohort="founder")
+    user, sid = _make_user(app_module, "rr_a", controller=True)
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "US", "topic_hint": "Senate hearing"},
@@ -269,7 +270,7 @@ def test_endpoint_regional_run_returns_block(app_module, client):
 
 def test_endpoint_regional_run_persists(app_module, client):
     from ELINS import elins_project
-    user, sid = _make_user(app_module, "rr_p", cohort="founder")
+    user, sid = _make_user(app_module, "rr_p", controller=True)
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "EU"},
@@ -282,7 +283,7 @@ def test_endpoint_regional_run_persists(app_module, client):
 
 def test_endpoint_regional_run_attaches_eso_when_user_opted_in(app_module, client):
     user, sid = _make_user(
-        app_module, "rr_eso", cohort="founder",
+        app_module, "rr_eso", controller=True,
         signal_mode="cloud_perplexity",
     )
     r = client.post(
@@ -298,7 +299,7 @@ def test_endpoint_regional_run_attaches_eso_when_user_opted_in(app_module, clien
 
 def test_endpoint_regional_run_no_eso_when_signal_mode_off(app_module, client):
     user, sid = _make_user(
-        app_module, "rr_noeso", cohort="founder",
+        app_module, "rr_noeso", controller=True,
         signal_mode="off",
     )
     r = client.post(
@@ -311,7 +312,7 @@ def test_endpoint_regional_run_no_eso_when_signal_mode_off(app_module, client):
 
 
 def test_endpoint_regional_run_rejects_unknown_region(app_module, client):
-    user, sid = _make_user(app_module, "rr_bad", cohort="founder")
+    user, sid = _make_user(app_module, "rr_bad", controller=True)
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "ZZ"},
@@ -320,7 +321,9 @@ def test_endpoint_regional_run_rejects_unknown_region(app_module, client):
 
 
 def test_endpoint_regional_run_blocked_when_v28_off(app_module, client):
-    user, sid = _make_user(app_module, "rr_lurker", cohort=None)
+    user, sid = _make_user(app_module, "rr_lurker", controller=False)
+    import v29_hardening
+    v29_hardening.set_flag("v28_surfaces", False, user=user)  # #157 -- OFF is an override now
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "US"},
@@ -332,7 +335,7 @@ def test_endpoint_regional_run_blocked_when_v28_off(app_module, client):
 # /elins/regional/list endpoint
 # ---------------------------------------------------------------------------
 def test_endpoint_regional_list_returns_all_regions(app_module, client):
-    user, sid = _make_user(app_module, "rl_a", cohort="founder")
+    user, sid = _make_user(app_module, "rl_a", controller=True)
     r = client.get("/elins/regional/list", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -345,7 +348,7 @@ def test_endpoint_regional_list_returns_all_regions(app_module, client):
 
 
 def test_endpoint_regional_list_reflects_runs(app_module, client):
-    user, sid = _make_user(app_module, "rl_b", cohort="founder")
+    user, sid = _make_user(app_module, "rl_b", controller=True)
     client.post(
         "/elins/regional/run", headers=_auth(sid),
         json={"region_code": "Tech"},
@@ -362,7 +365,7 @@ def test_endpoint_regional_list_reflects_runs(app_module, client):
 # ---------------------------------------------------------------------------
 def test_endpoint_regional_batch_runs_multiple(app_module, client):
     from ELINS import elins_project
-    user, sid = _make_user(app_module, "rb_a", cohort="founder")
+    user, sid = _make_user(app_module, "rb_a", controller=True)
     r = client.post(
         "/founder/elins/regional/batch", headers=_auth(sid),
         json={"regions": ["US", "EU", "Markets"]},
@@ -378,7 +381,7 @@ def test_endpoint_regional_batch_runs_multiple(app_module, client):
 
 
 def test_endpoint_regional_batch_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "rb_outsider", cohort=None)
+    user, sid = _make_user(app_module, "rb_outsider", controller=False)
     r = client.post(
         "/founder/elins/regional/batch", headers=_auth(sid),
         json={"regions": ["US"]},
@@ -387,7 +390,7 @@ def test_endpoint_regional_batch_requires_founder(app_module, client):
 
 
 def test_endpoint_regional_batch_rejects_empty(app_module, client):
-    user, sid = _make_user(app_module, "rb_empty", cohort="founder")
+    user, sid = _make_user(app_module, "rb_empty", controller=True)
     r = client.post(
         "/founder/elins/regional/batch", headers=_auth(sid),
         json={"regions": []},
@@ -396,7 +399,7 @@ def test_endpoint_regional_batch_rejects_empty(app_module, client):
 
 
 def test_endpoint_regional_batch_rejects_unknown(app_module, client):
-    user, sid = _make_user(app_module, "rb_bad", cohort="founder")
+    user, sid = _make_user(app_module, "rb_bad", controller=True)
     r = client.post(
         "/founder/elins/regional/batch", headers=_auth(sid),
         json={"regions": ["US", "ZZ"]},
@@ -409,7 +412,7 @@ def test_endpoint_regional_batch_rejects_unknown(app_module, client):
 # ---------------------------------------------------------------------------
 def test_ui_api_shape_for_regional_run(app_module, client):
     user, sid = _make_user(
-        app_module, "ui_a", cohort="founder", signal_mode="cloud_perplexity",
+        app_module, "ui_a", controller=True, signal_mode="cloud_perplexity",
     )
     r = client.post(
         "/elins/regional/run", headers=_auth(sid),

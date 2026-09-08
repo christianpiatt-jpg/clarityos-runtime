@@ -32,6 +32,7 @@ What this suite asserts:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import logging
 import re
 import secrets
@@ -56,7 +57,7 @@ _FIXP5_LOGGERS = {
 _MACRO_ID_RE = re.compile(r"^macro_(\d+)_(\d+)$")
 
 
-def _register_user(username: str, cohort: str = "founder") -> str:
+def _register_user(username: str, controller: bool = True) -> str:
     """Direct user creation — bypasses /register so the load suite
     can scale to dozens of users without driving the registration
     flow under contention."""
@@ -68,8 +69,8 @@ def _register_user(username: str, cohort: str = "founder") -> str:
         username=username, password_hash=pwd_hash, salt="",
         tier="free", created_at=time.time(),
     )
-    if cohort:
-        users_store.update_user(username, {"cohort": cohort})
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     return username
 
 

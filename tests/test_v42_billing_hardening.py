@@ -29,6 +29,7 @@ Covers:
 """
 from __future__ import annotations
 
+from conftest import seed_controller  # #157 -- the ONE controller seed
 import json
 import time
 
@@ -50,7 +51,7 @@ def client(app_module):
     return TestClient(app_module.app)
 
 
-def _make_user(app_module, username, cohort="founder", *,
+def _make_user(app_module, username, controller=True, *,
                billing_state=None, renewal_ts=None):
     import secrets
     import users_store, sessions_store, bcrypt
@@ -60,8 +61,8 @@ def _make_user(app_module, username, cohort="founder", *,
         tier="free", created_at=time.time(),
     )
     patch = {}
-    if cohort:
-        patch["cohort"] = cohort
+    if controller:
+        seed_controller(username)  # #157 -- the flag, never a string
     if billing_state is not None:
         patch["billing_state"] = billing_state
     if renewal_ts is not None:
@@ -423,7 +424,7 @@ def test_webhook_records_event_in_recent_ring(app_module, client, monkeypatch):
 # /founder/billing/status
 # ---------------------------------------------------------------------------
 def test_founder_billing_status_shape(app_module, client):
-    user, sid = _make_user(app_module, "fbs_a", cohort="founder")
+    user, sid = _make_user(app_module, "fbs_a", controller=True)
     r = client.get("/founder/billing/status", headers=_auth(sid))
     assert r.status_code == 200, r.json()
     body = r.json()
@@ -435,7 +436,7 @@ def test_founder_billing_status_shape(app_module, client):
 
 
 def test_founder_billing_status_requires_founder(app_module, client):
-    user, sid = _make_user(app_module, "fbs_outsider", cohort=None)
+    user, sid = _make_user(app_module, "fbs_outsider", controller=False)
     r = client.get("/founder/billing/status", headers=_auth(sid))
     assert r.status_code == 403
 
@@ -443,7 +444,7 @@ def test_founder_billing_status_requires_founder(app_module, client):
 def test_founder_billing_status_reflects_mode(app_module, client, monkeypatch):
     monkeypatch.setenv("CLARITYOS_STRIPE_SECRET_KEY", "sk_live_xxx")
     monkeypatch.setenv("CLARITYOS_STRIPE_WEBHOOK_SECRET", "whsec_xxx")
-    user, sid = _make_user(app_module, "fbs_b", cohort="founder")
+    user, sid = _make_user(app_module, "fbs_b", controller=True)
     r = client.get("/founder/billing/status", headers=_auth(sid))
     body = r.json()
     assert body["stripe"]["mode"] == "live"
@@ -454,7 +455,7 @@ def test_founder_billing_status_disabled_when_no_keys(app_module, client, monkey
     monkeypatch.delenv("CLARITYOS_STRIPE_MODE", raising=False)
     monkeypatch.delenv("CLARITYOS_STRIPE_SECRET_KEY", raising=False)
     monkeypatch.delenv("STRIPE_SECRET_KEY", raising=False)
-    user, sid = _make_user(app_module, "fbs_c", cohort="founder")
+    user, sid = _make_user(app_module, "fbs_c", controller=True)
     r = client.get("/founder/billing/status", headers=_auth(sid))
     body = r.json()
     assert body["stripe"]["mode"] == "disabled"
@@ -465,7 +466,7 @@ def test_founder_billing_status_disabled_when_no_keys(app_module, client, monkey
 # /me/billing
 # ---------------------------------------------------------------------------
 def test_me_billing_default_none(app_module, client):
-    user, sid = _make_user(app_module, "mb_a", cohort="founder")
+    user, sid = _make_user(app_module, "mb_a", controller=True)
     r = client.get("/me/billing", headers=_auth(sid))
     assert r.status_code == 200
     body = r.json()
@@ -476,7 +477,7 @@ def test_me_billing_default_none(app_module, client):
 
 def test_me_billing_active_state(app_module, client):
     user, sid = _make_user(
-        app_module, "mb_b", cohort="founder",
+        app_module, "mb_b", controller=True,
         billing_state="active", renewal_ts=time.time() + 86400 * 30,
     )
     r = client.get("/me/billing", headers=_auth(sid))
@@ -487,7 +488,7 @@ def test_me_billing_active_state(app_module, client):
 
 def test_me_billing_past_due(app_module, client):
     user, sid = _make_user(
-        app_module, "mb_c", cohort="founder",
+        app_module, "mb_c", controller=True,
         billing_state="past_due",
     )
     r = client.get("/me/billing", headers=_auth(sid))
@@ -498,7 +499,7 @@ def test_me_billing_past_due(app_module, client):
 def test_me_billing_grace_period(app_module, client):
     # grace_period now surfaces distinctly (previously collapsed to past_due).
     user, sid = _make_user(
-        app_module, "mb_g", cohort="founder",
+        app_module, "mb_g", controller=True,
         billing_state="grace_period",
     )
     r = client.get("/me/billing", headers=_auth(sid))
@@ -507,7 +508,7 @@ def test_me_billing_grace_period(app_module, client):
 
 def test_me_billing_canceled(app_module, client):
     user, sid = _make_user(
-        app_module, "mb_d", cohort="founder",
+        app_module, "mb_d", controller=True,
         billing_state="cancelled",
     )
     r = client.get("/me/billing", headers=_auth(sid))
@@ -517,7 +518,7 @@ def test_me_billing_canceled(app_module, client):
 
 def test_me_billing_no_raw_stripe_ids(app_module, client):
     """Defensive — /me/billing must never expose raw Stripe ids."""
-    user, sid = _make_user(app_module, "mb_e", cohort="founder")
+    user, sid = _make_user(app_module, "mb_e", controller=True)
     r = client.get("/me/billing", headers=_auth(sid))
     body = r.json()
     serialised = repr(body)
