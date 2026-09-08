@@ -48,6 +48,8 @@ Public API:
 from __future__ import annotations
 
 import base64
+import contextvars
+import copy
 import hashlib
 import hmac
 import json
@@ -130,6 +132,102 @@ DEFAULT_PBKDF2_ITERATIONS: int = 100_000
 # ---------------------------------------------------------------------------
 _LOCK = threading.RLock()
 _MEM_STORE: dict[str, dict[str, dict]] = {}    # user_id -> {key: {"v": ciphertext_b64, "ts": float}}
+
+# ---------------------------------------------------------------------------
+# #178 (CT-1 2026-09-08) -- ONE vault load + decrypt per REQUEST.
+#
+# Every read below (vault_list, vault_keys_for_user, vault_count_for_user,
+# vault_init, and vault_get off Firestore) called _load_user, and on the
+# Firestore backend _load_user STREAMS THE MEMBER'S WHOLE ENTRIES COLLECTION
+# under the process-global _LOCK. GET /me alone made five to seven of those
+# loads (kernel_view_for_user -> operator_state -> vault_init + vault_list,
+# three vault_count_for_user, threads_vault.list_threads -> keys + a get per
+# meta) and the cockpit mount fires eight requests at once: measured 3 s
+# alone, 21 s under the mount (HAR 09-04), every one queued on the lock.
+#
+# The cache is a ContextVar holding {user_id: {"entries": <the loaded rows>,
+# "decrypted": {key: value}}}. An HTTP middleware in app.py OPENS it (a
+# fresh dict) per request and CLOSES it at the response; outside a request
+# the var is None and every path behaves exactly as before. Reads go
+# through _load_user_cached; writes (vault_put / vault_delete / vault_clear)
+# still load FRESH and save, then REPLACE the request's copy so a later read
+# in the same request sees the write. Nothing is cached across requests.
+# Encryption, key derivation, the envelope and the backends are untouched;
+# decryption still happens outside _LOCK.
+# ---------------------------------------------------------------------------
+_REQ_CACHE: contextvars.ContextVar[Optional[dict]] = contextvars.ContextVar(
+    "clarityos_vault_request_cache", default=None,
+)
+
+
+def request_cache_open() -> contextvars.Token:
+    """Open a fresh per-request cache; returns the token to close it with.
+    Called by app.py's request middleware and by nothing else in prod."""
+    return _REQ_CACHE.set({})
+
+
+def request_cache_close(token: contextvars.Token) -> None:
+    """Tear the request's cache down. Nothing survives the response."""
+    _REQ_CACHE.reset(token)
+
+
+def request_cache_active() -> bool:
+    return _REQ_CACHE.get() is not None
+
+
+def _cache_bucket(user_id: str) -> Optional[dict]:
+    c = _REQ_CACHE.get()
+    if c is None:
+        return None
+    b = c.get(user_id)
+    if b is None:
+        b = {"entries": None, "decrypted": {}}
+        c[user_id] = b
+    return b
+
+
+def _load_user_cached(user_id: str) -> dict[str, dict]:
+    """The one load per request. Outside a request: _load_user, as before.
+    Call under _LOCK, as every loader is."""
+    b = _cache_bucket(user_id)
+    if b is None:
+        return _load_user(user_id)
+    if b["entries"] is None:
+        b["entries"] = _load_user(user_id)
+    return b["entries"]
+
+
+def _cache_replace(user_id: str, entries: dict[str, dict]) -> None:
+    """After a write: the request's copy becomes what was just saved, and
+    every decrypted value is forgotten (a changed key must be re-read)."""
+    b = _cache_bucket(user_id)
+    if b is not None:
+        b["entries"] = dict(entries)
+        b["decrypted"] = {}
+
+
+def _decrypt_cached(user_id: str, key: str, rec: dict) -> Any:
+    """Decrypt + deserialize one entry, once per request PER CIPHERTEXT:
+    the cache is keyed by the key AND the envelope it decrypted, so a row
+    re-read from Firestore after another instance wrote it decrypts again
+    (a refuter's catch: keyed by key alone, a repeated single-document
+    read paid the read and returned the first plaintext). A hit returns a
+    COPY, so a caller that mutates a value in place cannot poison the next
+    read in the same request. Raises exactly what _decrypt_value /
+    json.loads raise; the callers keep their own handling (vault_get
+    raises, vault_list skips and logs)."""
+    b = _cache_bucket(user_id)
+    env = rec.get("v")
+    if b is not None:
+        hit = b["decrypted"].get(key)
+        if hit is not None and hit[0] == env:
+            return copy.deepcopy(hit[1])
+    plaintext = _decrypt_value(user_id, env)
+    value = json.loads(plaintext.decode("utf-8"))
+    if b is not None:
+        b["decrypted"][key] = (env, value)
+        return copy.deepcopy(value)
+    return value
 _SQLITE_CONN: Optional[sqlite3.Connection] = None
 _SQLITE_PATH_CACHED: Optional[str] = None
 _FIRE_CLIENT: Any = None                       # lazy google.cloud.firestore client (firestore backend)
@@ -713,7 +811,7 @@ def vault_init(user_id: str) -> None:
     callers can rely on the user existing before walking keys."""
     user_id = _validate_user(user_id)
     with _LOCK:
-        existing = _load_user(user_id)
+        existing = _load_user_cached(user_id)
         if not existing:
             # Touch with an empty dict so fs/sqlite materialise the
             # storage row. Mock backend stays empty (no entry created).
@@ -739,9 +837,10 @@ def vault_put(user_id: str, key: str, value: Any) -> None:
         raise ValueError(f"value not JSON-serialisable: {e}") from e
     envelope = _encrypt_value(user_id, plaintext)
     with _LOCK:
-        entries = dict(_load_user(user_id))
+        entries = dict(_load_user(user_id))   # a write loads FRESH, as before
         entries[key] = {"v": envelope, "ts": time.time()}
         _save_user(user_id, entries)
+        _cache_replace(user_id, entries)      # #178 -- the request's copy follows the write
 
 
 def vault_get(user_id: str, key: str, default: Any = None) -> Any:
@@ -751,20 +850,26 @@ def vault_get(user_id: str, key: str, default: Any = None) -> Any:
     user_id = _validate_user(user_id)
     key = _validate_key(key)
     with _LOCK:
-        if _backend() == "firestore":
+        b = _cache_bucket(user_id)
+        if b is not None and b["entries"] is not None:
+            # #178 -- this request already loaded the member's rows (a keys
+            # or list read before this get): read the row from them.
+            rec = b["entries"].get(key)
+        elif _backend() == "firestore":
             # One document read instead of streaming the whole collection.
+            # On Firestore a single get NEVER populates the whole-vault copy
+            # (that would turn one document read into a collection stream).
             rec = _fire_get_one(user_id, key)
         else:
             # mock / sqlite / fs load a whole file or row regardless, so
             # there is no amplification to remove and no reason to add a
-            # second code path. vault_list legitimately needs _load_user
-            # on every backend and is untouched.
-            rec = _load_user(user_id).get(key)
+            # second code path; inside a request that one load IS the
+            # request's copy, and later reads reuse it.
+            rec = _load_user_cached(user_id).get(key)
     if rec is None:
         return default
     try:
-        plaintext = _decrypt_value(user_id, rec["v"])
-        return json.loads(plaintext.decode("utf-8"))
+        return _decrypt_cached(user_id, key, rec)
     except (ValueError, json.JSONDecodeError, KeyError) as e:
         logger.warning(
             "vault_get decrypt failed user=%s key=%s err=%s",
@@ -779,12 +884,35 @@ def vault_list(user_id: str) -> dict[str, Any]:
     corrupted record doesn't poison reads."""
     user_id = _validate_user(user_id)
     with _LOCK:
-        entries = _load_user(user_id)
+        entries = _load_user_cached(user_id)
     out: dict[str, Any] = {}
     for k, rec in entries.items():
         try:
-            plaintext = _decrypt_value(user_id, rec["v"])
-            out[k] = json.loads(plaintext.decode("utf-8"))
+            out[k] = _decrypt_cached(user_id, k, rec)
+        except Exception as e:  # pragma: no cover (defensive)
+            logger.warning(
+                "vault_list decrypt failed user=%s key=%s err=%s",
+                runtime_privacy.user_ref(user_id), k, e,
+            )
+    return out
+
+
+def vault_list_prefix(user_id: str, prefixes: tuple[str, ...] | str) -> dict[str, Any]:
+    """#178 -- every entry whose key starts with one of ``prefixes``, as
+    ``{key: decrypted_value}``. The load is the same one load per request
+    as vault_list; the DECRYPTION is only of the matching keys, so a reader
+    of one namespace (operator_state.*) no longer decrypts a member's every
+    thread message to reach it. Same skip-and-log on a bad row."""
+    user_id = _validate_user(user_id)
+    pfx = (prefixes,) if isinstance(prefixes, str) else tuple(prefixes)
+    with _LOCK:
+        entries = _load_user_cached(user_id)
+    out: dict[str, Any] = {}
+    for k, rec in entries.items():
+        if not k.startswith(pfx):
+            continue
+        try:
+            out[k] = _decrypt_cached(user_id, k, rec)
         except Exception as e:  # pragma: no cover (defensive)
             logger.warning(
                 "vault_list decrypt failed user=%s key=%s err=%s",
@@ -798,10 +926,11 @@ def vault_delete(user_id: str, key: str) -> None:
     user_id = _validate_user(user_id)
     key = _validate_key(key)
     with _LOCK:
-        entries = dict(_load_user(user_id))
+        entries = dict(_load_user(user_id))   # a write loads FRESH, as before
         if key in entries:
             entries.pop(key, None)
             _save_user(user_id, entries)
+            _cache_replace(user_id, entries)  # #178
 
 
 def vault_clear(user_id: str) -> None:
@@ -811,6 +940,7 @@ def vault_clear(user_id: str) -> None:
     user_id = _validate_user(user_id)
     with _LOCK:
         _save_user(user_id, {})
+        _cache_replace(user_id, {})           # #178
 
 
 # ---------------------------------------------------------------------------
@@ -819,7 +949,7 @@ def vault_clear(user_id: str) -> None:
 def vault_keys_for_user(user_id: str) -> list[str]:
     user_id = _validate_user(user_id)
     with _LOCK:
-        return sorted(_load_user(user_id).keys())
+        return sorted(_load_user_cached(user_id).keys())
 
 
 def vault_count_for_user(user_id: str, namespace: Optional[str] = None) -> int:
@@ -827,7 +957,7 @@ def vault_count_for_user(user_id: str, namespace: Optional[str] = None) -> int:
     ``None`` returns the total."""
     user_id = _validate_user(user_id)
     with _LOCK:
-        keys = _load_user(user_id).keys()
+        keys = list(_load_user_cached(user_id).keys())
     if namespace:
         prefix = namespace + "."
         return sum(1 for k in keys if k.startswith(prefix))

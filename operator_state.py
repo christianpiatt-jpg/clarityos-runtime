@@ -172,7 +172,7 @@ def _list_history(all_entries: dict, prefix: str) -> list[dict]:
 def _prune_history(user_id: str, prefix: str) -> None:
     """Trim oldest entries beyond HISTORY_MAX. Called after record_*
     so the vault doesn't grow unbounded."""
-    all_entries = memory_vault.vault_list(user_id)
+    all_entries = memory_vault.vault_list_prefix(user_id, prefix)   # #178 -- this history only
     keys = [k for k in all_entries if k.startswith(prefix)]
     if len(keys) <= HISTORY_MAX:
         return
@@ -196,7 +196,13 @@ def get_operator_state(user_id: str) -> dict:
         raise ValueError("user_id must be a non-empty string")
 
     memory_vault.vault_init(user_id)
-    all_entries = memory_vault.vault_list(user_id)
+    # #178 -- the state is made of THREE namespaces (its own fields and the
+    # two histories it returns); decrypt those, not the member's every
+    # thread message, note and embedding. The load itself is the request's
+    # one load (memory_vault's request cache).
+    all_entries = memory_vault.vault_list_prefix(
+        user_id, (_OS_PREFIX, _ELINS_PREFIX, _GRUNS_PREFIX),
+    )
 
     # operator_state.* fields — fall back to defaults when missing.
     created_ts = all_entries.get(_OS_PREFIX + "created_ts")

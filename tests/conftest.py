@@ -427,6 +427,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_store_is_written.py": {
         "runtime_spine", "privacy_surface",
     },
+    # ---- #178 the perf leg: one vault load + decrypt per request ----
+    # runtime_spine: the request cache sits under every member route and
+    # must never leak across requests. determinism_surface: the prefix
+    # read and the counts must equal the whole-vault reads they replace.
+    "test_vault_request_cache.py": {
+        "runtime_spine", "determinism_surface",
+    },
     # ---- #133 riders: the files the leg's other tests landed in ----
     # runtime_spine: /elins/v2/run is a member route. privacy_surface: the
     # response carries no address and no pasted text (#177).

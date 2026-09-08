@@ -403,6 +403,22 @@ CORS_ORIGINS = [
     if o.strip()
 ]
 
+# #178 (CT-1 2026-09-08) -- one vault load + decrypt per request. The
+# middleware opens memory_vault's request-scoped cache before the handler
+# and tears it down after the response, whatever the handler did; outside
+# a request (the scheduler, a test calling a function) the cache is off
+# and every vault path behaves exactly as before. Starlette copies the
+# context into the handler's threadpool call, so the sync handlers and
+# every store they read share the one dict. Nothing survives the response.
+@app.middleware("http")
+async def _vault_request_cache(request: Request, call_next):
+    token = memory_vault.request_cache_open()
+    try:
+        return await call_next(request)
+    finally:
+        memory_vault.request_cache_close(token)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,

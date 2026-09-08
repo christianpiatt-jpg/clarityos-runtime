@@ -2785,16 +2785,19 @@ def kernel_view_for_user(user_id: str) -> dict:
         eso_source = (
             "perplexity" if perplexity_oracle._cloud_provider_active() else "mock"
         )
-    # v46 — vault per-user counts (cheap read; mock backend in tests is
-    # an in-memory dict).
+    # v46 — vault per-user counts. #178 -- ONE keys read, counted here in
+    # Python; the three vault_count_for_user calls were three whole-vault
+    # loads on Firestore (and the request cache makes this read the same
+    # load the state above already paid for).
     vault_keys = 0
     notes_count = 0
     embeddings_count = 0
     if user_id:
         try:
-            vault_keys = memory_vault.vault_count_for_user(user_id)
-            notes_count = memory_vault.vault_count_for_user(user_id, "notes")
-            embeddings_count = memory_vault.vault_count_for_user(user_id, "embeddings")
+            keys = memory_vault.vault_keys_for_user(user_id)
+            vault_keys = len(keys)
+            notes_count = sum(1 for k in keys if k.startswith("notes."))
+            embeddings_count = sum(1 for k in keys if k.startswith("embeddings."))
         except Exception:  # pragma: no cover (defensive)
             pass
 
