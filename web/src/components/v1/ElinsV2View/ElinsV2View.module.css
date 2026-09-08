@@ -56,35 +56,6 @@
   font-family: var(--font-mono, monospace);
 }
 
-/* ----- ETF pills ----- */
-
-.etfRow {
-  display: flex;
-  gap: 6px;
-}
-
-.etfPill {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6px 4px;
-  border: 1px solid rgba(20, 24, 28, 0.08);
-  border-radius: 4px;
-  min-width: 0;
-}
-
-.etfLabel {
-  font-size: 10px;
-  opacity: 0.6;
-}
-
-.etfValue {
-  font-size: 14px;
-  font-weight: 600;
-  font-feature-settings: "tnum";
-}
-
 /* ----- Attractor bars ----- */
 
 .attractorRow {
@@ -347,4 +318,155 @@
   font-family: var(--font-mono, monospace);
   font-size: 11px;
   opacity: 0.7;
+}
+
+/* ----- #180a: the rail renders what it carries ----- */
+
+.instrument {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+/* domain row: five bars, the top in bold */
+.domainRows {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.domainRow {
+  display: grid;
+  grid-template-columns: 8em 1fr 3.5em;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+
+.domainName { opacity: 0.75; }
+.domainNameTop { font-weight: 700; }
+
+.domainBarOuter {
+  display: block;
+  height: 6px;
+  border: 1px solid rgba(20, 24, 28, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.domainBarInner {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.domainValue {
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+
+/* signature line */
+.signature {
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  line-height: 1.6;
+}
+
+/* survival table: six primitives x three horizons, plus the aggregate */
+.survival {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+}
+
+.survivalHead,
+.survivalRow {
+  display: grid;
+  grid-template-columns: 7.5em repeat(3, 1fr);
+  gap: 6px;
+  align-items: baseline;
+}
+
+.survivalHead {
+  font-size: 10px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+.survivalName { opacity: 0.75; }
+
+.survivalCell {
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+
+/* forecast: one sparkline row, the phases, the envelopes folded */
+.forecastRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spark {
+  width: 40%;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+.phases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 10px;
+  opacity: 0.7;
+  font-family: var(--font-mono, monospace);
+}
+
+.envelopes {
+  font-size: 10px;
+  font-family: var(--font-mono, monospace);
+}
+
+.envelopes summary {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.envelopeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 4px;
+}
+
+.envelopeRow {
+  display: grid;
+  grid-template-columns: 9em 1fr;
+  gap: 6px;
+}
+
+.envelopeVals {
+  font-feature-settings: "tnum";
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* provenance footer */
+.provenance {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.provenanceLine {
+  font-size: 10px;
+  opacity: 0.7;
+  font-family: var(--font-mono, monospace);
+  line-height: 1.6;
 }

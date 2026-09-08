@@ -3,6 +3,7 @@
 // top primitives, multi-envelope forecast spark, ESO badge.
 
 import type { V38DashboardSection } from "../../lib/api";
+import { labelFor } from "../../lib/labels";
 
 const PRIMITIVE_COLORS: Record<string, string> = {
   pressure:      "#ff7b72",
@@ -47,9 +48,11 @@ export default function GlobalPanel({ section }: GlobalPanelProps) {
       </header>
 
       <div style={statsRowStyle}>
-        <Stat label="EP mean" value={section.ep_mean.toFixed(3)} />
-        <Stat label="Top primitive" value={section.top_primitives[0]?.key || "—"} />
-        <Stat label="Forecast horizon" value={`${section.forecast.length} days`} />
+        {/* #180a (i) -- the literals carry their instrument (labels.ts) and
+            the snapshot key rides in the title. */}
+        <Stat k="ep_mean" path="snapshot.global.ep_mean" value={section.ep_mean.toFixed(3)} />
+        <Stat k="top_primitive" path="snapshot.global.top_primitives[0].key" value={section.top_primitives[0]?.key || "—"} />
+        <Stat k="forecast_horizon" path="snapshot.global.forecast" value={`${section.forecast.length} days`} />
       </div>
 
       <h3 style={subHeader}>Top primitives</h3>
@@ -147,10 +150,16 @@ function ForecastSpark({ values }: { values: number[] }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ k, path, value }: { k: string; path: string; value: string }) {
+  const label = labelFor(k);
   return (
     <div>
-      <div style={{ fontSize: 10, color: "var(--os-text-tertiary, #585858)", textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+      <div
+        style={{ fontSize: 10, color: "var(--os-text-tertiary, #585858)", textTransform: "uppercase", letterSpacing: 0.5 }}
+        title={path}
+      >
+        {label.word}{label.instrument ? ` · ${label.instrument}` : ""}
+      </div>
       <div style={{ fontSize: 14, fontFamily: "var(--font-mono, monospace)", color: "var(--os-text-primary, #fff)" }}>{value}</div>
     </div>
   );

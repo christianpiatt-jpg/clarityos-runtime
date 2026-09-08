@@ -4,6 +4,7 @@
 import type { V38DashboardSection } from "../../lib/api";
 import { Link } from "react-router-dom";
 import { useIsController } from "../RequireAdmin";
+import { labelFor } from "../../lib/labels";
 
 const REGION_ORDER: string[] = ["US", "EU", "MEA", "APAC", "Markets", "Tech"];
 
@@ -33,8 +34,9 @@ export default function RegionalGrid({ regional }: RegionalGridProps) {
               </div>
               {s.available ? (
                 <div>
-                  <Row label="EP mean" value={s.ep_mean.toFixed(3)} />
-                  <Row label="Top primitive" value={s.top_primitives[0]?.key || "—"} />
+                  {/* #180a (i) -- the literals carry their instrument. */}
+                  <Row k="ep_mean" path={`snapshot.regional.${region}.ep_mean`} value={s.ep_mean.toFixed(3)} />
+                  <Row k="top_primitive" path={`snapshot.regional.${region}.top_primitives[0].key`} value={s.top_primitives[0]?.key || "—"} />
                   {s.forecast.length > 0 && (
                     <MiniForecast values={s.forecast} />
                   )}
@@ -71,10 +73,13 @@ function MiniForecast({ values }: { values: number[] }) {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ k, path, value }: { k: string; path: string; value: string }) {
+  const label = labelFor(k);
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "1px 0", fontSize: 11 }}>
-      <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }}>{label}</span>
+      <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }} title={path}>
+        {label.word}{label.instrument ? ` · ${label.instrument}` : ""}
+      </span>
       <span style={{ fontFamily: "var(--font-mono, monospace)" }}>{value}</span>
     </div>
   );

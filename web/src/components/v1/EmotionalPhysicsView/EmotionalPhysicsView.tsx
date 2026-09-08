@@ -207,6 +207,7 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
         ) : (
           <LayerBlock
             key={key}
+            layerKey={key}
             label={LAYER_LABEL[key]}
             data={view[key] as Record<string, unknown> | undefined}
           />
@@ -257,15 +258,23 @@ function Heading({ title, subtitle }: { title: string; subtitle?: string }) {
 }
 
 function LayerBlock({
-  label, data,
+  layerKey, label, data,
 }: {
+  layerKey: LayerKey;
   label: string;
   data: Record<string, unknown> | undefined;
 }) {
+  // #180a (j) -- the caption carries the instrument (R5.3: a model read
+  // the text) and the internal key rides in a title attribute.
+  const caption = (
+    <div className={styles.layerLabel} title={layerKey} data-testid={`layer-${layerKey}`}>
+      {label} · {labelFor(layerKey).instrument || "physics · model-read"}
+    </div>
+  );
   if (!data) {
     return (
       <div className={styles.layer}>
-        <div className={styles.layerLabel}>{label}</div>
+        {caption}
         <div className={styles.empty}>—</div>
       </div>
     );
@@ -308,7 +317,7 @@ function LayerBlock({
   if (params.length === 0 && !narrative) {
     return (
       <div className={styles.layer}>
-        <div className={styles.layerLabel}>{label}</div>
+        {caption}
         <div className={styles.empty}>—</div>
       </div>
     );
@@ -316,12 +325,15 @@ function LayerBlock({
 
   return (
     <div className={styles.layer}>
-      <div className={styles.layerLabel}>{label}</div>
+      {caption}
       {params.length > 0 ? (
         <dl className={styles.paramGrid}>
           {params.map(([k, v]) => (
             <Fragment key={k}>
-              <dt className={styles.paramKey}>{k}</dt>
+              {/* #180a (j) -- CT-1's word for the sub-key (labels.ts); the
+                  internal name rides in the title. An unknown key shows
+                  itself, never blank. */}
+              <dt className={styles.paramKey} title={k}>{labelFor(k).word}</dt>
               <dd
                 className={isProse(v) ? styles.narrative : styles.paramValue}
                 title={v}

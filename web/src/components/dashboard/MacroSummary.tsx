@@ -4,6 +4,7 @@
 import { Link } from "react-router-dom";
 import type { V38DashboardSnapshot } from "../../lib/api";
 import { useIsController } from "../RequireAdmin";
+import { labelFor } from "../../lib/labels";
 
 export interface MacroSummaryProps {
   macro: V38DashboardSnapshot["macro"];
@@ -21,7 +22,8 @@ export default function MacroSummary({ macro }: MacroSummaryProps) {
         <div>
           <Row label="Last run" value={macro.last_run_id} mono />
           <Row label="Timestamp" value={fmtTs(macro.last_run_ts)} mono />
-          <Row label="EP mean" value={macro.ep_mean !== null ? macro.ep_mean.toFixed(3) : "—"} mono />
+          {/* #180a (i) -- the literal carries its instrument and the snapshot key. */}
+          <Row k="ep_mean" path="snapshot.macro.ep_mean" value={macro.ep_mean !== null ? macro.ep_mean.toFixed(3) : "—"} mono />
           <Row label="Regions" value={String(macro.regions_count ?? "—")} mono />
           <Row label="ESO mode" value={macro.external_signal_mode || "—"} />
         </div>
@@ -39,10 +41,21 @@ function fmtTs(ts: number | null): string {
   return new Date(ts * 1000).toISOString().replace("T", " ").slice(0, 19);
 }
 
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Row({
+  label, k, path, value, mono,
+}: {
+  label?: string;
+  /** A labels.ts key: the word + instrument replace `label`, `path` rides in the title. */
+  k?: string;
+  path?: string;
+  value: string;
+  mono?: boolean;
+}) {
+  const l = k ? labelFor(k) : null;
+  const text = l ? `${l.word}${l.instrument ? ` · ${l.instrument}` : ""}` : (label ?? "");
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 12 }}>
-      <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }}>{label}</span>
+      <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }} title={path}>{text}</span>
       <span style={{ fontFamily: mono ? "var(--font-mono, monospace)" : undefined }}>{value}</span>
     </div>
   );
