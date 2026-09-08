@@ -262,6 +262,19 @@ export default function Library() {
                 ) : null}
                 <div className="k">size</div>
                 <div className="v">{formatBytes(active.size_bytes)}</div>
+                {/* #138 -- where the item came from. Five keys at metadata
+                    top level; a null (every item written before the stamp)
+                    reads a dash, not a zero, not "none". */}
+                <div className="k" title="metadata.origin_route">origin</div>
+                <div className="v" data-testid="lib-origin-route">{metaStr(active.metadata, "origin_route")}</div>
+                <div className="k" title="metadata.origin_thread_id">origin thread</div>
+                <div className="v" data-testid="lib-origin-thread">{metaStr(active.metadata, "origin_thread_id")}</div>
+                <div className="k" title="metadata.origin_turn_id">origin turn</div>
+                <div className="v" data-testid="lib-origin-turn">{metaStr(active.metadata, "origin_turn_id")}</div>
+                <div className="k" title="metadata.run_id">run</div>
+                <div className="v" data-testid="lib-run-id">{metaStr(active.metadata, "run_id")}</div>
+                <div className="k" title="metadata.created_ts">ingested</div>
+                <div className="v" data-testid="lib-created-ts">{metaTs(active.metadata, "created_ts")}</div>
               </div>
               <pre className="output">{active.content}</pre>
             </div>
@@ -270,6 +283,18 @@ export default function Library() {
       </div>
     </div>
   );
+}
+
+/** A metadata string, or a dash. Never a zero, never "none". */
+function metaStr(md: Record<string, unknown> | undefined, key: string): string {
+  const v = md?.[key];
+  return typeof v === "string" && v ? v : "—";
+}
+
+/** A metadata epoch (seconds) as a local stamp, or a dash. */
+function metaTs(md: Record<string, unknown> | undefined, key: string): string {
+  const v = md?.[key];
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? new Date(v * 1000).toLocaleString() : "—";
 }
 
 function formatBytes(n: number): string {

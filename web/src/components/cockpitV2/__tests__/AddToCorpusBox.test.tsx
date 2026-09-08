@@ -16,6 +16,13 @@ vi.mock("../../../lib/api", async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
   ingestManual: vi.fn(),
 }));
+// #138 -- the box reads the selected relationship off the store; the mock
+// lets each test say which one (null = none selected).
+const store = vi.hoisted(() => ({ activeId: null as string | null }));
+vi.mock("../../../state/cockpitStore", () => ({
+  useCockpit: (sel: (s: { relationships: { activeId: string | null } }) => unknown) =>
+    sel({ relationships: { activeId: store.activeId } }),
+}));
 
 import { ingestManual } from "../../../lib/api";
 import AddToCorpusBox from "../AddToCorpusBox";
@@ -28,7 +35,19 @@ function mount() {
 }
 
 describe("AddToCorpusBox", () => {
-  beforeEach(() => { mocked.mockReset(); });
+  beforeEach(() => { mocked.mockReset(); store.activeId = null; });
+
+  it("#138 -- with a relationship selected the paste carries that thread id", async () => {
+    store.activeId = "rel-42";
+    mocked.mockResolvedValue(OK);
+    mount();
+    fireEvent.change(screen.getByTestId("corpus-text"), { target: { value: "kept" } });
+    fireEvent.click(screen.getByTestId("corpus-submit"));
+    await waitFor(() => expect(mocked).toHaveBeenCalledTimes(1));
+    expect(mocked).toHaveBeenCalledWith({
+      text: "kept", source: "cockpit", origin_route: "personal", origin_thread_id: "rel-42",
+    });
+  });
 
   it("renders the box with its button disabled on empty text", () => {
     mount();
@@ -52,7 +71,11 @@ describe("AddToCorpusBox", () => {
 
     await waitFor(() => expect(screen.getByTestId("corpus-result")).toBeInTheDocument());
     expect(mocked).toHaveBeenCalledTimes(1);
-    expect(mocked).toHaveBeenCalledWith({ text: "three sentences. here. now.", source: "cockpit" });
+    // #138 -- the personal door names its route; no relationship selected -> null
+    expect(mocked).toHaveBeenCalledWith({
+      text: "three sentences. here. now.", source: "cockpit",
+      origin_route: "personal", origin_thread_id: null,
+    });
     const result = screen.getByTestId("corpus-result");
     expect(result).toHaveTextContent("l_new1");
     // a router Link renders as <a href="/library"> under MemoryRouter

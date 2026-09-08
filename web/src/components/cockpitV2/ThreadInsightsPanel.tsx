@@ -155,8 +155,14 @@ export default function ThreadInsightsPanel() {
 
   // Only pass runOn when there is text, so the views render their empty
   // state instead of firing a request against the empty string.
+  // #138 -- the footer's "send to corpus" keeps the thread on the item. The
+  // thread wire carries no message ids (messages have ts_ms only), so the
+  // turn is null and the item says so with a dash.
   const runOn = threadText.trim()
-    ? { rawText: threadText, region: null, surface: "thread" as const, messageBoundaries: boundaries }
+    ? {
+        rawText: threadText, region: null, surface: "thread" as const, messageBoundaries: boundaries,
+        origin: { threadId: meta?.thread_id ?? null, turnId: null },
+      }
     : null;
 
   // ★★ The declaration reads the KERNEL's window off the cached reading of

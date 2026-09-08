@@ -25,10 +25,14 @@ import { ingestManual } from "../../../lib/api";
 import styles from "./ElinsV2View.module.css";
 
 export default function SendToCorpus({
-  text, region,
+  text, region, origin,
 }: {
   text: string;
   region: string | null;
+  /** #138 -- the thread this footer sits under, and the turn the run ran
+   *  on when the caller has one (the thread wire carries no message ids
+   *  today, so it is null). */
+  origin?: { threadId: string | null; turnId?: string | null } | null;
 }) {
   const [busy, setBusy] = useState(false);
   const [sentId, setSentId] = useState<string | null>(null);
@@ -41,7 +45,13 @@ export default function SendToCorpus({
     setBusy(true);
     setError(null);
     try {
-      const r = await ingestManual({ text, region, source: "elins_v2_view" });
+      const r = await ingestManual({
+        text, region, source: "elins_v2_view",
+        // #138 -- this is the THREAD FOOTER door; the item keeps its thread.
+        origin_route: "thread_footer",
+        origin_thread_id: origin?.threadId ?? null,
+        origin_turn_id: origin?.turnId ?? null,
+      });
       setSentId(r.library_id);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

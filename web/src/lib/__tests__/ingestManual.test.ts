@@ -71,6 +71,19 @@ describe("ingestManual", () => {
     expect(Object.keys(lastCall().body).sort()).toEqual(["raw_text", "region", "source"]);
   });
 
+  it("#138 -- the provenance keys ride only when given, as given", async () => {
+    const api = await import("../api");
+    await api.ingestManual({
+      text: "t", source: "elins_v2_view", origin_route: "thread_footer",
+      origin_thread_id: "t9", origin_turn_id: null, title: "kept",
+    });
+    expect(lastCall().body).toEqual({
+      raw_text: "t", source: "elins_v2_view", region: null,
+      origin_route: "thread_footer", origin_thread_id: "t9", origin_turn_id: null, title: "kept",
+    });
+    expect(Object.keys(lastCall().body)).not.toContain("run_id");
+  });
+
   it("a server refusal surfaces as an ApiError carrying the server's code", async () => {
     vi.stubGlobal(
       "fetch",

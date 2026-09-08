@@ -50,7 +50,10 @@ function envelope() {
   } as never;
 }
 
-function view(runOn?: { rawText: string; region?: string | null } | null) {
+function view(runOn?: {
+  rawText: string; region?: string | null;
+  origin?: { threadId: string | null; turnId?: string | null } | null;
+} | null) {
   return (
     <MemoryRouter>
       <ElinsV2View envelope={envelope()} runOn={runOn} />
@@ -61,6 +64,17 @@ function view(runOn?: { rawText: string; region?: string | null } | null) {
 describe("ElinsV2View — send to corpus", () => {
   beforeEach(() => { mocked.mockReset(); });
 
+  it("#138 -- the footer keeps the thread it sits under on the item", async () => {
+    mocked.mockResolvedValue({ ok: true, library_id: "l_t9", envelope: {} });
+    render(view({ rawText: "from the tab", origin: { threadId: "t9", turnId: null } }));
+    fireEvent.click(screen.getByTestId("send-to-corpus"));
+    await waitFor(() => expect(mocked).toHaveBeenCalledTimes(1));
+    expect(mocked).toHaveBeenCalledWith({
+      text: "from the tab", region: null, source: "elins_v2_view",
+      origin_route: "thread_footer", origin_thread_id: "t9", origin_turn_id: null,
+    });
+  });
+
   it("★ a run with its input text offers 'send to corpus'; pressing it posts that text", async () => {
     mocked.mockResolvedValue({ ok: true, library_id: "l_fromrun", envelope: {} });
     render(view({ rawText: "the run's own input", region: "us" }));
@@ -69,7 +83,11 @@ describe("ElinsV2View — send to corpus", () => {
     fireEvent.click(btn);
     await waitFor(() => expect(screen.getByTestId("send-to-corpus-result")).toBeInTheDocument());
     expect(mocked).toHaveBeenCalledTimes(1);
-    expect(mocked).toHaveBeenCalledWith({ text: "the run's own input", region: "us", source: "elins_v2_view" });
+    // #138 -- the thread-footer door names its route; no origin given -> nulls
+    expect(mocked).toHaveBeenCalledWith({
+      text: "the run's own input", region: "us", source: "elins_v2_view",
+      origin_route: "thread_footer", origin_thread_id: null, origin_turn_id: null,
+    });
     expect(screen.getByTestId("send-to-corpus-result")).toHaveTextContent("l_fromrun");
     expect(screen.getByTestId("send-to-corpus-result").querySelector('a[href="/library"]')).not.toBeNull();
     expect(screen.getByTestId("send-to-corpus")).toHaveTextContent("sent to corpus");

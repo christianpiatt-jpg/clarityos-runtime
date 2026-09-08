@@ -65,6 +65,9 @@ interface Props {
     // boundaries over rawText so the kernel can say which messages it read.
     surface?: "personal" | "thread";
     messageBoundaries?: number[] | null;
+    // #138 -- the thread this run belongs to (and the turn, when the caller
+    // has one): the footer's "send to corpus" keeps them on the item.
+    origin?: { threadId: string | null; turnId?: string | null } | null;
   } | null;
   /** Optional callback fired on every successful run, including initial. */
   onRun?: (env: ElinsV2Envelope) => void;
@@ -249,7 +252,12 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
           so it never claims the new text was sent. Trimmed gate matches
           canRerun: whitespace-only input offers nothing. */}
       {corpusText.trim() ? (
-        <SendToCorpus key={corpusText} text={corpusText} region={runOn?.region ?? null} />
+        <SendToCorpus
+          key={corpusText}
+          text={corpusText}
+          region={runOn?.region ?? null}
+          origin={runOn?.origin ?? null}
+        />
       ) : null}
     </footer>
   );

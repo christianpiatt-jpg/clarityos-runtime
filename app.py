@@ -14805,6 +14805,14 @@ class V54IngestManualRequest(BaseModel):
     raw_text: str
     source:   Optional[str] = "manual"
     region:   Optional[str] = None
+    # #138 -- where the item came from. All optional, all stored as given
+    # (an origin_thread_id the member does not own is stored null). The
+    # brief's route words: manual | rss | thread_footer | personal.
+    title:            Optional[str] = None
+    origin_route:     Optional[str] = None
+    origin_thread_id: Optional[str] = None
+    origin_turn_id:   Optional[str] = None
+    run_id:           Optional[str] = None
 
 
 class V54FeedRegisterRequest(BaseModel):
@@ -14841,6 +14849,11 @@ def ingest_manual(
             user, raw_text,
             source=str(req.source or "manual"),
             region=req.region,
+            title=req.title,
+            origin_route=req.origin_route,
+            origin_thread_id=req.origin_thread_id,
+            origin_turn_id=req.origin_turn_id,
+            run_id=req.run_id,
         )
     except ValueError as e:
         raise HTTPException(

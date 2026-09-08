@@ -2407,12 +2407,29 @@ def run_elins_v2(
 # ---------------------------------------------------------------------------
 # v54 — Ingestion (manual + RSS/Atom feeds)
 # ---------------------------------------------------------------------------
+#: #138 -- the route vocabulary the brief names. The ROW stores whatever a
+#: caller sent (the order rejects nothing new); the LOG line carries only
+#: one of these words, or "other" for anything else, or None for absent.
+ORIGIN_ROUTES: frozenset = frozenset({"manual", "rss", "thread_footer", "personal"})
+
+
+def _origin_route_word(v) -> Optional[str]:
+    if not isinstance(v, str) or not v.strip():
+        return None
+    return v.strip() if v.strip() in ORIGIN_ROUTES else "other"
+
+
 def run_manual_ingestion(
     user_id: str,
     raw_text: str,
     *,
     source: str = "manual",
     region: Optional[str] = None,
+    title: Optional[str] = None,
+    origin_route: Optional[str] = None,
+    origin_thread_id: Optional[str] = None,
+    origin_turn_id: Optional[str] = None,
+    run_id: Optional[str] = None,
 ) -> dict:
     """v54 — manual text ingestion.
 
@@ -2447,6 +2464,27 @@ def run_manual_ingestion(
             "manual_label": source,
         },
     )
+    # #138 -- an origin thread id arrives in a client body (untrusted): a
+    # thread the member does not own is no origin at all. Stored null and
+    # countable in the log; never a 400 (the order rejects nothing new).
+    # An empty or blank id is an ABSENCE, not a drop; a padded own id is
+    # stripped, then kept. Only the two errors that mean "not yours" are
+    # caught -- a vault outage is not "not owned" and must stay loud.
+    origin_thread_id = origin_thread_id.strip() if isinstance(origin_thread_id, str) else None
+    if not origin_thread_id:
+        origin_thread_id = None
+    else:
+        try:
+            threads_vault.get_thread_meta(user_id, origin_thread_id)
+        except (KeyError, ValueError):
+            logger.info("ingest origin_thread_id dropped: not owned or missing")
+            origin_thread_id = None
+    # #138 -- run_id = the envelope's run id if it carries one; else the
+    # caller's; else null. The v2 envelope carries none today (run ids are
+    # the ELINS project's daily / regional runs), so nothing is minted.
+    env_run_id = (envelope or {}).get("run_id")
+    run_id_stored = env_run_id if isinstance(env_run_id, str) and env_run_id.strip() else run_id
+
     library_id = ingestion_bus.persist_to_library(
         user_id,
         source=source,
@@ -2455,6 +2493,11 @@ def run_manual_ingestion(
         envelope=envelope,
         item_meta={"kind": "manual"},
         visibility="private",
+        title=title,
+        origin_route=origin_route,
+        origin_thread_id=origin_thread_id,
+        origin_turn_id=origin_turn_id,
+        run_id=run_id_stored,
     )
 
     kernel_logging.log_kernel_run(
@@ -2470,6 +2513,10 @@ def run_manual_ingestion(
             "library_id": library_id,
             "attractor":  envelope["outputs"]["attractor"],
             "input_len":  len(text),
+            # #138 -- the log carries one of the four route WORDS or "other";
+            # the raw client string never reaches a log line (the row keeps it).
+            "origin_route": _origin_route_word(origin_route),
+            "origin_thread": origin_thread_id is not None,   # #138 -- present / absent, never the id
         },
     )
     return {
@@ -2547,6 +2594,7 @@ def run_feed_ingestion(
             region=feed.get("region"),
             raw_text=item_text,
             envelope=env,
+            origin_route="rss",           # #138 -- the feed path names its route; the rest null
             item_meta={
                 "kind":         "feed_item",
                 "feed_id":      feed_id,

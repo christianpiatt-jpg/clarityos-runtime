@@ -20,6 +20,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { ingestManual } from "../../lib/api";
+import { useCockpit } from "../../state/cockpitStore";
 
 const label: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -68,6 +69,11 @@ export default function AddToCorpusBox() {
   const [addedId, setAddedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // #138 -- the item says where it came from: this box is the PERSONAL
+  // door, and the relationship the member has selected (the app's one
+  // selection) is its origin thread. Null when none is selected.
+  const relationshipId = useCockpit((s) => s.relationships.activeId);
+
   const canSubmit = text.trim().length > 0 && !busy;
 
   async function submit() {
@@ -76,7 +82,10 @@ export default function AddToCorpusBox() {
     setError(null);
     setAddedId(null);
     try {
-      const r = await ingestManual({ text: text.trim(), source: "cockpit" });
+      const r = await ingestManual({
+        text: text.trim(), source: "cockpit",
+        origin_route: "personal", origin_thread_id: relationshipId ?? null,
+      });
       setAddedId(r.library_id);
       setText("");
     } catch (e) {

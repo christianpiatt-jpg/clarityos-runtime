@@ -58,7 +58,10 @@ Public API:
 
     persist_to_library(user, *, source, region, raw_text,
                        envelope, item_meta=None,
-                       visibility="private")        -> str   # library_id
+                       visibility="private",
+                       title=None, origin_route=None,       # #138 -- provenance,
+                       origin_thread_id=None,               #   additive, nullable
+                       origin_turn_id=None, run_id=None) -> str   # library_id
 
     # Generic packet log (additive Phase-2 surface — see
     # THREE_PRODUCT_SUITE_PLAN.md). RSS feeds remain the legacy path;
@@ -376,6 +379,15 @@ def item_text_for_elins(item: dict) -> str:
 # ---------------------------------------------------------------------------
 # Library persistence
 # ---------------------------------------------------------------------------
+def _opt_str(v) -> Optional[str]:
+    """A non-empty string, stripped and capped, or None. A provenance id is
+    stored as given (never derived) and an empty one is an absence."""
+    if not isinstance(v, str):
+        return None
+    v = v.strip()
+    return v[:200] if v else None
+
+
 def persist_to_library(
     user: str,
     *,
@@ -385,6 +397,11 @@ def persist_to_library(
     envelope: dict,
     item_meta: Optional[dict] = None,
     visibility: str = "private",
+    title: Optional[str] = None,
+    origin_route: Optional[str] = None,
+    origin_thread_id: Optional[str] = None,
+    origin_turn_id: Optional[str] = None,
+    run_id: Optional[str] = None,
 ) -> str:
     """Store an ingested ELINS v2 envelope as a library entry. Returns
     the library_id.
@@ -392,6 +409,15 @@ def persist_to_library(
     ``visibility`` is stored as metadata; the v54 surface only supports
     ``"private"``. A future pass may add ``"cohort"`` for explicit
     sharing.
+
+    #138 (CT-1 ruled 09-03) -- an item says where it came from. Five
+    additive, nullable keys at metadata TOP LEVEL (not inside ``item``):
+    ``created_ts`` (now, float), ``origin_route`` (manual | rss |
+    thread_footer | personal), ``origin_thread_id``, ``origin_turn_id``,
+    ``run_id``. Stored as given, never derived here; None when the caller
+    has none. Existing items carry none of them and are not backfilled.
+    ``title`` (optional) replaces the generated "[source] attractor /
+    collapse" title when the caller supplies one.
     """
     if not isinstance(user, str) or not user:
         raise ValueError("user is required")
@@ -406,7 +432,8 @@ def persist_to_library(
     outputs = (envelope or {}).get("outputs") or {}
     attractor = outputs.get("attractor") or "S?"
     collapse = outputs.get("collapse_state") or "?"
-    title = f"[{src_label}] {attractor} / {collapse}"
+    caller_title = _opt_str(title)
+    title = caller_title if caller_title else f"[{src_label}] {attractor} / {collapse}"
 
     tags: list[str] = [LIBRARY_TAG, src_label]
     if region:
@@ -426,6 +453,12 @@ def persist_to_library(
             "visibility":        visibility,
             "item":              item_meta or {},
             "envelope":          envelope,
+            # #138 -- provenance, top level, nullable, never backfilled.
+            "created_ts":        now,
+            "origin_route":      _opt_str(origin_route),
+            "origin_thread_id":  _opt_str(origin_thread_id),
+            "origin_turn_id":    _opt_str(origin_turn_id),
+            "run_id":            _opt_str(run_id),
         },
         "size_bytes": len(capped_text.encode("utf-8")),
         "created_at": now,

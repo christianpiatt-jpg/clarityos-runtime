@@ -463,6 +463,13 @@ export interface IngestManualInput {
   text: string;
   source?: string;
   region?: string | null;
+  // #138 -- where the item came from. Sent only when given, so a caller
+  // that has none puts exactly the old contract on the wire.
+  title?: string | null;
+  origin_route?: "manual" | "rss" | "thread_footer" | "personal";
+  origin_thread_id?: string | null;
+  origin_turn_id?: string | null;
+  run_id?: string | null;
 }
 export interface IngestManualResponse {
   ok: true;
@@ -476,6 +483,11 @@ export const ingestManual = (input: IngestManualInput) =>
       raw_text: input.text,
       source: input.source ?? "manual",
       region: input.region ?? null,
+      ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.origin_route !== undefined ? { origin_route: input.origin_route } : {}),
+      ...(input.origin_thread_id !== undefined ? { origin_thread_id: input.origin_thread_id } : {}),
+      ...(input.origin_turn_id !== undefined ? { origin_turn_id: input.origin_turn_id } : {}),
+      ...(input.run_id !== undefined ? { run_id: input.run_id } : {}),
     },
   });
 

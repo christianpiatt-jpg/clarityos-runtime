@@ -959,3 +959,137 @@ def test_manual_ingestion_stores_the_envelope_without_user_or_text(reset_stores)
     assert "raw_text" not in env["input"] and env["input"]["manual_label"] == "op_note"
     blob = json.dumps(env)
     assert text not in blob and "alice@example.com" not in blob
+
+
+# ===========================================================================
+# #138 -- a library item says where it came from
+# ===========================================================================
+def test_138_persist_stores_provenance_at_metadata_top_level(reset_stores):
+    from ELINS import ingestion_bus as ib
+    import library_store
+    item_id = ib.persist_to_library(
+        "alice", source="elins_v2_view", region=None, raw_text="pasted from the tab",
+        envelope={"outputs": {"attractor": "S1", "collapse_state": "none"}},
+        item_meta={"kind": "manual"},
+        title="  the run I kept  ", origin_route="thread_footer",
+        origin_thread_id="t123", origin_turn_id=None, run_id=None,
+    )
+    md = library_store.get(item_id)["metadata"]
+    assert md["origin_route"] == "thread_footer" and md["origin_thread_id"] == "t123"
+    assert md["origin_turn_id"] is None and md["run_id"] is None
+    assert isinstance(md["created_ts"], float) and md["created_ts"] > 1_700_000_000
+    assert "origin_route" not in md["item"]                    # top level, not inside item
+    assert library_store.get(item_id)["title"] == "the run I kept"
+
+
+def test_138_legacy_call_stores_nulls_and_a_created_ts(reset_stores):
+    from ELINS import ingestion_bus as ib
+    import library_store
+    item_id = ib.persist_to_library(
+        "alice", source="feed:x", region="us", raw_text="t",
+        envelope={"outputs": {"attractor": "S2", "collapse_state": "soft"}},
+    )
+    md = library_store.get(item_id)["metadata"]
+    for k in ("origin_route", "origin_thread_id", "origin_turn_id", "run_id"):
+        assert md[k] is None, k
+    assert isinstance(md["created_ts"], float)
+    assert library_store.get(item_id)["title"].startswith("[feed:x] S2 / soft")   # the generated title stays
+
+
+def test_138_manual_ingest_with_ids_lands_them(reset_stores):
+    import intelligence_kernel as ik
+    import library_store
+    import threads_vault
+    tid = threads_vault.create_thread("alice", title="t")["thread_id"]
+    out = ik.run_manual_ingestion(
+        "alice", "a paste with its thread", source="elins_v2_view",
+        origin_route="thread_footer", origin_thread_id=tid, origin_turn_id=None, run_id=None,
+    )
+    md = library_store.get(out["library_id"])["metadata"]
+    assert md["origin_route"] == "thread_footer" and md["origin_thread_id"] == tid
+    assert md["run_id"] is None                                # the v2 envelope carries no run id; nothing minted
+
+
+def test_138_an_origin_thread_the_member_does_not_own_is_stored_null(reset_stores, caplog):
+    import logging
+    import intelligence_kernel as ik
+    import library_store
+    import threads_vault
+    other = threads_vault.create_thread("bob", title="bob's")["thread_id"]
+    caplog.set_level(logging.INFO, logger="clarityos.intelligence_kernel")
+    out = ik.run_manual_ingestion("alice", "a paste", origin_route="personal", origin_thread_id=other)
+    md = library_store.get(out["library_id"])["metadata"]
+    assert md["origin_thread_id"] is None and md["origin_route"] == "personal"
+    assert any("origin_thread_id dropped" in r.getMessage() for r in caplog.records)
+    assert not any(other in r.getMessage() for r in caplog.records)   # the id never reaches a log line
+
+
+def test_138_rss_ingest_names_its_route_and_nothing_else(reset_stores, monkeypatch):
+    from ELINS import ingestion_bus as ib
+    import intelligence_kernel as ik
+    import library_store
+
+    def fake_urlopen(req, timeout):
+        return _FakeResponse(_RSS_2)
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    feed = ib.register_feed("alice", name="rss1", url="https://example.com/rss")
+    ik.run_feed_ingestion("alice", feed["feed_id"])
+    for e in library_store.list_for_user("alice"):
+        md = e["metadata"]
+        assert md["origin_route"] == "rss"
+        assert md["origin_thread_id"] is None and md["origin_turn_id"] is None and md["run_id"] is None
+        assert isinstance(md["created_ts"], float)
+
+
+def test_138_endpoint_manual_accepts_the_fields_and_rejects_nothing_new(app_module, client):
+    import library_store
+    user, sid = _make_user(app_module, "ing_138", cohort="founder")
+    r = client.post(
+        "/ingest/manual", headers=_auth(sid),
+        json={"raw_text": "kept from the personal box", "source": "cockpit",
+              "origin_route": "personal", "origin_thread_id": None, "title": "my note", "run_id": "r-77"},
+    )
+    assert r.status_code == 200, r.json()
+    md = library_store.get(r.json()["library_id"])["metadata"]
+    assert md["origin_route"] == "personal" and md["origin_thread_id"] is None
+    assert md["run_id"] == "r-77"                              # the caller's, since the envelope carries none
+    assert library_store.get(r.json()["library_id"])["title"] == "my note"
+    # the old body still works and stores nulls
+    r = client.post("/ingest/manual", headers=_auth(sid), json={"raw_text": "plain", "source": "op"})
+    assert r.status_code == 200
+    md = library_store.get(r.json()["library_id"])["metadata"]
+    assert md["origin_route"] is None and isinstance(md["created_ts"], float)
+
+
+def test_138_the_log_carries_a_route_word_never_the_client_string(reset_stores, caplog):
+    """A refuter's catch: the kernel log meta copied the raw origin_route.
+    The row keeps what was sent; the log line carries one of the four
+    words, "other" for anything else, None for absent."""
+    import logging
+    import intelligence_kernel as ik
+    import library_store
+    caplog.set_level(logging.INFO, logger="clarityos.kernel.runs")
+    marker = "alice@example.com thread_ab12 my private note"
+    out = ik.run_manual_ingestion("alice", "a paste", origin_route=marker)
+    assert library_store.get(out["library_id"])["metadata"]["origin_route"] == marker   # the row, as given
+    lines = [r.getMessage() for r in caplog.records if "ingestion_manual" in r.getMessage()]
+    assert lines and all(marker not in ln for ln in lines)
+    assert any('"origin_route": "other"' in ln or "'origin_route': 'other'" in ln for ln in lines)
+    assert ik._origin_route_word("thread_footer") == "thread_footer"
+    assert ik._origin_route_word(" rss ") == "rss"
+    assert ik._origin_route_word("") is None and ik._origin_route_word(None) is None
+
+
+def test_138_a_padded_own_thread_id_is_kept_and_a_blank_one_is_an_absence(reset_stores, caplog):
+    import logging
+    import intelligence_kernel as ik
+    import library_store
+    import threads_vault
+    tid = threads_vault.create_thread("alice", title="t")["thread_id"]
+    caplog.set_level(logging.INFO, logger="clarityos.intelligence_kernel")
+    out = ik.run_manual_ingestion("alice", "a paste", origin_route="personal", origin_thread_id="  %s  " % tid)
+    assert library_store.get(out["library_id"])["metadata"]["origin_thread_id"] == tid
+    out = ik.run_manual_ingestion("alice", "a paste", origin_route="personal", origin_thread_id="   ")
+    assert library_store.get(out["library_id"])["metadata"]["origin_thread_id"] is None
+    assert not any("dropped" in r.getMessage() for r in caplog.records)      # an absence is not a drop
