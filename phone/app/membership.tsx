@@ -1,6 +1,7 @@
 // ClarityOS Mobile — Membership screen (v30).
 // Activate / cancel Founding Cohort, see #G balance link, view cohort fill.
 
+import { microToDollars } from "../lib/money";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -180,7 +181,7 @@ export default function MembershipScreen() {
           <View>
             <Text style={styles.h2}>#G credits</Text>
             <Text style={styles.muted}>
-              {state.g_credits.balance} credits — tap to manage
+              {state.g_credits.balance_display ?? microToDollars(state.g_credits.balance_micro ?? state.g_credits.balance)} — tap to manage
             </Text>
           </View>
           <Text style={styles.linkText}>→</Text>

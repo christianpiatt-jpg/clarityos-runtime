@@ -1,6 +1,7 @@
 // ClarityOS Mobile — #G credits screen (v30).
 // Balance + buy buttons + purchase confirm modal + recent activity.
 
+import { fmtDelta, microToDollars } from "../lib/money";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -126,7 +127,8 @@ export default function GCreditsScreen() {
       <Text style={styles.h1}>#G credits</Text>
 
       <View style={styles.card}>
-        <Text style={styles.balance}>{state?.g_credits.balance ?? 0}</Text>
+        {/* #161 -- dollars at $0.01 (lib/money); the wire's own display word when it has one; never a raw micro figure, never a 0 for absence */}
+        <Text style={styles.balance}>{state?.g_credits.balance_display ?? microToDollars(state?.g_credits.balance_micro ?? state?.g_credits.balance)}</Text>
         <Text style={styles.muted}>One credit = one #G run. Credits never expire.</Text>
         <View style={styles.row}>
           <Pressable
@@ -169,11 +171,12 @@ export default function GCreditsScreen() {
             <View key={i} style={styles.txRow}>
               <Text style={styles.txWhen}>{fmtTs(t.ts)}</Text>
               <Text style={styles.txType}>{t.type}</Text>
+              {/* #161 -- the delta is MICRO on the wire; dollars at $0.01 (lib/money), grey on nothing */}
               <Text style={[
                 styles.txDelta,
-                { color: t.credits_delta < 0 ? "#ff8a8a" : "#7CD992" },
+                { color: t.credits_delta < 0 ? "#ff8a8a" : t.credits_delta > 0 ? "#7CD992" : colors.textSecondary },
               ]}>
-                {t.credits_delta > 0 ? "+" : ""}{t.credits_delta}
+                {t.credits_delta ? fmtDelta(t.credits_delta) : "\u2014"}
               </Text>
               <Text style={styles.txAmount}>{fmtUsd(t.amount)}</Text>
             </View>

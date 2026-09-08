@@ -7,6 +7,7 @@
 // Style follows memory_vault.tsx patterns + session/[id].tsx for the
 // composer keyboard behaviour.
 
+import { stopMark } from "../../lib/wire";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform,
@@ -29,6 +30,10 @@ import { colors, radius, space } from "../../lib/theme";
 type ChatMessage = ThreadMessage & {
   grounding_status?: GroundingStatus | null;
   directive_metadata?: Record<string, DirectiveMeta> | null;
+  // #161 -- the provider's stop signal, when the wire carries one (it does
+  // not today: see api.ts ThreadMessageResult.stop_reason). Shown as its
+  // word when not end_turn; nothing when absent.
+  stop_reason?: string | null;
 };
 
 const DIRECTIVE_LABEL: Record<string, string> = {
@@ -99,6 +104,7 @@ export default function ThreadDetailScreen() {
           ...r.assistant_message,
           grounding_status: r.grounding_status ?? null,
           directive_metadata: r.directive_metadata ?? null,
+          ...(r.stop_reason != null ? { stop_reason: r.stop_reason } : {}),   // #161 -- only when the wire sends it
         },
       ]);
       setDraft("");
@@ -372,6 +378,12 @@ function Bubble({ message }: { message: ChatMessage }) {
       {isAssistant && message.model && (
         <Text style={styles.bubbleModel}>{message.model}</Text>
       )}
+      {/* #161 -- the stop mark: a reply the provider cut off (not end_turn) */}
+      {isAssistant && stopMark(message.stop_reason) ? (
+        <Text style={[styles.bubbleModel, { color: "#ff8a8a" }]} accessibilityRole="text">
+          stopped early: {stopMark(message.stop_reason)}
+        </Text>
+      ) : null}
       {/* A19/A30 — per-turn directive badges (cite grounding + others) */}
       {showBadges ? (
         <View style={styles.badgeRow}>

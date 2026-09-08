@@ -226,8 +226,10 @@ export const library = (path: string, meta?: Record<string, unknown>) =>
     "/library", { method: "POST", body: { text: path, meta } });
 
 // ---------- Public ----------
+// #161 -- commit_sha rides on /health (web api.ts:116); "unknown" when the
+// service has no COMMIT_SHA, which lib/wire.normSha reads as null.
 export const health = () =>
-  request<{ ok: true; status: string; version: string }>("/health", { auth: false });
+  request<{ ok: true; status: string; version: string; commit_sha?: string | null }>("/health", { auth: false });
 
 // ---------- Backend status probe + retry ----------
 export interface BackendStatus {
@@ -428,6 +430,11 @@ export interface MembershipStateView {
   waitlist_position: number | null;
   g_credits: {
     balance: number;
+    // #142 / #161 -- the ledger is micro-dollars; balance_display is what the
+    // member sees ("unlimited" for the controller); optional on older wires.
+    balance_micro?: number;
+    balance_display?: string;
+    unlimited?: boolean;
     history_tail: Array<{ type: string; credits_delta: number; amount: number; ts: number }>;
   };
 }
@@ -1162,6 +1169,13 @@ export interface ThreadMessageResult {
   user_message: ThreadMessage;
   assistant_message: ThreadMessage;
   model_id?: string | null;
+  // #161 -- OPTIONAL and, today, ABSENT: the thread route's response model
+  // (app.py V47PostMessageResponse) carries no stop_reason; the kernel
+  // holds the provider's signal only at vendor_calls[-1].stop_reason for a
+  // log line. #128 shipped it on the PHYSICS _meta, not here. Typed so the
+  // day a backend order lifts it onto the response the bubble marks it; no
+  // sentinel invented -- absent stays absent.
+  stop_reason?: string | null;
   // A19/A30 — read-only per-turn directive surface; null/[]/{} when none.
   grounding_status?: GroundingStatus | null;
   directives?: string[];
@@ -1376,6 +1390,10 @@ export interface SessionHistoryEntry {
   text:             string;
   runtime_decision: "allow" | "warn" | "block";
   engine:           "copilot" | "claude" | "gemini" | "grok" | "local";
+  // #147 / #161 -- the record names the model that answered (web api.ts).
+  // Optional: pre-#147 rows carry neither and read "engine=…" as before.
+  model_id?:        string | null;
+  mock?:            boolean;
 }
 
 export interface SessionState {

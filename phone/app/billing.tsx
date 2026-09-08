@@ -7,6 +7,7 @@ import { billingHistory, meBilling, type BillingHistoryIntent, type MembershipTr
 import { useMembership } from "../lib/hooks/useMembership";
 import { useFlags } from "../lib/hooks/useFlags";
 import { colors, radius, space } from "../lib/theme";
+import { fmtDelta } from "../lib/money";
 
 function fmtUsd(n: number | null | undefined): string {
   if (typeof n !== "number") return "—";
@@ -141,11 +142,12 @@ export default function BillingScreen() {
           <View key={i} style={styles.txRow}>
             <Text style={styles.txWhen}>{fmtTs(t.ts)}</Text>
             <Text style={styles.txType}>{t.type}</Text>
+            {/* #161 -- the delta is MICRO on the wire; dollars at $0.01 (lib/money) */}
             <Text style={[
               styles.txDelta,
               { color: t.credits_delta < 0 ? "#ff8a8a" : t.credits_delta > 0 ? "#7CD992" : colors.textSecondary },
             ]}>
-              {t.credits_delta > 0 ? "+" : ""}{t.credits_delta || ""}
+              {t.credits_delta ? fmtDelta(t.credits_delta) : "—"}
             </Text>
             <Text style={styles.txAmount}>{fmtUsd(t.amount)}</Text>
           </View>

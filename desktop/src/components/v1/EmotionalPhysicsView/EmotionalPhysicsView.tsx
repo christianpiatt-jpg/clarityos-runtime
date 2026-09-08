@@ -31,6 +31,8 @@ import {
   type EmotionalPhysicsResponse,
 } from "../../../lib/emotionalPhysics";
 import { ApiError } from "../../../lib/api";
+import { bearingRows, stopMark } from "../../../lib/bearings";
+import { labelFor } from "../../../lib/labels";
 import styles from "./EmotionalPhysicsView.module.css";
 
 interface Props {
@@ -146,6 +148,8 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
   const meta = view._meta ?? {};
   const modelId = typeof meta.model_id === "string" ? meta.model_id : null;
   const parseError = typeof meta.parse_error === "string" ? meta.parse_error : null;
+  // #167b -- the stop mark: a reply the provider cut off (web view, #162 b).
+  const stopped = stopMark(meta.stop_reason);
 
   return (
     <section className={styles.root} aria-label="Emotional Physics view">
@@ -154,19 +158,31 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
         subtitle={modelId ? `model: ${modelId}` : undefined}
       />
 
+      {stopped ? (
+        <div role="status" className={styles.warning} data-testid="stop-mark">
+          stopped early: {stopped}
+        </div>
+      ) : null}
+
       {parseError ? (
         <div role="status" className={styles.warning}>
           parse error: {parseError}
         </div>
       ) : null}
 
-      {LAYER_ORDER.map((key) => (
-        <LayerBlock
-          key={key}
-          label={LAYER_LABEL[key]}
-          data={view[key] as Record<string, unknown> | undefined}
-        />
-      ))}
+      {LAYER_ORDER.map((key) =>
+        key === "relational_primitives" ? (
+          // #167b / rule #167c -- the five bearings are NAMED rows, read by
+          // lib/bearings; the generic loop below never prints these keys.
+          <BearingsBlock key={key} data={view[key] as Record<string, unknown> | undefined} />
+        ) : (
+          <LayerBlock
+            key={key}
+            label={LAYER_LABEL[key]}
+            data={view[key] as Record<string, unknown> | undefined}
+          />
+        ),
+      )}
 
       <footer className={styles.footer}>
         {updatedAtMs ? (
@@ -206,6 +222,40 @@ function Heading({ title, subtitle }: { title: string; subtitle?: string }) {
       <span className={styles.title}>{title}</span>
       {subtitle ? <span className={styles.subtitle}>{subtitle}</span> : null}
     </header>
+  );
+}
+
+/** #167b -- layer 3 as five named rows: CT-1's word, the key in the title;
+ *  a missing key "\u2014", "unclear" the word, a false the word. The notes
+ *  stay prose beneath. */
+function BearingsBlock({ data }: { data: Record<string, unknown> | undefined }) {
+  const rows = bearingRows(data);
+  const notes = typeof data?.notes === "string" && data.notes.trim() ? data.notes.trim() : null;
+  // the pattern rides beside the five (the web's sixth row); absent -> no row
+  const patterns: string[] = Array.isArray(data?.dominant_pattern)
+    ? (data!.dominant_pattern as unknown[]).filter((p): p is string => typeof p === "string")
+    : [];
+  return (
+    <div className={styles.layer} data-testid="bearings-block">
+      <div className={styles.layerLabel} title="relational_primitives">
+        {labelFor("relational_primitives").word}
+      </div>
+      <dl className={styles.paramGrid}>
+        {rows.map((r) => (
+          <Fragment key={r.key}>
+            <dt className={styles.paramKey} title={r.key}>{r.label}</dt>
+            <dd className={styles.paramValue} data-testid={`bearing-${r.key}`}>{r.value}</dd>
+          </Fragment>
+        ))}
+        {patterns.length > 0 ? (
+          <Fragment key="dominant_pattern">
+            <dt className={styles.paramKey} title="dominant_pattern">{labelFor("dominant_pattern").word}</dt>
+            <dd className={styles.paramValue} data-testid="bearing-pattern" title={patterns.join(", ")}>{patterns.join(", ")}</dd>
+          </Fragment>
+        ) : null}
+      </dl>
+      {notes ? <div className={styles.narrative}>{notes}</div> : null}
+    </div>
   );
 }
 

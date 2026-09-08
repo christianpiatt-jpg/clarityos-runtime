@@ -226,7 +226,7 @@ function CohortBlock({ meta }: { meta: InviteMeta }) {
       <Text style={typography.body18}>
         {isFounder
           ? "Free for life. Full operator envelope."
-          : `$50  ·  monthly recurring or one-time (30 days)`}
+          : `$50 / month · recurring until cancelled`}
       </Text>
     </View>
   );
@@ -235,17 +235,13 @@ function CohortBlock({ meta }: { meta: InviteMeta }) {
 function PlanPicker({ value, onChange }: { value: Plan; onChange: (p: Plan) => void }) {
   return (
     <View style={styles.planRow}>
+      {/* #167a -- ONE membership. The "$50 once · 30 days" card sold a path
+          that never existed on the backend. */}
       <PlanCard
         label="$50 / month"
         sub="Recurring · cancel any time"
         active={value === "recurring"}
         onPress={() => onChange("recurring")}
-      />
-      <PlanCard
-        label="$50 once"
-        sub="30 days · expires"
-        active={value === "onetime"}
-        onPress={() => onChange("onetime")}
       />
     </View>
   );

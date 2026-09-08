@@ -5,7 +5,9 @@
 import { getApiBase, ApiError } from "./api";
 
 export type Cohort = "founder_exception" | "terrace_1" | "founder";
-export type Plan = "onetime" | "recurring";
+// #167a (CT-1 2026-09-04): ONE membership, $50 recurring until cancelled.
+// The 30-day single-payment path never existed on the backend and is not sold.
+export type Plan = "recurring";
 
 export interface InviteMeta {
   cohort: Cohort;

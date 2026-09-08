@@ -1,5 +1,6 @@
 // v71 / Unit 78 — EL/INS export (desktop).
 
+import { shortSha } from "./lib/sha";
 import { useCallback, useEffect, useState } from "react";
 import {
   ApiError,
@@ -25,6 +26,8 @@ export default function OperatorElinsExportShell({ onSignOut, onNavigate }: Prop
   const userName = getUser();
   const [summary, setSummary] = useState<ElInsOperatorSummaryResponse | null>(null);
   const [version, setVersion] = useState<string>("…");
+  // #167b -- the sha of the code running, fenced (normSha: "unknown" is not a sha)
+  const [sha, setSha] = useState<string>("unknown");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<"json" | "pdf" | null>(null);
@@ -48,6 +51,7 @@ export default function OperatorElinsExportShell({ onSignOut, onNavigate }: Prop
       ]);
       setSummary(s);
       if (h?.version) setVersion(h.version);
+      setSha(shortSha(h?.commit_sha));
     } catch (e: unknown) {
       if (handleAuthError(e)) return;
       setError(formatError(e));
@@ -166,7 +170,7 @@ export default function OperatorElinsExportShell({ onSignOut, onNavigate }: Prop
               </button>
             </div>
             <p style={{ ...mutedStyle, fontSize: 11, marginTop: 12 }}>
-              ClarityOS backend version <span style={mono}>{version}</span>.
+              ClarityOS backend version <span style={mono}>{version}</span> · sha <span style={mono} title="/health.commit_sha">{sha}</span>.
               Exports limited to the {DEFAULT_LIMIT} most-recent records.
             </p>
           </div>

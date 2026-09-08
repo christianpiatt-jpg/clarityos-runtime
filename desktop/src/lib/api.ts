@@ -415,6 +415,9 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     model_id:    string | null;
     ts_ms:       number;
     parse_error: string | null;
+    // #167b -- #128 shipped the provider stop signal, raw; null on mock.
+    // The view marks a reply whose stop_reason is not end_turn.
+    stop_reason?: string | null;
   };
 }
 export async function runEmotionalPhysics(
@@ -678,6 +681,9 @@ export interface HealthResponse {
   ok:      true;
   status:  string;
   version: string;
+  // #167b -- the sha of the code running (web api.ts:116); "unknown" when
+  // the service has no COMMIT_SHA, which lib/sha.normSha reads as null.
+  commit_sha?: string | null;
 }
 
 export function health(): Promise<HealthResponse> {

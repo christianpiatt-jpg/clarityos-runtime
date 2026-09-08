@@ -10,6 +10,7 @@
 // so the legacy operator_id TextInput is removed. AuthGate handles
 // unauthed visits with an inline CTA.
 
+import { modelLabel } from "../lib/sessionRow";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -178,8 +179,9 @@ function SessionDetailView({ detail }: { detail: SessionDetailResponse }) {
               { borderLeftColor: decisionColor(entry.runtime_decision) },
             ]}
           >
+            {/* #161 -- the row names the model that answered (web #147) */}
             <Text style={styles.metaText}>
-              #{i + 1} · {entry.timestamp} · intent={entry.intent_type} · engine={entry.engine}
+              #{i + 1} · {entry.timestamp} · intent={entry.intent_type} · {modelLabel(entry)}
             </Text>
             <Text
               style={[
