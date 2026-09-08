@@ -1214,8 +1214,12 @@ def _resolve_model_id_for_engine(engine: str, user) -> tuple[str, str]:
 
     For hard-pinned engines (currently just ``local``) the model_id is
     forced — user preference does not apply because this is an OS
-    policy. For soft-mapped engines we delegate to select_model so the
-    full preference chain (override > founder default >
+    policy. #160 / #193 (CT-1 2026-09-08): that includes the VAULT
+    preference (``payload.preferred_model_id``) -- route_model_request
+    checks the pin BEFORE the preference, so a member who prefers a
+    vendor model still runs local when the dispatcher says local. For
+    soft-mapped engines we delegate to select_model so the full
+    preference chain (override > founder default >
     operator_state.preferred_model > task default) still works.
     """
     if engine in _ENGINE_HARD_PIN:
@@ -1231,9 +1235,11 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
     to the existing v44/v45 router.
 
     Resolves the dispatcher's logical engine to a concrete model_id
-    (hard-pin for ``local``, ``select_model`` otherwise), shapes a
-    deterministic prompt from the operator intent, calls
-    ``route_request``, and returns a normalised dispatch result.
+    (hard-pin for ``local`` FIRST -- #160 / #193: the pin beats the
+    vault preference; then ``payload.preferred_model_id`` when present;
+    ``select_model`` otherwise), shapes a deterministic prompt from the
+    operator intent, calls ``route_request``, and returns a normalised
+    dispatch result.
 
     Args:
         operator_intent: locked-shape intent (per Unit 35 contract).
@@ -1286,12 +1292,13 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
         user = None  # defensive — select_model only consults strings
 
     # v64 / Unit 65 — vault-stored preferred_model_id wins over the
-    # engine-based resolution when present. This is the integration
+    # SOFT engine resolution when present. This is the integration
     # point for ``runtime_providers.get_operator_model`` — session_loop
     # reads the operator's vault, resolves a (provider, model), maps
     # to a model_id via ``runtime_providers.model_id_for``, and
     # injects under ``payload.preferred_model_id``. Additive optional
     # field; absent → falls through to existing engine resolution.
+    # #160 / #193 -- it does NOT beat the hard pin: "local" is local.
     preferred_model_id: Optional[str] = None
     payload = operator_intent.get("payload")
     if isinstance(payload, dict):
@@ -1303,7 +1310,11 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
         ):
             preferred_model_id = candidate
 
-    if preferred_model_id is not None:
+    if engine in _ENGINE_HARD_PIN:
+        # #160 / #193 -- local first: the pin is OS policy and beats the
+        # vault preference. Checked BEFORE the preference, on purpose.
+        model_id, task = _ENGINE_HARD_PIN[engine], "(pinned)"
+    elif preferred_model_id is not None:
         model_id = preferred_model_id
         task = "(vault-preferred)"
     else:

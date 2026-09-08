@@ -335,8 +335,10 @@ def step_session(session_state,
     # first-available-provider → fallback). When the resolved
     # (provider, model) maps to a SUPPORTED_MODELS id, we inject it
     # under ``payload.preferred_model_id`` so Unit 38's
-    # route_model_request picks it over the engine-based default.
-    # Absent / invalid → no injection, existing v58 resolution wins.
+    # route_model_request picks it over the engine-based default for a
+    # SOFT-mapped engine. #160 / #193: it does NOT move a hard-pinned
+    # engine -- a diagnostic step (engine "local") runs local whatever
+    # the vault prefers. Absent / invalid → no injection.
     preferred_provider, preferred_model = runtime_providers.get_operator_model(
         effective_vault,
     )
@@ -385,10 +387,11 @@ def step_session(session_state,
     # success.
     # #147 -- the record names the model that answered. ``engine`` is the
     # dispatcher's routing label, chosen BEFORE the call
-    # (runtime_dispatcher._select_engine); the vault preference replaces
-    # the model in model_router.route_model_request, so the label may not
-    # name the answerer. model_id is what route_model_request resolved;
-    # mock says whether a real provider answered.
+    # (runtime_dispatcher._select_engine); for a soft-mapped engine the
+    # vault preference replaces the model in model_router.route_model_request,
+    # so the label may not name the answerer; for "local" (#160 / #193) the
+    # pin holds and the answerer IS local. model_id is what
+    # route_model_request resolved; mock says whether a real provider answered.
     model_block = step_result.get("model") if isinstance(step_result.get("model"), dict) else {}
     model_request = model_block.get("request") if isinstance(model_block.get("request"), dict) else {}
     model_meta = model_block.get("metadata") if isinstance(model_block.get("metadata"), dict) else {}

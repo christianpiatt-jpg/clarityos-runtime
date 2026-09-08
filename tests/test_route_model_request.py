@@ -246,6 +246,22 @@ class TestPromptShaping:
         assert out["request"]["model_id"] != mr.TASK_DEFAULTS[mr._ENGINE_TO_TASK["claude"]]
         assert out["request"]["task"] == "(vault-preferred)"
 
+    def test_the_pin_beats_the_vault_preference_for_local(self):
+        """#160 / #193 -- local first. A vault preference for a vendor model
+        does not move a dispatch the dispatcher sent to ``local``: the pin
+        is OS policy and is checked BEFORE the preference."""
+        intent = _operator_intent()
+        intent["payload"]["preferred_model_id"] = "google:gemini-2.5-flash"
+        out = mr.route_model_request(intent, _route("local"))
+        assert out["engine"] == "local"
+        assert out["request"]["model_id"] == mr.LOCAL_MODEL_ID == mr._ENGINE_HARD_PIN["local"]
+        assert out["request"]["task"] == "(pinned)"
+        assert out["request"]["model_id"] != "google:gemini-2.5-flash"
+        # and the preference still names the answerer for a soft-mapped engine
+        soft = mr.route_model_request(intent, _route("claude"))
+        assert soft["request"]["model_id"] == "google:gemini-2.5-flash"
+        assert soft["request"]["task"] == "(vault-preferred)"
+
 
 # ===========================================================================
 # E. Response passthrough

@@ -302,16 +302,33 @@ class TestModelReadsTheTextAndTheRecordNamesTheModel:
         assert entry["model_id"] == "google:gemini-2.5-flash"  # the answerer
         assert entry["model_id"] != mr.TASK_DEFAULTS[mr._ENGINE_TO_TASK["copilot"]]
 
-    def test_a_diagnostic_step_names_the_answerer_not_local(self):
-        # local is hard-pinned only when nothing else answers; the vault
-        # chain (a preference, else the first configured provider, else
-        # the anthropic fallback) names the model that actually answered.
+    def test_a_diagnostic_step_runs_local_the_pin_beats_the_vault_chain(self):
+        # #160 / #193 (CT-1 2026-09-08) -- local FIRST. The dispatcher sends a
+        # diagnostic step to "local" and the hard pin is OS policy: it beats
+        # the vault chain (a preference, else the first configured provider,
+        # else the anthropic fallback) that #147 let name the answerer. The
+        # record names local; with no daemon the local runtime answers mock.
         state = sl_mod.start_session("op_alice")
         out = sl_mod.step_session(state, "?", intent_type="diagnostic")
         entry = out["session_state"]["history"][0]
         assert entry["engine"] == "local"
-        assert entry["model_id"] == out["step_result"]["model"]["request"]["model_id"]
-        assert entry["model_id"].startswith("anthropic:")
+        assert entry["model_id"] == out["step_result"]["model"]["request"]["model_id"] == mr.LOCAL_MODEL_ID
+        assert out["step_result"]["model"]["request"]["task"] == "(pinned)"
+        assert entry["mock"] is True  # no daemon behind the suite
+
+    def test_a_vault_preference_does_not_move_a_diagnostic_step_off_local(self):
+        import runtime_providers
+        vault = runtime_providers.set_operator_model_preference_in_vault(
+            {}, "gemini", "gemini-2.5-flash",
+        )
+        rp_mod.save_vault("op_alice", vault)
+        state = sl_mod.start_session("op_alice")
+        out = sl_mod.step_session(state, "?", intent_type="diagnostic")
+        entry = out["session_state"]["history"][0]
+        assert entry["engine"] == "local" and entry["model_id"] == mr.LOCAL_MODEL_ID
+        # and the same preference still names the answerer on a soft-mapped step
+        out2 = sl_mod.step_session(out["session_state"], "?", intent_type="query")
+        assert out2["session_state"]["history"][1]["model_id"] == "google:gemini-2.5-flash"
 
 
 # ===========================================================================
