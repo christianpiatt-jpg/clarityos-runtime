@@ -478,7 +478,7 @@ export function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
             color: "var(--color-text-secondary)",
           }}>
             {(["S1", "S2", "S3", "S4"] as const).map((s) => (
-              <span key={s}>{s}: {fmtPct(elins.outputs.state_distribution[s])}</span>
+              <span key={s}>{s}: {fmtPct(elins.outputs.state_distribution?.[s])}</span>
             ))}
           </div>
         </div>
@@ -491,7 +491,8 @@ export function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }
   const slots: Array<"P0" | "P1" | "P2" | "P3"> = ["P0", "P1", "P2", "P3"];
   return (
     <section data-testid="section-collapse-risk">
-      <SectionHeader>3. Collapse Risk (P0–P3)</SectionHeader>
+      {/* #185 -- CT-1's word, the instrument key in the title */}
+      <SectionHeader><span title="collapse_state">3. {labelFor("collapse_state").word} (P0–P3)</span></SectionHeader>
       {/* ★ These are INDEPENDENT probabilities, not shares of a whole.
           Measured live: 33/0/0/22 = 55%, and 10/21/1/15 = 47%. Neither sums
           to 100 because neither should. Rendering them as adjacent cells of
@@ -528,8 +529,9 @@ export function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }
               <div style={{ color: "var(--color-accent-cyan)", fontSize: 11 }}>
                 {p} risk
               </div>
-              <div style={{ color: "var(--color-text-primary)", marginTop: 2 }}>
-                {fmtPct(elins.outputs.P0_P8[p] ?? 0)}
+              <div style={{ color: "var(--color-text-primary)", marginTop: 2 }} data-testid={`risk-${p}`}>
+                {/* #185 -- a missing risk is "—", never a manufactured 0% */}
+                {fmtPct(elins.outputs.P0_P8?.[p])}
               </div>
             </div>
           ))}
@@ -624,9 +626,11 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
               fifth key (risk_of_misread) and, when notes landed early, two. */}
           {entries.map(([k, v]) => {
             if (k === "notes") return null;
+            // #185 -- CT-1's word for the sub-key (labels.ts), the raw key in
+            // the title; a false reads its WORD, a missing value "—".
             return (
               <Tag key={k} tone="muted">
-                {k}: {renderValue(v)}
+                <span title={k}>{labelFor(k).word}</span>: <span data-testid={`layer-${k}`}>{renderValue(v)}</span>
               </Tag>
             );
           })}
@@ -646,6 +650,7 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
 
 function renderValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
+  if (typeof v === "boolean") return v ? "true" : "false";   // #185 -- a false is a word, never blank
   if (Array.isArray(v)) return v.slice(0, 3).map(String).join(", ") || "—";
   if (typeof v === "object") return "…";
   return String(v).slice(0, 40);
@@ -702,7 +707,9 @@ function deriveFieldWeather(elins: ElinsV2Envelope | null): string {
   }
 }
 
-function fmtPct(x: number): string {
+function fmtPct(x: unknown): string {
+  // #185 -- only a number is a reading; anything else is "—", never 0%
+  if (typeof x !== "number" || !Number.isFinite(x)) return "\u2014";
   if (!Number.isFinite(x)) return "—";
   return `${Math.round(x * 100)}%`;
 }

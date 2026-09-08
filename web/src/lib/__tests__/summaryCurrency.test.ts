@@ -1,126 +1,91 @@
 /**
- * summaryCurrency — the summary box says whether it still describes the thread.
- *
- * ★ WHAT THESE PIN. The rule is derived from two timestamps the meta already
- * carries. What can go wrong is not the comparison — it is the units (the
- * vault writes ms today, older rows carried seconds), and the two edges where
- * a naive rule would claim "current" for something it cannot measure. A false
- * "current" is the only reading that hides something, so every unmeasurable
- * case must resolve AWAY from it.
+ * #190 -- the summary card's currency is read in TURNS, on two axes, with
+ * NO clock: fresh (both hold) · aged (one broke) · old (both broke, or no
+ * stamp). "none" is a different kind (no summary). readCurrency is the one
+ * verdict every read-back reuses; toMs is a stamp formatter's helper and
+ * never touches the verdict.
  */
 import { describe, it, expect } from "vitest";
+import {
+  readCurrency, summaryCurrency, turnCaption, toMs, normSha, shortSha, normTurn,
+} from "../summaryCurrency";
 
-import { summaryCurrency, toMs, normSha, shortSha } from "../summaryCurrency";
+const SHA = "abc1234def5678";
 
-const S = 1_700_000_000;          // a plausible epoch in SECONDS
-const MS = S * 1000;              // the same instant in MILLISECONDS
-
-describe("toMs — units by magnitude", () => {
-  it("passes milliseconds through and scales seconds up", () => {
-    expect(toMs(MS)).toBe(MS);
-    expect(toMs(S)).toBe(MS);
+describe("readCurrency -- three states, no clock", () => {
+  it("★ fresh: made at this turn, by this code", () => {
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: SHA, live_sha: SHA })).toBe("fresh");
   });
-  it("returns null for nothing, zero, negatives and non-finite", () => {
-    for (const v of [null, undefined, 0, -5, NaN, Infinity]) expect(toMs(v as never)).toBeNull();
+  it("★ aged: the thread moved one turn (sha still equal)", () => {
+    expect(readCurrency({ made_turn: 3, now_turn: 4, made_sha: SHA, live_sha: SHA })).toBe("aged");
   });
-});
-
-describe("summaryCurrency", () => {
-  it("is CURRENT when the summary was computed at or after the last change", () => {
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS + 10, updated_at: MS })).toBe("current");
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS, updated_at: MS })).toBe("current");
+  it("★ aged: same turn, the code moved", () => {
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: SHA, live_sha: "fffffff0000" })).toBe("aged");
   });
-
-  it("is STALE when the thread moved after the summary", () => {
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS, updated_at: MS + 1 })).toBe("stale");
+  it("★ old: both broke", () => {
+    expect(readCurrency({ made_turn: 3, now_turn: 9, made_sha: SHA, live_sha: "fffffff0000" })).toBe("old");
   });
-
-  it("★ the 2026-09-02 case: a summary computed hours before later turns is stale", () => {
-    const threeHoursAgo = MS - 3 * 3600 * 1000;
-    expect(summaryCurrency({ summary: "I need to be direct: I can't help with this.",
-                             summary_ts_ms: threeHoursAgo, updated_at: MS })).toBe("stale");
+  it("old: no stamp at all (a row that predates #139), whatever the sha says", () => {
+    expect(readCurrency({ made_turn: null, now_turn: 3, made_sha: null, live_sha: SHA })).toBe("old");
+    expect(readCurrency({})).toBe("old");
+    expect(readCurrency(null)).toBe("old");
   });
-
-  it("mixed units never read as stale by accident of scale", () => {
-    // updated_at in SECONDS, summary in MS, same instant → current, not stale.
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS, updated_at: S })).toBe("current");
-    // and the reverse pairing
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS + 5, updated_at: S })).toBe("current");
+  it("★ no turn stamp -> old even when the sha matches (the brief: no stamp -> old); a missing sha with a matching turn is aged", () => {
+    expect(readCurrency({ made_turn: undefined, now_turn: 3, made_sha: SHA, live_sha: SHA })).toBe("old");
+    expect(readCurrency({ made_turn: null, now_turn: 3, made_sha: SHA, live_sha: SHA })).toBe("old");
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: null, live_sha: SHA })).toBe("aged");
   });
-
-  it("D5 — no summary is NONE, a different kind from stale", () => {
-    expect(summaryCurrency({ summary: null, summary_ts_ms: MS, updated_at: MS })).toBe("none");
-    expect(summaryCurrency({ summary: "", summary_ts_ms: MS, updated_at: MS })).toBe("none");
-    expect(summaryCurrency(null)).toBe("none");
+  it("\"unknown\" is not a sha; a non-integer or negative turn is not a stamp", () => {
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: "unknown", live_sha: "unknown" })).toBe("aged");
+    expect(readCurrency({ made_turn: 2.5, now_turn: 2.5, made_sha: SHA, live_sha: SHA })).toBe("old");   // not a stamp -> no stamp -> old
+    expect(normTurn(-1)).toBeNull();
+    expect(normTurn(0)).toBe(0);
   });
-
-  it("an unmeasurable pair resolves to STALE, never to a false current", () => {
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: null, updated_at: MS })).toBe("stale");
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS, updated_at: null })).toBe("stale");
-  });
-});
-
-
-// ---------------------------------------------------------------------------
-// #127 — the code axis. "Current" needs the time axis AND the code axis.
-// ---------------------------------------------------------------------------
-// ★ WHAT THESE PIN. A summary made by an older summarizer on a thread nobody
-// touched since satisfied the time axis and read cyan. It cannot any more.
-// And the enforced path resolves every unmeasurable case AWAY from current:
-// no sha on the row, no sha from /health, or /health reporting "unknown".
-const SHA_A = "ccbf619ac3dca31a964146537b8fb14c963ed914";
-const SHA_B = "9ff057ac2725463999cfed7c38f72f402fc0d26f";
-const fresh = (extra: object) => ({ summary: "s", summary_ts_ms: MS, updated_at: MS, ...extra });
-
-describe("normSha / shortSha", () => {
-  it("normalises case and whitespace, and refuses the literal unknown", () => {
-    expect(normSha("  CCBF619A ")).toBe("ccbf619a");
-    expect(normSha("unknown")).toBeNull();
-    expect(normSha("")).toBeNull();
-    expect(normSha(null)).toBeNull();
-  });
-  it("shortSha is seven characters, or the word unknown", () => {
-    expect(shortSha(SHA_A)).toBe("ccbf619");
-    expect(shortSha(null)).toBe("unknown");
-    expect(shortSha("unknown")).toBe("unknown");
-  });
-});
-
-describe("summaryCurrency — the code axis", () => {
-  it("(c) same time, same sha → current", () => {
-    expect(summaryCurrency(fresh({ summary_commit_sha: SHA_A }), SHA_A)).toBe("current");
-  });
-
-  it("(d) ★ same time, OLDER sha → stale: the thread did not move, the code did", () => {
-    expect(summaryCurrency(fresh({ summary_commit_sha: SHA_A }), SHA_B)).toBe("stale");
-  });
-
-  it("(e) no sha on the row → stale, never current", () => {
-    expect(summaryCurrency(fresh({}), SHA_A)).toBe("stale");
-    expect(summaryCurrency(fresh({ summary_commit_sha: null }), SHA_A)).toBe("stale");
-  });
-
-  it("no live sha (backend unreachable, or /health says unknown) → stale", () => {
-    expect(summaryCurrency(fresh({ summary_commit_sha: SHA_A }), null)).toBe("stale");
-    expect(summaryCurrency(fresh({ summary_commit_sha: SHA_A }), "unknown")).toBe("stale");
-  });
-
   it("sha comparison is case- and whitespace-insensitive", () => {
-    expect(summaryCurrency(fresh({ summary_commit_sha: SHA_A.toUpperCase() }), " " + SHA_A)).toBe("current");
+    expect(readCurrency({ made_turn: 1, now_turn: 1, made_sha: " ABC1234DEF5678 ", live_sha: SHA })).toBe("fresh");
   });
+});
 
-  it("the time axis still wins first: moved thread + matching sha → stale", () => {
-    expect(summaryCurrency({ summary: "s", summary_ts_ms: MS, updated_at: MS + 1,
-                             summary_commit_sha: SHA_A }, SHA_A)).toBe("stale");
+describe("summaryCurrency -- the card's wrapper", () => {
+  it("D5 -- no summary is NONE, a different kind from old", () => {
+    expect(summaryCurrency({ summary: null, summary_turn: 3, message_count: 3, summary_commit_sha: SHA }, SHA)).toBe("none");
+    expect(summaryCurrency(null, SHA)).toBe("none");
   });
-
-  it("D5 — none is still none, whatever the shas say", () => {
-    expect(summaryCurrency({ summary: null, summary_commit_sha: SHA_A }, SHA_A)).toBe("none");
+  it("★ reads summary_turn against message_count and the two shas", () => {
+    expect(summaryCurrency({ summary: "s", summary_turn: 3, message_count: 3, summary_commit_sha: SHA }, SHA)).toBe("fresh");
+    expect(summaryCurrency({ summary: "s", summary_turn: 3, message_count: 5, summary_commit_sha: SHA }, SHA)).toBe("aged");
+    expect(summaryCurrency({ summary: "s", summary_turn: 3, message_count: 5, summary_commit_sha: "0000000" }, SHA)).toBe("old");
   });
+  it("★ NO CLOCK: the timestamps change nothing -- a summary stamped hours before the last change is still fresh at its turn", () => {
+    const a = summaryCurrency({ summary: "s", summary_turn: 3, message_count: 3, summary_commit_sha: SHA,
+                                summary_ts_ms: 1_000, updated_at: 9_999_999_999_999 }, SHA);
+    const b = summaryCurrency({ summary: "s", summary_turn: 3, message_count: 3, summary_commit_sha: SHA,
+                                summary_ts_ms: 9_999_999_999_999, updated_at: 1_000 }, SHA);
+    expect(a).toBe("fresh");
+    expect(b).toBe("fresh");
+  });
+  it("no live sha (backend unreachable, or /health says unknown) -> at best aged", () => {
+    expect(summaryCurrency({ summary: "s", summary_turn: 3, message_count: 3, summary_commit_sha: SHA }, null)).toBe("aged");
+    expect(summaryCurrency({ summary: "s", summary_turn: 3, message_count: 3, summary_commit_sha: SHA }, "unknown")).toBe("aged");
+  });
+});
 
-  it("★ backward compatibility: with NO live sha argument the time axis alone decides", () => {
-    // The pre-#127 rule, kept for callers with nothing to compare against.
-    // The panel never takes this path -- it always passes the live sha.
-    expect(summaryCurrency(fresh({}))).toBe("current");
+describe("turnCaption / helpers", () => {
+  it("made turn a · now turn b; no made stamp reads a dash", () => {
+    expect(turnCaption({ made_turn: 3, now_turn: 5 })).toBe("made turn 3 · now turn 5");
+    expect(turnCaption({ made_turn: null, now_turn: 5 })).toBe("made turn — · now turn 5");
+    expect(turnCaption(null)).toBe("made turn — · now turn —");
+  });
+  it("toMs is a formatter's helper: units by magnitude, null for nothing", () => {
+    expect(toMs(1_700_000_000)).toBe(1_700_000_000_000);
+    expect(toMs(1_700_000_000_000)).toBe(1_700_000_000_000);
+    expect(toMs(0)).toBeNull();
+    expect(toMs(null)).toBeNull();
+  });
+  it("normSha / shortSha", () => {
+    expect(normSha(" ABC ")).toBe("abc");
+    expect(normSha("unknown")).toBeNull();
+    expect(shortSha(SHA)).toBe("abc1234");
+    expect(shortSha(null)).toBe("unknown");
   });
 });

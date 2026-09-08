@@ -1532,7 +1532,7 @@ export interface V42MeBilling {
   ok: true;
   // "failed" surfaced distinctly (PASS-4 FIX-P1). "grace_period" now surfaced
   // distinctly too (/me/billing no longer collapses it into "past_due") —
-  // MeBillingBadge renders it amber.
+  // (MeBillingBadge, which rendered it amber, was deleted at #183; no web reader today.)
   status: "none" | "active" | "past_due" | "grace_period" | "canceled" | "failed";
   plan: string | null;
   renewal_ts: number | null;
@@ -1809,6 +1809,12 @@ export interface ThreadMeta {
   // made at. Age = message_count - summary_turn, in TURNS, never a clock.
   // Absent or null on rows that predate the stamp.
   summary_turn?: number | null;
+  // #176 -- the model that wrote the summary and the window it read. NOT
+  // stamped by the backend today (that half is another order); the caption
+  // reads "—" for an absent one and will fill in the day the stamp lands.
+  summary_model_id?: string | null;
+  summary_window_chars?: number | null;
+  summary_total_chars?: number | null;
   // v51 — project membership, surfaced on every meta read. The
   // cockpit partitions its left list on this: a RELATIONSHIP is a
   // thread carrying the reserved relationship project id.

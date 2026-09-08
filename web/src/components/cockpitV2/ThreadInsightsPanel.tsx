@@ -1,7 +1,7 @@
 /**
  * ThreadInsightsPanel — the /threads InsightsPanel, ported into CockpitV2.
  *
- * Three tabs, mirroring routes/Threads.tsx:565-780 exactly:
+ * Three tabs, mirroring the retired routes/Threads.tsx (deleted at #183; /threads is /cockpit):
  *   Thread  — message count, updated-at, the stored dated summary, and the
  *             SUMMARIZE / RENAME / DELETE actions.
  *   ELINS   — mounts the shared v1 ElinsV2View against the composed
@@ -22,7 +22,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 
 import { useCockpit, cockpit, type InsightsTab } from "../../state/cockpitStore";
-import { summaryCurrency, shortSha } from "../../lib/summaryCurrency";
+import { summaryCurrency, shortSha, turnCaption } from "../../lib/summaryCurrency";
 import { useLiveCommitSha } from "../../hooks/useLiveCommitSha";
 import {
   composeTranscript,
@@ -287,26 +287,34 @@ export default function ThreadInsightsPanel() {
                 </div>
               </div>
             ) : meta.summary ? (
-              // ★ The box says whether it still describes the thread, on TWO
-              // axes. Cyan only if the summary was computed at or after the
-              // thread's last change AND by the code running now (#127).
-              // Magenta if the thread moved since, or the summarizer that made
-              // it is not the one deployed -- a stale-code summary on an
-              // untouched thread used to read cyan; it no longer can. The
-              // caption shows both shas so the reason is legible.
+              // ★ #190 -- the box says whether it still describes the thread, on
+              // TWO axes and NO clock: green (fresh) when the summary was made at
+              // this very turn AND by the code running now; yellow (aged) when
+              // one of the two broke; magenta (old) when both did or the row
+              // carries no stamp. Age is TURNS: "made turn a · now turn b".
+              // #176 -- the caption also names the model that wrote it and the
+              // window it read; a stamp the backend does not carry reads "—".
               <div
                 className={"cv2-card cv2-card-summary is-" + cur}
                 data-testid="thread-summary-card"
                 data-currency={cur}
+                data-made-turn={meta.summary_turn ?? "—"}
+                data-now-turn={meta.message_count}
                 data-made-sha={shortSha(meta.summary_commit_sha)}
                 data-live-sha={shortSha(liveSha)}
               >
                 <div className="cv2-card-head">
                   Summary
-                  <span className="cv2-card-currency" data-testid="thread-summary-currency">
-                    {cur === "current" ? "current" : "stale — re-run"}
-                    {" · made "}{shortSha(meta.summary_commit_sha)}
+                  <span
+                    className="cv2-card-currency"
+                    data-testid="thread-summary-currency"
+                    title="meta.summary_turn · meta.message_count · meta.summary_commit_sha · /health.commit_sha · meta.summary_model_id · meta.summary_window_chars · meta.summary_total_chars"
+                  >
+                    {cur}
+                    {" · "}{turnCaption({ made_turn: meta.summary_turn, now_turn: meta.message_count })}
                     {" · running "}{shortSha(liveSha)}
+                    {" · model "}{meta.summary_model_id ?? "—"}
+                    {" · last "}{meta.summary_window_chars ?? "—"}{" of "}{meta.summary_total_chars ?? "—"}
                   </span>
                 </div>
                 <div className="cv2-card-body">{meta.summary}</div>

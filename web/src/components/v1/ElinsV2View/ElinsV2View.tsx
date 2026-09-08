@@ -42,7 +42,7 @@ import {
 import { ApiError, type TrustSignal } from "../../../lib/api";
 import { labelFor } from "../../../lib/labels";
 import { tailByCodePoints } from "../../../lib/transcriptWindow";
-import { basinHopLine } from "../../../lib/trustSignal";
+import { trustLine } from "../../../lib/trustSignal";
 import SendToCorpus from "./SendToCorpus";
 import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
 import styles from "./ElinsV2View.module.css";
@@ -72,7 +72,7 @@ interface Props {
   /** Optional callback fired on every successful run, including initial. */
   onRun?: (env: ElinsV2Envelope) => void;
   /** #162 (d) -- the relationship's trust signal (#23), when the caller
-   *  has one. The math rail's basin_hop row speaks its status. Absent ->
+   *  has one. The math rail's trust row (#167c: the one trust line) speaks its status. Absent ->
    *  the row reads as it always did. */
   trust?: TrustSignal | null;
 }
@@ -222,6 +222,14 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const fcInstrument = fcVersion ? `elins ${fcVersion}` : labelFor("etf_table").instrument;
   // #110c -- no signal is a different KIND: the whole rail is one line.
   const noSignal = signature.no_signal === true;
+  // #184 -- the one reading a signal-less run can still carry: a domain hit.
+  const noSignalDomain = (() => {
+    const domain = obj(pipe.L3_domain);
+    const name = str(domain.effective_top) ?? str(domain.top);
+    if (!name) return null;
+    const score = num(obj(domain.scores)[name]);
+    return { name, score: score === null ? DASH : String(score) };
+  })();
 
   const actions = (
     <footer className={styles.footer}>
@@ -268,13 +276,18 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
         <Heading title="ELINS v2" subtitle={`engine: ${view.meta.engine}`} />
         {/* #110c -- CT-1: no signal means NOTHING ELSE is a reading. One
             line, the instrument named, no numbers from a run that found
-            none. The actions below are the way to run again. */}
+            none. #184 -- unless L3_domain scored a domain: then the line
+            says so ("no reading — but domain: <name> (<score>)"), because
+            a domain hit on a signal-less text is the one thing the run did
+            find. The actions below are the way to run again. */}
         <div
           className={styles.subtle}
           data-testid="elins-no-signal"
-          title="pipeline.L10_signature.summary.no_signal"
+          title="pipeline.L10_signature.summary.no_signal · pipeline.L3_domain.top · pipeline.L3_domain.scores"
         >
-          no signal {DASH} {sigInstrument}
+          {noSignalDomain
+            ? `no reading ${DASH} but domain: ${noSignalDomain.name} (${noSignalDomain.score})`
+            : `no signal ${DASH} ${sigInstrument}`}
         </div>
         {actions}
         {error ? (
@@ -679,7 +692,11 @@ function MathRail({ view, trust }: { view: ElinsV2Envelope; trust?: TrustSignal 
   const pipe = (pipeline ?? {}) as unknown as Record<string, unknown>;
   return (
     <div className={styles.section} data-testid="math-rail">
-      <div className={styles.sectionLabel}>Math rail · measured / waiting</div>
+      {/* #185 -- the dictionary's word, the layers it reads in the title; "Math
+          rail" was an instrument's name on a member surface. */}
+      <div className={styles.sectionLabel} title="math_rail · pipeline.L5_pressure · pipeline.L6_drift · pipeline.L9_alignment">
+        {labelFor("math_rail").word} · measured / waiting
+      </div>
 
       {cx.kind === "ci" ? (
         <div
@@ -758,8 +775,9 @@ function MathRail({ view, trust }: { view: ElinsV2Envelope; trust?: TrustSignal 
       })}
 
       <div className={styles.railWaiting} data-testid="math-rail-waiting">
-        {/* #162 (d) -- bound to the relationship's trust_signal (#23). */}
-        <div data-testid="math-rail-basin-hop">{basinHopLine(trust)}</div>
+        {/* #162 (d) / #167c -- bound to the relationship's trust_signal (#23):
+            the ONE trust line, the same helper the relationship card reads. */}
+        <div data-testid="math-rail-trust">{trustLine(trust)}</div>
         <div>fog_of_war -- awaiting PRO-tier ingest</div>
         <div>cohesion -- awaiting PRO-tier ingest</div>
         <div>E/r curvature -- awaiting a region graph</div>
@@ -788,7 +806,10 @@ function AttractorBlock({
       <div className={styles.sectionLabel} title="attractor">{labelFor("attractor").word}</div>
       <div className={styles.attractorRow}>
         {states.map((s) => {
-          const v = clamp01(distribution[s] ?? 0);
+          // #185 -- a missing share is "—" and no bar, never a 0 that reads
+          // as a measured zero.
+          const raw = num(distribution[s]);
+          const v = raw === null ? null : clamp01(raw);
           // ★ On a tie no column is "the" attractor -- highlighting one
           // would re-assert in the bars exactly what the caption declines
           // to say in words.
@@ -804,12 +825,12 @@ function AttractorBlock({
               <div className={styles.stateBarOuter}>
                 <div
                   className={styles.stateBarInner}
-                  style={{ height: `${Math.round(v * 100)}%` }}
+                  style={{ height: `${v === null ? 0 : Math.round(v * 100)}%` }}
                 />
               </div>
               <div className={styles.stateLabel}>{s}</div>
-              <div className={styles.stateValue}>
-                {Math.round(v * 100)}
+              <div className={styles.stateValue} data-testid={`state-share-${s}`}>
+                {v === null ? DASH : Math.round(v * 100)}
               </div>
             </div>
           );
@@ -941,19 +962,21 @@ function P0P8Block({
           <div key={row.label} className={styles.pGridRow} role="row">
             <span className={styles.pRowLabel}>{row.label}</span>
             {row.cells.map(({ key }) => {
-              const v = clamp01(grid[key] ?? 0);
-              const pct = Math.round(v * 100);
+              // #185 -- a missing risk is "—", never a manufactured 0%
+              const raw = num(grid[key]);
+              const v = raw === null ? null : clamp01(raw);
+              const pctText = v === null ? DASH : `${Math.round(v * 100)}%`;
               return (
                 <span
                   key={key}
                   className={styles.pCell}
-                  style={{ opacity: 0.15 + 0.85 * v }}
+                  style={{ opacity: v === null ? 0.15 : 0.15 + 0.85 * v }}
                   role="cell"
-                  aria-label={`${key}: ${pct}%`}
-                  title={`${key}: ${pct}%`}
+                  aria-label={`${key}: ${pctText}`}
+                  title={`${key}: ${pctText}`}
                 >
                   <span className={styles.pCellKey}>{key}</span>
-                  <span className={styles.pCellValue}>{pct}</span>
+                  <span className={styles.pCellValue}>{v === null ? DASH : Math.round(v * 100)}</span>
                 </span>
               );
             })}

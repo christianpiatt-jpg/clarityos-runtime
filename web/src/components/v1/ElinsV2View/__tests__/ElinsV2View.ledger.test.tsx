@@ -156,7 +156,8 @@ describe("#180a (b) signature line", () => {
   it("★ no_signal:true -- the whole rail is one line, no readings, the actions stay", () => {
     const env = { ...FULL, pipeline: { ...FULL.pipeline, L10_signature: { ...FULL.pipeline.L10_signature, summary: { ...FULL.pipeline.L10_signature.summary, no_signal: true } } } };
     render(<ElinsV2View envelope={env as never} runOn={{ rawText: "x" }} />);
-    expect(screen.getByTestId("elins-no-signal")).toHaveTextContent("no signal — elins v34.1");
+    // #184 -- the FULL fixture scores L3_domain "personal" (5): the one line names it
+    expect(screen.getByTestId("elins-no-signal")).toHaveTextContent("no reading — but domain: personal (5)");
     expect(screen.queryByTestId("domain-row")).toBeNull();
     expect(screen.queryByTestId("elins-signature")).toBeNull();
     expect(screen.queryByTestId("survival-table")).toBeNull();

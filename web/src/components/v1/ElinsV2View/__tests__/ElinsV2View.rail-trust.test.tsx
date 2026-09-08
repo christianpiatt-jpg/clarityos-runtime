@@ -16,7 +16,7 @@ function envelope() {
       L5_pressure: layer("pressure"), L6_drift: layer("drift"),
       L7_basin: { region: null, available: false },
       L8_temporal: { forecast_5day: {}, forecast_engine: {}, etf_table: {},
-        etf_agg: { survival_1y: 0, survival_10y: 0, survival_50y: 0 } },
+        etf_agg: { n_365: 0, n_3650: 0, n_18250: 0 } },
       L9_alignment: layer("alignment"), L10_signature: {},
     },
     outputs: {
@@ -29,22 +29,23 @@ function envelope() {
   } as never;
 }
 
-describe("ElinsV2View -- the basin_hop row speaks the trust signal", () => {
-  it("no trust -> the sentence, as it always read", () => {
+describe("ElinsV2View -- the trust row speaks the trust signal (#167c: one line)", () => {
+  it("no trust -> trust — with the awaiting sentence and the floor", () => {
     render(<ElinsV2View envelope={envelope()} />);
-    expect(screen.getByTestId("math-rail-basin-hop")).toHaveTextContent("basin_hop -- awaiting a second read");
+    expect(screen.getByTestId("math-rail-trust")).toHaveTextContent("trust — · awaiting a second read (floor 7)");
+    expect(screen.queryByText(/basin_hop/)).toBeNull();
   });
   it("no_prior_yet -> the sentence; n = 1 -> value, no direction", () => {
     const { unmount } = render(
       <ElinsV2View envelope={envelope()} trust={{ status: "no_prior_yet", scored_turns: 0, theta_floor: 7, theta_ready: false }} />,
     );
-    expect(screen.getByTestId("math-rail-basin-hop")).toHaveTextContent("awaiting a second read");
+    expect(screen.getByTestId("math-rail-trust")).toHaveTextContent("awaiting a second read");
     unmount();
     render(
       <ElinsV2View envelope={envelope()} trust={{ status: "value", value: 1, scored_turns: 1, per_turn: [1], theta_floor: 7, theta_ready: false }} />,
     );
-    const row = screen.getByTestId("math-rail-basin-hop");
-    expect(row).toHaveTextContent("trust 1");
+    const row = screen.getByTestId("math-rail-trust");
+    expect(row).toHaveTextContent("trust 1 · 1 scored");
     expect(row).not.toHaveTextContent(/rising|falling|flat/);
     expect(row).toHaveTextContent("awaiting a second read");   // theta not ready: the sentence stays
   });

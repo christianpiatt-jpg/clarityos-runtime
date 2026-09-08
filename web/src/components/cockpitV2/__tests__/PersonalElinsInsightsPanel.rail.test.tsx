@@ -25,7 +25,7 @@ describe("PersonalElinsInsightsPanel -- the awaiting rail", () => {
     } as never);
     render(<PersonalElinsInsightsPanel />);
     await act(async () => { await cockpit.relationships.actions.open("r1"); });
-    expect(screen.getByTestId("math-rail-basin-hop")).toHaveTextContent("basin_hop -- awaiting a second read");
+    expect(screen.getByTestId("rel-trust")).toHaveTextContent("trust — · awaiting a second read (floor 7)");
   });
   it("n = 1 -> the value and no direction", async () => {
     vi.mocked(api.getRelationshipTurns).mockResolvedValue({
@@ -34,8 +34,8 @@ describe("PersonalElinsInsightsPanel -- the awaiting rail", () => {
     } as never);
     render(<PersonalElinsInsightsPanel />);
     await act(async () => { await cockpit.relationships.actions.open("r2"); });
-    const row = screen.getByTestId("math-rail-basin-hop");
-    expect(row).toHaveTextContent("basin_hop -- trust 0.8333");
+    const row = screen.getByTestId("rel-trust");
+    expect(row).toHaveTextContent("trust 0.8333 · 1 scored");
     expect(row).not.toHaveTextContent(/rising|falling|flat/);
     expect(row).toHaveTextContent("awaiting a second read");   // theta not ready: the sentence stays
   });

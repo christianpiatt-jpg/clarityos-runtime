@@ -1,7 +1,7 @@
 // components/shared/DirectiveBadges.tsx
 //
 // A19/A30 — the read-only directive surface badges, extracted verbatim from
-// routes/Threads.tsx so both the /threads route and the CockpitV2 ChatPanel
+// routes/Threads.tsx (retired at #183; /threads is /cockpit) so the CockpitV2 ChatPanel
 // render an identical badge from an identical payload. Behaviour, markup,
 // test ids and styles are unchanged from the Threads originals.
 //

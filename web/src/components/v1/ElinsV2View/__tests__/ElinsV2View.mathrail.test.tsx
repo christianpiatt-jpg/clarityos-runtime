@@ -43,7 +43,7 @@ function envelope(
         forecast_5day: {},
         forecast_engine: {},
         etf_table: {},
-        etf_agg: { survival_1y: 0, survival_10y: 0, survival_50y: 0 },
+        etf_agg: { n_365: 0, n_3650: 0, n_18250: 0 },
       },
       L9_alignment: layers.alignment ?? { primitive: "alignment", intensity: 0, edge_count: 0 },
       L10_signature: {},
@@ -145,7 +145,7 @@ describe("Math rail — waiting rows are ALWAYS rendered, with their blocker", (
     const w = screen.getByTestId("math-rail-waiting");
     // Full lines, as pairs: fog_of_war and cohesion share a blocker phrase,
     // so asserting the phrase alone could not tell one row from the other.
-    expect(w).toHaveTextContent("basin_hop -- awaiting a second read");
+    expect(w).toHaveTextContent("trust — · awaiting a second read (floor 7)");
     expect(w).toHaveTextContent("fog_of_war -- awaiting PRO-tier ingest");
     expect(w).toHaveTextContent("cohesion -- awaiting PRO-tier ingest");
     expect(w).toHaveTextContent("E/r curvature -- awaiting a region graph");

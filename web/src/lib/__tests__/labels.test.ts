@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { LABELS, labelFor, labelText } from "../labels";
-import { basinHopLine, AWAITING_SECOND_READ } from "../trustSignal";
+import { trustLine, AWAITING_SECOND_READ } from "../trustSignal";
 import { bearingRows, stopMark } from "../bearings";
 
 describe("labels -- one dictionary, never blank", () => {
@@ -36,27 +36,17 @@ describe("labels -- one dictionary, never blank", () => {
   });
 });
 
-describe("basinHopLine -- the rail speaks trust_signal's status", () => {
+describe("trustLine -- the ONE line speaks trust_signal's status (#167c)", () => {
   const base = { scored_turns: 0, theta_floor: 7, theta_ready: false };
-  it("no signal / no_prior_yet -> the sentence", () => {
-    expect(basinHopLine(null)).toBe(`basin_hop -- ${AWAITING_SECOND_READ}`);
-    expect(basinHopLine(undefined)).toBe(`basin_hop -- ${AWAITING_SECOND_READ}`);
-    expect(basinHopLine({ status: "no_prior_yet", ...base })).toBe(`basin_hop -- ${AWAITING_SECOND_READ}`);
+  it("no signal / no_prior_yet -> trust — with the sentence and the floor", () => {
+    expect(trustLine(null)).toBe(`trust — · ${AWAITING_SECOND_READ} (floor 7)`);
+    expect(trustLine(undefined)).toBe(`trust — · ${AWAITING_SECOND_READ} (floor 7)`);
+    expect(trustLine({ status: "no_prior_yet", ...base })).toBe(`trust — · ${AWAITING_SECOND_READ} (floor 7)`);
   });
-  it("n = 1 -> the value, no direction, the sentence kept beside it (theta not ready)", () => {
-    const line = basinHopLine({ status: "value", value: 0.8333, scored_turns: 1, per_turn: [0.8333], theta_floor: 7, theta_ready: false });
-    expect(line).toBe(`basin_hop -- trust 0.8333 \u00b7 ${AWAITING_SECOND_READ}`);
-    expect(line).not.toMatch(/rising|falling|flat/);
-  });
-  it("a direction rides when sent; theta ready drops the sentence", () => {
-    expect(basinHopLine({ status: "value", value: 0.5, direction: "falling", delta: -0.5, scored_turns: 2, theta_floor: 7, theta_ready: false }))
-      .toBe(`basin_hop -- trust 0.5 \u00b7 falling \u00b7 ${AWAITING_SECOND_READ}`);
-    expect(basinHopLine({ status: "value", value: 0.9, direction: "rising", delta: 0.1, scored_turns: 7, theta_floor: 7, theta_ready: true }))
-      .toBe("basin_hop -- trust 0.9 \u00b7 rising");
-  });
-  it("undefined is a different kind, named", () => {
-    expect(basinHopLine({ status: "undefined", scored_turns: 1, theta_floor: 7, theta_ready: false }))
-      .toBe("basin_hop -- trust undefined (no bearing claimed)");
+  it("undefined -> the words; a value -> value · n scored, the sentence while theta is not ready", () => {
+    expect(trustLine({ status: "undefined", ...base })).toBe("trust undefined (no bearing claimed)");
+    expect(trustLine({ ...base, status: "value", value: 0.5, scored_turns: 1 } as never)).toBe(`trust 0.5 · 1 scored · ${AWAITING_SECOND_READ} (floor 7)`);
+    expect(trustLine({ status: "value", value: 1, scored_turns: 8, theta_floor: 7, theta_ready: true } as never)).toBe("trust 1 · 8 scored");
   });
 });
 

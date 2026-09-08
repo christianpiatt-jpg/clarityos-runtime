@@ -1,42 +1,60 @@
-// summaryCurrency — is the stored summary CURRENT for the thread it describes?
+// summaryCurrency — is a stored reading CURRENT for the thread it describes?
 //
-// ★ WHY THIS EXISTS. A thread summary is computed once and stored with a
-// timestamp; the thread keeps moving. Until now the card rendered the stored
-// text with no indication of whether it still described the thread — and on
-// 2026-09-02 it rendered a summary that had been computed by a broken
-// prompt, hours after the thread had grown past it, looking exactly as
-// authoritative as a fresh one. CT-1's rule: the box glows cyan when the
-// summary is current and magenta when it is not.
+// ★ WHY THIS EXISTS. A thread summary is computed once and stored; the
+// thread keeps moving. On 2026-09-02 the card rendered a summary made by a
+// broken prompt, hours after the thread had grown past it, looking exactly
+// as authoritative as a fresh one. The box says whether the reading still
+// describes the thread.
 //
-// ★★ TWO AXES, BOTH MUST HOLD (#127). "Current" means the summary was made
-// at or after the thread's last change AND by the code that is running now.
-// The first axis catches a thread that moved; the second catches a summary
-// made by an older summarizer on a thread nobody touched since — which the
-// timestamp alone would have called current, wrongly.
+// ★★ #190 (CT-1 2026-09-08) -- TWO AXES, BOTH MUST HOLD, AND NO CLOCK.
+//   turn axis  the reading was made at the thread's CURRENT turn
+//              (made_turn === now_turn; now = meta.message_count, made =
+//              meta.summary_turn, the #139 passenger stamp).
+//   sha axis   the reading was made by the code that is running now
+//              (normSha equal).
+// Both hold -> "fresh" (green). One broke -> "aged" (yellow). Both broke, or
+// no stamp at all -> "old" (magenta). The old verdict compared timestamps
+// (summary_ts_ms against updated_at, scaled by magnitude) -- a clock; age is
+// TURNS. toMs stays exported for callers that format a stamp; it no longer
+// touches the verdict.
 //
-// ★ D5 — "no summary" is a DIFFERENT KIND from "stale". A thread with no
-// summary has nothing to be out of date; the card does not render, and this
-// returns "none" rather than pretending to a staleness it cannot measure.
-//
-// ★ UNITS. The vault writes updated_at in milliseconds at every site
-// (threads_vault._now_ms), but older rows and other producers have carried
-// seconds, and relativeTime() in the panel already normalises by magnitude.
-// This does the same, so a mixed-unit pair can never read as stale by
-// accident of scale.
+// ★ D5 — "no summary" is a DIFFERENT KIND from "old". A thread with no
+// summary has nothing to be out of date; the card does not render, and the
+// summary wrapper returns "none" rather than pretending to an age it cannot
+// measure. readCurrency itself never returns "none": give it stamps and it
+// gives a verdict -- the arc, the bearings and every other read-back reuse
+// it with their own made/now pair.
 
-export type SummaryCurrency = "current" | "stale" | "none";
+export type Currency = "fresh" | "aged" | "old";
+export type SummaryCurrency = Currency | "none";
+
+/** The stamps a read-back carries: the TURN it was made at, the turn now,
+ *  the sha of the code that made it, the sha running. Every field may be
+ *  absent; an absent stamp breaks its axis (never a false "fresh"). */
+export interface CurrencyStamps {
+  made_turn?: number | null;
+  now_turn?: number | null;
+  made_sha?: string | null;
+  live_sha?: string | null;
+}
 
 export interface SummaryCurrencyMeta {
   summary?: string | null;
-  summary_ts_ms?: number | null;
-  updated_at?: number | null;
+  /** #139 / #190 -- the message_count the summary was made at. */
+  summary_turn?: number | null;
+  /** The thread's message_count now. */
+  message_count?: number | null;
   /** #127 — the COMMIT_SHA of the code that made the summary. Absent on
    *  rows that predate the stamp; never backfilled. */
   summary_commit_sha?: string | null;
+  // kept on the type for older readers; NOT read by the verdict (#190)
+  summary_ts_ms?: number | null;
+  updated_at?: number | null;
 }
 
 /** Seconds-or-milliseconds → milliseconds, by magnitude. 1e11 ms is 1973;
- *  1e11 s is the year 5138. Nothing real sits on the wrong side. */
+ *  1e11 s is the year 5138. Nothing real sits on the wrong side. A stamp
+ *  formatter's helper; the verdict never calls it. */
 export function toMs(ts: number | null | undefined): number | null {
   if (typeof ts !== "number" || !Number.isFinite(ts) || ts <= 0) return null;
   return ts > 1e11 ? ts : ts * 1000;
@@ -56,29 +74,54 @@ export function shortSha(sha: string | null | undefined): string {
   return s ? s.slice(0, 7) : "unknown";
 }
 
+/** A turn stamp, or null: a non-negative integer and nothing else. */
+export function normTurn(t: number | null | undefined): number | null {
+  return typeof t === "number" && Number.isInteger(t) && t >= 0 ? t : null;
+}
+
 /**
- * @param liveCommitSha  The sha of the code RUNNING, from /health. When this
- *   argument is supplied (the panel always supplies it), the code axis is
- *   enforced: an absent sha on either side is STALE, never current. When the
- *   argument is omitted, only the time axis is checked — the pre-#127 rule,
- *   kept for callers that have no live sha to offer. A false "current" is the
- *   only reading that hides something, so every unmeasurable case on the
- *   enforced path resolves away from it.
+ * #190 -- the ONE verdict every read-back uses. No clock.
+ *   fresh  made_turn === now_turn AND made_sha === live_sha
+ *   aged   exactly one of the two holds
+ *   old    neither holds -- including "no stamp at all"
  */
+export function readCurrency(stamps: CurrencyStamps | null | undefined): Currency {
+  // "One broke -> aged; both or NO STAMP -> old" (the brief): a row with no
+  // made_turn cannot claim an age at all, so it is old even when the sha
+  // matches -- the one unmeasurable case resolves away from fresh AND aged.
+  const s = stamps ?? {};
+  const made = normTurn(s.made_turn);
+  if (made === null) return "old";   // no stamp -> old, whatever the sha says (the brief's letter)
+  const now = normTurn(s.now_turn);
+  const turnOk = now !== null && made === now;
+  const madeSha = normSha(s.made_sha);
+  const liveSha = normSha(s.live_sha);
+  const shaOk = madeSha !== null && liveSha !== null && madeSha === liveSha;
+  if (turnOk && shaOk) return "fresh";
+  if (turnOk || shaOk) return "aged";
+  return "old";
+}
+
+/** The summary card's reading: "none" when there is no summary, otherwise
+ *  readCurrency over the summary's stamps and the live sha. */
 export function summaryCurrency(
   meta: SummaryCurrencyMeta | null | undefined,
   liveCommitSha?: string | null,
 ): SummaryCurrency {
   if (!meta || !meta.summary) return "none";
-  const summarised = toMs(meta.summary_ts_ms);
-  const updated = toMs(meta.updated_at);
-  // A summary with no timestamp cannot claim currency; a thread with no
-  // updated_at cannot be shown to have moved. Both fall to "stale".
-  if (summarised === null || updated === null) return "stale";
-  if (summarised < updated) return "stale";
-  if (liveCommitSha === undefined) return "current";     // time axis only
-  const made = normSha(meta.summary_commit_sha);
-  const live = normSha(liveCommitSha);
-  if (!made || !live || made !== live) return "stale";    // code axis
-  return "current";
+  return readCurrency({
+    made_turn: meta.summary_turn,
+    now_turn: meta.message_count,
+    made_sha: meta.summary_commit_sha,
+    live_sha: liveCommitSha,
+  });
+}
+
+/** The caption's turn pair: "made turn a · now turn b"; no made stamp reads
+ *  "made turn —". */
+export function turnCaption(stamps: CurrencyStamps | null | undefined): string {
+  const s = stamps ?? {};
+  const made = normTurn(s.made_turn);
+  const now = normTurn(s.now_turn);
+  return `made turn ${made === null ? "—" : made} · now turn ${now === null ? "—" : now}`;
 }

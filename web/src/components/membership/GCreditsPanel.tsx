@@ -22,9 +22,13 @@ interface Props {
   onBuySingle?: () => void;
   onBuyPack20: () => void;
   busy?: string | null;
+  /** #187 -- the g_credits_enabled flag disables the BUY ACTION only; the
+   *  words (unit, metered, balance, the tail) render for every member.
+   *  Absent reads enabled (older callers). */
+  buyEnabled?: boolean;
 }
 
-export default function GCreditsPanel({ state, onBuyPack20, busy }: Props) {
+export default function GCreditsPanel({ state, onBuyPack20, busy, buyEnabled = true }: Props) {
   // #142 -- the big number is DOLLARS: balance_display from the API
   // ("unlimited" for the controller), the client formatter as the fallback
   // for a state that predates the field. Never the raw micro figure.
@@ -64,10 +68,12 @@ export default function GCreditsPanel({ state, onBuyPack20, busy }: Props) {
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <button
           onClick={onBuyPack20}
-          disabled={busy === "pack20"}
+          disabled={busy === "pack20" || !buyEnabled}
+          data-testid="g-buy-pack20"
+          title="flags.g_credits_enabled"
           style={{ flex: 1, padding: "8px 12px" }}
         >
-          {busy === "pack20" ? "Charging…" : "Buy 20-pack (" + fmtUsd(20.0) + ")"}
+          {!buyEnabled ? "Buy 20-pack — not enabled" : busy === "pack20" ? "Charging…" : "Buy 20-pack (" + fmtUsd(20.0) + ")"}
         </button>
       </div>
 

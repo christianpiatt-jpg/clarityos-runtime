@@ -20,10 +20,11 @@
 // member whose membership UI is off still has a password to set and a way
 // out. /account never gated on it either.
 
-import { useState } from "react";
+import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useFlags } from "../hooks/useFlags";
 import { useMembership } from "../hooks/useMembership";
-import { signOut } from "../lib/auth";
+import { signOut, getAuthSnapshot, subscribeAuth } from "../lib/auth";
+import { cohortWord } from "../lib/cohortWord";
 import MembershipStatusCard from "../components/membership/MembershipStatusCard";
 import RenewalStatusCard from "../components/membership/RenewalStatusCard";
 import GCreditsPanel from "../components/membership/GCreditsPanel";
@@ -35,7 +36,7 @@ import ModelPreferences from "../components/settings/ModelPreferences";
 import LocalModelPanel from "../components/settings/LocalModelPanel";
 import KernelFacts from "../components/settings/KernelFacts";
 import MemoryVaultPanel from "../components/settings/MemoryVaultPanel";
-import type { PaymentIntentView } from "../lib/api";
+import type { MembershipStateView, PaymentIntentView } from "../lib/api";
 
 export default function MembershipPage() {
   return (
@@ -162,14 +163,20 @@ function MembershipBody() {
         onUpdatePaymentMethod={undefined /* placeholder until v32 */}
       />
 
-      {gCreditsEnabled && (
-        <GCreditsPanel
-          state={state}
-          onBuySingle={() => { setPurchaseError(null); setModalOpen("single"); }}
-          onBuyPack20={() => { setPurchaseError(null); setModalOpen("pack20"); }}
-          busy={busyAction === "single" ? "single" : busyAction === "pack20" ? "pack20" : null}
-        />
-      )}
+      {/* #187 -- the words render for every member; the flag disables the
+          buy action only. */}
+      <GCreditsPanel
+        state={state}
+        onBuySingle={() => { setPurchaseError(null); setModalOpen("single"); }}
+        onBuyPack20={() => { setPurchaseError(null); setModalOpen("pack20"); }}
+        busy={busyAction === "single" ? "single" : busyAction === "pack20" ? "pack20" : null}
+        buyEnabled={gCreditsEnabled}
+      />
+
+      {/* #183 -- the homeless panels, housed: the envelope kv, the one tier
+          card, the billing + cap panel. Words and numbers the page already
+          holds (state, the profile); no new component. */}
+      <HomelessPanels state={state} />
 
       {founderTierEnabled && !isActive && (
         <section style={sectionStyle}>
@@ -235,6 +242,64 @@ function MembershipBody() {
         busy={paymentBusy}
         error={paymentError}
       />
+    </>
+  );
+}
+
+// #183 -- the three panels /account and /plans left homeless at #141, now
+// housed on /membership. Envelope kv (who: the address, the word, the
+// operator id, billing expiry), the ONE tier card (one membership exists,
+// CT-1 09-04), the billing + cap panel (state · renewal · retries · the
+// cohort's fill). A missing value reads "—"; a false reads its word.
+function fmtDay(ts: number | null | undefined): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts) || ts <= 0) return "—";
+  const ms = ts > 1e11 ? ts : ts * 1000;
+  try {
+    return new Date(ms).toISOString().slice(0, 10);
+  } catch {
+    return "—";   // a stamp outside Date's range (a nanosecond value, say) is absent, not a crash
+  }
+}
+
+function HomelessPanels({ state }: { state: MembershipStateView }) {
+  const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
+  const p = auth.profile;
+  const m = state.membership;
+  const b = state.billing;
+  const c = state.cohort;
+  const kvStyle: CSSProperties = { display: "grid", gridTemplateColumns: "max-content 1fr", gap: "4px 12px", fontSize: 13 };
+  const k: CSSProperties = { color: "#666" };
+  return (
+    <>
+      <section style={sectionStyle} data-testid="membership-envelope">
+        <h2 style={h2Style}>Envelope</h2>
+        <div style={kvStyle} title="profile.user · profile.member_number · profile.controller · profile.operator_id · profile.billing_expires_at">
+          <span style={k}>user</span><span>{p?.user ?? "—"}</span>
+          <span style={k}>word</span><span>{cohortWord(p)}</span>
+          <span style={k}>operator</span><span style={{ fontFamily: "var(--font-mono, monospace)" }}>{p?.operator_id ?? "—"}</span>
+          <span style={k}>billing expires</span><span>{fmtDay(p?.billing_expires_at)}</span>
+        </div>
+      </section>
+      <section style={sectionStyle} data-testid="membership-tier">
+        <h2 style={h2Style}>Tier</h2>
+        <div style={kvStyle} title="membership.tier · membership.status · membership.price_locked · membership.next_price · membership.price_lock_forfeit">
+          <span style={k}>tier</span><span>{m.tier ?? "—"}</span>
+          <span style={k}>status</span><span>{m.status ?? "—"}</span>
+          <span style={k}>price locked</span><span>{typeof m.price_locked === "number" ? `$${m.price_locked.toFixed(2)}` : "—"}</span>
+          <span style={k}>next price</span><span>{typeof m.next_price === "number" ? `$${m.next_price.toFixed(2)}` : "—"}</span>
+          <span style={k}>lock forfeit</span><span>{m.price_lock_forfeit === true ? "true" : m.price_lock_forfeit === false ? "false" : "—"}</span>
+        </div>
+      </section>
+      <section style={sectionStyle} data-testid="membership-billing-cap">
+        <h2 style={h2Style}>Billing and cap</h2>
+        <div style={kvStyle} title="billing.state · billing.renewal_ts · billing.renewal_retry_count · billing.next_amount · cohort.active_count · cohort.cap · cohort.remaining · cohort.waitlist_count · cohort.is_full">
+          <span style={k}>billing</span><span>{b.state ?? "—"}</span>
+          <span style={k}>renewal</span><span>{fmtDay(b.renewal_ts)}</span>
+          <span style={k}>retries</span><span>{typeof b.renewal_retry_count === "number" ? b.renewal_retry_count : "—"}</span>
+          <span style={k}>next amount</span><span>{typeof b.next_amount === "number" ? `$${b.next_amount.toFixed(2)}` : "—"}</span>
+          <span style={k}>cap</span><span>{typeof c.active_count === "number" ? c.active_count : "—"} of {c.cap ?? "—"} seated · {c.remaining ?? "—"} remaining · {typeof c.waitlist_count === "number" ? c.waitlist_count : "—"} waiting · {c.is_full === true ? "full" : c.is_full === false ? "open" : "—"}</span>
+        </div>
+      </section>
     </>
   );
 }

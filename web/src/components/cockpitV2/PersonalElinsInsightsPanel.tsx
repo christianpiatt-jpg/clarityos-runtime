@@ -18,23 +18,13 @@
  * or say there is none yet.
  */
 import { useCockpit } from "../../state/cockpitStore";
-import type { BearingsHeader, TrustSignal, TurnRecord } from "../../lib/api";
-import { basinHopLine } from "../../lib/trustSignal";
+import type { BearingsHeader, TurnRecord } from "../../lib/api";
+import { trustLine } from "../../lib/trustSignal";
 import {
   SectionAttractor,
   SectionCollapseRisk,
   SectionFieldWeather,
 } from "../../routes/PersonalElins";
-
-/** The trust signal as a label. The status STRING is the reading at n=0
- *  and when undefined; a value shows its rate, and its direction only when
- *  the backend sent one. */
-export function trustLabel(sig: TrustSignal | null | undefined): string {
-  if (!sig) return "—";
-  if (sig.status !== "value" || typeof sig.value !== "number") return sig.status;
-  const dir = sig.direction ? ` · ${sig.direction}` : "";
-  return `${sig.value}${dir} (${sig.scored_turns} scored)`;
-}
 
 /** ts_* are nanoseconds (time.time_ns). */
 function stamp(ns: number | null | undefined): string {
@@ -108,7 +98,9 @@ export default function PersonalElinsInsightsPanel() {
                   </div>
                   <div className="cv2-kv-row">
                     <dt>trust</dt>
-                    <dd className="cv2-mono" data-testid="rel-trust">{trustLabel(detail.trust_signal)}</dd>
+                    {/* #167c -- ONE trust line (lib/trustSignal.trustLine); the
+                        basin_hop rail row that read the same object is gone. */}
+                    <dd className="cv2-mono" data-testid="rel-trust" title="trust_signal.status · .value · .scored_turns · .theta_ready · .theta_floor">{trustLine(detail.trust_signal)}</dd>
                   </div>
                   <div className="cv2-kv-row">
                     <dt>last sealed</dt>
@@ -125,10 +117,6 @@ export default function PersonalElinsInsightsPanel() {
                     <dd className="cv2-mono" data-testid="rel-bearings-age">{bearingsAge(detail.bearings_header)}</dd>
                   </div>
                 </dl>
-                {/* #162 (d) -- the awaiting rail speaks the status. */}
-                <div className="cv2-muted cv2-mono" data-testid="math-rail-basin-hop">
-                  {basinHopLine(detail.trust_signal)}
-                </div>
                 {detail.turns.length > 0 && (
                   <ul className="cv2-rel-turns" data-testid="rel-turns">
                     {detail.turns.map((t) => (

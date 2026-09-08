@@ -42,7 +42,7 @@ function envelope(dist: Record<string, number>, attractor: string) {
         forecast_5day: {},
         forecast_engine: {},
         etf_table: {},
-        etf_agg: { survival_1y: 0, survival_10y: 0, survival_50y: 0 },
+        etf_agg: { n_365: 0, n_3650: 0, n_18250: 0 },
       },
       L9_alignment: {},
       L10_signature: {},

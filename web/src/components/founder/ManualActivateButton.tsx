@@ -69,7 +69,9 @@ export default function ManualActivateButton({ user, onChanged }: Props) {
           <div style={{
             marginTop: 12, paddingTop: 12, borderTop: "1px solid #eee",
           }}>
-            <div style={{ fontSize: 13, marginBottom: 6 }}>#G balance · adjust in dollars (±$1,000 per call)</div>
+            {/* #192 -- "$1,000" is the ADJUST CAP per call, not a price; a #G run
+                costs $1.00. Say both so neither reads as the other. */}
+            <div style={{ fontSize: 13, marginBottom: 6 }} data-testid="adjust-cap-caption">#G balance · adjust ±$1,000.00 max per call · a #G run costs $1.00</div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <span aria-hidden="true">$</span>
               <input

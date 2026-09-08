@@ -18,7 +18,8 @@ vi.mock("../../../lib/api", async () => {
 });
 
 import * as api from "../../../lib/api";
-import PersonalElinsInsightsPanel, { trustLabel, bearingsLine, bearingsAge, turnBearings } from "../PersonalElinsInsightsPanel";
+import PersonalElinsInsightsPanel, { bearingsLine, bearingsAge, turnBearings } from "../PersonalElinsInsightsPanel";
+import { trustLine } from "../../../lib/trustSignal";
 import { cockpit } from "../../../state/cockpitStore";
 
 const REL = { thread_id: "r1", title: "Copilot-me-system_install", created_at: 1, updated_at: 2,
@@ -40,7 +41,7 @@ describe("PersonalElinsInsightsPanel — the relationship header", () => {
 
     expect(screen.getByTestId("rel-name")).toHaveTextContent("Copilot-me-system_install");
     expect(screen.getByTestId("rel-turn-count")).toHaveTextContent("0");
-    expect(screen.getByTestId("rel-trust")).toHaveTextContent("no_prior_yet");
+    expect(screen.getByTestId("rel-trust")).toHaveTextContent("trust — · awaiting a second read (floor 7)");
     expect(screen.getByTestId("rel-trust")).not.toHaveTextContent("0.0");
     expect(screen.getByTestId("rel-last-sealed")).toHaveTextContent("—");
     expect(screen.getByTestId("no-run-yet")).toBeInTheDocument();
@@ -61,7 +62,7 @@ describe("PersonalElinsInsightsPanel — the relationship header", () => {
     await act(async () => { await cockpit.relationships.actions.open("r1"); });
 
     expect(screen.getByTestId("rel-turn-count")).toHaveTextContent("2");
-    expect(screen.getByTestId("rel-trust")).toHaveTextContent("1 (1 scored)");
+    expect(screen.getByTestId("rel-trust")).toHaveTextContent("trust 1 · 1 scored · awaiting a second read (floor 7)");
     expect(screen.getByTestId("rel-trust")).not.toHaveTextContent(/rising|falling|flat/);
     expect(screen.getByTestId("rel-last-sealed")).toHaveTextContent("2026-09-03 18:42");
     const rows = screen.getByTestId("rel-turns");
@@ -69,14 +70,12 @@ describe("PersonalElinsInsightsPanel — the relationship header", () => {
     expect(rows).toHaveTextContent("#1 · sealed 2026-09-03 18:42 · awaiting return");
   });
 
-  it("trustLabel: the strings at n=0 and undefined; the value carries a direction only when sent", () => {
-    expect(trustLabel({ status: "no_prior_yet", scored_turns: 0, theta_floor: 7, theta_ready: false })).toBe("no_prior_yet");
-    expect(trustLabel({ status: "undefined", scored_turns: 1, theta_floor: 7, theta_ready: false })).toBe("undefined");
-    expect(trustLabel({ status: "value", value: 0.6667, scored_turns: 3, theta_floor: 7, theta_ready: false }))
-      .toBe("0.6667 (3 scored)");
-    expect(trustLabel({ status: "value", value: 0.5, direction: "falling", delta: -0.5, scored_turns: 2, theta_floor: 7, theta_ready: false }))
-      .toBe("0.5 · falling (2 scored)");
-    expect(trustLabel(null)).toBe("—");
+  it("trustLine (#167c): one line -- the sentence at n=0, the words when undefined, value · n scored, no direction", () => {
+    expect(trustLine({ status: "no_prior_yet", scored_turns: 0, theta_floor: 7, theta_ready: false })).toBe("trust — · awaiting a second read (floor 7)");
+    expect(trustLine({ status: "undefined", scored_turns: 1, theta_floor: 7, theta_ready: false })).toBe("trust undefined (no bearing claimed)");
+    expect(trustLine({ status: "value", value: 0.6667, direction: "rising", scored_turns: 3, theta_floor: 7, theta_ready: false } as never))
+      .toBe("trust 0.6667 · 3 scored · awaiting a second read (floor 7)");
+    expect(trustLine(null)).toBe("trust — · awaiting a second read (floor 7)");
   });
 });
 

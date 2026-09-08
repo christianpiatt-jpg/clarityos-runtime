@@ -3,7 +3,7 @@
 //
 // A-WEB-CLARITY-2: dark-theme aligned (operator palette via existing tokens;
 // no layout/copy change) + explicit lifetime-lock badge. Status-badge colors
-// match MeBillingBadge (active green / cancelled red / not-joined gray).
+// match the retired MeBillingBadge (deleted at #183): active green / cancelled red / not-joined gray.
 
 import { cohortWord } from "../../lib/cohortWord";
 import type { MembershipStateView } from "../../lib/api";

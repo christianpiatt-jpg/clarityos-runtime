@@ -621,7 +621,13 @@ const threadSlice = {
       if (!meta || current.thread.busy) return;
       setSlice("thread", { busy: true, error: null });
       try {
-        setSlice("thread", { meta: await renameThread(meta.thread_id, title) });
+        const renamed = await renameThread(meta.thread_id, title);
+        // #188 -- the LIST copy of the title (thread.items, and the
+        // relationships list when this thread is one) follows the rename;
+        // it used to keep the old title until the next init().
+        const patch = (t: ThreadMeta) => (t.thread_id === renamed.thread_id ? { ...t, title: renamed.title } : t);
+        setSlice("thread", { meta: renamed, items: current.thread.items.map(patch) });
+        setSlice("relationships", { items: current.relationships.items.map(patch) });
       } catch (e) {
         setSlice("thread", { error: errMessage(e) });
       } finally {

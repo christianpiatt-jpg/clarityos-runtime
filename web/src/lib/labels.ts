@@ -77,6 +77,16 @@ export const LABELS: Readonly<Record<string, Label>> = {
   gradient_direction:    { word: "which way",         instrument: PHYSICS },
   stability:             { word: "steady",            instrument: PHYSICS },
   dominant_forces:       { word: "what's pushing",    instrument: PHYSICS },
+  // #185 (2026-09-08) -- the external-expression sub-keys and the relational
+  // pattern. Without an entry the raw snake_case key reached the surface.
+  // ET-1's PROVISIONAL words, for CT-1 to replace in this one dictionary.
+  recommended_posture:      { word: "posture to take",          instrument: PHYSICS },
+  message_guidance:         { word: "what to say",              instrument: PHYSICS },
+  friction_reduction_moves: { word: "moves that ease friction", instrument: PHYSICS },
+  dominant_pattern:         { word: "the pattern",              instrument: PHYSICS },
+  // #185 -- the ELINS view's rail of the three measured layers; was captioned
+  // "Math rail", an instrument's name. Provisional word, same rule.
+  math_rail:                { word: "what's measured",          instrument: ELINS },
   // ---- azimuth ----
   pressure_level:        { word: "pressure",  instrument: AZIMUTH },
 };
