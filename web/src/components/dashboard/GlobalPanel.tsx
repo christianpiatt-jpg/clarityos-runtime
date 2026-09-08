@@ -60,8 +60,8 @@ export default function GlobalPanel({ section }: GlobalPanelProps) {
         {section.top_primitives.map((p) => (
           <div key={p.key} style={{ marginBottom: 4 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
-              <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }}>{p.key}</span>
-              <span style={{ fontFamily: "var(--font-mono, monospace)" }}>{p.intensity.toFixed(3)}</span>
+              <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }} title="snapshot.global.top_primitives[].key">{p.key}</span>
+              <span style={{ fontFamily: "var(--font-mono, monospace)" }} title="snapshot.global.top_primitives[].intensity">{p.intensity.toFixed(3)}</span>
             </div>
             <div style={{ height: 6, background: "var(--os-deep, #0a0a0a)", borderRadius: 3 }}>
               <div

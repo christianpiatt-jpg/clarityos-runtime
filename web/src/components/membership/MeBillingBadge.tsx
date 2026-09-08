@@ -5,6 +5,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { meBilling, type V42MeBilling } from "../../lib/api";
 
+// C (#180b 6): /me/billing -- billing_enabled · mode · plan · renewal_ts ·
+//   status are OPERATOR facts (the Stripe mode, the price id, the webhook
+//   switch). The member's renewal and billing state are rendered on
+//   /membership from /membership/state (RenewalStatusCard). This badge has
+//   been unmounted since #145 folded /account; /system does NOT render these
+//   five today (D5 -- the order assumed it did).
+
 export default function MeBillingBadge() {
   const [data, setData] = useState<V42MeBilling | null>(null);
   const [error, setError] = useState<string | null>(null);

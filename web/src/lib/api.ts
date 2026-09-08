@@ -25,6 +25,28 @@ function writeStorage(k: string, v: string | null): void {
 // "founding" | "all"); the legacy strings may still appear for one deploy.
 export type Cohort = "controller" | "founding" | "all" | "founder" | "founder_exception" | "terrace_1" | "member" | "admin" | string;
 
+// #180b (3) -- the /me kernel block and capability list, carried on the
+// profile so the cockpit welcome card can render them. Every field is
+// optional: older readers never needed them, and an absent one reads "—".
+export interface MeCapability {
+  id: string;
+  label: string;
+  route: string;
+}
+export interface MeKernel {
+  version?: string | null;
+  external_signal_mode?: string | null;
+  eso_source?: string | null;
+  preferred_model?: string | null;
+  last_model_used?: string | null;
+  local_model_usage_count?: number | null;
+  vault_keys?: number | null;
+  notes_count?: number | null;
+  embeddings_count?: number | null;
+  thread_count?: number | null;
+  last_thread_updated_at?: number | null;
+}
+
 export interface Profile {
   user: string;
   cohort?: Cohort | null;
@@ -36,6 +58,12 @@ export interface Profile {
   citizen?: boolean;
   controller?: boolean;
   citz_id?: string | null;
+  // #180b (3) -- absent = the server did not say; false = it said no.
+  vault_ready?: boolean;
+  eso_source?: string | null;
+  external_signal_mode?: string | null;
+  capabilities?: MeCapability[];
+  intelligence_kernel?: MeKernel | null;
 }
 
 export interface MeResponse {
@@ -51,6 +79,14 @@ export interface MeResponse {
   citizen?: boolean;
   controller?: boolean;
   citz_id?: string | null;
+  // #180b (3)
+  vault_ready?: boolean;
+  eso_source?: string | null;
+  external_signal_mode?: string | null;
+  capabilities?: MeCapability[];
+  intelligence_kernel?: MeKernel | null;
+  features?: Record<string, boolean>;
+  membership?: Record<string, unknown>;
 }
 
 export interface ConfigResponse {
@@ -235,6 +271,17 @@ export async function refreshProfile(): Promise<Profile | null> {
       citizen: m.citizen === true,
       controller: m.controller === true,
       citz_id: m.citz_id ?? null,
+      // #180b (3) -- the kernel block, the capability list and the vault
+      // flag ride to the welcome card. vault_ready keeps its three states.
+      vault_ready: typeof m.vault_ready === "boolean" ? m.vault_ready : undefined,
+      eso_source: m.eso_source ?? null,
+      external_signal_mode: m.external_signal_mode ?? null,
+      capabilities: Array.isArray(m.capabilities) ? m.capabilities : [],
+      intelligence_kernel: m.intelligence_kernel ?? null,
+      // C: features.* -- the SPA reads its flags from /v29/flags (useFlags);
+      //    the /me copy is informational (#180b 3)
+      // C: membership.* -- rendered on /membership from /membership/state
+      //    (#180b 3)
     };
     return memoryProfile;
   } catch (e) {

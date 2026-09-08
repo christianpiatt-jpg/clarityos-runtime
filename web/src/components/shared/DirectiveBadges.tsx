@@ -19,6 +19,8 @@ import { type DirectiveMeta, type GroundingStatus } from "../../lib/api";
 export type DirectiveSurface = {
   grounding_status?: GroundingStatus | null;
   directive_metadata?: Record<string, DirectiveMeta> | null;
+  // #180b (4) -- the wire's directive NAMES for the turn ([] when none).
+  directives?: string[] | null;
 };
 
 /** True when a message carries anything the badge row should render.

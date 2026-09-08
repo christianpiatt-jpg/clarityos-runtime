@@ -19,6 +19,16 @@ function fmtTs(ts: number | null | undefined): string {
   catch { return String(ts); }
 }
 
+const DASH = "—";
+/** A count as it came, or the dash. */
+function n(v: unknown): string {
+  return typeof v === "number" && Number.isFinite(v) ? String(v) : DASH;
+}
+/** A boolean renders its WORD; a missing one the dash (#180a standing rule). */
+function word(v: unknown, yes: string, no: string): string {
+  return v === true ? yes : v === false ? no : DASH;
+}
+
 interface Props {
   state: MembershipStateView;
 }
@@ -58,9 +68,23 @@ export default function MembershipStatusCard({ state }: Props) {
       }}>
         <h2 style={{ margin: 0, fontSize: 18 }}>
           {m.tier === "founding_500" ? "Founding 500" : "Membership"}
-          {ident?.citz_id ? (
-            <span data-testid="citz-id" style={{ marginLeft: 10, fontSize: 12, fontFamily: "var(--font-mono, monospace)", opacity: 0.8 }}>
-              {ident.citz_id}{cohortWord(ident) === "—" ? "" : ` · ${cohortWord(ident)}`}
+          {ident ? (
+            <span
+              data-testid="citz-id"
+              title="state.identity.citz_id · state.identity.citizen · state.identity.controller · state.identity.cohort"
+              style={{ marginLeft: 10, fontSize: 12, fontFamily: "var(--font-mono, monospace)", opacity: 0.8 }}
+            >
+              {ident.citz_id ?? DASH}{cohortWord(ident) === "—" ? "" : ` · ${cohortWord(ident)}`}
+            </span>
+          ) : null}
+          {/* #180b (1) -- the #171 word + the NUMBER + the citz id. */}
+          {ident ? (
+            <span
+              data-testid="member-number"
+              title="state.identity.member_number"
+              style={{ marginLeft: 6, fontSize: 12, fontFamily: "var(--font-mono, monospace)", opacity: 0.8 }}
+            >
+              #{n(ident.member_number)}
             </span>
           ) : null}
         </h2>
@@ -115,22 +139,30 @@ export default function MembershipStatusCard({ state }: Props) {
           </>
         )}
 
-        <span style={{ color: "var(--color-text-secondary, #888)" }}>Cohort fill</span>
-        <span>
-          {c.active_count} / {c.cap ?? "—"}
-          {c.is_full && (
-            <span style={{ color: "var(--color-accent-red, #E02020)", marginLeft: 6, fontSize: 11 }}>
-              (full — waitlist)
-            </span>
-          )}
+        {/* #180b (1) -- confirmed, the price lock as a WORD, the seats. */}
+        <span style={{ color: "var(--color-text-secondary, #888)" }} title="state.membership.confirmed · state.membership.confirmed_ts">Confirmed</span>
+        <span data-testid="membership-confirmed">
+          {m.confirmed === true ? `confirmed ${fmtTs(m.confirmed_ts)}` : word(m.confirmed, "confirmed", "not confirmed")}
         </span>
 
-        {state.waitlist_position !== null && state.waitlist_position !== undefined && (
-          <>
-            <span style={{ color: "var(--color-text-secondary, #888)" }}>Waitlist position</span>
-            <strong>#{state.waitlist_position}</strong>
-          </>
-        )}
+        <span style={{ color: "var(--color-text-secondary, #888)" }} title="state.membership.price_lock_forfeit">Price lock</span>
+        {/* false is "not forfeited": "held" would assert a lock the reader may
+            not have (price_locked null on a non-member). */}
+        <span data-testid="price-lock">{word(m.price_lock_forfeit, "forfeited", "not forfeited")}</span>
+
+        <span style={{ color: "var(--color-text-secondary, #888)" }} title="state.cohort.cohort">Cohort</span>
+        <span
+          data-testid="cohort-seated"
+          title="state.cohort.cohort · state.cohort.active_count · state.cohort.cap · state.cohort.remaining · state.cohort.waitlist_count · state.cohort.is_full"
+        >
+          {c?.cohort ?? DASH} · {n(c?.active_count)} of {n(c?.cap)} seated · {n(c?.remaining)} remaining
+          {" · "}waitlist {n(c?.waitlist_count)} · {word(c?.is_full, "full", "open")}
+        </span>
+
+        <span style={{ color: "var(--color-text-secondary, #888)" }} title="state.waitlist_position">Waitlist position</span>
+        <strong data-testid="waitlist-position">
+          {typeof state.waitlist_position === "number" ? `#${state.waitlist_position}` : DASH}
+        </strong>
       </div>
 
       {isCancelled && (
@@ -147,7 +179,7 @@ export default function MembershipStatusCard({ state }: Props) {
         </div>
       )}
 
-      {isNonMember && !c.is_full && (
+      {isNonMember && !c?.is_full && (
         <div style={{
           marginTop: 12,
           padding: 8,
@@ -160,7 +192,7 @@ export default function MembershipStatusCard({ state }: Props) {
         </div>
       )}
 
-      {isNonMember && c.is_full && (
+      {isNonMember && c?.is_full === true && (
         <div style={{
           marginTop: 12,
           padding: 8,

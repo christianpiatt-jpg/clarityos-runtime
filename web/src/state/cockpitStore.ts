@@ -556,6 +556,12 @@ const threadSlice = {
         const r = await postThreadMessage(meta.thread_id, trimmed);
         setSlice("thread", {
           status: "ready",
+          // A (#180b 4): /message's meta.* replace thread.meta WHOLE --
+          // thread_id / title / created_at / updated_at / message_count /
+          // archived / project_id / summary / summary_ts_ms /
+          // summary_commit_sha are all rendered by ThreadInsightsPanel (the
+          // thread tab's rows and titles, the summary card). The list row
+          // keeps reading the /me/threads copy of the title.
           meta: r.meta,
           messages: [
             ...current.thread.messages,
@@ -564,6 +570,7 @@ const threadSlice = {
               ...r.assistant_message,
               grounding_status: r.grounding_status ?? null,
               directive_metadata: r.directive_metadata ?? null,
+              directives: r.directives ?? null,
             },
           ],
           // The transcript changed, so the ELINS envelope is stale. It is
@@ -600,6 +607,7 @@ const threadSlice = {
       if (!meta || current.thread.busy) return;
       setSlice("thread", { busy: true, error: null });
       try {
+        // A (#180b 4): /summarize's meta.* replace thread.meta whole (see send).
         setSlice("thread", { meta: await summarizeThread(meta.thread_id) });
       } catch (e) {
         setSlice("thread", { error: errMessage(e) });

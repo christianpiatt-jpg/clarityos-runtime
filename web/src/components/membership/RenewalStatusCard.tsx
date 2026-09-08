@@ -1,23 +1,33 @@
 // components/membership/RenewalStatusCard.tsx — billing state + renewal date.
 //
 // Renders the v31 billing-state machine fields (state, renewal_ts, retry
-// count, grace window). Hidden when no membership state to render.
+// count, grace window).
+//
+// #180b (1) -- ALWAYS RENDERED. This card used to return null when
+// billing.state was null, and the five billing keys died with it. A
+// founder-seated membership DOES carry a billing state (app.py
+// _founder_seat_membership sets "active" + a renewal_ts); null is the
+// reader who never went through either seating path. Now: "next charge
+// $50.00 on <date>" always, the state as a badge or a dash, retry and
+// grace only when non-null.
 
 import type { MembershipStateView, V31BillingState } from "../../lib/api";
 
+const DASH = "—";
+
 function fmtUsd(n: number | null | undefined): string {
-  if (typeof n !== "number") return "—";
+  if (typeof n !== "number" || !Number.isFinite(n)) return DASH;
   return `$${n.toFixed(2)}`;
 }
 
 function fmtDate(ts: number | null | undefined): string {
-  if (!ts) return "—";
+  if (!ts) return DASH;
   try { return new Date(Number(ts) * 1000).toISOString().slice(0, 10); }
   catch { return String(ts); }
 }
 
 function fmtRelative(ts: number | null | undefined): string {
-  if (!ts) return "—";
+  if (!ts) return DASH;
   const now = Date.now() / 1000;
   const days = (Number(ts) - now) / 86400;
   if (days < -1) return `${Math.round(-days)} days ago`;
@@ -59,10 +69,12 @@ interface Props {
 }
 
 export default function RenewalStatusCard({ state, onUpdatePaymentMethod }: Props) {
-  const billing = state.billing;
-  if (!billing.state) return null;
-
-  const meta = STATE_LABELS[billing.state];
+  const billing = (state.billing ?? {}) as Partial<MembershipStateView["billing"]>;
+  const st = billing.state ?? null;
+  const meta = st ? STATE_LABELS[st] : null;
+  const retry = typeof billing.renewal_retry_count === "number" ? billing.renewal_retry_count : null;
+  const grace = typeof billing.renewal_grace_until_ts === "number" ? billing.renewal_grace_until_ts : null;
+  const renewal = typeof billing.renewal_ts === "number" ? billing.renewal_ts : null;
 
   return (
     <section style={{
@@ -71,7 +83,7 @@ export default function RenewalStatusCard({ state, onUpdatePaymentMethod }: Prop
       padding: 16,
       background: "#fff",
       marginBottom: 16,
-    }}>
+    }} data-testid="renewal-card">
       <div style={{
         display: "flex",
         justifyContent: "space-between",
@@ -79,18 +91,31 @@ export default function RenewalStatusCard({ state, onUpdatePaymentMethod }: Prop
         marginBottom: 8,
       }}>
         <h2 style={{ margin: 0, fontSize: 18 }}>Renewal</h2>
-        <span style={{
-          padding: "2px 8px",
-          background: meta.bg,
-          color: meta.fg,
-          borderRadius: 3,
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: "0.05em",
-        }}>
-          {meta.text}
+        <span
+          data-testid="billing-state"
+          title="state.billing.state"
+          style={{
+            padding: "2px 8px",
+            background: meta ? meta.bg : "#eee",
+            color: meta ? meta.fg : "#555",
+            borderRadius: 3,
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.05em",
+          }}
+        >
+          {meta ? meta.text : DASH}
         </span>
       </div>
+
+      <p
+        data-testid="next-charge"
+        title="state.billing.next_amount · state.billing.renewal_ts"
+        style={{ margin: "0 0 8px 0", fontSize: 13 }}
+      >
+        next charge <strong>{fmtUsd(billing.next_amount)}</strong> on {fmtDate(renewal)}
+        {renewal ? <span style={{ color: "#888", fontSize: 12 }}> ({fmtRelative(renewal)})</span> : null}
+      </p>
 
       <div style={{
         display: "grid",
@@ -98,35 +123,32 @@ export default function RenewalStatusCard({ state, onUpdatePaymentMethod }: Prop
         gap: "4px 16px",
         fontSize: 13,
       }}>
-        <span style={{ color: "#666" }}>Next renewal</span>
-        <span>
-          {fmtDate(billing.renewal_ts)}{" "}
-          <span style={{ color: "#888", fontSize: 12 }}>({fmtRelative(billing.renewal_ts)})</span>
-        </span>
-
-        <span style={{ color: "#666" }}>Next amount</span>
-        <strong>{fmtUsd(billing.next_amount)}</strong>
-
-        {billing.renewal_retry_count > 0 && (
+        {retry !== null && (
           <>
-            <span style={{ color: "#666" }}>Retry attempts</span>
-            <span>{billing.renewal_retry_count} / 3</span>
+            <span style={{ color: "#666" }} title="state.billing.renewal_retry_count">Retry attempts</span>
+            <span data-testid="billing-retry">{retry} / 3</span>
           </>
         )}
 
-        {billing.state === "grace_period" && (
+        {grace !== null && (
           <>
-            <span style={{ color: "#666" }}>Grace ends</span>
-            <span>{fmtDate(billing.renewal_grace_until_ts)}</span>
+            <span style={{ color: "#666" }} title="state.billing.renewal_grace_until_ts">Grace ends</span>
+            <span data-testid="billing-grace">{fmtDate(grace)}</span>
           </>
         )}
       </div>
 
-      <p style={{ marginTop: 8, marginBottom: 0, color: "#555", fontSize: 12 }}>
-        {meta.explain}
-      </p>
+      {meta ? (
+        <p style={{ marginTop: 8, marginBottom: 0, color: "#555", fontSize: 12 }}>
+          {meta.explain}
+        </p>
+      ) : (
+        <p style={{ marginTop: 8, marginBottom: 0, color: "#555", fontSize: 12 }} data-testid="billing-none">
+          No billing state on record. Nothing is scheduled.
+        </p>
+      )}
 
-      {(billing.state === "past_due" || billing.state === "grace_period") && (
+      {(st === "past_due" || st === "grace_period") && (
         <div style={{ marginTop: 8 }}>
           <button onClick={onUpdatePaymentMethod} disabled={!onUpdatePaymentMethod}>
             Update payment method

@@ -91,12 +91,20 @@ export default function MemoryVaultPanel() {
 
       {status && (
         <>
-          <p style={helpStyle}>
+          {/* C (#180b 6): /me/vault/status global.enabled · fs_dir · keys ·
+              pbkdf2_iter · sqlite_path · users · version are OPERATOR facts
+              (the store's paths, its KDF cost, the population); a member's
+              panel shows the three that describe their own store -- backend,
+              scheme, encrypted -- and their own counts below. /system does NOT
+              render the seven today (D5 -- the order assumed it did). */}
+          <p style={helpStyle} data-testid="vault-global">
             Encrypted local key/value store. Operator state, ELINS history,
             #G runs, notes, and embeddings live here. Backend:{" "}
-            <code>{status.global.backend}</code> · scheme:{" "}
-            <code>{status.global.scheme}</code>
-            {status.global.encrypted ? " · encrypted" : " · plain (debug)"}
+            <code title="global.backend">{status.global.backend}</code> · scheme:{" "}
+            <code title="global.scheme">{status.global.scheme}</code>
+            <span title="global.encrypted">
+              {status.global.encrypted === true ? " · encrypted" : status.global.encrypted === false ? " · not encrypted" : " · —"}
+            </span>
           </p>
 
           <div style={statRowStyle}>

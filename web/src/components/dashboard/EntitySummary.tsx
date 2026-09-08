@@ -34,15 +34,23 @@ export default function EntitySummary({ entityGraph }: EntitySummaryProps) {
               <li key={e.name} style={rowStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                   <strong style={{ fontSize: 12 }}>{e.name}</strong>
-                  <span style={{ fontSize: 10, color: "var(--os-text-tertiary, #585858)", fontFamily: "var(--font-mono, monospace)" }}>
-                    deg {e.degree} · ep {e.ep_mean.toFixed(3)}
+                  {/* #180b (7) -- the row complete: degree, ep mean, domains,
+                      each with its key in the title; no domains -> a dash. */}
+                  <span
+                    style={{ fontSize: 10, color: "var(--os-text-tertiary, #585858)", fontFamily: "var(--font-mono, monospace)" }}
+                    title="snapshot.entity_graph.top_entities[].degree · snapshot.entity_graph.top_entities[].ep_mean"
+                    data-testid="entity-stats"
+                  >
+                    degree {typeof e.degree === "number" ? e.degree : "—"} · ep mean {typeof e.ep_mean === "number" ? e.ep_mean.toFixed(3) : "—"}
                   </span>
                 </div>
-                {e.top_domains.length > 0 && (
-                  <div style={{ marginTop: 2, fontSize: 10, color: "var(--os-text-secondary, #A0A0A0)" }}>
-                    {e.top_domains.join(" · ")}
-                  </div>
-                )}
+                <div
+                  style={{ marginTop: 2, fontSize: 10, color: "var(--os-text-secondary, #A0A0A0)" }}
+                  title="snapshot.entity_graph.top_entities[].top_domains"
+                  data-testid="entity-domains"
+                >
+                  {Array.isArray(e.top_domains) && e.top_domains.length > 0 ? e.top_domains.join(" · ") : "—"}
+                </div>
               </li>
             ))}
             {top.length === 0 && (

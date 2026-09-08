@@ -42,8 +42,14 @@ export default function DashboardRoot() {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {snapshot && (
-            <span style={metaStyle}>
+            <span style={metaStyle} data-testid="dash-provenance">
               {snapshot.date} · {new Date(snapshot.ts * 1000).toISOString().slice(11, 19)}Z
+              {/* #180b (7) -- the scenario the global read was built on and the
+                  snapshot version: provenance, beside the stamp. */}
+              {" · "}
+              <span title="snapshot.global.scenario_id">scenario {snapshot.global?.scenario_id ?? "—"}</span>
+              {" · "}
+              <span title="snapshot.version">{snapshot.version || "—"}</span>
             </span>
           )}
           <button type="button" onClick={() => void load()} disabled={busy} style={refreshStyle}>

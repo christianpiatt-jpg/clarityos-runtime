@@ -34,6 +34,13 @@ import { useRef, useState } from "react";
 import { useCockpit, cockpit } from "../../state/cockpitStore";
 import type { ThreadMeta } from "../../lib/api";
 
+/** #180b (4) -- an epoch in ms or s as a short UTC stamp; anything else "—". */
+function stamp(ts: unknown): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts) || ts <= 0) return "—";
+  const ms = ts > 1e11 ? ts : ts * 1000;
+  return new Date(ms).toISOString().replace("T", " ").slice(0, 16) + "Z";
+}
+
 /** The one row. Both lists render through this. */
 function ListRow({
   item,
@@ -50,6 +57,9 @@ function ListRow({
         type="button"
         className={"cv2-list-row" + (selected ? " is-selected" : "")}
         onClick={onOpen}
+        // #180b (4) -- threads[].project_id · created_at · archived ride in
+        // the row's title (A); the row text stays title + count.
+        title={`threads[].project_id ${item.project_id ?? "—"} · threads[].created_at ${stamp(item.created_at)} · threads[].archived ${item.archived === true ? "archived" : item.archived === false ? "live" : "—"}`}
       >
         <span className="cv2-mono">{item.title || item.thread_id}</span>
         <span className="cv2-muted">{item.message_count} messages</span>

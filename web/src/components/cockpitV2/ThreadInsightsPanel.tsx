@@ -120,6 +120,23 @@ export default function ThreadInsightsPanel() {
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
 
+  // #180b (4) -- the thread tab reads the LAST assistant turn: its model
+  // (messages[].model), its grounding outcome and its directives. Absent
+  // -> "—"; an empty directive list -> "—" too (nothing ran).
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant") ?? null;
+  const lastModel = [...messages].reverse().find((m) => typeof m.model === "string" && m.model)?.model ?? null;
+  const directiveNames: string[] = lastAssistant
+    ? (Array.isArray(lastAssistant.directives) && lastAssistant.directives.length > 0
+        ? lastAssistant.directives
+        : Object.keys(lastAssistant.directive_metadata ?? {}))
+    : [];
+  const directivesText = directiveNames.length > 0
+    ? directiveNames.map((n) => {
+        const st = lastAssistant?.directive_metadata?.[n]?.status;
+        return typeof st === "string" && st ? `${n} ${st}` : n;
+      }).join(" · ")
+    : "—";
+
   // Compose the transcript once per messages change. Capped to 6KB so we
   // don't blow the backend's text limit — same cap as Threads.tsx:283-292.
   // ★ Now composed by the shared helper. Byte-identical to the expression
@@ -175,14 +192,43 @@ export default function ThreadInsightsPanel() {
 
         {tab === "thread" ? (
           <>
-            <dl className="cv2-kv">
-              <div className="cv2-kv-row">
+            <dl className="cv2-kv" data-testid="thread-meta">
+              {/* #180b (4) -- the thread's own facts: the keys the panel reads
+                  ride in titles; thread_id / project_id / archived on the
+                  messages row, created beside updated. */}
+              <div
+                className="cv2-kv-row"
+                title={`meta.message_count · meta.thread_id ${meta.thread_id} · meta.project_id ${meta.project_id ?? "—"} · meta.archived ${meta.archived === true ? "archived" : meta.archived === false ? "live" : "—"}`}
+                data-testid="thread-messages-row"
+              >
                 <dt>messages</dt>
                 <dd>{meta.message_count}</dd>
               </div>
-              <div className="cv2-kv-row">
+              {/* the title the wire carries (the list row reads the /me/threads
+                  copy; after a rename or a turn this is the merged one). */}
+              <div className="cv2-kv-row" title="meta.title">
+                <dt>title</dt>
+                <dd data-testid="thread-title">{meta.title ?? "—"}</dd>
+              </div>
+              <div className="cv2-kv-row" title="meta.created_at">
+                <dt>created</dt>
+                <dd data-testid="thread-created">{relativeTime(meta.created_at)}</dd>
+              </div>
+              <div className="cv2-kv-row" title="meta.updated_at">
                 <dt>updated</dt>
                 <dd>{relativeTime(meta.updated_at)}</dd>
+              </div>
+              <div className="cv2-kv-row" title="messages[].model">
+                <dt>last model</dt>
+                <dd data-testid="thread-last-model">{lastModel ?? "—"}</dd>
+              </div>
+              <div className="cv2-kv-row" title="grounding_status">
+                <dt>grounding</dt>
+                <dd data-testid="thread-grounding">{lastAssistant?.grounding_status ?? "—"}</dd>
+              </div>
+              <div className="cv2-kv-row" title="directives · directive_metadata">
+                <dt>directives</dt>
+                <dd data-testid="thread-directives">{directivesText}</dd>
               </div>
               {meta.summary_ts_ms ? (
                 <div className="cv2-kv-row">

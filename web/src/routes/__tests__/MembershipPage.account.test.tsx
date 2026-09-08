@@ -18,6 +18,9 @@ vi.mock("../../components/settings/ModelPreferences", () => ({
 vi.mock("../../components/settings/LocalModelPanel", () => ({
   default: () => <div data-testid="local-model-panel">LOCAL MODEL</div>,
 }));
+vi.mock("../../components/settings/KernelFacts", () => ({
+  default: () => <div data-testid="kernel-facts">RUNTIME</div>,
+}));
 vi.mock("../../components/settings/MemoryVaultPanel", () => ({
   default: () => <div data-testid="memory-vault-panel">MEMORY VAULT</div>,
 }));
@@ -71,6 +74,7 @@ describe("MembershipPage — the account (#141)", () => {
     // the member's own notes and local-model panels: their only surface
     expect(screen.getByTestId("memory-vault-panel")).toBeInTheDocument();
     expect(screen.getByTestId("local-model-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("kernel-facts")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("membership-signout"));
     expect(vi.mocked(auth.signOut)).toHaveBeenCalledTimes(1);
   });

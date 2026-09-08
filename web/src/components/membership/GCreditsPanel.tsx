@@ -43,6 +43,14 @@ export default function GCreditsPanel({ state, onBuyPack20, busy }: Props) {
       marginBottom: 16,
     }}>
       <h2 style={{ margin: "0 0 8px 0", fontSize: 18 }}>#G balance</h2>
+      {/* #180b (1) -- the ledger's unit and whether it is metered: words. */}
+      <div data-testid="g-ledger" style={{ fontSize: 11, opacity: 0.7, marginBottom: 4 }}>
+        <span title="state.g_credits.unit">{g?.unit ?? "—"}</span>
+        {" · "}
+        <span title="state.g_credits.unlimited">
+          {g?.unlimited === true ? "unlimited" : g?.unlimited === false ? "metered" : "—"}
+        </span>
+      </div>
 
       <div style={{ fontSize: 36, fontWeight: 600, marginBottom: 8 }} data-testid="g-balance">
         {shown}
@@ -85,7 +93,7 @@ export default function GCreditsPanel({ state, onBuyPack20, busy }: Props) {
                 // (a purchase); a grant or a debit paid nothing.
                 const micro = typeof t.credits_delta === "number" ? t.credits_delta
                   : typeof t.amount_micro === "number" ? t.amount_micro : null;
-                const kind = t.type ?? t.kind ?? "\u2014";
+                const kind = t.type ?? t.kind ?? "—";
                 return (
                   <tr key={i} data-testid="g-history-row">
                     <td>{fmtTs(t.ts)}</td>
@@ -100,7 +108,7 @@ export default function GCreditsPanel({ state, onBuyPack20, busy }: Props) {
                       {fmtDelta(micro)}
                     </td>
                     <td style={{ textAlign: "right" }}>
-                      {typeof t.amount === "number" && t.amount > 0 ? fmtUsd(t.amount) : "\u2014"}
+                      {typeof t.amount === "number" && t.amount > 0 ? fmtUsd(t.amount) : "—"}
                     </td>
                   </tr>
                 );

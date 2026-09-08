@@ -48,8 +48,25 @@ function fmtRenewal(epoch: number | null | undefined): string {
   catch { return "—"; }
 }
 
+// #180b (3) -- /me's kernel block on the card: a value as it came, the dash
+// when the server did not send one. A boolean renders its word.
+const DASH = "—";
+function val(v: unknown): string {
+  if (v === null || v === undefined) return DASH;
+  if (typeof v === "boolean") return v ? "yes" : "no";
+  if (typeof v === "number") return Number.isFinite(v) ? String(v) : DASH;
+  return String(v) || DASH;
+}
+function fmtMs(ms: unknown): string {
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms <= 0) return DASH;
+  try { return new Date(ms).toISOString().replace("T", " ").slice(0, 16) + "Z"; }
+  catch { return DASH; }
+}
+
 export default function OperatorWelcome() {
   const profile = getProfile();
+  const kernel = profile?.intelligence_kernel ?? null;
+  const caps = profile?.capabilities ?? [];
   const [cont, setCont] = useState<Continuity>(COLD);
   const [loaded, setLoaded] = useState(false);
   const [mode, setMode] = useState<Mode>("query");
@@ -172,14 +189,16 @@ export default function OperatorWelcome() {
 
       {/* RIGHT — identity · continuity · environment · mode */}
       <div>
-        <div className="cos-panel">
+        <div className="cos-panel" data-testid="who-you-are">
           <h3>Who you are</h3>
-          <div className="cos-row"><span className="cos-k">Email</span><span className="cos-v">{profile?.user ?? "—"}</span></div>
-          <div className="cos-row"><span className="cos-k">Operator</span><span className="cos-v">{profile?.operator_id ?? "—"}</span></div>
-          <div className="cos-row"><span className="cos-k">Tier</span><span className="cos-v">{profile?.tier ?? "—"}</span></div>
+          <div className="cos-row" title="user"><span className="cos-k">Email</span><span className="cos-v">{profile?.user ?? "—"}</span></div>
+          <div className="cos-row" title="operator_id"><span className="cos-k">Operator</span><span className="cos-v">{profile?.operator_id ?? "—"}</span></div>
+          <div className="cos-row" title="tier"><span className="cos-k">Tier</span><span className="cos-v">{profile?.tier ?? "—"}</span></div>
           {/* #171 -- the one word the surface has: citizen / admin / nothing */}
-          <div className="cos-row"><span className="cos-k">Cohort</span><span className="cos-v">{cohortWord(profile)}</span></div>
-          <div className="cos-row"><span className="cos-k">Renewal</span><span className="cos-v">{fmtRenewal(profile?.billing_expires_at)}</span></div>
+          <div className="cos-row" title="cohort · member_number · citizen · controller · citz_id"><span className="cos-k">Cohort</span><span className="cos-v">{cohortWord(profile)}</span></div>
+          <div className="cos-row" title="billing_expires_at"><span className="cos-k">Renewal</span><span className="cos-v">{fmtRenewal(profile?.billing_expires_at)}</span></div>
+          {/* #180b (3) -- vault_ready as a word; absent = the server did not say */}
+          <div className="cos-row" title="vault_ready"><span className="cos-k">Vault</span><span className="cos-v" data-testid="vault-ready">{profile?.vault_ready === true ? "ready" : profile?.vault_ready === false ? "not ready" : DASH}</span></div>
         </div>
 
         <div className="cos-panel">
@@ -205,13 +224,45 @@ export default function OperatorWelcome() {
           )}
         </div>
 
-        <div className="cos-panel">
+        {/* #180b (3) -- /me's intelligence_kernel block, one row per key; the
+            two top-level copies (external_signal_mode, eso_source) share a
+            row with the kernel's. */}
+        <div className="cos-panel" data-testid="environment">
           <h3>Environment</h3>
-          <p style={{ margin: 0 }}>
-            Your steps run against the ClarityOS runtime. Model selection,
-            provider health and local-model status are reported on their own
-            surfaces in the rail.
-          </p>
+          {([
+            ["Last model", kernel?.last_model_used, "intelligence_kernel.last_model_used"],
+            ["Kernel", kernel?.version, "intelligence_kernel.version"],
+            ["Threads", kernel?.thread_count, "intelligence_kernel.thread_count"],
+            ["Notes", kernel?.notes_count, "intelligence_kernel.notes_count"],
+            ["Embeddings", kernel?.embeddings_count, "intelligence_kernel.embeddings_count"],
+            ["Vault keys", kernel?.vault_keys, "intelligence_kernel.vault_keys"],
+            ["Signal mode", kernel?.external_signal_mode ?? profile?.external_signal_mode, "intelligence_kernel.external_signal_mode · external_signal_mode"],
+            ["ESO source", kernel?.eso_source ?? profile?.eso_source, "intelligence_kernel.eso_source · eso_source"],
+            ["Preferred model", kernel?.preferred_model, "intelligence_kernel.preferred_model"],
+            ["Local model uses", kernel?.local_model_usage_count, "intelligence_kernel.local_model_usage_count"],
+          ] as Array<[string, unknown, string]>).map(([k, v, path]) => (
+            <div className="cos-row" key={path} title={path} data-testid={`env-${path.split(" ")[0].split(".").pop()}`}>
+              <span className="cos-k">{k}</span><span className="cos-v">{val(v)}</span>
+            </div>
+          ))}
+          <div className="cos-row" title="intelligence_kernel.last_thread_updated_at" data-testid="env-last_thread_updated_at">
+            <span className="cos-k">Last thread</span><span className="cos-v">{fmtMs(kernel?.last_thread_updated_at)}</span>
+          </div>
+        </div>
+
+        {/* #180b (3) -- capabilities[] as the server lists them. Every route
+            listed on 2026-09-08 exists in app.py (all 19 checked by decorator);
+            the route rides in the title, the label is the text. */}
+        <div className="cos-panel" data-testid="capabilities">
+          <h3>What you can call</h3>
+          {caps.length === 0 ? (
+            <p style={{ margin: 0 }}>{DASH}</p>
+          ) : caps.map((c) => (
+            <div className="cos-row" key={c.id} title={`capabilities[].id ${c.id} · capabilities[].route ${c.route}`} data-testid={`cap-${c.id}`}>
+              <span className="cos-k" title="capabilities[].label">{c.label}</span>
+              <span className="cos-v">{c.route}</span>
+            </div>
+          ))}
         </div>
 
         <div className="cos-panel">

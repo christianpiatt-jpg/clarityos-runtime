@@ -33,6 +33,7 @@ import BillingHistoryPanel from "../components/membership/BillingHistoryPanel";
 import SetPasswordPanel from "../components/settings/SetPasswordPanel";
 import ModelPreferences from "../components/settings/ModelPreferences";
 import LocalModelPanel from "../components/settings/LocalModelPanel";
+import KernelFacts from "../components/settings/KernelFacts";
 import MemoryVaultPanel from "../components/settings/MemoryVaultPanel";
 import type { PaymentIntentView } from "../lib/api";
 
@@ -265,6 +266,10 @@ function AccountBlock() {
       <SetPasswordPanel />
 
       <ModelPreferences />
+
+      {/* #180b (3) -- /me's kernel facts on the member's own page: the
+          welcome card the order named is the admin's since #145. */}
+      <KernelFacts />
 
       <LocalModelPanel />
 

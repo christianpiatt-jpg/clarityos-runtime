@@ -21,9 +21,21 @@ interface Filters {
 }
 
 const EMPTY_FILTERS: Filters = { kind: "", sinceDate: "", untilDate: "" };
+const DASH = "—";
+
+/** #180b (5) -- a string field as it came, or null. */
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v : null;
+}
+function stamp(ts: unknown): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts) || ts <= 0) return DASH;
+  return new Date(ts * 1000).toISOString().replace("T", " ").slice(0, 16) + "Z";
+}
 
 export default function Timeline() {
   const [events, setEvents] = useState<ServerTimelineEvent[]>([]);
+  // #180b (5) -- the wire's own count, not the page length.
+  const [count, setCount] = useState<number | null>(null);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +51,8 @@ export default function Timeline() {
         limit: 200,
       });
       setEvents(r.events);
+      const c = (r as { count?: unknown }).count;
+      setCount(typeof c === "number" && Number.isFinite(c) ? c : null);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
     } finally {
@@ -63,8 +77,8 @@ export default function Timeline() {
         <p className="muted" style={{ marginTop: 4 }}>
           System-generated events. Vault writes, library writes, and ingestion
           activity append here automatically.{" "}
-          <span className="mono" style={{ color: "var(--os-text-tertiary)" }}>
-            {events.length} event{events.length === 1 ? "" : "s"}
+          <span className="mono" style={{ color: "var(--os-text-tertiary)" }} title="count" data-testid="tl-count">
+            {count === null ? DASH : count} event{count === 1 ? "" : "s"}
           </span>
         </p>
       </div>
@@ -133,7 +147,16 @@ export default function Timeline() {
               style={{ width: "100%", textAlign: "left" }}
             >
               <div className="row row-between">
-                <span className={`tag ${kindTone(ev.kind)}`}>{ev.kind}</span>
+                {/* #180b (5) -- the tag is the event's SOURCE (data.source), not
+                    the raw kind (K3 C-iv); the kind still tones it and rides in
+                    the title with ingestion_version, created_at, size_bytes. */}
+                <span
+                  className={`tag ${kindTone(ev.kind)}`}
+                  data-testid="tl-tag"
+                  title={`events[].data.source · events[].data.ingestion_version ${str(ev.data?.ingestion_version) ?? DASH} · events[].kind ${ev.kind} · events[].created_at ${stamp(ev.created_at)} · events[].size_bytes ${typeof ev.size_bytes === "number" ? ev.size_bytes : DASH}`}
+                >
+                  {str(ev.data?.source) ?? DASH}
+                </span>
                 <span className="dim mono" style={{ fontSize: "0.7rem" }}>
                   {new Date(ev.ts * 1000).toLocaleString()}
                 </span>

@@ -22,9 +22,16 @@ interface Draft {
 }
 
 const EMPTY_DRAFT: Draft = { title: "", content: "", tagsInput: "" };
+const DASH = "—";
+function stamp(ts: unknown): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts) || ts <= 0) return DASH;
+  return new Date(ts * 1000).toISOString().replace("T", " ").slice(0, 16) + "Z";
+}
 
 export default function Vault() {
   const [items, setItems] = useState<ServerVaultItem[]>([]);
+  // #180b (5) -- the wire's own count.
+  const [count, setCount] = useState<number | null>(null);
   const [active, setActive] = useState<ServerVaultItem | null>(null);
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
@@ -39,6 +46,7 @@ export default function Vault() {
     try {
       const r = await vaultList(200);
       setItems(r.items);
+      setCount(typeof r.count === "number" && Number.isFinite(r.count) ? r.count : null);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
     } finally {
@@ -169,6 +177,9 @@ export default function Vault() {
 
       <div className="panel-grid">
         <div>
+          <div className="meta" data-testid="vault-count" title="count" style={{ marginBottom: 6 }}>
+            {count === null ? DASH : count} item{count === 1 ? "" : "s"}
+          </div>
           {loading ? (
             <div className="empty">Loading…</div>
           ) : items.length === 0 ? (
@@ -186,9 +197,12 @@ export default function Vault() {
                   cursor: "pointer",
                 }}
                 onClick={() => clickItem(item)}
+                // #180b (5) -- size and last update ride in the row's title.
+                title={`items[].size_bytes ${typeof item.size_bytes === "number" ? item.size_bytes : DASH} · items[].updated_at ${stamp(item.updated_at)}`}
+                data-testid="vault-row"
               >
                 <div className="row row-between">
-                  <span className={`tag ${item.type === "note" ? "cyan" : "red"}`}>
+                  <span className={`tag ${item.type === "note" ? "cyan" : "red"}`} title="items[].type">
                     {item.type}
                   </span>
                   <span className="dim mono" style={{ fontSize: "0.7rem" }}>
