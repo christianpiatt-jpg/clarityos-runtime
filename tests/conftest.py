@@ -376,6 +376,14 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_vault_timeline_source.py": {
         "runtime_spine",
     },
+    # ---- #146 EL/INS verifies the reply (R5.2d) ----
+    # runtime_spine: it sits on the member message path, and its whole
+    # value is that the analyzer never phones a model and never writes.
+    # privacy_surface: the one log line carries ids, enum words and marks,
+    # never the input or the reply.
+    "test_el_ins_verify.py": {
+        "runtime_spine", "privacy_surface",
+    },
     # ---- #133 riders: the files the leg's other tests landed in ----
     # runtime_spine: /elins/v2/run is a member route. privacy_surface: the
     # response carries no address and no pasted text (#177).

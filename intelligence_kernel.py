@@ -988,14 +988,22 @@ def run_thread_message(
     # the P-series counts and the pressure reading, both pure functions.
     # The record's SHAPE is unchanged, so the bearings slot in the moment
     # physics runs on this path.
+    # #146 -- the turn's index is the one per-turn key the thread path has
+    # (there is no run_id here; run ids are ELINS / macro). Captured where
+    # the seal already computes it, so the verifier line below can name
+    # the turn without a second store read. None when the read or the
+    # index itself failed (a seal that fails after the index is still
+    # this turn's count).
+    _tr_index: Optional[int] = None
     try:
         _tr_read = turn_record.build_geometry_observation(text)
         _tr_pending = turn_record.pending_seal(user_id, thread_id)
         if _tr_pending:
             turn_record.observe_return(user_id, _tr_pending, _tr_read)
+        _tr_index = turn_record.next_turn_index(user_id, thread_id)
         turn_record.seal_expectation(
             user_id, thread_id,
-            turn_record.next_turn_index(user_id, thread_id),
+            _tr_index,
             turn_record.persistence_expectation(_tr_read),
         )
     except Exception as _tr_exc:  # never breaks the turn -- but never silent
@@ -1149,10 +1157,60 @@ def run_thread_message(
         if cite_meta:
             grounding_status = cite_meta.get("status")
 
+    # #146 -- remembered before the placeholder below overwrites it: a
+    # turn with no vendor text has no reply to verify, and the verifier
+    # must say ABSENT rather than grade the kernel's own sentinel.
+    _no_reply = not assistant_text
     if not assistant_text:
         # Defence-in-depth: never persist an empty assistant turn —
         # tag explicitly so the UI can surface "no reply".
         assistant_text = "(no reply)"
+
+    # #146 -- EL/INS reads the turn as a VERIFIER (R5.2d): the member's
+    # input and the model's reply, side by side, deterministic mode
+    # FORCED, no store, one log line, acted on by nothing. R5.1: a
+    # verifier reads the input and the output only -- never the prompt
+    # (``prompt`` is not passed), never another verifier's slot.
+    #
+    # ★ THE THREE MARKS SIT ON ONE LINE. stop_reason is the LAST vendor
+    # call's raw value (#128; None on mock, and the #cite retry's when it
+    # fired); refusal is the #105 sentinel read over the reply's head --
+    # read here, acted on by nothing. A stop that is not end_turn or a
+    # refusal still gets verified: the reply exists.
+    #
+    # ★★ NOTHING HERE CAN COST THE MEMBER THE TURN. verify_el_ins never
+    # raises (an exception becomes status ABSENT with a reason), and the
+    # whole block is wrapped again, loud, like the turn_record hook.
+    try:
+        _v = verify_el_ins(text, None if _no_reply else assistant_text)
+        _v_in = _v.get("input") or {}
+        _v_re = _v.get("reply") if isinstance(_v.get("reply"), dict) else {}
+        _v_line = {
+            "thread_id":   thread_id,
+            "run_id":      "ABSENT",   # the thread path mints none; the turn index is the key
+            "turn":        _tr_index if _tr_index is not None else "ABSENT",
+            "model_id":    model_id,
+            "stop_reason": (vendor_calls[-1].get("stop_reason") if vendor_calls else None),
+            "refusal":     _looks_like_refusal(assistant_text),
+            "input": ({
+                "ratio_classification": (_v_in.get("analysis") or {}).get("ratio_classification"),
+                "reasoning_mode":       _v_in.get("reasoning_mode"),
+            } if _v_in else "ABSENT"),
+            "reply": ({
+                "ratio_classification": (_v_re.get("analysis") or {}).get("ratio_classification"),
+                "reasoning_mode":       _v_re.get("reasoning_mode"),
+            } if _v_re else "ABSENT"),
+            "status":      _v.get("status", "ok"),
+            "reason":      _v.get("reason") or ("no_reply" if _no_reply else None),
+            "acted_on":    False,
+        }
+        # ids, enum words and marks only -- never the input, never the reply.
+        logger.info("el_ins.verify payload=%s", _v_line)
+    except Exception as _v_exc:  # never breaks the turn -- but never silent
+        logger.warning(
+            "el_ins.verify hook FAILED err=%s: %s",
+            type(_v_exc).__name__, _v_exc, exc_info=True,
+        )
 
     # 4. Persist the assistant turn.
     assistant_msg: dict = {
@@ -1511,6 +1569,53 @@ def _looks_like_refusal(text: str) -> bool:
     head = head.replace("\u2019", "'").replace("\u2018", "'")
     head = " ".join(head.split())
     return any(shape in head for shape in _SUMMARY_REFUSAL_SHAPES)
+
+
+# ---------------------------------------------------------------------------
+# #146 -- EL/INS as a verifier over one turn (R5.2d)
+# ---------------------------------------------------------------------------
+def verify_el_ins(input_text: str, reply_text: Optional[str]) -> dict:
+    """EL/INS over the member's input and the model's reply, side by side.
+
+    ``reply_text`` None means THERE WAS NO REPLY (the vendor returned no
+    text and the kernel is about to persist its "(no reply)" sentinel):
+    the reply slot is then the word "ABSENT", never a grade of the
+    placeholder -- analyze_text("(no reply)") would read balanced /
+    normal, a label indistinguishable from a real balanced reply.
+
+    Deterministic mode is FORCED: this path never reads a provider mode
+    from config and never phones a model (R5.2d / B2 -- a model-backed
+    verifier would need its own prompt, and that is not this order).
+    Touches no store: the analyzer is pure (0 store refs; the one writer
+    is the /el_ins/analyze route, runtime_http). Returns::
+
+        {"instrument": "el_ins", "input": ElInsResult, "reply": ElInsResult}
+
+    or, on ANY exception, a different KIND rather than a default label::
+
+        {"instrument": "el_ins", "status": "ABSENT", "reason": "<type>: <msg>"[:80]}
+
+    Never raises. The "stable / drifting / oscillating" words are the
+    STORE's (el_ins_store) and need history; a one-turn verifier yields
+    ratio_classification (high_el | high_ins | balanced) and
+    reasoning_mode (stabilize | expand | normal) only.
+    """
+    try:
+        import el_ins as _el_ins   # lazy, as the per-turn hook imports it
+        return {
+            "instrument": "el_ins",
+            "input": _el_ins.analyze_text(input_text, provider_mode="deterministic"),
+            "reply": (
+                _el_ins.analyze_text(reply_text, provider_mode="deterministic")
+                if isinstance(reply_text, str) else "ABSENT"
+            ),
+        }
+    except Exception as exc:  # noqa: BLE001 -- a verifier never costs the turn
+        return {
+            "instrument": "el_ins",
+            "status": "ABSENT",
+            "reason": ("%s: %s" % (type(exc).__name__, exc))[:80],
+        }
 
 
 def summarize_thread(user_id: str, thread_id: str) -> dict:
