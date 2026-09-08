@@ -17,7 +17,7 @@ import SessionHistory, { modelLabel } from "../SessionHistory";
 const SNAP = vi.hoisted(() => ({
   session: "sid-test",
   user: "u",
-  profile: null as null | { user: string; operator_id?: string | null },
+  profile: null as null | { user: string; operator_id?: string | null; member_number?: number | null },
 }));
 
 vi.mock("../../lib/api", async () => {
@@ -252,5 +252,49 @@ describe("SessionHistory names the model that answered (#147)", () => {
     expect(modelLabel({ engine: "local", model_id: "local:llama3.1", mock: true }))
       .toBe("model=local:llama3.1 \u00b7 mock");
     expect(modelLabel({ engine: "grok" })).toBe("engine=grok");
+  });
+});
+
+
+// --------------------------------------------------------------------
+// #191 -- the caption names the member; the login rows list; "no sessions"
+// only when BOTH lists are empty
+// --------------------------------------------------------------------
+describe("SessionHistory -- #191 member number and login rows", () => {
+  test("the caption reads member #n · operator op_x", async () => {
+    SNAP.profile = { user: "u", operator_id: "op_alice", member_number: 17 };
+    mockList.mockResolvedValueOnce(makeEmptyListResponse("op_alice"));
+    renderRoute();
+    expect((await screen.findByTestId("authed-as")).textContent).toBe("member #17 · operator op_alice");
+  });
+
+  test("a number not minted says so in words", async () => {
+    SNAP.profile = { user: "u", operator_id: "op_alice", member_number: null };
+    mockList.mockResolvedValueOnce(makeEmptyListResponse("op_alice"));
+    renderRoute();
+    expect((await screen.findByTestId("authed-as")).textContent).toBe("member number not minted · operator op_alice");
+  });
+
+  test("login rows render with a REF and the empty copy is absent; both empty -> the copy", async () => {
+    mockList.mockResolvedValueOnce({
+      operator_id: "op_alice",
+      sessions: [],
+      login_sessions: [
+        { session_ref: "AbCdEfGh...", current: true, member_number: 17, operator_id: "op_alice", ts_sealed: 1788899000, turn: 0 },
+        { session_ref: "ZyXwVuTs...", current: false, member_number: 17, operator_id: "op_alice", ts_sealed: 1788800000, turn: 0 },
+      ],
+    });
+    renderRoute();
+    const box = await screen.findByTestId("login-sessions");
+    expect(box.textContent).toContain("AbCdEfGh... (this login) · member #17 · turn 0 · 2026-09-08T");
+    expect(box.textContent).toContain("ZyXwVuTs... · member #17 · turn 0");
+    expect(screen.queryByText(/No sessions for this operator/i)).toBeNull();
+  });
+
+  test("an older backend without login_sessions still reads the empty copy", async () => {
+    mockList.mockResolvedValueOnce(makeEmptyListResponse("op_alice"));
+    renderRoute();
+    await screen.findByText(/No sessions for this operator/i);
+    expect(screen.queryByTestId("login-sessions")).toBeNull();
   });
 });

@@ -23,6 +23,7 @@ import {
   getSessionDetail,
   getProfile,
   listOperatorSessions,
+  type LoginSession,
   type SessionDetailResponse,
   type SessionHistoryEntry,
   type SessionSummary,
@@ -38,7 +39,17 @@ export default function SessionHistory() {
   // the account email (the engine rejects it). Effect guards on empty.
   const auth = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthSnapshot);
   const operatorId = auth.profile?.operator_id ?? "";
+  // #191 -- the caption names the MEMBER NUMBER beside the operator id
+  // (the op_… id is the "login code" a member never chose); a number not
+  // minted yet says so in words, never a dash or a zero.
+  const memberNumber = auth.profile?.member_number ?? null;
+  const authedAs = !operatorId
+    ? "loading profile…"
+    : `${memberNumber == null ? "member number not minted" : `member #${memberNumber}`} · operator ${operatorId}`;
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
+  // #191 -- the durable login rows the server lists beside the runtime
+  // sessions (process memory on the service: empty after a cold start).
+  const [loginSessions, setLoginSessions] = useState<LoginSession[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<SessionDetailResponse | null>(null);
   const [loadingList, setLoadingList] = useState(true);
@@ -56,6 +67,7 @@ export default function SessionHistory() {
         const r = await listOperatorSessions(operatorId);
         if (cancelled) return;
         setSessions(r.sessions);
+        setLoginSessions(r.login_sessions ?? []);
         // Auto-select first (newest) if none selected.
         if (r.sessions.length > 0 && selectedId === null) {
           setSelectedId(r.sessions[0].session_id);
@@ -107,6 +119,7 @@ export default function SessionHistory() {
       try {
         const r = await listOperatorSessions(op);
         setSessions(r.sessions);
+        setLoginSessions(r.login_sessions ?? []);
       } catch (e: unknown) {
         setError(formatError(e));
       } finally {
@@ -126,7 +139,7 @@ export default function SessionHistory() {
         <div className="row" style={{ marginTop: 12, gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1, fontSize: "0.85rem" }}>
             <span className="muted">authed as </span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>{operatorId || "loading profile…"}</span>
+            <span data-testid="authed-as" style={{ fontFamily: "var(--font-mono)" }} title="profile.member_number · profile.operator_id">{authedAs}</span>
           </div>
           <button
             type="button"
@@ -158,7 +171,7 @@ export default function SessionHistory() {
             <div style={{ padding: 12 }}>
               <span className="spinner" /> Loading…
             </div>
-          ) : sessions && sessions.length === 0 ? (
+          ) : sessions && sessions.length === 0 && loginSessions.length === 0 ? (
             <div className="empty" style={{ padding: 12 }}>
               No sessions for this operator.
             </div>
@@ -203,6 +216,27 @@ export default function SessionHistory() {
               ))}
             </ul>
           )}
+          {/* #191 -- the durable login rows: a session REF (never the id),
+              the member number at login, the turn, the seal stamp. */}
+          {loginSessions.length > 0 ? (
+            <div data-testid="login-sessions" style={{ padding: 12, borderTop: "1px solid var(--os-border, rgba(20, 24, 28, 0.08))" }}>
+              <h2 style={{ margin: "0 0 6px" }}>LOGINS</h2>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                {loginSessions.map((l) => (
+                  <li
+                    key={l.session_ref}
+                    className="muted"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", padding: "3px 0" }}
+                    title="login_sessions[].session_ref · .current · .member_number · .turn · .ts_sealed"
+                  >
+                    {l.session_ref}{l.current ? " (this login)" : ""} ·{" "}
+                    {l.member_number == null ? "member number not minted" : `member #${l.member_number}`} ·{" "}
+                    turn {l.turn} · {l.ts_sealed == null ? "—" : new Date(l.ts_sealed * 1000).toISOString()}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
 
         {/* DETAIL */}

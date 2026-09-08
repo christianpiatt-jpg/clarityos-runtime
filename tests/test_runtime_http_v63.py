@@ -154,7 +154,9 @@ class TestSessionList:
         r = client.get("/operator/sessions?operator_id=op_alice")
         assert r.status_code == 200
         body = r.json()
-        assert body == {"operator_id": "op_alice", "sessions": []}
+        # #191 -- login_sessions is ADDITIVE (the member's durable login rows;
+        # [] here: the override supplies no session, so there is no member)
+        assert body == {"operator_id": "op_alice", "sessions": [], "login_sessions": []}
 
     def test_single_session_listed(self, client):
         s0 = client.post(

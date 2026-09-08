@@ -2485,9 +2485,24 @@ export interface SessionSummary {
   timestamp:   string;     // most-recent step timestamp, "" if untouched
 }
 
+/** #191 -- one durable login row (session_records.* in the member's
+ *  vault): a REF of the session id (never the id -- it is a bearer token),
+ *  whether it is the asking session, the member number at login, the
+ *  operator id, the seal stamp, and the turn (0 at login). */
+export interface LoginSession {
+  session_ref:   string;
+  current:       boolean;
+  member_number: number | null;
+  operator_id:   string | null;
+  ts_sealed:     number | null;
+  turn:          number;
+}
+
 export interface SessionListResponse {
   operator_id: string;
   sessions:    SessionSummary[];
+  // #191 -- absent on an older backend; the page treats absent as [].
+  login_sessions?: LoginSession[];
 }
 
 export interface SessionDetailResponse {

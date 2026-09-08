@@ -185,6 +185,8 @@ class TestINV_V6_NamespaceAllowList:
         # only). The producer shipped 07-30 without the namespace: every
         # write raised here, silently, until #33 named it and #163 admitted it.
         "arc_records",
+        # #191 (2026-09-08) -- one durable login row per magic-link login.
+        "session_records",
     })
 
     def test_inv_v6_allowed_namespaces_matches_frozen_registry(self):

@@ -161,6 +161,42 @@ def _log(event: str, *, _level: int = logging.INFO, **fields) -> None:
     logger.log(_level, "%s %s", event, parts)
 
 
+# #191 (CT-1 2026-09-08) -- a durable login row. The history page lists
+# runtime_persistence, which on the service is PROCESS MEMORY (no store
+# dir): empty after every cold start, so a member who has logged in a
+# hundred times reads "no sessions". One row per login, in the member's
+# own vault under this prefix: ids and a number, never text.
+LOGIN_RECORD_PREFIX = "session_records."
+LOGIN_RECORD_CLASS = "session_login"
+
+
+def login_record_ref(session_id: str) -> str:
+    """The row's sub-key: 16 hex of sha256 of the session id -- the shape
+    _email_hash / users_store._uref use. NEVER the id itself: a vault key
+    is plaintext at rest and the founder vault inspector lists raw keys,
+    so a raw session id there would be a live bearer token on the
+    founder's wire (a refuter's catch). A hash carries no token bits and
+    is unique per session."""
+    return hashlib.sha256(str(session_id).encode("utf-8")).hexdigest()[:16]
+
+
+def _write_login_record(email: str, session_id: str, member_number, now: float) -> None:
+    """One vault row per login: {class, member_number, operator_id,
+    ts_sealed, turn 0} under session_records.{login_record_ref(sid)}.
+    Raises on failure; verify_magic_link turns that into a WARNING and
+    the login is unaffected. No vault_init: vault_put creates what it
+    needs, and vault_init is a whole-vault stream on Firestore."""
+    import memory_vault  # lazy: this module stays light at import
+    doc = users_store.get_user(email) or {}
+    memory_vault.vault_put(email, f"{LOGIN_RECORD_PREFIX}{login_record_ref(session_id)}", {
+        "class": LOGIN_RECORD_CLASS,
+        "member_number": member_number,
+        "operator_id": doc.get("operator_id"),
+        "ts_sealed": float(now),
+        "turn": 0,
+    })
+
+
 def normalize_next(raw) -> str:
     """Map an UNTRUSTED next (a path like '/app/transformation' OR a bare
     symbolic key like 'transformation') to a stored symbolic KEY.
@@ -575,6 +611,13 @@ def verify_magic_link(
     sessions_store.create_session(
         session_id=session_id, username=email, expires_at=now + _session_ttl()
     )
+    # #191 -- the durable login row. The token is burnt and the session
+    # exists: a row that fails to write must NEVER cost the member their
+    # click. WARNING with the hash and the type; nothing else changes.
+    try:
+        _write_login_record(email, session_id, member_number, now)
+    except Exception as exc:  # noqa: BLE001
+        _log("session_record.write_failed", _level=logging.WARNING, email_hash=ehash, err=type(exc).__name__)
     resolved_path = resolve_next_path(record.get("next_key"), active)
     redirect_url = _final_redirect_url(resolved_path)
 

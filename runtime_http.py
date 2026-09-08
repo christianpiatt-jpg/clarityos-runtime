@@ -63,6 +63,7 @@ Errors:
 from __future__ import annotations
 
 import time
+import logging
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -96,6 +97,9 @@ import session_loop
 # (The v64 note about /operator/session/start + /step being open is
 # gone: v66 / Unit 68 put require_operator on both. Hole closed.)
 # ---------------------------------------------------------------------------
+logger = logging.getLogger("clarityos.runtime_http")
+
+
 def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
     """Session → (user, operator_id). The single joint for operator
     identity (2026-08-21 resolver envelope, COW-1).
@@ -456,9 +460,66 @@ def get_session_detail(
     return {"session_state": stored}
 
 
+LOGIN_RECORD_PREFIX = "session_records."   # = auth_magiclink.LOGIN_RECORD_PREFIX (pinned by a test)
+
+
+def _login_sessions_for(current_session_id: Optional[str]) -> list:
+    """#191 -- the member's durable login rows (auth_magiclink writes one per
+    login under ``session_records.{login_record_ref(session_id)}`` in the
+    member's vault), newest first. The sub-key is a HASH of the session id
+    (16 hex of sha256): the wire carries it as ``session_ref`` and never
+    the id -- a session id is a bearer token, and a vault key is plaintext
+    at rest and listed raw by the founder vault inspector. ``current``
+    marks the row of the session that is asking (its hash). The member is
+    the SESSION's user (never a client-supplied id); with no session header
+    there is no member and the list is [] -- the operator gate in front of
+    this has already refused, or a test has overridden it. A vault read
+    failure is logged with the hash and yields [] (the runtime list still
+    serves). Cost, named: vault_list streams the member's whole vault (the
+    same cost /turns and /arc pay); a prefix-scoped read is a memory_vault
+    change."""
+    import memory_vault as _mv          # lazy -- matches the require_operator pattern
+    import sessions_store as _sessions
+    import users_store as _users
+    from auth_magiclink import login_record_ref as _ref   # the ONE hash for these keys
+    if not current_session_id:
+        return []
+    sess = _sessions.get_session(current_session_id)
+    user = (sess or {}).get("user")
+    if not user:
+        return []
+    current_ref = _ref(current_session_id)
+    try:
+        entries = _mv.vault_list(user) or {}
+    except Exception as exc:  # noqa: BLE001
+        user_ref = _users._uref(user)
+        logger.warning("login_sessions read FAILED user=%s err=%s", user_ref, type(exc).__name__)
+        return []
+    rows = []
+    for key, raw in entries.items():
+        if not key.startswith(LOGIN_RECORD_PREFIX) or not isinstance(raw, dict):
+            continue
+        ref = key[len(LOGIN_RECORD_PREFIX):]
+        try:
+            ts = float(raw.get("ts_sealed")) if raw.get("ts_sealed") is not None else None
+        except (TypeError, ValueError):
+            ts = None   # a malformed stamp is served as absent, never a 500
+        rows.append({
+            "session_ref":   ref,
+            "current":       ref == current_ref,
+            "member_number": raw.get("member_number"),
+            "operator_id":   raw.get("operator_id"),
+            "ts_sealed":     ts,
+            "turn":          raw.get("turn", 0),
+        })
+    rows.sort(key=lambda r: r["ts_sealed"] if r["ts_sealed"] is not None else 0.0, reverse=True)
+    return rows
+
+
 @operator_router.get("/sessions")
 def list_sessions(
     operator_id: str = Depends(require_operator),
+    x_session_id: Optional[str] = Header(default=None),
 ) -> dict[str, Any]:
     """List session summaries for the authed operator.
 
@@ -468,9 +529,14 @@ def list_sessions(
     passed the query param will see it silently ignored because
     FastAPI binds the dependency-injected ``operator_id`` first.)
 
-    Returns ``{"operator_id": str, "sessions": list[<summary>]}``
-    where each summary carries session_id, operator_id, history_len,
-    and timestamp. Sort: newest-first by last-step timestamp.
+    Returns ``{"operator_id": str, "sessions": list[<summary>],
+    "login_sessions": list[<login row>]}`` where each summary carries
+    session_id, operator_id, history_len, and timestamp (newest-first by
+    last-step timestamp), and (#191) each login row carries session_ref,
+    current, member_number, operator_id, ts_sealed, turn (newest first).
+    ``sessions`` is runtime_persistence -- process memory on the service,
+    empty after a cold start; ``login_sessions`` is the member's vault and
+    survives one. A page says "no prior sessions" only when BOTH are empty.
 
     Returns 401 on missing / invalid / expired X-Session-ID.
     """
@@ -480,7 +546,11 @@ def list_sessions(
         # Shouldn't happen for an authed user (the session_store
         # only stores valid user strings), but defensive.
         raise HTTPException(status_code=400, detail=str(e))
-    return {"operator_id": operator_id, "sessions": summaries}
+    return {
+        "operator_id":    operator_id,
+        "sessions":       summaries,
+        "login_sessions": _login_sessions_for(x_session_id),
+    }
 
 
 # ---------------------------------------------------------------------------

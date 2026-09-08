@@ -105,6 +105,11 @@ ALLOWED_NAMESPACES: tuple = (
     # raised here and was swallowed by a debug log (#33) -- no arc record
     # has ever existed. Read by GET /me/relationships/{thread_id}/arc.
     "arc_records",
+    # #191 (2026-09-08) -- one row per login under
+    # ``session_records.{session_id}`` (auth_magiclink._write_login_record):
+    # {class, member_number, operator_id, ts_sealed, turn}. Ids and a
+    # number, never text. Read by GET /operator/sessions as login_sessions.
+    "session_records",
     # PASS-4 V2 — System-wide founder configuration that must
     # outlive a single process. The only key today is
     # ``founder_global.default_model`` (set via

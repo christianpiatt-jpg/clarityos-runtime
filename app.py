@@ -3416,19 +3416,24 @@ def _persist_markov_state(
     qc_envelope: dict,
     predictive_vector: Optional[list[float]] = None,
     envelope_metrics: Optional[dict] = None,
+    extra: Optional[dict] = None,
 ) -> tuple[int, float]:
-    """Append a new Markov state. Shared by /markov/state/update and
-    /markov/chat. Returns (state_index, timestamp). Caller is responsible
-    for normalization validation when accepting from a client.
+    """Append a new Markov state. Shared by /markov/state/update,
+    /markov/chat and (#140 B) the thread path. Returns (state_index,
+    timestamp). Caller is responsible for normalization validation when
+    accepting from a client.
 
     Markov v3 fields default per spec: predictive_vector → state_vector,
-    envelope_metrics → all-zero trend dict."""
+    envelope_metrics → all-zero trend dict. ``extra`` (#51) is ADDITIVE:
+    the thread path stamps ``class`` and ``ts_sealed`` (= this write's
+    ``timestamp``) beside the v3 fields; the two older callers pass none
+    and their docs are byte-for-byte what they were."""
     state_index = markov_states_store.next_index_for(user, session_id)
     now = time.time()
     state_id = markov_states_store.new_id()
     pv = list(predictive_vector) if predictive_vector is not None else list(state_vector)
     em = dict(envelope_metrics) if envelope_metrics is not None else dict(_DEFAULT_ENVELOPE_METRICS)
-    markov_states_store.create(state_id, {
+    payload = {
         "id": state_id,
         "user": user,
         "session_id": session_id,
@@ -3438,8 +3443,54 @@ def _persist_markov_state(
         "envelope_predictive_vector": pv,
         "envelope_metrics": em,
         "timestamp": now,
-    })
+    }
+    if extra:
+        for k, v in dict(extra).items():
+            payload.setdefault(k, v)          # additive only: a v3 field is never overwritten
+        payload.setdefault("ts_sealed", now)  # the seal stamp IS this write's timestamp
+    markov_states_store.create(state_id, payload)
     return state_index, now
+
+
+MARKOV_THREAD_STATE_CLASS = "markov_state_thread"   # #51 -- the record names its class
+
+
+def _write_thread_markov_state(user: str, thread_id: str, text: str) -> tuple[int, float, bool]:
+    """#140 B (CT-1 2026-09-08) -- ONE Markov state per member turn on the
+    thread path, keyed by the thread id as the Markov session. Until now
+    nothing on /me/threads/{id}/message wrote markov_states_store, so the
+    two readers of that store -- GET /markov/envelope/latest (the MQC cell,
+    #71) and GET /sessions -- 404'd "no_state" / listed nothing for every
+    chat member.
+
+    The write: v_obs = the cached embedding of the member's text; state =
+    normalize(v_obs + prev.state_vector), or v_obs itself when there is no
+    prior; qc = the prior's qc_envelope, or the identity envelope. When the
+    prior's dimension differs from v_obs (Vertex answers 768; the hash
+    fallback is 32) the chain restarts from v_obs and says so (dim_reset).
+    Returns (state_index, timestamp, dim_reset, the qc KEYS persisted --
+    what the log line names). Raises on an empty text
+    or a store failure -- the caller turns that into a WARNING; the reply
+    is already on its way. The envelope goes to the store and the log,
+    never to a prompt (R4.1)."""
+    v_obs = dewey_pipeline.embed_text_cached(text)
+    if not v_obs:
+        raise ValueError("empty observation vector")
+    prev = markov_states_store.latest_for(user, thread_id) or {}
+    prev_vec = list(prev.get("state_vector") or [])
+    dim_reset = False
+    if not prev_vec:
+        state = list(v_obs)
+    elif len(prev_vec) != len(v_obs):
+        state = list(v_obs)
+        dim_reset = True
+    else:
+        state = dewey_pipeline._normalize(_vec_add(list(v_obs), prev_vec))
+    qc = dict(prev.get("qc_envelope") or _IDENTITY_QC_ENVELOPE)
+    state_index, ts = _persist_markov_state(
+        user, thread_id, state, qc, extra={"class": MARKOV_THREAD_STATE_CLASS},
+    )
+    return state_index, ts, dim_reset, sorted(qc)
 
 
 @app.post("/markov/state/update")
@@ -13649,6 +13700,26 @@ def me_threads_post_message(
         logger.warning(
             "emophysics shadow FAILED user=%s thread=%s err=%s: %s",
             _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
+        )
+
+    # #140 B -- THE STORE IS WRITTEN. One Markov state per member turn, after
+    # the reply is persisted and the two shadows have run; a failure here
+    # costs the member a state, never their turn, and is LOUD (a WARNING
+    # naming the type). The user ref is a HASH (users_store._uref): usernames
+    # are addresses and the cascade line's prefix ref would print a short
+    # one whole (#163's refuter). Log state_index + the qc KEYS only; the
+    # envelope goes to the store and never to a prompt (R4.1).
+    user_ref = users_store._uref(user)
+    try:
+        _si, _ts, _dim_reset, _qc_keys = _write_thread_markov_state(user, thread_id, req.content)
+        logger.info(
+            "markov write user=%s thread=%s state_index=%d qc_keys=%s dim_reset=%s",
+            user_ref, _session_ref(thread_id), _si, _qc_keys, _dim_reset,
+        )
+    except Exception as exc:                      # noqa: BLE001 - loud, never fatal
+        logger.warning(
+            "markov write FAILED user=%s thread=%s err=%s",
+            user_ref, _session_ref(thread_id), type(exc).__name__,
         )
     return V47PostMessageResponse(
         meta=_meta_to_model(out["meta"]),

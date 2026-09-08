@@ -418,6 +418,15 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_arc_reads_back.py": {
         "runtime_spine", "privacy_surface",
     },
+    # ---- #140 B / #191 / #71 the store is written ----
+    # runtime_spine: the member message route writes the Markov store the
+    # MQC cell and /sessions read; the login path writes a durable row the
+    # history route lists. privacy_surface: the state and the login row
+    # carry no text; the wire carries a session REF, never the id; the
+    # WARNING lines carry a hash and a type name.
+    "test_store_is_written.py": {
+        "runtime_spine", "privacy_surface",
+    },
     # ---- #133 riders: the files the leg's other tests landed in ----
     # runtime_spine: /elins/v2/run is a member route. privacy_surface: the
     # response carries no address and no pasted text (#177).
