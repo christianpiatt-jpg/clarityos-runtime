@@ -68,7 +68,7 @@ import hmac
 from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
 import users_store
 import sessions_store
@@ -13299,6 +13299,9 @@ class V47ThreadMetaModel(BaseModel):
     # #127 -- the COMMIT_SHA of the code that produced the summary; None on
     # rows that predate the stamp (never backfilled) or when unset.
     summary_commit_sha: Optional[str] = None
+    # #190 passenger -- the message_count the summary was made at (turns,
+    # never a clock). None on rows that predate the stamp.
+    summary_turn: Optional[int] = None
     # v51 — project membership. ``None`` for threads not tied to
     # any project (existing v47-v50 threads remain valid). Set at
     # creation via ``POST /me/threads`` body and surfaced on every
@@ -13415,6 +13418,11 @@ def _meta_to_model(meta: dict) -> V47ThreadMetaModel:
         summary_commit_sha=(
             meta.get("summary_commit_sha")
             if isinstance(meta.get("summary_commit_sha"), str) and meta.get("summary_commit_sha").strip()
+            else None
+        ),
+        summary_turn=(
+            meta.get("summary_turn")
+            if isinstance(meta.get("summary_turn"), int) and not isinstance(meta.get("summary_turn"), bool)
             else None
         ),
         project_id=project_id_val,
@@ -14636,6 +14644,15 @@ class V52EmotionalPhysicsRequest(BaseModel):
     # The relationship this run belongs to. OPTIONAL: absent means the
     # run is anonymous and nothing is recorded, exactly as before.
     thread_id: Optional[str] = None
+    # #139 -- which surface is asking: the window is sized per surface
+    # (personal 6,000 · thread 12,000), tail-anchored, cut by the kernel.
+    surface: Literal["personal", "thread"] = "thread"
+    # #139 -- the caller's cumulative message END offsets (CODE POINTS) over
+    # the exact text it sent, so the kernel can say which messages the
+    # window covers without re-deriving them. Absent -> coverage ABSENT.
+    # StrictInt: a bool or a numeric string is refused at the door (422),
+    # not coerced into a plausible offset.
+    message_boundaries: Optional[list[StrictInt]] = None
 
 
 @app.post("/me/emotional_physics/analyze")
@@ -14664,10 +14681,18 @@ def me_emotional_physics_analyze(
     # The run is recorded BEFORE the engine call, matching the kernel
     # hook: the seal must exist before the return it will be scored
     # against, or the residual is fitted.
-    _record_run_against_thread(user, req.thread_id, text)
+    # #139 -- the record carries what the engine READ (the window), not
+    # the whole transcript the browser now sends; the same helper cuts.
+    window_text, _window = intelligence_kernel.cut_window(
+        text, req.surface, req.message_boundaries,
+    )
+    _record_run_against_thread(user, req.thread_id, window_text)
 
     try:
-        out = intelligence_kernel.run_emotional_physics(user, text)
+        out = intelligence_kernel.run_emotional_physics(
+            user, text,
+            surface=req.surface, message_boundaries=req.message_boundaries,
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=400,
@@ -14699,6 +14724,10 @@ class V53ElinsV2Request(BaseModel):
     # Same field name as the v52 request on purpose: one relationship
     # key, spelled identically on both halves of the pair.
     thread_id:     Optional[str] = None
+    # #139 -- the same two fields the physics request carries; one window
+    # helper serves both routes.
+    surface: Literal["personal", "thread"] = "thread"
+    message_boundaries: Optional[list[StrictInt]] = None
 
 
 @app.post("/elins/v2/run")
@@ -14730,11 +14759,29 @@ def elins_v2_run(
             ),
         )
 
-    _record_run_against_thread(user, req.thread_id, raw_text)
+    # #139 -- the KERNEL cuts, with the same helper physics uses: tail,
+    # sized per surface. Until now this route had no cap at all and the
+    # browser sliced the head. The record carries what the engine read,
+    # and the window facts ride back in _meta for the browser to render.
+    window_text, window = intelligence_kernel.cut_window(
+        raw_text, req.surface, req.message_boundaries,
+    )
+    if not window_text.strip():
+        # the text had content, its TAIL has none: say so, rather than the
+        # kernel's "raw_text must be non-empty" for a raw_text that was not
+        raise HTTPException(
+            status_code=400,
+            detail=error_response(
+                "bad_input",
+                "the window is empty: the last %d characters of raw_text are whitespace"
+                % window["window_chars"],
+            ),
+        )
+    _record_run_against_thread(user, req.thread_id, window_text)
 
     try:
         envelope = intelligence_kernel.run_elins_v2(
-            user, raw_text,
+            user, window_text,
             region=req.region,
             request_input=req.input.model_dump(),
         )
@@ -14743,6 +14790,7 @@ def elins_v2_run(
             status_code=400,
             detail=error_response("bad_input", str(e)),
         )
+    envelope["_meta"] = dict(window)
     return envelope
 
 

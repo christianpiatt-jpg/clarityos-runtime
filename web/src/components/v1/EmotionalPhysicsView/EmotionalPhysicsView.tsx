@@ -28,6 +28,12 @@ interface Props {
   text?: string | null;
   /** Optional callback fired on every successful analysis. */
   onAnalyze?: (resp: EmotionalPhysicsResponse) => void;
+  /** #139 -- which surface sizes the kernel's window (personal 6,000 ·
+   *  thread 12,000; the kernel cuts the tail). Default: thread. */
+  surface?: "personal" | "thread";
+  /** #139 -- the caller's cumulative message end offsets over `text`, so
+   *  the kernel can say which messages its window covers. */
+  messageBoundaries?: number[] | null;
 }
 
 // Canonical v52 layer keys. Must match the backend's
@@ -102,7 +108,9 @@ function analysedAtMs(resp: EmotionalPhysicsResponse | null | undefined): number
   return typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : null;
 }
 
-export default function EmotionalPhysicsView({ response, text, onAnalyze }: Props) {
+export default function EmotionalPhysicsView({
+  response, text, onAnalyze, surface, messageBoundaries,
+}: Props) {
   const [view, setView] = useState<EmotionalPhysicsResponse | null>(response ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +127,11 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
     setLoading(true);
     setError(null);
     try {
-      const resp = await analyzeEmotionalPhysics({ text });
+      const resp = await analyzeEmotionalPhysics({
+        text,
+        surface: surface ?? "thread",
+        message_boundaries: messageBoundaries ?? null,
+      });
       setView(resp);
       // Even on a genuinely fresh run the reading's own stamp is preferable:
       // it is the time the ANALYSIS happened, not the time the promise
@@ -131,7 +143,7 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
     } finally {
       setLoading(false);
     }
-  }, [canRerun, text, onAnalyze]);
+  }, [canRerun, text, onAnalyze, surface, messageBoundaries]);
 
   useEffect(() => {
     if (response || !canRerun) return;

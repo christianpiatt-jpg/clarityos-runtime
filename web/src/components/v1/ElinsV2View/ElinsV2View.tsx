@@ -41,6 +41,7 @@ import {
 } from "../../../lib/elinsV2";
 import { ApiError, type TrustSignal } from "../../../lib/api";
 import { labelFor } from "../../../lib/labels";
+import { tailByCodePoints } from "../../../lib/transcriptWindow";
 import { basinHopLine } from "../../../lib/trustSignal";
 import SendToCorpus from "./SendToCorpus";
 import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
@@ -56,7 +57,15 @@ interface Props {
   envelope?: ElinsV2Envelope | null;
   /** Text + region to run /elins/v2/run against. If omitted, component is
    *  controlled-only. */
-  runOn?: { rawText: string; region?: string | null } | null;
+  runOn?: {
+    rawText: string;
+    region?: string | null;
+    // #139 -- which surface sizes the kernel's window (personal 6,000 ·
+    // thread 12,000; the kernel cuts the tail) and the caller's message
+    // boundaries over rawText so the kernel can say which messages it read.
+    surface?: "personal" | "thread";
+    messageBoundaries?: number[] | null;
+  } | null;
   /** Optional callback fired on every successful run, including initial. */
   onRun?: (env: ElinsV2Envelope) => void;
   /** #162 (d) -- the relationship's trust signal (#23), when the caller
@@ -124,6 +133,14 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const canRerun = !!runOn && typeof runOn.rawText === "string"
     && runOn.rawText.trim().length > 0;
 
+  // #139 -- what this run READ: the kernel's tail window, when the reading
+  // on screen declares one; otherwise the whole input (a run that predates
+  // the stamp, or a controlled envelope without _meta).
+  const declaredChars = view?._meta?.window_chars;
+  const corpusText = runOn?.rawText
+    ? (typeof declaredChars === "number" ? tailByCodePoints(runOn.rawText, declaredChars) : runOn.rawText)
+    : "";
+
   const doRun = useCallback(async () => {
     if (!canRerun || !runOn) return;
     setLoading(true);
@@ -132,6 +149,10 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
       const req: ElinsV2RunRequest = {
         region: runOn.region ?? null,
         input: { raw_text: runOn.rawText },
+        // #139 -- the kernel cuts; these two say which window and where the
+        // messages end. The thread surface is this view's default.
+        surface: runOn.surface ?? "thread",
+        message_boundaries: runOn.messageBoundaries ?? null,
       };
       const env = await runElinsV2(req);
       setView(env);
@@ -217,16 +238,18 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
           {loading ? "running…" : "Re-run ELINS"}
         </button>
       ) : null}
-      {/* ★ "send to corpus". The run's INPUT text -- runOn.rawText, the
-          same text the diagnostic was run on -- goes through the same
-          front door as the cockpit box. Rendered only when that text is
-          in hand; a button that could send nothing is not offered. */}
+      {/* ★ "send to corpus". The text the diagnostic READ -- the kernel's
+          tail window (#139), reproduced here from _meta.window_chars on the
+          same unit, or the whole input when no window is declared -- goes
+          through the same front door as the cockpit box. Rendered only when
+          that text is in hand; a button that could send nothing is not
+          offered. */}
       {/* key={text}: the control's "sent" state belongs to THIS text. When
           the transcript changes (new turn, other thread) it remounts fresh,
           so it never claims the new text was sent. Trimmed gate matches
           canRerun: whitespace-only input offers nothing. */}
-      {runOn?.rawText?.trim() ? (
-        <SendToCorpus key={runOn.rawText} text={runOn.rawText} region={runOn.region ?? null} />
+      {corpusText.trim() ? (
+        <SendToCorpus key={corpusText} text={corpusText} region={runOn?.region ?? null} />
       ) : null}
     </footer>
   );

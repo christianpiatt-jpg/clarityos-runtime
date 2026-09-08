@@ -376,6 +376,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_vault_timeline_source.py": {
         "runtime_spine",
     },
+    # ---- #139 the insight window: tail, sized per surface, kernel cuts ----
+    # determinism_surface: cut_window is a pure function whose numbers the
+    # browser renders verbatim. runtime_spine: both insight routes and the
+    # summary_turn stamp on the thread meta (#190 passenger).
+    "test_window_tail.py": {
+        "runtime_spine", "determinism_surface",
+    },
     # ---- #146 EL/INS verifies the reply (R5.2d) ----
     # runtime_spine: it sits on the member message path, and its whole
     # value is that the analyzer never phones a model and never writes.

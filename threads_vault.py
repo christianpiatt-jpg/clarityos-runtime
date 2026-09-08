@@ -79,6 +79,12 @@ class ThreadMeta(TypedDict):
     # rows written before the stamp existed (never backfilled) and when the
     # running process has no COMMIT_SHA. A reader treats None as UNKNOWN.
     summary_commit_sha: Optional[str]
+    # #190 passenger (shipped with #139) -- the thread's message_count at the
+    # moment the summary was made. Same unit as message_count, so a reader's
+    # age is message_count - summary_turn in TURNS (never a clock). None on
+    # rows written before the stamp existed (never backfilled) and when the
+    # summary is cleared.
+    summary_turn: Optional[int]
     # v51 — project membership. None for threads that aren't part of
     # any project (existing v47-v50 threads stay valid). When set,
     # ``GET /me/threads?project_id=X`` filters on this field.
@@ -156,6 +162,11 @@ def _coerce_meta(raw: Any, *, thread_id: str) -> ThreadMeta:
     summary_commit_sha: Optional[str] = (
         raw_sha.strip() if isinstance(raw_sha, str) and raw_sha.strip() else None
     )
+    raw_turn = raw.get("summary_turn")
+    summary_turn: Optional[int] = (
+        int(raw_turn) if isinstance(raw_turn, int) and not isinstance(raw_turn, bool) and raw_turn >= 0
+        else None
+    )
     out: ThreadMeta = {
         "thread_id":     str(raw.get("thread_id") or thread_id),
         "title":         raw.get("title") if isinstance(raw.get("title"), str) else None,
@@ -166,6 +177,7 @@ def _coerce_meta(raw: Any, *, thread_id: str) -> ThreadMeta:
         "summary":       summary,
         "summary_ts_ms": summary_ts_ms,
         "summary_commit_sha": summary_commit_sha,
+        "summary_turn":  summary_turn,
         "project_id":    project_id_val,
     }
     return out
@@ -238,6 +250,7 @@ def create_thread(
         "summary":       None,
         "summary_ts_ms": None,
         "summary_commit_sha": None,
+        "summary_turn":  None,
         "project_id":    project_id,
     }
     memory_vault.vault_put(user_id, _meta_key(thread_id), meta)
@@ -409,11 +422,14 @@ def update_thread_summary(
     ts_ms: int,
     *,
     commit_sha: Optional[str] = None,
+    summary_turn: Optional[int] = None,
 ) -> ThreadMeta:
     """Persist a freshly-computed summary onto the thread's meta.
 
     ``commit_sha`` (#127) stamps the code that produced it; None when the
     caller could not read one. It is stored, never derived here.
+    ``summary_turn`` (#190 passenger) stamps the message_count the summary
+    was made at; likewise stored, never derived, None when not given.
 
     Passing ``summary=None`` (or an empty string) clears the summary —
     used by :func:`intelligence_kernel.summarize_thread` when the
@@ -438,10 +454,16 @@ def update_thread_summary(
         meta["summary_commit_sha"] = (
             commit_sha.strip() if isinstance(commit_sha, str) and commit_sha.strip() else None
         )
+        meta["summary_turn"] = (
+            int(summary_turn)
+            if isinstance(summary_turn, int) and not isinstance(summary_turn, bool) and summary_turn >= 0
+            else None
+        )
     else:
         meta["summary"] = None
         meta["summary_ts_ms"] = None
         meta["summary_commit_sha"] = None
+        meta["summary_turn"] = None
 
     memory_vault.vault_put(user_id, _meta_key(thread_id), meta)
     return meta

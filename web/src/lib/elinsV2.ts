@@ -9,6 +9,7 @@
 // No new backend contracts. No mutation. Pure HTTP + typed response.
 
 import { ApiError, getSession } from "./api";
+import type { WindowMeta } from "./transcriptWindow";
 import { getApiBase } from "./config";
 
 // -----------------------------------------------------------------
@@ -38,6 +39,10 @@ export interface ElinsV2RunRequest {
   elins_version?: string | null;
   region?: string | null;
   input: ElinsV2Input;
+  // #139 -- the kernel cuts a tail window sized per surface; the caller's
+  // message boundaries over input.raw_text let it say which messages it read.
+  surface?: "personal" | "thread";
+  message_boundaries?: number[] | null;
 }
 
 export interface ElinsV2EtfAgg {
@@ -108,6 +113,8 @@ export interface ElinsV2Envelope {
   pipeline:      ElinsV2Pipeline;
   outputs:       ElinsV2Outputs;
   meta:          ElinsV2Meta;
+  // #139 -- the window the kernel READ (cut_window), for the declaration line.
+  _meta?:        WindowMeta;
 }
 
 // -----------------------------------------------------------------
@@ -143,6 +150,9 @@ export async function runElinsV2(req: ElinsV2RunRequest): Promise<ElinsV2Envelop
       body: JSON.stringify({
         elins_version: req.elins_version ?? null,
         region:        req.region ?? null,
+        // #139 -- which window, and where the messages end
+        surface:            req.surface ?? "thread",
+        message_boundaries: req.message_boundaries ?? null,
         input: {
           raw_text:       req.input.raw_text,
           source_type:    req.input.source_type ?? null,

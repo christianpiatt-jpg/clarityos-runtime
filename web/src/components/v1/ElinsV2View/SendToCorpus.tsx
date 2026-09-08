@@ -2,8 +2,9 @@
  * SendToCorpus — the "send to corpus" control in the ElinsV2View footer.
  *
  * A diagnostic run is transient: the input text is analysed and discarded.
- * This posts that same input text (runOn.rawText) through the corpus front
- * door (/ingest/manual), so the run the member just read can be KEPT in the
+ * This posts the text the run READ (#139: the kernel's tail window, or the
+ * whole input when none is declared) through the corpus front door
+ * (/ingest/manual), so the run the member just read can be KEPT in the
  * library with an object_vector -- the same door as the cockpit box, with a
  * different `source` so the two entrances stay tellable apart in the store.
  *
@@ -58,7 +59,7 @@ export default function SendToCorpus({
         onClick={send}
         disabled={!canSend}
         aria-label="Send this run's input text to the corpus"
-        title={`Stores this run's input text (${text.length} characters) in your library`}
+        title={`Stores the text this run read (${Array.from(text).length} characters) in your library`}
       >
         {busy ? "sending…" : sentId ? "sent to corpus" : "send to corpus"}
       </button>

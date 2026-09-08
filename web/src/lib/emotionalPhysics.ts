@@ -15,6 +15,7 @@
 
 import { ApiError, getSession, type RelationalPrimitives } from "./api";
 import { getApiBase } from "./config";
+import type { WindowMeta } from "./transcriptWindow";
 
 // Four top-level layer keys. Canonical naming.
 //
@@ -38,12 +39,17 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     // #162 (b) -- the provider stop signal (#128); null on mock.
     stop_reason?: string | null;
     [k: string]:  unknown;
-  };
+  } & WindowMeta;   // #139 -- the window the kernel READ, for the declaration line
   [k: string]: unknown;
 }
 
 export interface EmotionalPhysicsRequest {
   text: string;
+  // #139 -- the kernel cuts a tail window sized per surface (personal
+  // 6,000 · thread 12,000); the caller's message boundaries over `text`
+  // let it say which messages the window covers.
+  surface?: "personal" | "thread";
+  message_boundaries?: number[] | null;
 }
 
 /**
@@ -71,7 +77,11 @@ export async function analyzeEmotionalPhysics(
         "Content-Type": "application/json",
         "X-Session-ID": session,
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({
+        text,
+        surface: req.surface ?? "thread",
+        message_boundaries: req.message_boundaries ?? null,
+      }),
     });
   } catch (e) {
     throw new ApiError(

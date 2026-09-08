@@ -1674,9 +1674,16 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
     # -> None, never invented. A reader treats None as UNKNOWN -> stale.
     commit_sha = (os.getenv("COMMIT_SHA") or "").strip() or None
 
+    # #190 passenger (dispatched with #139) -- STAMP the turn the summary
+    # was made at, in the SAME UNIT as meta.message_count, so a reader's
+    # "age" is message_count - summary_turn: turns, never a clock (STANDING).
+    # A summary made on an empty thread is cleared above and carries None.
+    summary_turn = int(meta.get("message_count") or 0)
+
     now_ms = int(time.time() * 1000)
     updated = threads_vault.update_thread_summary(
         user_id, thread_id, summary_text, now_ms, commit_sha=commit_sha,
+        summary_turn=summary_turn,
     )
 
     kernel_logging.log_kernel_run(
@@ -1694,6 +1701,7 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
             "cleared":       False,
             "reason":        "refusal_shape" if refused else None,
             "commit_sha":    commit_sha,
+            "summary_turn":  summary_turn,   # #190 passenger
         },
     )
     return {"meta": updated}
@@ -1814,7 +1822,110 @@ _EMOTIONAL_PHYSICS_KEYS: tuple = (
 
 # Hard cap on the user's text so an over-long input can't blow the
 # prompt budget. Truncation is silent — the call still succeeds.
-EMOTIONAL_PHYSICS_INPUT_CHAR_CAP: int = 6_000
+# ---------------------------------------------------------------------------
+# #139 -- the insight window: tail-anchored, sized per surface, declared
+# ---------------------------------------------------------------------------
+# CT-1 RULED (2026-09-03): anchor = TAIL on every surface; size = 6,000 for
+# Personal ELINS (relational turns weigh more), 12,000 everywhere else; the
+# KERNEL cuts, the browser declares. Before this there were three constants
+# -- this module's 6,000 HEAD cut, the browser's 6,000 head slice, and no
+# cap at all on /elins/v2/run -- and two of them lied by omission: both
+# cockpit insight tabs read the FIRST 6,000 of a 96,176-char thread
+# (messages 1-7 of 44) and the kernel re-cut silently.
+#
+# * THREAD_CONTEXT_CHAR_BUDGET (the REPLY path, above) is a different
+#   window and is deliberately not touched.
+WINDOW_CHARS: dict = {"personal": 6_000, "thread": 12_000}
+WINDOW_DEFAULT_SURFACE: str = "thread"
+WINDOW_ANCHOR: str = "tail"
+
+_COVERAGE_ABSENT: dict = {
+    "window_coverage": "ABSENT",
+    "total_messages": None,
+    "window_messages": None,
+    "window_first_message": None,
+    "window_last_message": None,
+    "window_truncated_mid_message": None,
+}
+
+
+def _message_coverage(boundaries, start: int, total: int) -> dict:
+    """Which messages the window ``[start, total)`` covers, from the caller's
+    cumulative END offsets -- the browser computes them over the SAME string
+    it sends (transcriptWindow.computeBoundaries), and the kernel does not
+    re-derive them. Message i starts at ``ends[i-1] + 1`` (the "\n" joiner)
+    and ends at ``ends[i]``.
+
+    ★ THE UNIT IS CODE POINTS on both sides: Python ``len`` here, and the
+    browser counts ``Array.from(part).length`` (a JS ``.length`` is UTF-16
+    code units and would overcount every emoji by one, so the last boundary
+    would miss ``total`` and the whole thread's coverage would read ABSENT).
+
+    Absent or invalid boundaries -> every coverage number None and
+    ``window_coverage`` ABSENT with the reason. A wrong count is worse than
+    none: the line then reads a dash, never a number the kernel cannot stand
+    behind.
+    """
+    if boundaries is None:
+        return {**_COVERAGE_ABSENT, "window_coverage_reason": "no message boundaries in the request"}
+    if not isinstance(boundaries, (list, tuple)) or not boundaries:
+        return {**_COVERAGE_ABSENT, "window_coverage_reason": "message_boundaries must be a non-empty list"}
+    ends: list = []
+    for b in boundaries:
+        if isinstance(b, bool) or not isinstance(b, int) or b < 0:
+            return {**_COVERAGE_ABSENT, "window_coverage_reason": "message_boundaries must be non-negative ints"}
+        ends.append(b)
+    if any(ends[i] <= ends[i - 1] for i in range(1, len(ends))):
+        return {**_COVERAGE_ABSENT, "window_coverage_reason": "message_boundaries must increase"}
+    if total <= 0:
+        return {**_COVERAGE_ABSENT, "window_coverage_reason": "empty text"}
+    if ends[-1] != total:
+        return {**_COVERAGE_ABSENT,
+                "window_coverage_reason": "message_boundaries do not end at total_chars"}
+    count = len(ends)
+    starts = [0] + [e + 1 for e in ends[:-1]]
+    first = next(i for i, e in enumerate(ends) if e > start)   # start < total here
+    whole = sum(1 for st in starts if st >= start)
+    return {
+        "window_coverage": "boundaries",
+        "window_coverage_reason": None,
+        "total_messages": count,
+        "window_messages": whole,                 # WHOLE messages inside the window
+        "window_first_message": first + 1,        # 1-based, the first one touched
+        "window_last_message": count,             # a tail window always reaches the end
+        # ★ with a TAIL anchor the cut message is missing its BEGINNING, not
+        # its ending: the reading opens on a fragment whose start it never saw.
+        "window_truncated_mid_message": bool(start > 0 and starts[first] < start),
+    }
+
+
+def cut_window(text: str, surface: Optional[str] = None,
+               message_boundaries: Optional[list] = None) -> tuple:
+    """THE ONE CUT (#139). ``(window_text, window_meta)`` for one request.
+
+    The cut runs on the text AS RECEIVED (the caller's boundaries describe
+    that string); the caller strips for its prompt afterwards. ``surface``
+    picks the size from WINDOW_CHARS; anything else (including None) is the
+    default surface, and ``window_surface`` on the line says which one was
+    used. A window is never longer than the text, so a short text reads
+    whole and the declaration can say so.
+    """
+    if not isinstance(text, str):
+        raise ValueError("text must be a string")
+    surf = surface if isinstance(surface, str) and surface in WINDOW_CHARS else WINDOW_DEFAULT_SURFACE
+    cap = WINDOW_CHARS[surf]
+    total = len(text)
+    start = max(0, total - cap)
+    window_text = text[start:]
+    meta: dict = {
+        "window_anchor":  WINDOW_ANCHOR,
+        "window_surface": surf,
+        "window_cap":     cap,
+        "window_chars":   len(window_text),
+        "total_chars":    total,
+    }
+    meta.update(_message_coverage(message_boundaries, start, total))
+    return window_text, meta
 
 # Inline prompt — the JSON contract from the v52 spec, verbatim. The
 # kernel embeds this so the model always sees the schema alongside the
@@ -2057,7 +2168,13 @@ def _signal_clarity_value(body: dict) -> str:
     return raw.strip().lower()
 
 
-def run_emotional_physics(user_id: str, text: str) -> dict:
+def run_emotional_physics(
+    user_id: str,
+    text: str,
+    *,
+    surface: Optional[str] = None,
+    message_boundaries: Optional[list] = None,
+) -> dict:
     """v52 — structural-not-sentimental analysis of a situation.
 
     Given a user's free-text description, returns a four-layer
@@ -2087,19 +2204,39 @@ def run_emotional_physics(user_id: str, text: str) -> dict:
                 "ts_ms":       1715300000000,
                 "parse_error": None,   # or str on degrade
                 "stop_reason": "end_turn",  # #128 raw vendor value; None on mock
+                # #139 -- the window the kernel READ (cut_window):
+                "window_anchor": "tail", "window_surface": "thread",
+                "window_cap": 12000, "window_chars": 12000, "total_chars": 96176,
+                "window_coverage": "boundaries",   # or "ABSENT" + reason
+                "total_messages": 44, "window_messages": 6,
+                "window_first_message": 38, "window_last_message": 44,
+                "window_truncated_mid_message": True,
             },
         }
+
+    ``surface`` ("personal" | "thread") sizes the window; ``message_boundaries``
+    (the caller's cumulative end offsets) give it message coverage. Both
+    optional: absent means the default surface and coverage ABSENT.
 
     Raises:
         ValueError: ``text`` is missing / empty / whitespace-only.
     """
     if not isinstance(text, str):
         raise ValueError("text must be a string")
-    cleaned = text.strip()
-    if not cleaned:
+    if not text.strip():
         raise ValueError("text must be a non-empty string after stripping")
-    if len(cleaned) > EMOTIONAL_PHYSICS_INPUT_CHAR_CAP:
-        cleaned = cleaned[:EMOTIONAL_PHYSICS_INPUT_CHAR_CAP]
+    # #139 -- the KERNEL cuts: tail-anchored, sized per surface, declared
+    # back in _meta. The cut runs on the text as received so the caller's
+    # boundaries stay true; the strip is for the prompt only.
+    window_text, window = cut_window(text, surface, message_boundaries)
+    cleaned = window_text.strip()
+    if not cleaned:
+        # A text whose TAIL is all whitespace passed the check above on its
+        # head; the model must never be handed an empty situation.
+        raise ValueError(
+            "the window is empty: the last %d characters of the text are whitespace"
+            % window["window_chars"]
+        )
 
     started = time.perf_counter()
 
@@ -2140,6 +2277,8 @@ def run_emotional_physics(user_id: str, text: str) -> dict:
             # #128 -- the provider's stop signal, copied raw whether or not
             # the body parsed. None on mock (surfaced later; no UI yet).
             "stop_reason": response.get("stop_reason"),
+            # #139 -- what the kernel actually read; the browser renders it.
+            **window,
         },
     }
 
@@ -2155,6 +2294,9 @@ def run_emotional_physics(user_id: str, text: str) -> dict:
         meta={
             "model_id":    model_id,
             "input_len":   len(cleaned),
+            "window_chars":   window["window_chars"],     # #139
+            "window_surface": window["window_surface"],  # #139
+            "total_chars":    window["total_chars"],     # #139
             "raw_len":     len(raw_text),
             "parse_error": parse_error,
             "substantive_fields":      _count_substantive_fields(result_body),

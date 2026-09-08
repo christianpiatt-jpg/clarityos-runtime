@@ -2,6 +2,7 @@
 // Mirrors phone/lib/api.ts intent: same routes, same envelope.
 
 import { getApiBase } from "./config";
+import type { WindowMeta } from "./transcriptWindow";
 
 const SESSION_KEY = "clarityos_session";
 const USER_KEY = "clarityos_user";
@@ -1785,6 +1786,10 @@ export interface ThreadMeta {
   // #127 -- the COMMIT_SHA of the code that made the summary. Absent or
   // null on rows that predate the stamp; never backfilled.
   summary_commit_sha?: string | null;
+  // #190 passenger (shipped with #139) -- the message_count the summary was
+  // made at. Age = message_count - summary_turn, in TURNS, never a clock.
+  // Absent or null on rows that predate the stamp.
+  summary_turn?: number | null;
   // v51 — project membership, surfaced on every meta read. The
   // cockpit partitions its left list on this: a RELATIONSHIP is a
   // thread carrying the reserved relationship project id.
@@ -2232,15 +2237,23 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     // #162 (b) -- #128 shipped the provider stop signal, raw; null on
     // mock. The panels mark a reply whose stop_reason is not end_turn.
     stop_reason?: string | null;
-  };
+  } & WindowMeta;   // #139 -- the window the kernel READ
 }
 // ★ thread_id is the RELATIONSHIP KEY, and it is spelled identically
 // on both halves of the pair below. Omitted when absent, so a run
 // without a relationship sends exactly the body it sent before.
-export const runEmotionalPhysics = (text: string, thread_id?: string | null) =>
+// #139 -- these two doors are the PERSONAL surface's (the cockpit's
+// personal run and /personal-elins); the thread panel goes through
+// lib/emotionalPhysics and lib/elinsV2 with surface "thread". The kernel
+// cuts the tail window (personal 6,000) and declares it in _meta.
+export const runEmotionalPhysics = (
+  text: string,
+  thread_id?: string | null,
+  surface: "personal" | "thread" = "personal",
+) =>
   request<EmotionalPhysicsResponse>(
     "/me/emotional_physics/analyze",
-    { method: "POST", body: thread_id ? { text, thread_id } : { text } },
+    { method: "POST", body: thread_id ? { text, thread_id, surface } : { text, surface } },
   );
 
 // ---------- v53 — ELINS v2 (Path C view adapter) ----------
@@ -2268,19 +2281,22 @@ export interface ElinsV2Envelope {
   pipeline?:     Record<string, unknown>;
   outputs:       ElinsV2Outputs;
   meta?:         Record<string, unknown>;
+  // #139 -- the window the kernel READ (cut_window).
+  _meta?:        WindowMeta;
 }
 export const runElinsV2 = (
   text: string,
   region?: string | null,
   thread_id?: string | null,
+  surface: "personal" | "thread" = "personal",   // #139 -- see runEmotionalPhysics
 ) =>
   request<ElinsV2Envelope>(
     "/elins/v2/run",
     {
       method: "POST",
       body: thread_id
-        ? { region: region ?? null, input: { raw_text: text }, thread_id }
-        : { region: region ?? null, input: { raw_text: text } },
+        ? { region: region ?? null, input: { raw_text: text }, thread_id, surface }
+        : { region: region ?? null, input: { raw_text: text }, surface },
     },
   );
 

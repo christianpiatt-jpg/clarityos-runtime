@@ -283,18 +283,19 @@ def test_run_emotional_physics_empty_text_raises_value_error(reset_stores):
 
 
 def test_run_emotional_physics_caps_long_input(reset_stores, monkeypatch):
-    """Inputs longer than the cap are silently truncated; the call
-    still succeeds and the captured prompt's user-text suffix is
-    exactly at the cap."""
+    """#139 -- inputs longer than the surface's window are cut to their
+    TAIL (CT-1 ruled 09-03; this was a silent HEAD cut at 6,000); the call
+    still succeeds, the prompt's user text is exactly the window, and
+    _meta declares what was read."""
     import intelligence_kernel as ik
     payload = _valid_payload()
     captured = _install_fake_handler(monkeypatch, json.dumps(payload))
 
-    # Use a sentinel character that does NOT appear in the prompt
-    # template (the template is plain English + JSON braces).
-    sentinel = "Z"
+    # Two sentinels that do NOT appear in the prompt template: the head is
+    # "H", the tail is "Z". A tail cut keeps only Z.
+    cap = ik.WINDOW_CHARS["thread"]
     overage = 500
-    huge = sentinel * (ik.EMOTIONAL_PHYSICS_INPUT_CHAR_CAP + overage)
+    huge = ("H" * overage) + ("Z" * cap)
     out = ik.run_emotional_physics("alice", huge)
 
     assert out["_meta"]["parse_error"] is None
@@ -305,13 +306,15 @@ def test_run_emotional_physics_caps_long_input(reset_stores, monkeypatch):
     split_token = "SITUATION:\n"
     assert split_token in captured["prompt"]
     user_tail = captured["prompt"].split(split_token, 1)[1]
-    assert len(user_tail) == ik.EMOTIONAL_PHYSICS_INPUT_CHAR_CAP
-    # And the tail is all sentinel — confirms the truncation kept the
-    # right slice (head of the input, not arbitrary middle).
-    assert set(user_tail) == {sentinel}
-    # And the template body itself does not contain the sentinel — so
-    # we know our split isolated the user text correctly.
-    assert sentinel not in ik._EMOTIONAL_PHYSICS_PROMPT
+    assert len(user_tail) == cap
+    # The window kept the TAIL: all Z, no H.
+    assert set(user_tail) == {"Z"}
+    assert "H" not in user_tail
+    assert "Z" not in ik._EMOTIONAL_PHYSICS_PROMPT and "H" not in ik._EMOTIONAL_PHYSICS_PROMPT
+    # And the kernel says so.
+    m = out["_meta"]
+    assert m["window_anchor"] == "tail" and m["window_surface"] == "thread"
+    assert m["window_chars"] == cap and m["total_chars"] == cap + overage
 
 
 def test_run_emotional_physics_emits_kernel_log_line(

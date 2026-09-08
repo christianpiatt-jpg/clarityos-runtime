@@ -293,15 +293,13 @@ export function SeedComposer({
           boxSizing: "border-box",
         }}
       />
-      {/* ★★★ THE SILENT CLIFF AT 6,000 CHARACTERS.
-          intelligence_kernel.py:1845 does `cleaned = cleaned[:6000]` and
-          its own docstring says "Truncation is silent — the call still
-          succeeds." It is a HEAD slice: it keeps the beginning and drops
-          the end. In a narrative seed the current state is at the END, so
-          a long paste returns a confident read of its oldest half with
-          nothing anywhere signalling that the rest was never seen.
-          This is the frontend half — count and warn before sending. The
-          _meta half is backend and waits on the blocked deploy. */}
+      {/* ★★★ THE CLIFF AT 6,000 CHARACTERS -- now a TAIL cut (#139).
+          intelligence_kernel.cut_window keeps the LAST 6,000 characters
+          on the personal surface (WINDOW_CHARS["personal"]) and returns
+          the window it read in _meta. Before #139 it was a silent HEAD
+          slice that kept the beginning and dropped the end -- the current
+          state -- which is what this counter was born to warn about. The
+          count and the warning stay; the words now say which end is kept. */}
       <div
         id="seed-counter"
         data-testid="seed-counter"
@@ -319,10 +317,10 @@ export function SeedComposer({
         {seed.length > SEED_CHAR_LIMIT ? (
           <span data-testid="seed-overflow-warning" style={{ display: "block", marginTop: 2 }}>
             ⚠ {(seed.length - SEED_CHAR_LIMIT).toLocaleString()} characters past the
-            limit will NOT be read. The engine keeps the first{" "}
-            {SEED_CHAR_LIMIT.toLocaleString()} and silently drops the rest — and the
-            end of a seed is usually the current state. Trim from the top, not
-            the bottom.
+            limit will NOT be read. The engine keeps the last{" "}
+            {SEED_CHAR_LIMIT.toLocaleString()} — the end of a seed, usually the
+            current state — and drops the opening. If the opening matters, trim
+            from the top yourself so it fits.
           </span>
         ) : null}
       </div>
@@ -657,9 +655,9 @@ function renderValue(v: unknown): string {
 // SAME implementation. It shipped here in cdae4ba and missed that consumer,
 // which kept rendering the raw backend value. Re-exported so existing
 // importers (and the test suite) keep working unchanged.
-// Mirrors intelligence_kernel.EMOTIONAL_PHYSICS_INPUT_CHAR_CAP (6_000). Kept
-// as a literal because web/ and the runtime share no code; if the backend cap
-// moves, this must move with it.
+// Mirrors intelligence_kernel.WINDOW_CHARS["personal"] (6_000, a TAIL window
+// since #139). Kept as a literal because web/ and the runtime share no code;
+// if the backend table moves, this must move with it.
 export const SEED_CHAR_LIMIT = 6000;
 
 export {

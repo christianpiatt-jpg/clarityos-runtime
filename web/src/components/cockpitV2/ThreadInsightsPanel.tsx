@@ -19,14 +19,15 @@
  * style objects are imported — only the shared, self-styling badge module and
  * the shared v1 views are reused.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 
 import { useCockpit, cockpit, type InsightsTab } from "../../state/cockpitStore";
 import { summaryCurrency, shortSha } from "../../lib/summaryCurrency";
 import { useLiveCommitSha } from "../../hooks/useLiveCommitSha";
 import {
   composeTranscript,
-  computeWindow,
+  computeBoundaries,
+  windowFromMeta,
   type TranscriptWindow,
 } from "../../lib/transcriptWindow";
 import ElinsV2View from "../v1/ElinsV2View/ElinsV2View";
@@ -38,50 +39,58 @@ const TABS: { id: InsightsTab; label: string }[] = [
   { id: "physics", label: "Physics" },
 ];
 
-/** ★★★ WHAT THIS PANEL ACTUALLY READ.
+/** ★★★ WHAT THIS PANEL ACTUALLY READ — as the KERNEL says it did.
  *
- * Rendered above BOTH analytical views, because both run on the same
- * capped transcript and neither previously said so. A 10-message thread
- * was being analysed from its first 6,000 characters — 17% of it, ending
- * inside message 3 — and the panel reported the result as if it had read
- * the thread.
- *
- * ★★ IT DECLARES; IT DOES NOT CHANGE. Same cap, same head anchor, same
- * content. This only stops the instrument reporting over a set it never
- * received. Wording and placement follow the #68 seed-cliff counter
- * (routes/PersonalElins.tsx:284-305), which does this for the composer.
+ * Rendered above BOTH analytical views. #139 (CT-1 ruled 09-03): the
+ * kernel cuts a TAIL window sized per surface (thread 12,000) and returns
+ * the window it read in `_meta`; this line renders that `_meta` and
+ * nothing local. Before a reading arrives there is no window to declare,
+ * and the line says so with a dash rather than a guess. Wording and
+ * placement follow the #68 seed-cliff counter (routes/PersonalElins.tsx),
+ * which does this for the composer.
  */
-function WindowDeclaration({ w }: { w: TranscriptWindow }) {
+const DECL_STYLE = (color: string): CSSProperties => ({
+  marginBottom: 8,
+  fontFamily: "var(--font-mono)",
+  fontSize: 10,
+  letterSpacing: "0.03em",
+  color,
+});
+
+function WindowDeclaration({ w }: { w: TranscriptWindow | null }) {
+  const n = (v: number | null) => (v === null ? "—" : v.toLocaleString());
+  if (!w) {
+    return (
+      <div data-testid="window-declaration" style={DECL_STYLE("var(--color-text-secondary)")}>
+        read: — (no reading yet; the kernel declares its window with the reply)
+      </div>
+    );
+  }
   const partial = w.window_chars < w.total_chars;
+  const anchorWord = w.window_anchor === "tail" ? "last" : w.window_anchor === "head" ? "first" : w.window_anchor;
   return (
     <div
       data-testid="window-declaration"
-      style={{
-        marginBottom: 8,
-        fontFamily: "var(--font-mono)",
-        fontSize: 10,
-        letterSpacing: "0.03em",
-        color: partial
-          ? "var(--color-accent-red, #E74C3C)"
-          : "var(--color-text-secondary)",
-      }}
+      title={`_meta.window_anchor ${w.window_anchor} · _meta.window_surface ${w.window_surface} · _meta.window_chars · _meta.total_chars · _meta.window_first_message · _meta.window_last_message · _meta.total_messages · _meta.window_coverage_reason ${w.window_coverage_reason ?? "—"}`}
+      style={DECL_STYLE(partial ? "var(--color-accent-red, #E74C3C)" : "var(--color-text-secondary)")}
     >
       {partial ? (
         <>
-          read: first {w.window_chars.toLocaleString()} of{" "}
-          {w.total_chars.toLocaleString()} chars — messages 1-
-          {w.window_messages} of {w.total_messages}
+          read: {anchorWord} {n(w.window_chars)} of {n(w.total_chars)} chars — messages{" "}
+          {n(w.window_first_message)}-{n(w.window_last_message)} of {n(w.total_messages)}
+          {w.window_first_message === null && w.window_coverage_reason ? (
+            <span data-testid="window-coverage-reason"> ({w.window_coverage_reason})</span>
+          ) : null}
           {w.window_truncated_mid_message ? (
             <span data-testid="window-mid-message" style={{ display: "block", marginTop: 2 }}>
-              ⚠ the cut lands INSIDE message {w.window_messages + 1} — this
-              reading contains a fragment whose own ending it never saw.
+              ⚠ the cut lands INSIDE message {n(w.window_first_message)} — this
+              reading opens on a fragment whose own beginning it never saw.
             </span>
           ) : null}
         </>
       ) : (
         <>
-          read: all {w.total_chars.toLocaleString()} chars — {w.total_messages}{" "}
-          of {w.total_messages} messages
+          read: all {n(w.total_chars)} chars — {n(w.total_messages)} of {n(w.total_messages)} messages
         </>
       )}
     </div>
@@ -137,22 +146,25 @@ export default function ThreadInsightsPanel() {
       }).join(" · ")
     : "—";
 
-  // Compose the transcript once per messages change. Capped to 6KB so we
-  // don't blow the backend's text limit — same cap as Threads.tsx:283-292.
-  // ★ Now composed by the shared helper. Byte-identical to the expression
-  // it replaces; the twin at Threads.tsx:326 is still inline and is a
-  // second definition of the same window. Reported, not changed here.
+  // #139 -- the WHOLE composed transcript goes to the kernel, with the
+  // message boundaries computed over that exact string; the kernel cuts
+  // the tail window (thread: 12,000) and declares it in _meta. Nothing is
+  // sliced here any more.
   const threadText = useMemo(() => composeTranscript(messages), [messages]);
-
-  // ★★ The window facts, derived from the SAME messages array in the same
-  // pass. They cannot desync from the cached readings: the elins/physics
-  // caches are transcript-keyed and clear whenever a turn is added, so a
-  // stored reading is always paired with the window it was read through.
-  const window_ = useMemo(() => computeWindow(messages), [messages]);
+  const boundaries = useMemo(() => computeBoundaries(messages), [messages]);
 
   // Only pass runOn when there is text, so the views render their empty
   // state instead of firing a request against the empty string.
-  const runOn = threadText ? { rawText: threadText, region: null } : null;
+  const runOn = threadText.trim()
+    ? { rawText: threadText, region: null, surface: "thread" as const, messageBoundaries: boundaries }
+    : null;
+
+  // ★★ The declaration reads the KERNEL's window off the cached reading of
+  // the tab being shown. The caches are transcript-keyed and clear when a
+  // turn is added, so a stored reading is always paired with the window it
+  // was read through; before a reading exists there is nothing to declare.
+  const elinsWindow = useMemo(() => windowFromMeta(elins?._meta), [elins]);
+  const physicsWindow = useMemo(() => windowFromMeta(physics?._meta), [physics]);
 
   async function commitRename(): Promise<void> {
     await cockpit.thread.actions.rename(renameDraft.trim());
@@ -332,7 +344,7 @@ export default function ThreadInsightsPanel() {
         ) : tab === "elins" ? (
           runOn ? (
             <>
-              <WindowDeclaration w={window_} />
+              <WindowDeclaration w={elinsWindow} />
               <ElinsV2View
                 envelope={elins}
                 runOn={runOn}
@@ -347,10 +359,12 @@ export default function ThreadInsightsPanel() {
           )
         ) : runOn ? (
           <>
-            <WindowDeclaration w={window_} />
+            <WindowDeclaration w={physicsWindow} />
             <EmotionalPhysicsView
               response={physics}
               text={runOn.rawText}
+              surface="thread"
+              messageBoundaries={runOn.messageBoundaries}
               onAnalyze={cockpit.thread.actions.setPhysics}
             />
           </>
