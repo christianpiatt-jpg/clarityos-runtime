@@ -75,6 +75,21 @@ def test_g4_reflexive_pronoun():
     assert _g("The team blames the vendor for the delay.")["G4"] == 0
 
 
+def test_g4_counts_the_first_person_reflexives_too():
+    """#166a -- G4 counts myself / ourselves: the member turning on
+    themselves is self-reference in the same grammatical frame."""
+    assert _g("I blame myself for the delay.")["G4"] == 1
+    assert _g("We hold ourselves to the plan.")["G4"] == 1
+    assert _g("I blame the vendor for the delay.")["G4"] == 0
+    assert _g("My self-assessment was late.")["G4"] == 0
+    # second person is unruled and does not count; the brief's \w* prefix
+    # would have swallowed the "y" and counted it
+    assert _g("You hold yourselves to the plan.")["G4"] == 0
+    assert _g("You blame yourself for the delay.")["G4"] == 0
+    # the original three still count
+    assert _g("The board answers to itself.")["G4"] == 1
+
+
 # --------------------------------------------------------------------------
 # G5 -- objectless evaluation, a subset of G1
 # --------------------------------------------------------------------------

@@ -348,7 +348,15 @@ _G3_VERBS = frozenset({
 #: G4 -- reflexive self-reference, the brief's pattern verbatim. NON-
 #: reflexive coreference ("the team ... the team") needs a parser and is
 #: out of scope: the flag G4_reflexive_only says so in the payload.
-_G4_REFLEXIVE_RE = re.compile(r"\b\w+\s+\w*(itself|themselves|oneself)\b", re.IGNORECASE)
+#: #166a (CT-1 2026-09-08): the first-person reflexives count too -- the
+#: member turning on themselves ("I blame myself") is the same frame.
+#: The brief's \w* before the pronoun was inert for the first three (no
+#: English word ends in them) and would have swallowed the "y" of
+#: "yourselves" once "ourselves" joined; the pronoun now stands alone.
+#: Second person (yourself / yourselves) is unruled and does not count.
+_G4_REFLEXIVE_RE = re.compile(
+    r"\b\w+\s+(itself|themselves|oneself|myself|ourselves)\b", re.IGNORECASE,
+)
 
 #: G5 -- objectless evaluation: a G1 frame whose complement is an
 #: evaluative adjective ("that is unacceptable"). G5 is a subset of G1 by

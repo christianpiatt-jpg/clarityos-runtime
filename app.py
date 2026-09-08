@@ -121,6 +121,14 @@ import founder_analytics           # v43 — founder analytics aggregator
 import monitoring_alerts           # Phase 5 — anomaly + churn alert aggregators
 import model_router                 # v44 — multi-model router
 import primitives_extract           # v81 — P-series decomposition for /markov recast
+# #133 -- the Primitive Selection Engine's first caller, in the shadow.
+import azimuth_envelope             # band_pressure: the one banding call (step 1)
+import azimuth_envelope_impl        # pressure_score: the turn_record:692 reading
+import azimuth_transition           # the drift / geometry default factory (step 4)
+import conversation_mode            # MODE_RULES over the shadow's own counts (step 2)
+import language_schemas             # EnvelopeSnapshot / LanguageContext
+import orchestrator_schemas         # IdentityProfile, the kernel:1031 pattern
+import primitive_selection_engine   # select_expression_plan (step 5)
 import local_model_runtime          # v45 — on-device inference runtime
 import memory_vault                 # v46 — local encrypted KV store
 import threads_vault                # v47 — threaded interactions
@@ -2237,7 +2245,8 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
             #
             # next_path is the bare KEY "app" (NEXT_KEYS -> /cockpit), not the
             # path "/app" — that name was retired and is not an SPA route.
-            # "onboarding" resolves to /plans, which is wrong for a paid buyer.
+            # "onboarding" resolves to /membership (#182; was /plans), the
+            # account page, not the cockpit a paid buyer's first click should land in.
             try:
                 auth_magiclink.request_magic_link(
                     email_lower,
@@ -2742,7 +2751,7 @@ def vault_write(req: VaultWriteRequest, session: dict = Depends(require_active_e
     )
     _emit_timeline(user, "vault.write", item_id,
                    _summary_from(item["title"], item["content"]),
-                   {"type": item["type"], "tags": item["tags"]})
+                   {"type": item["type"], "tags": item["tags"], "source": "vault"})   # #186
     dewey_worker.process_object(user, "vault", item_id, item)
     return {"ok": True, "item": item, "usage": {"bytes_used": new_used, "quota": _quota_for(user)}}
 
@@ -2798,7 +2807,8 @@ def vault_update(req: VaultUpdateRequest, session: dict = Depends(require_active
     )
     _emit_timeline(user, "vault.update", req.id,
                    _summary_from(updated.get("title", ""), updated.get("content", "")),
-                   {"type": updated.get("type"), "tags": updated.get("tags", [])})
+                   {"type": updated.get("type"), "tags": updated.get("tags", []),
+                    "source": "vault"})   # #186
     return {"ok": True, "item": updated, "usage": {"bytes_used": new_used, "quota": _quota_for(user)}}
 
 
@@ -2825,7 +2835,7 @@ def vault_delete(req: VaultDeleteRequest, session: dict = Depends(require_active
     )
     _emit_timeline(user, "vault.delete", req.id,
                    _summary_from(item.get("title", ""), item.get("content", "")),
-                   {"type": item.get("type")})
+                   {"type": item.get("type"), "source": "vault"})   # #186
     return {"ok": True, "id": req.id, "usage": {"bytes_used": new_used, "quota": _quota_for(user)}}
 
 
@@ -3167,7 +3177,7 @@ def elins_ingest_raw(
     )
     _emit_timeline(user, "vault.write", item_id,
                    _summary_from(item["title"], item["content"]),
-                   {"type": "elins_raw"})
+                   {"type": "elins_raw", "source": "vault"})   # #186
     dewey_worker.process_object(user, "vault", item_id, item)
     return {"ok": True, "item": item, "usage": {"bytes_used": new_used, "quota": _quota_for(user)}}
 
@@ -6474,12 +6484,176 @@ def _hedge_ratio(text):
     return _count_hedge_matches(src) / float(sentence_count)
 
 
+# ---------------------------------------------------------------------------
+# #133 -- the PSE's first caller, in the shadow
+# ---------------------------------------------------------------------------
+_PLAN_ABSENT = "ABSENT"
+
+# The provenance strings, one per LanguageContext field. Stable text so a
+# log reader can grep for a field's source; each names where the value
+# (or the absence) comes from.
+_PROV_PRESSURE = ("azimuth_envelope_impl.pressure_score (the turn_record:692 "
+                  "reading, computed once here) -> azimuth_envelope.band_pressure")
+_PROV_PRESSURE_EMPTY = ("ABSENT · empty text, nothing measured (capture_envelope "
+                        "refuses the same input, azimuth_envelope:125-133)")
+_PROV_VALENCE = ("ABSENT · no producer on the turn path (capture_envelope is "
+                 "test-only); no PSE rule reads it (primitive_selection_engine:74,:176)")
+_PROV_INTENSITY = ("ABSENT · no producer on the turn path (capture_envelope is "
+                   "test-only); no PSE rule reads it")
+_PROV_INTENTION = ("ABSENT · the kernel's advisory (meta.module_b_alignment, "
+                   "intelligence_kernel:961) carries no IntentionClass: it is "
+                   "asdict(IntegratedAlignmentResult) = aligned_expression / "
+                   "halt_level / trust_state_delta / momentum_preserved / "
+                   "surface_directives; _derive_intention_class runs only inside "
+                   "build_candidate (azimuth_transition:310), which no production "
+                   "path calls; not recomputed (#133 step 3)")
+_PROV_DRIFT = ("default_factory (azimuth_transition._default_propagation_state, "
+               "the #110 shape): in_bounds=True is UNMEASURED, not a reading")
+_PROV_GEOMETRY = ("default_factory (azimuth_transition._default_propagation_state): "
+                  "pressure_load 0.0 / stability_score 1.0 are UNMEASURED; whiplash "
+                  "is inert while propagation_state is ABSENT (PSE:117-119)")
+_PROV_IDENTITY = ("the kernel:1031 pattern -- ActorKind.USER / "
+                  "SovereigntyLevel.USER_OWNED / AuthorizationTier.EXECUTE; the "
+                  "actor is the member and is not logged")
+_PROV_PROPAGATION = "ABSENT · nothing stores a prior plan"
+_PROV_LAST_PRIMITIVE = "ABSENT · nothing stores prior plans"
+
+
+def _emophysics_plan(user: str, text: str, payload: dict) -> dict:
+    """#133 -- build a LanguageContext from what the turn path genuinely
+    produces, run select_expression_plan (its first production caller),
+    and log the plan beside the shadow's counts. acted_on is False
+    everywhere: nothing reads the plan back, no prompt or reply changes.
+
+    Returns the plan record (for tests). NEVER RAISES: an exception anywhere
+    in the assembly becomes plan=ABSENT with the reason (#61), and the
+    shadow's own line has already been written.
+
+    ★ ABSENT, NEVER DEFAULTED. The schema types every LanguageContext field
+    as required; the turn path produces three of them (pressure_level,
+    conversation_mode, identity_profile). The rest are carried as the
+    absences they are -- None in the dataclass, "ABSENT · <why>" in the
+    log -- not as LOW / NEUTRAL / OBSERVATION, which is exactly the
+    kernel:948 defaulting this order forbids. A dataclass does not enforce
+    its annotations, and no PSE rule reads the absent fields (K3 MAP B;
+    primitive_selection_engine.py reads pressure_level :74,:176 ·
+    in_bounds :77 · conversation_mode :94-108,:183-213 · identity only in
+    OPERATOR mode, which the classifier never produces).
+
+    ★ NO MODE, NO PLAN. When no rule in conversation_mode.MODE_RULES fires
+    the plan is ABSENT with the reason "conversation_mode unclassified" --
+    the inputs map is still logged, so the reader sees what WAS measured.
+    """
+    inputs: dict = {}
+    record: dict = {
+        "acted_on": False,
+        "plan": _PLAN_ABSENT,
+        "reason": None,
+        "inputs": inputs,
+    }
+    try:
+        src = text if isinstance(text, str) else ""
+        # step 1 -- the pressure reading, computed ONCE, banded through the
+        # same table capture_envelope uses. Empty text is NOT a LOW: nothing
+        # was measured, and capture_envelope refuses the same input
+        # (azimuth_envelope:125-133). Unreachable from the member route
+        # (an empty turn is a 400 before the shadow runs); direct callers
+        # and tests reach it.
+        if not src.strip():
+            pressure = None
+            inputs["pressure_level"] = _PROV_PRESSURE_EMPTY
+        else:
+            score = int(azimuth_envelope_impl.pressure_score(src))
+            pressure = azimuth_envelope.band_pressure(score)
+            inputs["pressure_level"] = "%s · score %d · %s" % (pressure.value, score, _PROV_PRESSURE)
+        inputs["valence"] = _PROV_VALENCE
+        inputs["intensity"] = _PROV_INTENSITY
+        inputs["intention_class"] = _PROV_INTENTION
+
+        # step 4 -- the default factory, named as such. The private is the
+        # brief's named producer (azimuth_transition:1060-1071); calling it
+        # keeps the placeholder values in one place instead of two.
+        factory = azimuth_transition._default_propagation_state()
+        drift = factory.drift_state
+        geometry = factory.geometry_profile
+        inputs["drift_state"] = "in_bounds=%s · %s" % (drift.in_bounds, _PROV_DRIFT)
+        inputs["geometry_profile"] = _PROV_GEOMETRY
+        identity = orchestrator_schemas.IdentityProfile(
+            actor=user if isinstance(user, str) else "",
+            actor_kind=orchestrator_schemas.ActorKind.USER,
+            sovereignty_level=orchestrator_schemas.SovereigntyLevel.USER_OWNED,
+            authorization_tier=orchestrator_schemas.AuthorizationTier.EXECUTE,
+        )
+        inputs["identity_profile"] = "user/execute · " + _PROV_IDENTITY
+        inputs["propagation_state"] = _PROV_PROPAGATION
+        inputs["last_primitive"] = _PROV_LAST_PRIMITIVE
+
+        # step 2 -- the mode, from the shadow's own counts.
+        mode, rule = conversation_mode.classify(payload)
+        if mode is None:
+            inputs["conversation_mode"] = (
+                "ABSENT · %s (no rule in conversation_mode.MODE_RULES fired)" % rule
+            )
+            record["reason"] = rule
+        elif pressure is None:
+            # a mode without a pressure reading: no plan, and the line says which input was missing
+            inputs["conversation_mode"] = (
+                "%s · conversation_mode.MODE_RULES %s" % (mode.value, rule)
+            )
+            record["reason"] = "pressure_level unmeasured (empty text)"
+        else:
+            inputs["conversation_mode"] = (
+                "%s · conversation_mode.MODE_RULES %s" % (mode.value, rule)
+            )
+            envelope = language_schemas.EnvelopeSnapshot(
+                pressure_level=pressure,
+                valence=None,           # ABSENT -- see inputs["valence"]
+                intensity=None,         # ABSENT
+                intention_class=None,   # ABSENT
+            )
+            ctx = language_schemas.LanguageContext(
+                envelope=envelope,
+                drift_state=drift,
+                geometry_profile=geometry,
+                identity_profile=identity,
+                conversation_mode=mode,
+                propagation_state=None,   # ABSENT
+                last_primitive=None,      # ABSENT
+            )
+            # step 5 -- the first production call of select_expression_plan.
+            plan = primitive_selection_engine.select_expression_plan(ctx)
+            record["plan"] = {
+                "primitive": plan.primitive.value,
+                "tone":      plan.tone.value,
+                "structure": plan.structure.value,
+                "length":    plan.length.value,
+                # the PSE writes "→" in its trace; the record keeps the
+                # words and swaps the arrow so a cp1252 console (a Windows
+                # dev box) can write the line. Enum words only, no text.
+                "rationale": plan.rationale.replace("→", "->"),
+            }
+    except Exception as exc:                      # noqa: BLE001 -- #61: loud, never fatal
+        record["plan"] = _PLAN_ABSENT
+        record["reason"] = "%s: %s" % (type(exc).__name__, exc)
+    # Enum words, counts and provenance only -- never the member's text.
+    logger.info(
+        "emophysics_shadow.plan user=%s acted_on=%s plan=%s reason=%s inputs=%s",
+        _user_ref(user), record["acted_on"], record["plan"], record["reason"], inputs,
+    )
+    return record
+
+
 def _emophysics_shadow(user: str, text: str) -> dict:
     """Extract the P-series counts and log what cannot yet be mapped.
 
     Returns the log payload (for tests). Never raises to the caller -- the
     call site wraps it too, but this is the member's message path and one
     guard is not enough.
+
+    #133 -- after its own line is written, the shadow hands its counts to
+    _emophysics_plan, which logs an ExpressionPlan on a second line
+    (emophysics_shadow.plan) and attaches the record under ``plan`` for
+    tests. The first line is byte-equal to what it was.
     """
     counts = primitives_extract.build_metadata(
         primitives_extract.extract_primitives(text)
@@ -6554,6 +6728,10 @@ def _emophysics_shadow(user: str, text: str) -> dict:
         log_payload["T"] = round(t_value, 4)
     logger.info("emophysics_shadow user=%s payload=%s",
                 _user_ref(user), log_payload)
+    # #133 -- the plan rides beside the counts, on its own line, so the
+    # line above stays byte-equal. The call site discards the return, so
+    # nothing downstream reads the record; it is here for tests.
+    payload["plan"] = _emophysics_plan(user, text, payload)
     return payload
 
 

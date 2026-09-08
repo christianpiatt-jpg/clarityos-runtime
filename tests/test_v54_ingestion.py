@@ -936,3 +936,26 @@ def test_persist_to_library_survives_a_timeline_emit_failure(reset_stores, monke
     hits = [r.message for r in caplog.records if "timeline_emit_failed" in r.message]
     assert hits and all("RuntimeError" in m for m in hits)
     assert not any("alice" in r.message or "timeline down" in r.message for r in caplog.records)
+
+
+# ===========================================================================
+# #177 -- the stored envelope carries neither the member nor the pasted text
+# ===========================================================================
+import json  # noqa: E402
+
+
+def test_manual_ingestion_stores_the_envelope_without_user_or_text(reset_stores):
+    """The library item's own content field is the copy; the envelope in
+    its metadata carries no user and no text, on L1 or in the input echo."""
+    import intelligence_kernel as ik
+    import library_store
+    text = "moderate pressure on the dispute, a deadline and a constraint"
+    out = ik.run_manual_ingestion("alice@example.com", text, source="op_note")
+    rec = library_store.get(out["library_id"])
+    assert rec["content"] == text
+    env = rec["metadata"]["envelope"]
+    l1 = env["pipeline"]["L1_ingest"]
+    assert "user" not in l1 and "text" not in l1
+    assert "raw_text" not in env["input"] and env["input"]["manual_label"] == "op_note"
+    blob = json.dumps(env)
+    assert text not in blob and "alice@example.com" not in blob

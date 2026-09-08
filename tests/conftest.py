@@ -366,6 +366,33 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_azimuth_envelope_unit5.py": {
         "privacy_surface", "determinism_surface",
     },
+    # ---- #133 the PSE's first caller: the mode table · #186 the vault source ----
+    # determinism_surface: MODE_RULES is a pure table; a drift in it changes
+    # every plan the shadow logs.
+    "test_conversation_mode.py": {
+        "determinism_surface",
+    },
+    # runtime_spine: a member route's timeline event shape (#186).
+    "test_vault_timeline_source.py": {
+        "runtime_spine",
+    },
+    # ---- #133 riders: the files the leg's other tests landed in ----
+    # runtime_spine: /elins/v2/run is a member route. privacy_surface: the
+    # response carries no address and no pasted text (#177).
+    "test_v53_elins_v2.py": {
+        "runtime_spine", "privacy_surface",
+    },
+    # runtime_spine: the magic-link door and its next-path map (#182).
+    # privacy_surface: tokens are hashed, no raw path is stored, no address
+    # reaches a log line.
+    "test_auth_magiclink.py": {
+        "runtime_spine", "privacy_surface",
+    },
+    # determinism_surface: seven lexicon counters the mode table reads
+    # (#135 · #166a); a lexicon drift moves every G count.
+    "test_primitives_grammar_counters.py": {
+        "determinism_surface",
+    },
     # ---- emophysics PHASE 1 shadow: the prohibitions ----
     # runtime_spine: it gates the member message path, and its whole value is
     # that T and N stay UNMAPPED rather than becoming a plausible number.

@@ -408,3 +408,115 @@ def test_d1_two_turns_with_different_texts_move_at_least_one_counter():
         "u", "The system feels unstable and the culture needs accountability.")
     b = app_module._emophysics_shadow("u", "We shipped the build at nine.")
     assert any(a[k] != b[k] for k in G_KEYS), (a, b)
+
+
+# --------------------------------------------------------------------------
+# #133 -- the PSE's first caller rides beside the counts, acted on by nothing
+# --------------------------------------------------------------------------
+import logging  # noqa: E402
+
+import conversation_mode  # noqa: E402
+import primitive_selection_engine  # noqa: E402
+
+PRIMITIVES = {"motion", "geometry", "hydronics", "analogy"}
+CONTEXT_FIELDS = {
+    "pressure_level", "valence", "intensity", "intention_class", "drift_state",
+    "geometry_profile", "identity_profile", "conversation_mode",
+    "propagation_state", "last_primitive",
+}
+
+
+def test_a_structural_turn_gets_a_plan_with_a_provenance_per_input():
+    rec = app_module._emophysics_shadow("u", LOW)["plan"]
+    assert rec["acted_on"] is False
+    assert rec["plan"]["primitive"] in PRIMITIVES
+    assert rec["plan"]["tone"] and rec["plan"]["structure"] and rec["plan"]["length"]
+    assert set(rec["inputs"]) == CONTEXT_FIELDS
+    assert rec["inputs"]["pressure_level"].startswith("low ")
+    assert rec["inputs"]["conversation_mode"].startswith("structural · ")
+    assert "R4" in rec["inputs"]["conversation_mode"]
+    assert rec["plan"]["primitive"] == "geometry"      # STRUCTURAL -> GEOMETRY (PSE rule 3)
+
+
+def test_a_flat_ok_turn_has_no_plan_and_says_why():
+    rec = app_module._emophysics_shadow("u", "ok")["plan"]
+    assert rec["plan"] == "ABSENT"
+    assert rec["reason"] == conversation_mode.UNCLASSIFIED
+    assert rec["inputs"]["conversation_mode"].startswith("ABSENT · conversation_mode unclassified")
+    # the inputs that WERE measured are still on the line
+    assert rec["inputs"]["pressure_level"].startswith("low ")
+
+
+def test_absent_inputs_are_absent_not_defaulted():
+    """★ The kernel:948 pattern (LOW / NEUTRAL supplied because the schema
+    asks) is the defaulting this order forbids. Absent reads ABSENT."""
+    inputs = app_module._emophysics_shadow("u", LOW)["plan"]["inputs"]
+    for k in ("valence", "intensity", "intention_class", "propagation_state", "last_primitive"):
+        assert inputs[k].startswith("ABSENT · "), k
+    assert "UNMEASURED" in inputs["drift_state"]
+    assert "UNMEASURED" in inputs["geometry_profile"]
+    for word in ("neutral", "observation", "NEUTRAL", "OBSERVATION"):
+        assert word not in inputs["valence"] + inputs["intention_class"], word
+
+
+def test_intention_class_names_the_advisory_gap():
+    """D5: the brief read intention_class off the kernel's advisory dict;
+    the dict carries no IntentionClass. The absence says so and nothing
+    recomputes one."""
+    prov = app_module._emophysics_shadow("u", LOW)["plan"]["inputs"]["intention_class"]
+    assert prov.startswith("ABSENT")
+    assert "IntentionClass" in prov and "build_candidate" in prov
+
+
+def test_critical_pressure_forces_hydronics_and_a_stable_tone():
+    text = ("I have to finish this before Friday, it is urgent, we are at a "
+            "breaking point and the deadline is today under real pressure. "
+            "The bottleneck is a constraint.")
+    rec = app_module._emophysics_shadow("u", text)["plan"]
+    assert rec["inputs"]["pressure_level"].startswith("critical ")
+    assert rec["plan"]["primitive"] == "hydronics"
+    assert rec["plan"]["tone"] == "stable"
+
+
+def test_an_exception_in_the_plan_path_becomes_absent_with_a_reason(monkeypatch):
+    def boom(ctx):
+        raise RuntimeError("pse down")
+    monkeypatch.setattr(primitive_selection_engine, "select_expression_plan", boom)
+    p = app_module._emophysics_shadow("u", LOW)
+    assert p["D"] > 0                                   # the shadow itself still ran
+    assert p["plan"]["plan"] == "ABSENT"
+    assert p["plan"]["reason"].startswith("RuntimeError: pse down")
+
+
+def test_the_shadow_line_is_byte_equal_and_the_plan_has_its_own_line(caplog):
+    caplog.set_level(logging.INFO, logger="clarityos")
+    app_module._emophysics_shadow("u", LOW)
+    shadow = [r for r in caplog.records if r.getMessage().startswith("emophysics_shadow user=")]
+    plan = [r for r in caplog.records if r.getMessage().startswith("emophysics_shadow.plan user=")]
+    assert len(shadow) == 1 and len(plan) == 1
+    assert "plan" not in shadow[0].getMessage()
+    msg = plan[0].getMessage()
+    assert "acted_on=False" in msg and "inputs=" in msg
+    assert LOW not in msg and "constraint" not in msg   # words and counts, never the text
+
+
+def test_empty_and_non_string_input_still_do_not_raise_with_the_plan():
+    for bad in ("", "   ", None, 42, []):
+        rec = app_module._emophysics_shadow("u", bad)["plan"]  # type: ignore[arg-type]
+        assert rec["plan"] == "ABSENT" and rec["reason"] == conversation_mode.UNCLASSIFIED
+        # empty text is not a LOW: nothing was measured
+        assert rec["inputs"]["pressure_level"].startswith("ABSENT · empty text"), bad
+
+
+def test_the_record_is_ascii_safe_and_renders_acted_on_from_the_record(caplog):
+    caplog.set_level(logging.INFO, logger="clarityos")
+    rec = app_module._emophysics_shadow("u", LOW)["plan"]
+    assert "→" not in rec["plan"]["rationale"] and "->" in rec["plan"]["rationale"]
+    rec["plan"]["rationale"].encode("cp1252")            # a Windows console can write it
+    msg = [r for r in caplog.records if r.getMessage().startswith("emophysics_shadow.plan ")][0].getMessage()
+    assert "acted_on=False" in msg
+
+
+def test_the_plan_never_enters_the_reply():
+    fields = set(app_module.V47PostMessageResponse.model_fields)
+    assert not any("plan" in f or "expression" in f for f in fields), fields

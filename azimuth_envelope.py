@@ -25,6 +25,7 @@ PUBLIC API
     capture_envelope(raw_text, **hints)   -> EnvelopeState
     evaluate_envelope(env)                -> EnvelopeState
     mark_externalize(env)                 -> EnvelopeState
+    band_pressure(score)                  -> PressureLevel   (#133)
 
 INVARIANTS (locked, enforced by tests + design discipline)
 ----------------------------------------------------------
@@ -81,6 +82,25 @@ def _band(score, bands, floor):
         if score >= threshold:
             return level
     return floor
+
+
+def band_pressure(score) -> PressureLevel:
+    """#133 -- the one public banding call.
+
+    Turns the integer the turn path already computes
+    (azimuth_envelope_impl.pressure_score, read at turn_record.py:692) into
+    the locked enum through _PRESSURE_BANDS -- the SAME table
+    capture_envelope uses, so the shadow's level and an envelope's level
+    can never disagree on one text. No text enters here: the caller
+    computes the score once and passes it. A non-int refuses rather than
+    bands -- a banded None would be a LOW asserted where nothing was
+    measured, the N = 5.0 failure again.
+    """
+    if isinstance(score, bool) or not isinstance(score, int):
+        raise TypeError(
+            "band_pressure: score must be an int, got %s" % type(score).__name__
+        )
+    return _band(score, _PRESSURE_BANDS, PressureLevel.LOW)
 
 
 def _valence_of(text: str) -> Valence:

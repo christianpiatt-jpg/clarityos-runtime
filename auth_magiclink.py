@@ -80,16 +80,20 @@ _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 NEXT_KEYS = {
     "app":            "/cockpit",           # was "/app" — not an SPA route (404)
     "transformation": "/cockpit",           # was "/app/transformation" — no such route; /cockpit is the safe app landing
-    "onboarding":     "/plans",             # was "/onboarding" — not an SPA route (404)
-    "account":        "/account",           # real SPA route — unchanged
+    "onboarding":     "/membership",        # #182 -- was "/plans"; the SPA folded /plans into /membership (#145)
+    "account":        "/membership",        # #182 -- was "/account"; the same fold
 }
 ALLOWED_NEXT = frozenset(NEXT_KEYS.values())
+# #182 -- the two paths the keys USED to resolve to are still accepted as
+# INPUT (a shell or a bookmark may still post them) and normalize to the
+# same keys; they are never a destination again. Exact match, as ALLOWED_NEXT.
+_LEGACY_NEXT_PATHS = {"/plans": "onboarding", "/account": "account"}
 DEFAULT_NEXT_PATH = "/cockpit"      # active member, missing/invalid next (was "/app")
-INACTIVE_NEXT_PATH = "/plans"       # authenticated but not an active member (was "/onboarding")
+INACTIVE_NEXT_PATH = "/membership"  # #182 -- authenticated but not an active member (was "/plans")
 
 # Tiers that count as an active entitlement. Anything else (incl. brand-new
 # "free" accounts created on first sign-in) is treated as inactive and routed
-# to /plans, where the app surfaces checkout / recovery.
+# to /membership, where the app surfaces checkout / recovery (#182).
 _ACTIVE_TIERS = frozenset({"paid", "active", "member", "founding", "founder"})
 
 # v31 billing-state-machine values that grant app access. Mirrors the access
@@ -179,6 +183,8 @@ def normalize_next(raw) -> str:
         for key, path in NEXT_KEYS.items():
             if path == v:
                 return key
+    if v in _LEGACY_NEXT_PATHS:             # #182 -- a retired path, as input only
+        return _LEGACY_NEXT_PATHS[v]
     return ""                               # anything else -> default later
 
 

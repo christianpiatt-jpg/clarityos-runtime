@@ -598,3 +598,46 @@ def test_run_elins_v2_does_not_call_route_request(reset_stores, monkeypatch):
     monkeypatch.setattr(mr, "route_request", boom)
     out = ik.run_elins_v2("alice", "deterministic structural input")
     assert out["elins_version"] == "elins.v2.0"
+
+
+# ===========================================================================
+# #177 -- the wire carries no member address and no pasted text
+# ===========================================================================
+import json  # noqa: E402
+
+
+def test_build_v2_envelope_l1_drops_user_and_text_keeps_the_counts(reset_stores):
+    from ELINS import elins_v2_view as v
+    from ELINS import standard_elins
+    text = ("The court ruled that the new policy creates immediate pressure "
+            "on the local government.")
+    elins = standard_elins.generate_ELINS(text, user="member@example.com")
+    assert elins["input_phase"]["text"] == text     # the object keeps it (regional_elins:156)
+    env = v.build_v2_envelope(
+        elins, region=None, regional_object=None,
+        request_input={"raw_text": text, "source_type": "operator"},
+    )
+    l1 = env["pipeline"]["L1_ingest"]
+    assert "user" not in l1 and "text" not in l1
+    for k in ("char_count", "word_count", "scenario_id"):
+        assert k in l1, k
+    assert l1["char_count"] == len(text) and l1["word_count"] == len(text.split())
+    assert "raw_text" not in env["input"] and env["input"]["source_type"] == "operator"
+    blob = json.dumps(env)
+    assert text not in blob and "member@example.com" not in blob
+
+
+def test_endpoint_v2_run_response_has_no_address_and_no_pasted_text(app_module, client):
+    user, sid = _make_user(app_module, "ev2_p@example.com", cohort="founder")
+    text = "the institutional pressure is escalating sharply across the region"
+    r = client.post(
+        "/elins/v2/run",
+        headers=_auth(sid),
+        json={"input": {"raw_text": text, "source_type": "operator"}},
+    )
+    assert r.status_code == 200, r.json()
+    assert text not in r.text and user not in r.text
+    l1 = r.json()["pipeline"]["L1_ingest"]
+    assert {"char_count", "word_count", "scenario_id"} <= set(l1)
+    assert "user" not in l1 and "text" not in l1
+    assert "raw_text" not in r.json()["input"]

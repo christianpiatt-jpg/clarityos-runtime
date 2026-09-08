@@ -354,6 +354,31 @@ def compute_multiplier(
 # ---------------------------------------------------------------------------
 # Orchestrator — build_v2_envelope
 # ---------------------------------------------------------------------------
+def _l1_ingest_view(elins_object: dict) -> dict:
+    """#177 -- L1 on the wire: the counts and the scenario id, never the
+    member's address or the pasted text. The elins_object itself keeps
+    input_phase whole (regional_elins reads .text off it at :156, the
+    entity graph at :210, elins_project .user at :200); only this VIEW
+    drops the two, so /elins/v2/run's response and the envelope
+    /ingest/manual stores carry neither. The library item's own content
+    field is the copy."""
+    l1 = dict(elins_object.get("input_phase") or {})
+    l1.pop("user", None)
+    l1.pop("text", None)
+    return l1
+
+
+def _input_echo(request_input: Optional[dict]) -> dict:
+    """#177 -- echo the request's SHAPE (source_type, language, hints,
+    tags, the manual label), never its raw_text: that would be the pasted
+    text a second time, and the acceptance is "no pasted text" on the
+    wire. The web reads nothing off input.* (#180a, C) and the phone reads
+    no raw_text off a response."""
+    echo = dict(request_input or {})
+    echo.pop("raw_text", None)
+    return echo
+
+
 def build_v2_envelope(
     elins_object: dict,
     *,
@@ -441,7 +466,7 @@ def build_v2_envelope(
 
     # Pipeline block — map existing layers onto v2 L1-L10 ontology.
     pipeline = {
-        "L1_ingest":    elins_object.get("input_phase") or {},
+        "L1_ingest":    _l1_ingest_view(elins_object),          # #177
         "L2_normalize": {
             "normalized": True,
             "note": "_normalize() helper inside generate_ELINS; "
@@ -501,7 +526,7 @@ def build_v2_envelope(
     return {
         "elins_version": ELINS_V2_VERSION,
         "region":        region,
-        "input":         request_input or {},
+        "input":         _input_echo(request_input),            # #177
         "pipeline":      pipeline,
         "outputs":       outputs,
         "meta": {

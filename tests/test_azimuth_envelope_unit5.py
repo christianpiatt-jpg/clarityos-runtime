@@ -198,3 +198,31 @@ def test_raw_text_NEVER_reaches_a_log_record_at_info_or_above(caplog):
         if rec.levelno >= logging.INFO:
             assert "MYSECRETPHRASE" not in rec.getMessage()
             assert "MYSECRETPHRASE" not in str(rec.args or "")
+
+
+# --------------------------------------------------------------------------
+# #133 -- band_pressure: the one public banding call, the same table
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize("score,level", [
+    (-3, PressureLevel.LOW), (0, PressureLevel.LOW),
+    (1, PressureLevel.MEDIUM), (2, PressureLevel.MEDIUM),
+    (3, PressureLevel.HIGH), (5, PressureLevel.HIGH),
+    (6, PressureLevel.CRITICAL), (40, PressureLevel.CRITICAL),
+])
+def test_band_pressure_reads_the_locked_table(score, level):
+    assert ae.band_pressure(score) is level
+
+
+def test_band_pressure_agrees_with_capture_envelope_on_one_text():
+    for text in (
+        CALM,
+        "I have to finish this before Friday, it is urgent, we are at a "
+        "breaking point and the deadline is today under real pressure",
+    ):
+        assert ae.band_pressure(impl.pressure_score(text)) is ae.capture_envelope(text).pressure_level
+
+
+@pytest.mark.parametrize("bad", ["3", None, 2.0, True])
+def test_band_pressure_refuses_what_is_not_a_score(bad):
+    with pytest.raises(TypeError):
+        ae.band_pressure(bad)

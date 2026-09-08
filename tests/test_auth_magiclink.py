@@ -5,7 +5,7 @@ Tests for the ClarityOS magic-link auth backend (auth_magiclink + the
 Coverage:
     A. /auth/enter token issuance, single-link-per-user, enumeration-safe
        rate limiting, malformed-email rejection.
-    B. /auth/verify happy path (new user -> /plans, active member ->
+    B. /auth/verify happy path (new user -> /membership, active member ->
        allowlisted next), one-time use, expiry, garbage tokens, session
        creation.
     C. Redirect allowlist / open-redirect rejection.
@@ -144,7 +144,7 @@ class TestEnter:
 # B. /auth/verify — token validation + session creation (module level)
 # ===========================================================================
 class TestVerify:
-    def test_new_user_created_and_routed_to_plans(self, reset_stores):
+    def test_new_user_created_and_routed_to_membership(self, reset_stores):
         box = _capturing_sender()
         auth_magiclink.request_magic_link("new@x.com", "wp", "/cockpit", "ip", "ua")
         raw = _raw_token(box["link"])
@@ -152,8 +152,8 @@ class TestVerify:
         assert r["status"] == "ok"
         assert r["created"] is True
         assert r["active"] is False
-        assert r["redirect_path"] == "/plans"     # inactive -> plans
-        assert r["redirect"] == "https://clarity.pro-mediations.com/plans"
+        assert r["redirect_path"] == "/membership"     # inactive -> membership (#182)
+        assert r["redirect"] == "https://clarity.pro-mediations.com/membership"
         # session really exists and is bound to the email
         sess = sessions_store.get_session(r["session_id"])
         assert sess is not None and sess["user"] == "new@x.com"
@@ -180,7 +180,8 @@ class TestVerify:
         box = _capturing_sender()
         auth_magiclink.request_magic_link("paid2@x.com", "wp", "/account", "ip", "ua")
         r = auth_magiclink.verify_magic_link(_raw_token(box["link"]), "ip", "ua")
-        assert r["redirect"] == "https://clarity.pro-mediations.com/account"
+        # #182: the account key lands on /membership, the SPA's one account page
+        assert r["redirect"] == "https://clarity.pro-mediations.com/membership"
 
     def test_non_allowlisted_subpath_falls_back(self, reset_stores):
         _make_active_member("paid2b@x.com", time.time())
@@ -243,8 +244,9 @@ class TestNextHardening:
     @pytest.mark.parametrize("raw,expected_key", [
         ("/cockpit", "app"),                    # "app" key now resolves to /cockpit
         ("/cockpit/", "app"),                   # trailing slash tolerated
-        ("/plans", "onboarding"),               # "onboarding" key now resolves to /plans
-        ("/account", "account"),
+        ("/plans", "onboarding"),               # #182 a retired path, accepted as input
+        ("/account", "account"),                # #182 likewise
+        ("/membership", "onboarding"),          # #182 the destination, exact
         ("transformation", "transformation"),   # bare symbolic key
         ("app", "app"),
         ("/app/workspace", ""),                 # not on the allowlist
@@ -284,11 +286,30 @@ class TestNextHardening:
         assert r["redirect"].startswith("https://clarity.pro-mediations.com/")
 
     def test_resolve_next_path_rules(self, reset_stores):
-        # Inactive members always go to /plans, even for an allowlisted key.
-        assert auth_magiclink.resolve_next_path("transformation", active=False) == "/plans"
+        # Inactive members always go to /membership, even for an allowlisted key.
+        assert auth_magiclink.resolve_next_path("transformation", active=False) == "/membership"
         assert auth_magiclink.resolve_next_path("transformation", active=True) == "/cockpit"
         assert auth_magiclink.resolve_next_path("", active=True) == "/cockpit"
         assert auth_magiclink.resolve_next_path("bogus", active=True) == "/cockpit"
+
+    def test_182_legacy_inputs_and_both_keys_land_on_membership(self, reset_stores):
+        # #182 -- /plans and /account are no longer destinations; as INPUT they
+        # still normalize (a shell or a bookmark may post them) and resolve to
+        # /membership, the SPA's one account page since #145. Client redirects
+        # for the old paths stay in the SPA; this is the server side.
+        assert auth_magiclink.NEXT_KEYS["onboarding"] == "/membership"
+        assert auth_magiclink.NEXT_KEYS["account"] == "/membership"
+        assert auth_magiclink.INACTIVE_NEXT_PATH == "/membership"
+        assert "/plans" not in auth_magiclink.ALLOWED_NEXT
+        assert "/account" not in auth_magiclink.ALLOWED_NEXT
+        for raw in ("/plans", "/account", "/plans/", "onboarding", "account", "/membership"):
+            key = auth_magiclink.normalize_next(raw)
+            assert key in ("onboarding", "account"), raw
+            assert auth_magiclink.resolve_next_path(key, active=True) == "/membership"
+            assert auth_magiclink.resolve_next_path(key, active=False) == "/membership"
+        # the retired paths never come back out
+        for key in auth_magiclink.NEXT_KEYS:
+            assert auth_magiclink.resolve_next_path(key, active=True) not in ("/plans", "/account")
 
 
 # ===========================================================================
@@ -316,7 +337,7 @@ class TestRoutes:
         # 8123c38 (session-handoff fix, live 2026-08-21) appends the
         # session id as a URL fragment for the SPA's adoptSessionFromHash.
         loc = r.headers["location"]
-        assert loc.startswith("https://clarity.pro-mediations.com/plans#s=")  # new user -> plans
+        assert loc.startswith("https://clarity.pro-mediations.com/membership#s=")  # new user -> membership (#182)
         set_cookie = r.headers.get("set-cookie", "")
         assert "clarityos_session=" in set_cookie
         assert "HttpOnly" in set_cookie
