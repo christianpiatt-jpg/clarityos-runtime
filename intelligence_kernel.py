@@ -875,6 +875,77 @@ def _write_arc_record(
     )
 
 
+def _felt_gap_skip(step: str, user_id: str, thread_id: str, exc: BaseException) -> None:
+    """#33 -- a reader step that failed is NAMED at WARNING. It was
+    logger.debug with the traceback: silent in production, so a producer
+    that never wrote (K3 RETURN 09-04) looked exactly like one that did.
+    Refs only: never the text, never an address, the exception's TYPE and
+    not its message. The user ref is users_store._uref (16 hex of sha256,
+    the shape auth_magiclink logs) and NOT app.py's cascade-line prefix
+    ref: usernames are email addresses, and an 8-char prefix of
+    "ab@x.io" is the whole address (a refuter's catch). The thread ref is
+    the cascade line's (a prefix of a uuid, not a person)."""
+    user_ref = users_store._uref(user_id)   # a HASH; INV-H1 reads the name on the line, the value is 16 hex
+    logger.warning(
+        "felt_gap_reader step=%s skipped user=%s thread=%s err=%s",
+        step, user_ref, runtime_privacy.session_ref(thread_id), type(exc).__name__,
+    )
+
+
+def _run_felt_gap_reader(user_id: str, thread_id: str, text: str) -> None:
+    """The felt-gap seam (Component A, Phase 1). After both messages are
+    persisted, classify the member's CURRENT text as the next-reply to the
+    prior completed pair and seal ONE enums-only arc_record (#163) on that
+    pair's assistant_seq.
+
+    Flag-gated: CLARITYOS_FELT_GAP_READER_ENABLED == "1" -- a console
+    setting, read here and set nowhere in this repo. Fail-soft AND loud:
+    ONE try per step (get_thread · lookup_prior_completable_pair ·
+    build_arc_record · write_arc_record); a failed step is named at WARNING
+    and the steps after it do not run. Nothing here can cost the member
+    their turn -- the caller has already persisted the reply."""
+    if os.environ.get("CLARITYOS_FELT_GAP_READER_ENABLED", "0") != "1":
+        return
+    # optional allowlist (privacy-protective scope limit): when set, the
+    # diagnostic applies only to the listed accounts. Empty/unset ->
+    # unchanged behavior (all accounts except the fixture exclusion).
+    _fg_allow = os.environ.get("CLARITYOS_FELT_GAP_ALLOWLIST", "")
+    _fg_allowed = (not _fg_allow) or (
+        user_id in {u.strip() for u in _fg_allow.split(",") if u.strip()}
+    )
+    if user_id == "soldierslawyer@gmail.com" or not _fg_allowed:  # fixture exclusion (unconditional)
+        return
+    try:
+        _, messages = threads_vault.get_thread(user_id, thread_id)
+    except Exception as exc:  # noqa: BLE001 -- Ruling 2, fail-soft; #33, named
+        _felt_gap_skip("get_thread", user_id, thread_id, exc)
+        return
+    try:
+        prior = _lookup_prior_completable_pair(messages)
+    except Exception as exc:  # noqa: BLE001
+        _felt_gap_skip("lookup_prior_completable_pair", user_id, thread_id, exc)
+        return
+    if prior is None:
+        return  # the first exchange: no completable pair yet (not a failure)
+    try:
+        record = felt_gap_reader.build_arc_record(
+            user_id=user_id,
+            thread_id=thread_id,
+            assistant_seq=prior["assistant_seq"],
+            user_prompt_text=prior["user_prompt_text"],
+            assistant_reply_text=prior["assistant_reply_text"],
+            user_next_reply_text=text,  # current user turn = correction signal; read, not stored
+            user_next_reply_present=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _felt_gap_skip("build_arc_record", user_id, thread_id, exc)
+        return
+    try:
+        _write_arc_record(user_id, thread_id, prior["assistant_seq"], record)
+    except Exception as exc:  # noqa: BLE001
+        _felt_gap_skip("write_arc_record", user_id, thread_id, exc)
+
+
 def run_thread_message(
     user_id: str,
     thread_id: str,
@@ -1244,35 +1315,10 @@ def run_thread_message(
     reasoning_mode: Optional[str] = None
     anomalies_emitted: list[dict] = []  # v72 / Unit 80 — additive on return dict
     if user_id:
-        # Phase-1 felt-gap reader — flag-gated OFF by default; deploy inert.
-        # Ruling 2 fail-soft; Ruling C1 deterministic; fixture excluded unconditionally.
-        if os.environ.get("CLARITYOS_FELT_GAP_READER_ENABLED", "0") == "1":
-            try:
-                # optional allowlist (privacy-protective scope limit): when set,
-                # the diagnostic applies only to the listed accounts. Empty/unset
-                # -> unchanged behavior (all accounts except the fixture exclusion).
-                _fg_allow = os.environ.get("CLARITYOS_FELT_GAP_ALLOWLIST", "")
-                _fg_allowed = (not _fg_allow) or (
-                    user_id in {u.strip() for u in _fg_allow.split(",") if u.strip()}
-                )
-                if user_id != "soldierslawyer@gmail.com" and _fg_allowed:  # fixture exclusion (unconditional)
-                    _, _fg_messages = threads_vault.get_thread(user_id, thread_id)
-                    _fg_prior = _lookup_prior_completable_pair(_fg_messages)
-                    if _fg_prior is not None:
-                        _fg_record = felt_gap_reader.build_arc_record(
-                            user_id=user_id,
-                            thread_id=thread_id,
-                            assistant_seq=_fg_prior["assistant_seq"],
-                            user_prompt_text=_fg_prior["user_prompt_text"],
-                            assistant_reply_text=_fg_prior["assistant_reply_text"],
-                            user_next_reply_text=text,  # current user turn = correction signal
-                            user_next_reply_present=True,
-                        )
-                        _write_arc_record(
-                            user_id, thread_id, _fg_prior["assistant_seq"], _fg_record,
-                        )
-            except Exception:  # Ruling 2 — fail-soft; never break turn-flow
-                logger.debug("felt_gap_reader seam skipped", exc_info=True)
+        # Phase-1 felt-gap reader -- flag-gated (a console setting, read
+        # only). #163: the record is enums + seq. #33: fail-soft AND loud --
+        # one try per step inside, a WARNING naming the step that failed.
+        _run_felt_gap_reader(user_id, thread_id, text)
         try:
             if operator_state.get_el_ins_per_turn(user_id):
                 import el_ins as _el_ins

@@ -12,8 +12,23 @@ Cross-witness: COW-1 §1.A PASS + §1.B PASS 7/7 + §1.C PASS-WITH-CAVEATS
 """
 
 import re
+import time
 
-READER_VERSION = "v0.1_phase1_first_cut"
+# #163 (CT-1 2026-09-08): the record carries LABELS and a SEQ, never text.
+# v0.1 stored the member's prompt and the assistant's reply beside the
+# labels; no route ever read them. Bumped so an old row is recognisable.
+READER_VERSION = "v0.2_enums_only"
+RECORD_CLASS = "arc_record"   # #51 -- the record names its class
+
+# Every key one arc_record carries. NO TEXT KEY, EVER. The route that
+# serves them (app.py /me/relationships/{tid}/arc) allowlists a subset of
+# these; tests/test_arc_reads_back.py pins this tuple to the builder's
+# output and to the route's allowlist.
+ARC_RECORD_KEYS = (
+    "class", "correction_type", "felt_gap", "confidence", "delta_m", "arc",
+    "reader_version", "assistant_seq", "made_turn", "user_next_reply_present",
+    "ts_sealed",
+)
 
 FIRST_N_TOKENS = 60
 
@@ -157,22 +172,29 @@ def build_arc_record(
 ):
     """
     Build one arc_record for a completed (or trailing-pending) turn pair.
-    Written to arc_records/{user_id}/{thread_id}/{assistant_seq} in Firestore.
-    Own-collection write-only · read-only threads_vault · fixture exclusion enforced upstream at seam.
+    Written by the kernel to memory_vault key arc_records.{thread_id}.{seq:06d}.
+    Own-namespace write-only · read-only threads_vault · fixture exclusion enforced upstream at seam.
+
+    #163: the three text parameters are READ (the classifier reads
+    user_next_reply_text; the other two are accepted for the call's shape)
+    and NONE is stored. ``made_turn`` is the assistant_seq the arc was made
+    on, so a reader can say "made turn a · now turn b" -- age in TURNS,
+    never a clock (ts_sealed is a stamp, not an age).
     """
     correction_type = classify_correction_type(user_next_reply_text, user_next_reply_present)
     felt_gap = felt_gap_from_correction_type(correction_type)
     confidence = confidence_from_correction_type(correction_type)
 
     return {
-        "e_t_user_prompt": user_prompt_text,
-        "y_t_assistant_reply": assistant_reply_text,
+        "class": RECORD_CLASS,
         "correction_type": correction_type,
         "felt_gap": felt_gap,
         "confidence": confidence,
         "delta_m": None,
         "arc": None,
         "reader_version": READER_VERSION,
-        "assistant_seq": assistant_seq,
-        "user_next_reply_present": user_next_reply_present,
+        "assistant_seq": int(assistant_seq),
+        "made_turn": int(assistant_seq),
+        "user_next_reply_present": bool(user_next_reply_present),
+        "ts_sealed": time.time(),
     }

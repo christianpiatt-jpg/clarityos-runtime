@@ -181,6 +181,10 @@ class TestINV_V6_NamespaceAllowList:
         "regression_chains",
         "regression_packets",
         "founder_global",
+        # #163 (2026-09-08) -- the felt-gap reader's arc records (enums + seq
+        # only). The producer shipped 07-30 without the namespace: every
+        # write raised here, silently, until #33 named it and #163 admitted it.
+        "arc_records",
     })
 
     def test_inv_v6_allowed_namespaces_matches_frozen_registry(self):

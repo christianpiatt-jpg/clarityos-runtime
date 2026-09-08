@@ -411,6 +411,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_el_ins_verify.py": {
         "runtime_spine", "privacy_surface",
     },
+    # ---- #163 / #33 the arc reads back ----
+    # runtime_spine: a member route with an ownership gate, and the seam on
+    # the member message path. privacy_surface: the record and the payload
+    # carry no member text; the WARNING carries refs and a type name only.
+    "test_arc_reads_back.py": {
+        "runtime_spine", "privacy_surface",
+    },
     # ---- #133 riders: the files the leg's other tests landed in ----
     # runtime_spine: /elins/v2/run is a member route. privacy_surface: the
     # response carries no address and no pasted text (#177).

@@ -329,7 +329,7 @@ class TestB5VaultUnderDeployment:
             "operator_state", "elins", "g_runs", "preferences",
             "local_model", "notes", "embeddings", "threads",
             "projects", "regression_chains", "regression_packets",
-            "founder_global",
+            "founder_global", "arc_records",  # #163
         ):
             memory_vault.vault_put("b5_ns_user", f"{ns}.sub_key", "v")
         # An unknown namespace is rejected at write time.

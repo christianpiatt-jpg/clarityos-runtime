@@ -14655,6 +14655,80 @@ def me_relationship_turns(
     }
 
 
+# What GET /me/relationships/{thread_id}/arc serves per row, and NOTHING
+# else. v0.1 rows (before #163) carry the member's prompt and the reply as
+# text under two keys this allowlist does not name, so they are stripped
+# here, server-side, whatever the stored row holds.
+_ARC_ROW_KEYS = (
+    "correction_type", "felt_gap", "confidence", "assistant_seq", "made_turn",
+    "user_next_reply_present", "reader_version", "ts_sealed",
+)
+_ARC_RECORD_PREFIX = "arc_records."   # = intelligence_kernel._ARC_RECORD_PREFIX (pinned by a test)
+
+
+@app.get("/me/relationships/{thread_id}/arc")
+def me_relationship_arc(
+    thread_id: str,
+    session: dict = Depends(require_session),
+):
+    """#163 -- the felt-gap arc of ONE relationship, read back, enums only.
+
+    The reader (felt_gap_reader, flag CLARITYOS_FELT_GAP_READER_ENABLED --
+    a console setting this route READS and never sets) seals one
+    arc_record per completed pair at memory_vault key
+    arc_records.{thread_id}.{assistant_seq:06d}. Rows are served sorted by
+    key (= by seq), each reduced to ``_ARC_ROW_KEYS``: labels, the seq the
+    arc was made on (``made_turn``; an old row lacking it reads its
+    assistant_seq), the reader version and the seal stamp. No text key
+    can pass. ``now_turn`` is the thread's last message index
+    (message_count - 1; None on an empty thread) so a reader can caption
+    "made turn a · now turn b" -- age in TURNS, never a clock.
+    ``reader`` is PRESENT when a row exists; otherwise ABSENT with the
+    reason in ``reader_reason``: "reader flag off" when the flag is not
+    "1", "no completable pair yet" when it is. Never {}.
+
+    OWNERSHIP FIRST: a thread the session does not own is 404, never 403
+    (the same gate as /turns).
+    """
+    user = session["user"]
+    thread_id = _validate_thread_id_path(thread_id)
+    try:
+        meta = threads_vault.get_thread_meta(user, thread_id)      # ownership gate
+    except KeyError:
+        raise HTTPException(status_code=404, detail="thread not found")
+    prefix = f"{_ARC_RECORD_PREFIX}{thread_id}."
+    # (the same whole-vault list /turns pays; a prefix-scoped list is a
+    # memory_vault change, not a route change)
+    entries = memory_vault.vault_list(user) or {}
+    arcs = []
+    for key in sorted(entries):
+        if not key.startswith(prefix):
+            continue
+        raw = entries[key]
+        if not isinstance(raw, dict):
+            continue
+        row = {k: raw[k] for k in _ARC_ROW_KEYS if k in raw}
+        if "made_turn" not in row and "assistant_seq" in raw:
+            row["made_turn"] = raw["assistant_seq"]   # a v0.1 row: the seq it was made on
+        arcs.append(row)
+    count = int(meta.get("message_count") or 0)
+    flag_on = os.environ.get("CLARITYOS_FELT_GAP_READER_ENABLED", "0") == "1"
+    if arcs:
+        reader, reason = "PRESENT", None
+    elif not flag_on:
+        reader, reason = "ABSENT", "reader flag off"
+    else:
+        reader, reason = "ABSENT", "no completable pair yet"
+    return {
+        "thread_id":     thread_id,
+        "arc_count":     len(arcs),
+        "arcs":          arcs,
+        "now_turn":      (count - 1) if count > 0 else None,
+        "reader":        reader,
+        "reader_reason": reason,
+    }
+
+
 class V52EmotionalPhysicsRequest(BaseModel):
     text: str
     # The relationship this run belongs to. OPTIONAL: absent means the

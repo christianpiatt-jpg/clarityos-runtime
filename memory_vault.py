@@ -97,6 +97,14 @@ ALLOWED_NAMESPACES: tuple = (
     # see ``app.me_regression_first_packet`` for the
     # write-once enforcement).
     "regression_packets",
+    # #163 (2026-09-08) -- the felt-gap reader's arc records, one entry per
+    # completed pair under ``arc_records.{thread_id}.{assistant_seq:06d}``
+    # (intelligence_kernel._felt_gap_arc_key). Enums + seq only, never
+    # text (felt_gap_reader.ARC_RECORD_KEYS). The producer shipped on
+    # 2026-07-30 WITHOUT this line: every write since the flag went live
+    # raised here and was swallowed by a debug log (#33) -- no arc record
+    # has ever existed. Read by GET /me/relationships/{thread_id}/arc.
+    "arc_records",
     # PASS-4 V2 — System-wide founder configuration that must
     # outlive a single process. The only key today is
     # ``founder_global.default_model`` (set via

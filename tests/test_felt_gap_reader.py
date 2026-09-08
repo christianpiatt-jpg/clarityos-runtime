@@ -95,14 +95,18 @@ def test_arc_record_shape():
         user_next_reply_text="Thanks!",
         user_next_reply_present=True,
     )
-    assert record["e_t_user_prompt"] == "What is the capital of France?"
-    assert record["y_t_assistant_reply"] == "The capital of France is Paris."
+    # #163 -- the record carries labels and a seq; the text it READ is not in it
+    assert "e_t_user_prompt" not in record and "y_t_assistant_reply" not in record
+    assert "What is the capital" not in repr(record) and "Paris" not in repr(record)
+    assert record["class"] == "arc_record"
     assert record["correction_type"] == "accept"
     assert record["felt_gap"] == "aligned"
     assert record["confidence"] == "held"
     assert record["delta_m"] is None
     assert record["arc"] is None
-    assert record["reader_version"] == "v0.1_phase1_first_cut"
+    assert record["reader_version"] == "v0.2_enums_only"
+    assert record["assistant_seq"] == 42 and record["made_turn"] == 42
+    assert isinstance(record["ts_sealed"], float)
 
 
 def test_arc_record_trailing_pending():
