@@ -22,7 +22,9 @@ import {
 } from "../lib/api";
 import { useCockpit } from "../state/cockpitStore";
 import { bearingRows, stopMark } from "../lib/bearings";
-import { labelFor } from "../lib/labels";
+// #238 -- the ONE reading of "a layer above declined".
+import { sectionRefusal, physicsRefusal, type Refusal } from "../lib/refusal";
+import { labelFor, hasLabel } from "../lib/labels";
 import {
   getAuthSnapshot,
   signOut,
@@ -240,8 +242,8 @@ function PersonalElinsView({
 
       <SectionEmotionalPhysics ep={ep} />
       <SectionAttractor elins={elins} />
-      <SectionCollapseRisk elins={elins} />
-      <SectionFieldWeather elins={elins} />
+      <SectionCollapseRisk elins={elins} ep={ep} />
+      <SectionFieldWeather elins={elins} ep={ep} />
     </div>
   );
 }
@@ -368,12 +370,20 @@ export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse |
         <Muted>Awaiting first run…</Muted>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <LayerCard label="Field curvature" body={ep.field_curvature} />
-          <LayerCard label="Edge pressure" body={ep.edge_pressure} />
+          <LayerCard label="Field curvature" body={ep.field_curvature} hideUnnamed />
+          <LayerCard label="Edge pressure" body={ep.edge_pressure} hideUnnamed />
           {/* #162 (a) -- five NAMED bearings; LayerCard's first-four slice
               used to drop the fifth. */}
           <BearingsCard rp={ep.relational_primitives} />
-          <LayerCard label="External expression" body={ep.external_expression} />
+          {/* #237 (1) -- under a decline this card carries the refusal,
+              not guidance. The other three cards are readings of the
+              input and stay as they are. */}
+          <LayerCard
+            label="External expression"
+            body={ep.external_expression}
+            refusal={physicsRefusal(ep)}
+            hideUnnamed
+          />
         </div>
       )}
     </section>
@@ -488,8 +498,16 @@ export function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
   );
 }
 
-export function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
+export function SectionCollapseRisk(
+  { elins, ep }: { elins: ElinsV2Envelope | null; ep?: EmotionalPhysicsResponse | null },
+) {
   const slots: Array<"P0" | "P1" | "P2" | "P3"> = ["P0", "P1", "P2", "P3"];
+  // #238 -- a refusal does not get a forecast. When the layer above said
+  // it could not assess, NO risk percentage is produced here: not a 33%,
+  // not a 0%, not a "balanced". The panel still renders, carrying the
+  // reason in that layer's own words, so a member sees that it exists
+  // and why it is quiet.
+  const refusal = sectionRefusal(ep, elins);
   return (
     <section data-testid="section-collapse-risk">
       {/* #185 -- CT-1's word, the instrument key in the title */}
@@ -499,19 +517,28 @@ export function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }
           to 100 because neither should. Rendering them as adjacent cells of
           equal width invites the reader to total them, so the framing says
           outright that there is no total. The numbers were never wrong. */}
-      <div
-        data-testid="collapse-risk-caption"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 10,
-          color: "var(--color-text-secondary)",
-          marginBottom: 6,
-          letterSpacing: "0.03em",
-        }}
-      >
-        Independent risks — each is its own probability. These do not sum to 100%.
-      </div>
-      {!elins ? (
+      {/* ★ #238 -- THE CAPTION IS PART OF THE FORECAST. It used to render
+          outside the gate, so a silenced panel still carried "These do not
+          sum to 100%" -- a sentence about risk cells that were never
+          produced, and a percentage on glass under a refusal. It explains
+          the cells; with no cells there is nothing for it to explain. */}
+      {!refusal.refused ? (
+        <div
+          data-testid="collapse-risk-caption"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 10,
+            color: "var(--color-text-secondary)",
+            marginBottom: 6,
+            letterSpacing: "0.03em",
+          }}
+        >
+          Independent risks — each is its own probability. These do not sum to 100%.
+        </div>
+      ) : null}
+      {refusal.refused ? (
+        <RefusalLine refusal={refusal} testId="collapse-risk-refusal" />
+      ) : !elins ? (
         <Muted>ELINS v2 unavailable.</Muted>
       ) : (
         <div style={{
@@ -542,18 +569,49 @@ export function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }
   );
 }
 
-export function SectionFieldWeather({ elins }: { elins: ElinsV2Envelope | null }) {
+export function SectionFieldWeather(
+  { elins, ep }: { elins: ElinsV2Envelope | null; ep?: EmotionalPhysicsResponse | null },
+) {
+  // #238 -- THE PHRASE BANK MUST NOT ASSEMBLE FROM AN EMPTY ENVELOPE.
+  // "Soft pressure rising. Watch the edge for fragmentation." is a
+  // directional sentence; it was printed over an input the layer above
+  // had just declined to assess. On a refusal nothing is composed at all.
+  const refusal = sectionRefusal(ep, elins);
   return (
     <section data-testid="section-field-weather">
       <SectionHeader>4. Field Weather</SectionHeader>
-      <div style={{
-        fontSize: 13,
-        color: "var(--color-text-primary)",
-        lineHeight: 1.5,
-      }}>
-        {deriveFieldWeather(elins)}
-      </div>
+      {refusal.refused ? (
+        <RefusalLine refusal={refusal} testId="field-weather-refusal" />
+      ) : (
+        <div style={{
+          fontSize: 13,
+          color: "var(--color-text-primary)",
+          lineHeight: 1.5,
+        }}>
+          {deriveFieldWeather(elins)}
+        </div>
+      )}
     </section>
+  );
+}
+
+/** #238 -- the one sentence a silenced panel carries. The reason is the
+ *  declining layer's own words; the layer NAME rides in a title, never in
+ *  the prose, because a member should not have to know our layer names. */
+function RefusalLine({ refusal, testId }: { refusal: Refusal; testId: string }) {
+  return (
+    <div
+      role="status"
+      data-testid={testId}
+      title={refusal.source ? `refused by: ${refusal.source}` : undefined}
+      style={{
+        fontSize: 13,
+        color: "var(--color-text-secondary)",
+        lineHeight: 1.5,
+      }}
+    >
+      {refusal.reason}
+    </div>
   );
 }
 
@@ -600,8 +658,47 @@ function Tag({ tone, children }: { tone: "cyan" | "red" | "muted"; children: Rea
   );
 }
 
-function LayerCard({ label, body }: { label: string; body: Record<string, unknown> }) {
-  const entries = Object.entries(body || {});
+/** #237 -- the external-expression card, and the three other layer cards.
+ *
+ *  (1) INSTRUCTIONS TO THE MEMBER MUST NEVER LAND IN "what to say", which
+ *      means what to say TO ANOTHER PERSON. CT-1 read
+ *      `what to say: "Provide a specific situation, interaction, or
+ *      relational dynamic to analyze, Include context: who is involved"`
+ *      under a section that had just refused. When the layer above
+ *      declined, this card carries the refusal AS a refusal and renders no
+ *      guidance at all.
+ *  (2) NO INTERNAL KEY ON GLASS. labelFor falls back to the raw key, so
+ *      `risk_if_unchanged` and `ext_step` -- neither of which is in the
+ *      #201 dictionary -- were printed to a member verbatim. A key with no
+ *      word of CT-1's is NOT rendered; the card says how many readings it
+ *      is holding back, and the keys are reported to CT-1 to name. No
+ *      wording is invented here. */
+function LayerCard(
+  { label, body, refusal, hideUnnamed }: {
+    label: string;
+    body: Record<string, unknown>;
+    refusal?: Refusal;
+    /** #237 (2) -- suppress keys CT-1 has not named.
+     *
+     *  ★ THIS WAS FIRST SET ONLY ON THE EXTERNAL-EXPRESSION CARD, on the
+     *  belief that the other cards ship real readings whose keys have no
+     *  dictionary word. A refuter proved that FALSE: `stable` and
+     *  `reads_as_distant` exist nowhere but a test fixture, and EVERY key
+     *  the physics schema actually defines already has one of CT-1's
+     *  words. Hiding unnamed keys everywhere is therefore a no-op on real
+     *  output and makes "no internal key is on glass" a PROPERTY of the
+     *  surface instead of a spot fix on one card -- which matters because
+     *  this leg exists precisely because the model drifts from the schema. */
+    hideUnnamed?: boolean;
+  },
+) {
+  const allEntries = Object.entries(body || {});
+  const unnamed = hideUnnamed
+    ? allEntries.filter(([k]) => k !== "notes" && !hasLabel(k))
+    : [];
+  const entries = hideUnnamed
+    ? allEntries.filter(([k]) => k === "notes" || hasLabel(k))
+    : allEntries;
   const notes = typeof (body as Record<string, unknown>).notes === "string"
     ? (body as Record<string, unknown>).notes as string
     : null;
@@ -619,7 +716,16 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
         letterSpacing: "0.04em",
         marginBottom: 6,
       }}>{label}</div>
-      {entries.length === 0 ? (
+      {refusal?.refused ? (
+        /* (1) -- the refusal, as a refusal. No guidance under a decline. */
+        <div
+          role="status"
+          data-testid="layer-refusal"
+          style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.4 }}
+        >
+          {refusal.reason}
+        </div>
+      ) : entries.filter(([k]) => k !== "notes").length === 0 ? (
         <Muted>—</Muted>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -627,6 +733,33 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
               fifth key (risk_of_misread) and, when notes landed early, two. */}
           {entries.map(([k, v]) => {
             if (k === "notes") return null;
+            // #237 (4) -- A LIST RENDERS AS A LIST. The old renderer joined
+            // items with ", " and printed them as one sentence, so CT-1 read
+            // "...dynamic to analyze, Include context: who is involved" as a
+            // single run-on line. A multi-item reading gets its own stacked
+            // block; a single value keeps the chip.
+            if (Array.isArray(v) && v.length > 1) {
+              return (
+                <div key={k} style={{ flexBasis: "100%", marginTop: 2 }}>
+                  <div style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    color: "var(--color-text-secondary)",
+                    letterSpacing: "0.04em",
+                  }}>
+                    <span title={k}>{labelFor(k).word}</span>
+                  </div>
+                  <ul
+                    data-testid={`layer-${k}`}
+                    style={{ margin: "2px 0 0", paddingLeft: 16, fontSize: 12, lineHeight: 1.4 }}
+                  >
+                    {v.map((item, i) => (
+                      <li key={i} style={{ color: "var(--color-text-primary)" }}>{String(item)}</li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            }
             // #185 -- CT-1's word for the sub-key (labels.ts), the raw key in
             // the title; a false reads its WORD, a missing value "—".
             return (
@@ -637,7 +770,18 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
           })}
         </div>
       )}
-      {notes ? (
+      {/* (2) -- a held-back reading is declared, never silently dropped,
+          and never by its internal name. */}
+      {!refusal?.refused && unnamed.length > 0 ? (
+        <div
+          data-testid={`layer-unnamed-${label.toLowerCase().replace(/\s+/g, "-")}`}
+          title={unnamed.map(([k]) => k).join(" · ")}
+          style={{ marginTop: 6, fontSize: 11, color: "var(--color-text-secondary)" }}
+        >
+          {unnamed.length} {unnamed.length === 1 ? "reading" : "readings"} not yet named
+        </div>
+      ) : null}
+      {notes && !refusal?.refused ? (
         <div style={{
           marginTop: 8,
           fontSize: 12,
@@ -649,12 +793,35 @@ function LayerCard({ label, body }: { label: string; body: Record<string, unknow
   );
 }
 
+/** #237 (3) + (4) -- WHAT THIS USED TO DO, AND WHY IT WAS WRONG.
+ *
+ *   `String(v).slice(0, 40)`  cut prose mid-word with no ellipsis and no
+ *     declaration. CT-1 read "Resubmit with a specific interpersonal o"
+ *     on his own session -- exactly 40 characters. #139: a cut declares
+ *     itself. The cut is RAISED (a card has room to wrap) and, if a value
+ *     ever does exceed the new ceiling, it declares itself with an
+ *     ellipsis instead of stopping mid-syllable.
+ *   `v.slice(0, 3).join(", ")`  printed a list of instructions as ONE
+ *     comma-joined sentence ("...to analyze, Include context: who is
+ *     involved") AND silently dropped the fourth item. A list renders as
+ *     a list; nothing is dropped.
+ *
+ *  renderValue keeps its string contract for the scalar callers; arrays
+ *  now go through renderList, which returns nodes. */
+export const VALUE_CHAR_LIMIT = 400;
+
+/** Test hook: the value rule itself, so the "a false reads its WORD" pin
+ *  (#185) survives independently of which card renders which key (#237). */
+export function renderValueForTest(v: unknown): string { return renderValue(v); }
+
 function renderValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
   if (typeof v === "boolean") return v ? "true" : "false";   // #185 -- a false is a word, never blank
-  if (Array.isArray(v)) return v.slice(0, 3).map(String).join(", ") || "—";
+  if (Array.isArray(v)) return v.map(String).join(" · ") || "—";
   if (typeof v === "object") return "…";
-  return String(v).slice(0, 40);
+  const s = String(v);
+  // #139 -- a cut declares itself.
+  return s.length > VALUE_CHAR_LIMIT ? s.slice(0, VALUE_CHAR_LIMIT) + "\u2026" : s;
 }
 
 // ★ The tie-break moved to lib/attractor.ts so ElinsV2View could import the

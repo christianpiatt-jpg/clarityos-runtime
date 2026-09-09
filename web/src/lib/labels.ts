@@ -92,6 +92,14 @@ export const LABELS: Readonly<Record<string, Label>> = {
 };
 
 /** The label for an internal key. Unknown keys come back as themselves. */
+/** #237 (CT-1 2026-09-09) -- does this key have one of CT-1's words?
+ *  labelFor FALLS BACK TO THE RAW KEY, which is how `risk_if_unchanged`
+ *  and `ext_step` reached a member's screen. A surface that must never
+ *  show an internal key asks this first. */
+export function hasLabel(key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(LABELS, key);
+}
+
 export function labelFor(key: string): Label {
   const hit = LABELS[key];
   if (hit) return hit;

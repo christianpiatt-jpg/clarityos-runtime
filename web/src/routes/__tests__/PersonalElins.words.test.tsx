@@ -15,6 +15,7 @@ vi.mock("../../lib/api", async () => {
 
 import { runEmotionalPhysics, runElinsV2 } from "../../lib/api";
 import { labelFor } from "../../lib/labels";
+import { renderValueForTest } from "../PersonalElins";
 import PersonalElins from "../PersonalElins";
 
 const EP = {
@@ -42,9 +43,25 @@ describe("PersonalElins -- words, no zero fallbacks (#185)", () => {
     vi.mocked(runEmotionalPhysics).mockResolvedValue(EP as never);
     vi.mocked(runElinsV2).mockResolvedValue(ELINS as never);
     render(<MemoryRouter><PersonalElins /></MemoryRouter>);
-    const stable = await screen.findByTestId("layer-stable");
-    expect(stable).toHaveTextContent("false");
-    expect(screen.getByTestId("layer-reads_as_distant")).toHaveTextContent("false");
+    // #237 (CT-1 2026-09-09), CORRECTED after a refuter: `stable` and
+    // `reads_as_distant` exist ONLY in this fixture. Neither is in the physics
+    // schema, and EVERY key the schema does define already has one of CT-1's
+    // words -- so holding unnamed keys back on ALL FOUR cards is a no-op on
+    // real output and makes "no internal key is on glass" a property of the
+    // surface rather than a spot fix. ET-1's first narrowing was justified by
+    // a claim that turned out to be false; this is the correction.
+    await screen.findByTestId("section-emotional-physics");
+    expect(screen.queryByTestId("layer-stable")).toBeNull();
+    // the false-reads-its-word rule is unchanged, and pinned where it lives
+    expect(renderValueForTest(false)).toBe("false");
+    // #237 (CT-1 2026-09-09) -- `reads_as_distant` has no word of CT-1's, and
+    // it sits in the EXTERNAL EXPRESSION card, the one block the order put
+    // under the no-internal-key rule. It is held back and DECLARED rather
+    // than printed by its internal name. The false-reads-its-word rule is
+    // unchanged and still pinned by `stable` above, in a card that still
+    // renders its unnamed keys.
+    expect(screen.queryByTestId("layer-reads_as_distant")).toBeNull();
+    expect(screen.getByTestId("layer-unnamed-external-expression")).toHaveTextContent("not yet named");
     // the dictionary word, the raw key in the title -- the WORDS, never the raw key
     expect(screen.getByTitle("signal_clarity")).toHaveTextContent("how clear");
     expect(screen.getByTitle("recommended_posture")).toHaveTextContent("posture to take");

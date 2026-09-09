@@ -146,8 +146,12 @@ export default function PersonalElinsInsightsPanel() {
           </p>
         )}
         <SectionAttractor elins={personal.elins} />
-        <SectionCollapseRisk elins={personal.elins} />
-        <SectionFieldWeather elins={personal.elins} />
+        {/* #238 -- the SAME gate as the /personal-elins route. This panel is
+            the cockpit twin of those sections and had the same defect: a
+            forecast under a refusal. The physics response is already in the
+            slice, so the gate costs no call. */}
+        <SectionCollapseRisk elins={personal.elins} ep={personal.ep} />
+        <SectionFieldWeather elins={personal.elins} ep={personal.ep} />
       </div>
     </section>
   );
