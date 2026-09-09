@@ -46,9 +46,12 @@ function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      // Allow the renderer to fetch the cloud backend without CORS
-      // gymnastics — the renderer runs under file:// in production
-      // and the backend is on a different origin.
+      // #205 -- keep web security ON. The comment that used to sit here
+      // claimed the opposite ("fetch the cloud backend without CORS
+      // gymnastics"); this line ENFORCES them. In production the
+      // renderer is loaded from disk, so its origin is `null` and the
+      // API refuses the preflight. Do not turn this off to fix that --
+      // it disables the same-origin policy for the whole renderer.
       webSecurity: true,
     },
   });

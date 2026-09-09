@@ -8,4 +8,7 @@ const fromEnv =
 export const API_BASE: string =
   fromEnv?.replace(/\/+$/, "") ||
   fromExtra?.replace(/\/+$/, "") ||
-  "https://clarity-engine-PLACEHOLDER.run.app";
+  // #205 (CT-1 2026-09-09) -- the real address, so a dev build starts
+  // reachable. The stored per-device override (api.setApiBaseOverride)
+  // still wins over both of the above.
+  "https://clarity.pro-mediations.com/api";

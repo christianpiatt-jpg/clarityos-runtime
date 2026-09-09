@@ -19,7 +19,7 @@
     "plugins": ["expo-router"],
     "experiments": { "typedRoutes": true },
     "extra": {
-      "apiBase": "https://clarity-engine-PLACEHOLDER.run.app"
+      "apiBase": "https://clarity.pro-mediations.com/api"
     }
   }
 }

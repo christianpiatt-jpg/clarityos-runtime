@@ -47,8 +47,10 @@ clarityos-runtime-v*.tar.gz
 # ---------------------------------------------------------------------------
 .env
 .env.*
-# #175 -- the SPA's API base (/api) is configuration, not a secret; it ships with the sha.
+# #175 / #205 -- a client's API base is configuration, not a secret; it
+# ships with the sha. Both files hold one VITE_API_BASE line and nothing else.
 !web/.env.production
+!desktop/.env.production
 !.env.example
 
 # Local vault scratch (fs / sqlite backends).

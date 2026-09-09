@@ -7,8 +7,9 @@ import react from "@vitejs/plugin-react";
 // development. Port 5174 (one above the web client's 5173) so both
 // can run in parallel without colliding.
 //
-// VITE_API_BASE — backend URL the renderer talks to. Defaults to
-// production Cloud Run; override per-machine via .env.local.
+// VITE_API_BASE — backend URL the renderer talks to. Defaults to the
+// production address behind the load balancer (#205); override
+// per-machine via .env.local.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
@@ -21,7 +22,7 @@ export default defineConfig(({ mode }) => {
     define: {
       // Surface the configured backend URL into the renderer at build time.
       "import.meta.env.VITE_API_BASE": JSON.stringify(
-        env.VITE_API_BASE || "https://clarity-engine-PLACEHOLDER.run.app",
+        env.VITE_API_BASE || "https://clarity.pro-mediations.com/api",
       ),
     },
     build: {

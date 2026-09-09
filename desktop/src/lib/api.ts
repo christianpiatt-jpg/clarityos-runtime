@@ -44,9 +44,13 @@ function writeStorage(k: string, v: string | null): void {
 }
 
 // ---------- Configuration ----------
+// #205 (CT-1 2026-09-09) -- the shipped client points at the real
+// address. A build constant, not a runtime setting: the desktop has
+// no override by design (see getApiBase below). Overridden per-build
+// by VITE_API_BASE (desktop/.env.production carries the shipped one).
 const API_BASE: string =
   (import.meta.env.VITE_API_BASE as string | undefined) ||
-  "https://clarity-engine-PLACEHOLDER.run.app";
+  "https://clarity.pro-mediations.com/api";
 
 export function getApiBase(): string {
   return API_BASE;

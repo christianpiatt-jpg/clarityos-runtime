@@ -61,9 +61,11 @@ Then either:
 
 Three layers, last wins:
 
-1. **Default**: hard-coded placeholder in `app.json` under
-   `extra.apiBase`. Replace `clarity-engine-PLACEHOLDER.run.app` with
-   your real Cloud Run URL before shipping.
+1. **Default**: `app.json` under `extra.apiBase`, and the same literal
+   as the last fallback in `lib/config.ts`. Both are
+   `https://clarity.pro-mediations.com/api` (#205) — the load-balancer
+   address, not the Cloud Run origin, so the app is reachable out of
+   the box. Point them elsewhere for a staging build.
 2. **Build-time env override**: set `EXPO_PUBLIC_CLARITYOS_API_BASE` in
    the shell where you run `expo start` / build. Inlined at bundle time.
 3. **Runtime override**: open Settings inside the app and paste a URL.

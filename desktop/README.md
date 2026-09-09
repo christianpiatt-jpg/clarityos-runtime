@@ -59,16 +59,27 @@ That produces every PNG size + the `.ico`. On macOS it also builds
 
 ## Configuration
 
-The renderer reads the backend URL from `VITE_API_BASE`. For local
-development pointing at a Cloud Run deploy:
+The renderer reads the backend URL from `VITE_API_BASE`, baked in at
+build time (`vite.config.ts` `define`). The shipped value lives in the
+tracked `desktop/.env.production`:
 
 ```bash
-# desktop/.env.local
-VITE_API_BASE=https://clarity-engine-xxxxxx.run.app
+# desktop/.env.production  (tracked -- a base URL, not a secret)
+VITE_API_BASE=https://clarity.pro-mediations.com/api
 ```
 
-Without this, the build falls back to a placeholder URL and the chat
-shell will surface a clear error on first list-threads call.
+That is the load-balancer address, which routes `/api/*` to the engine;
+it is not the Cloud Run origin. Override per machine with
+`desktop/.env.local`. Without any of them the build still falls back to
+the same load-balancer address (#205) — there is no placeholder left.
+
+**A packaged build cannot reach it yet.** The production renderer is
+loaded with `loadFile` (electron.js), so its origin is `null`, and the
+API's CORS allow-list admits no such origin: the preflight answers
+`400 Disallowed CORS origin`. The dev renderer
+(`http://localhost:5174`) IS on the allow-list and works today.
+Closing the gap for a packaged build is a decision, not a build step —
+see the #205 return note.
 
 ---
 

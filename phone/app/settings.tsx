@@ -57,13 +57,13 @@ export default function SettingsScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: colors.bgDeep }} contentContainerStyle={{ padding: space.s5 }}>
       <View style={styles.card}>
         <Text style={styles.h3}>Backend</Text>
-        <Text style={styles.muted}>Cloud Run URL the app talks to. Default comes from app.json. Set blank to revert.</Text>
+        <Text style={styles.muted}>Backend URL the app talks to. Default comes from app.json. Set blank to revert.</Text>
         <TextInput
           value={base}
           onChangeText={setBase}
           autoCapitalize="none"
           autoCorrect={false}
-          placeholder="https://...run.app"
+          placeholder="https://clarity.pro-mediations.com/api"
           placeholderTextColor={colors.textTertiary}
           style={styles.input}
         />
