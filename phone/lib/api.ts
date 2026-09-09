@@ -1176,6 +1176,9 @@ export interface ThreadMessageResult {
   // day a backend order lifts it onto the response the bubble marks it; no
   // sentinel invented -- absent stays absent.
   stop_reason?: string | null;
+  // #196 -- the vocabulary's reading of that token, same wire, same
+  // absence: no producer was added here either.
+  stop_class?: string | null;
   // A19/A30 — read-only per-turn directive surface; null/[]/{} when none.
   grounding_status?: GroundingStatus | null;
   directives?: string[];

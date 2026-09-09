@@ -36,6 +36,9 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     model_id?:    string | null;
     ts_ms?:       number | null;
     parse_error?: string | null;
+    // #128 raw vendor token; #196 the ONE vocabulary's reading of it.
+    stop_reason?: string | null;
+    stop_class?:  string | null;
     [k: string]:  unknown;
   };
   // Tolerate additional unknown layers without breaking.

@@ -117,7 +117,7 @@ def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
     if not x_session_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="X-Session-ID header required",
+            detail=dict(SESSION_MISSING_REFUSAL),
         )
     # Lazy import — sessions_store doesn't trigger any heavy module
     # initialisation, but lazy keeps runtime_http's top-level imports
@@ -127,13 +127,13 @@ def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
     if not session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid session",
+            detail=dict(SESSION_INVALID_REFUSAL),
         )
     if session["expires_at"] < time.time():
         _sessions.delete_session(x_session_id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="session expired",
+            detail=dict(SESSION_EXPIRED_REFUSAL),
         )
     user = session["user"]
     import users_store as _users
@@ -146,7 +146,7 @@ def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
         # budget as a phantom outage. Reject; never fall back to email.
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="operator identity unresolved",
+            detail=dict(OPERATOR_UNRESOLVED_REFUSAL),
         )
     return user, operator_id
 
@@ -227,6 +227,37 @@ ADMIN_ONLY_REFUSAL: dict = {
     "ok": False,
     "error": "admin_only",
     "message": "Admin only: this console is the controller's",
+}
+
+
+# #199 (CT-1 2026-09-09) -- ONE refusal reaches the SESSION layer too.
+# These three 401s and the 409 used to raise a BARE STRING detail, which
+# app.py's envelope handler wrapped as {"error": "http_error"} -- so a
+# no-session request to /org/timeline/* answered a different body from the
+# same request to /founder/*, and the docstring below that claims "same
+# error contract as app.py's require_session" was not true. Same statuses
+# as before; only the body and the string. The literals are app.py's
+# error_response shape, spelled out here because runtime_http is the LOWER
+# module and cannot import app (the v64 circular import).
+SESSION_MISSING_REFUSAL: dict = {
+    "ok": False,
+    "error": "missing_session",
+    "message": "X-Session-ID header required",
+}
+SESSION_INVALID_REFUSAL: dict = {
+    "ok": False,
+    "error": "invalid_session",
+    "message": "Unknown session id",
+}
+SESSION_EXPIRED_REFUSAL: dict = {
+    "ok": False,
+    "error": "expired_session",
+    "message": "Session expired; log in again",
+}
+OPERATOR_UNRESOLVED_REFUSAL: dict = {
+    "ok": False,
+    "error": "operator_unresolved",
+    "message": "operator identity unresolved",
 }
 
 

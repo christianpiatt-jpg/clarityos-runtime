@@ -13,13 +13,18 @@ vi.mock("../../../../lib/emotionalPhysics", async () => {
 
 import EmotionalPhysicsView from "../EmotionalPhysicsView";
 
-function reading(rp: Record<string, unknown>, stop: string | null | undefined = "end_turn") {
+function reading(
+  rp: Record<string, unknown>,
+  stop: string | null | undefined = "end_turn",
+  stopClass: string | null | undefined = "normal",
+) {
   return {
     field_curvature: { intensity: "high", notes: "n" },
     edge_pressure: {},
     relational_primitives: rp,
     external_expression: {},
-    _meta: { model_id: "anthropic:claude-haiku-4-5-20251001", ts_ms: Date.now(), parse_error: null, stop_reason: stop },
+    _meta: { model_id: "anthropic:claude-haiku-4-5-20251001", ts_ms: Date.now(), parse_error: null,
+             stop_reason: stop, stop_class: stopClass },
   } as never;
 }
 
@@ -58,18 +63,29 @@ describe("EmotionalPhysicsView -- the five bearings are named rows", () => {
 });
 
 describe("EmotionalPhysicsView -- the stop mark", () => {
-  it("renders only when stop_reason is not end_turn", () => {
-    const { unmount } = render(<EmotionalPhysicsView response={reading(FULL, "max_tokens")} text="t" />);
+  it("#196 -- renders only when the vocabulary called it a cut, and NAMES the raw token", () => {
+    const { unmount } = render(<EmotionalPhysicsView response={reading(FULL, "max_tokens", "cut")} text="t" />);
     expect(screen.getByTestId("stop-mark")).toHaveTextContent("max_tokens");
     unmount();
-    render(<EmotionalPhysicsView response={reading(FULL, "end_turn")} text="t" />);
+    render(<EmotionalPhysicsView response={reading(FULL, "end_turn", "normal")} text="t" />);
+    expect(screen.queryByTestId("stop-mark")).toBeNull();
+  });
+  it("\u2605 #196 -- a NORMAL OpenAI \"stop\" and Gemini \"STOP\" mark nothing", () => {
+    const { unmount } = render(<EmotionalPhysicsView response={reading(FULL, "stop", "normal")} text="t" />);
+    expect(screen.queryByTestId("stop-mark")).toBeNull();
+    unmount();
+    render(<EmotionalPhysicsView response={reading(FULL, "STOP", "normal")} text="t" />);
+    expect(screen.queryByTestId("stop-mark")).toBeNull();
+  });
+  it("#196 -- an UNKNOWN word renders nothing: not a cut, not a completion", () => {
+    render(<EmotionalPhysicsView response={reading(FULL, "tool_use", "unknown")} text="t" />);
     expect(screen.queryByTestId("stop-mark")).toBeNull();
   });
   it("a mock (null) or an absent stop_reason is not a cut", () => {
-    const { unmount } = render(<EmotionalPhysicsView response={reading(FULL, null)} text="t" />);
+    const { unmount } = render(<EmotionalPhysicsView response={reading(FULL, null, null)} text="t" />);
     expect(screen.queryByTestId("stop-mark")).toBeNull();
     unmount();
-    render(<EmotionalPhysicsView response={reading(FULL, undefined)} text="t" />);
+    render(<EmotionalPhysicsView response={reading(FULL, undefined, undefined)} text="t" />);
     expect(screen.queryByTestId("stop-mark")).toBeNull();
   });
 });

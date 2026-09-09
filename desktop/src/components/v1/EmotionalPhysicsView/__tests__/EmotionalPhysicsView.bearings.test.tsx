@@ -14,7 +14,8 @@ const RESP = {
   edge_pressure: { signal_clarity: "mixed", notes: "n2" },
   relational_primitives: { trust: "low", alignment: "unclear", boundary: "contested", agency: "constrained", dominant_pattern: ["boundary_uncertainty", "withdrawal"], notes: "n3" },
   external_expression: { recommended_posture: ["clarify"], notes: "n4" },
-  _meta: { model_id: "anthropic:claude-haiku-4-5-20251001", ts_ms: 1, parse_error: null, stop_reason: "max_tokens" },
+  _meta: { model_id: "anthropic:claude-haiku-4-5-20251001", ts_ms: 1, parse_error: null,
+           stop_reason: "max_tokens", stop_class: "cut" },
 } as unknown as EmotionalPhysicsResponse;
 
 describe("EmotionalPhysicsView -- five bearings and the stop mark (#167b)", () => {
@@ -34,8 +35,17 @@ describe("EmotionalPhysicsView -- five bearings and the stop mark (#167b)", () =
     render(<EmotionalPhysicsView response={RESP} />);
     expect(screen.getByTestId("stop-mark")).toHaveTextContent("stopped early: max_tokens");
   });
+  it("\u2605 #196 -- a normal OpenAI \"stop\" and an unknown word mark nothing", () => {
+    const normal = { ...RESP, _meta: { ...RESP._meta, stop_reason: "stop", stop_class: "normal" } } as EmotionalPhysicsResponse;
+    const { unmount } = render(<EmotionalPhysicsView response={normal} />);
+    expect(screen.queryByTestId("stop-mark")).toBeNull();
+    unmount();
+    const unknown = { ...RESP, _meta: { ...RESP._meta, stop_reason: "tool_use", stop_class: "unknown" } } as EmotionalPhysicsResponse;
+    render(<EmotionalPhysicsView response={unknown} />);
+    expect(screen.queryByTestId("stop-mark")).toBeNull();
+  });
   it("end_turn and a mock (absent) -> no mark", () => {
-    const ok = { ...RESP, _meta: { ...RESP._meta, stop_reason: "end_turn" } } as EmotionalPhysicsResponse;
+    const ok = { ...RESP, _meta: { ...RESP._meta, stop_reason: "end_turn", stop_class: "normal" } } as EmotionalPhysicsResponse;
     const { unmount } = render(<EmotionalPhysicsView response={ok} />);
     expect(screen.queryByTestId("stop-mark")).toBeNull();
     unmount();

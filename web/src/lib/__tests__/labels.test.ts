@@ -63,11 +63,22 @@ describe("bearingRows / stopMark", () => {
     expect(rows.every((r) => r.missing && r.value === "\u2014")).toBe(true);
     expect(bearingRows(undefined).length).toBe(5);
   });
-  it("the stop mark only for a stop other than end_turn", () => {
-    expect(stopMark("end_turn")).toBeNull();
-    expect(stopMark(null)).toBeNull();
-    expect(stopMark(undefined)).toBeNull();
-    expect(stopMark("")).toBeNull();
-    expect(stopMark("max_tokens")).toBe("max_tokens");
+  it("#196 -- the stop mark only for a stop the ONE vocabulary called a cut", () => {
+    // #196 -- ONLY the backend vocabulary's "cut" marks. The raw token
+    // is what the mark NAMES; the class is what decides.
+    expect(stopMark("max_tokens", "cut")).toBe("max_tokens");
+    expect(stopMark("length", "cut")).toBe("length");
+    expect(stopMark("SAFETY", "cut")).toBe("SAFETY");
+    // the #196 bug: a NORMAL finish from OpenAI / Gemini / Ollama
+    expect(stopMark("stop", "normal")).toBeNull();
+    expect(stopMark("STOP", "normal")).toBeNull();
+    expect(stopMark("end_turn", "normal")).toBeNull();
+    // the other direction: a word the table does not know is NOT a cut
+    expect(stopMark("tool_use", "unknown")).toBeNull();
+    // no class at all (a mock, an older wire) marks nothing
+    expect(stopMark("max_tokens", undefined)).toBeNull();
+    expect(stopMark("max_tokens", null)).toBeNull();
+    expect(stopMark(null, "cut")).toBeNull();
+    expect(stopMark("", "cut")).toBeNull();
   });
 });

@@ -38,6 +38,9 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     parse_error?: string | null;
     // #162 (b) -- the provider stop signal (#128); null on mock.
     stop_reason?: string | null;
+    // #196 -- the ONE backend vocabulary's reading of that token:
+    // "normal" | "cut" | "unknown". Only "cut" earns a mark.
+    stop_class?: string | null;
     [k: string]:  unknown;
   } & WindowMeta;   // #139 -- the window the kernel READ, for the declaration line
   [k: string]: unknown;

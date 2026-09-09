@@ -12,11 +12,29 @@ describe("normSha / shortSha", () => {
   });
 });
 describe("stopMark", () => {
-  it("end_turn and absent -> no mark; anything else -> its word", () => {
-    expect(stopMark("end_turn")).toBeNull();
-    expect(stopMark(null)).toBeNull();
-    expect(stopMark(undefined)).toBeNull();
-    expect(stopMark("max_tokens")).toBe("max_tokens");
-    expect(stopMark("refusal")).toBe("refusal");
+  it("#196 -- only a \"cut\" marks; the phone wire still sends neither field", () => {
+    // #196 -- ONLY the backend vocabulary's "cut" marks. The raw token
+    // is what the mark NAMES; the class is what decides.
+    expect(stopMark("max_tokens", "cut")).toBe("max_tokens");
+    expect(stopMark("length", "cut")).toBe("length");
+    expect(stopMark("SAFETY", "cut")).toBe("SAFETY");
+    // the #196 bug: a NORMAL finish from OpenAI / Gemini / Ollama
+    expect(stopMark("stop", "normal")).toBeNull();
+    expect(stopMark("STOP", "normal")).toBeNull();
+    expect(stopMark("end_turn", "normal")).toBeNull();
+    // the other direction: a word the table does not know is NOT a cut
+    expect(stopMark("tool_use", "unknown")).toBeNull();
+    // no class at all (a mock, an older wire) marks nothing
+    expect(stopMark("max_tokens", undefined)).toBeNull();
+    expect(stopMark("max_tokens", null)).toBeNull();
+    expect(stopMark(null, "cut")).toBeNull();
+    expect(stopMark("", "cut")).toBeNull();
+  });
+  it("#196 -- \"refusal\" was this file's example of a mark; under CT-1's\n      table it is UNKNOWN and now renders NOTHING", () => {
+    // Anthropic really does return it and it really is a cut. The table is
+    // CT-1's and his rule for an unlisted word is unknown, so the mark is
+    // gone until he rules -- pinned here so the loss is deliberate, not a
+    // deleted assertion. stop_vocabulary.py names the whole set.
+    expect(stopMark("refusal", "unknown")).toBeNull();
   });
 });

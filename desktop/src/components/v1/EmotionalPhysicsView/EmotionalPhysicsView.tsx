@@ -148,8 +148,9 @@ export default function EmotionalPhysicsView({ response, text, onAnalyze }: Prop
   const meta = view._meta ?? {};
   const modelId = typeof meta.model_id === "string" ? meta.model_id : null;
   const parseError = typeof meta.parse_error === "string" ? meta.parse_error : null;
-  // #167b -- the stop mark: a reply the provider cut off (web view, #162 b).
-  const stopped = stopMark(meta.stop_reason);
+  // #167b / #196 -- the stop mark: ONLY a reply the ONE backend vocabulary
+  // classed as "cut". Same table, same words, all three surfaces.
+  const stopped = stopMark(meta.stop_reason, meta.stop_class);
 
   return (
     <section className={styles.root} aria-label="Emotional Physics view">

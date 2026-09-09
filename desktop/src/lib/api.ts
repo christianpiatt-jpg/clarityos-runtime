@@ -420,8 +420,11 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     ts_ms:       number;
     parse_error: string | null;
     // #167b -- #128 shipped the provider stop signal, raw; null on mock.
-    // The view marks a reply whose stop_reason is not end_turn.
+    // R5.3 -- the raw vendor token, which the mark NAMES.
     stop_reason?: string | null;
+    // #196 -- the ONE backend vocabulary's reading: "normal" | "cut" |
+    // "unknown". The view marks ONLY "cut".
+    stop_class?: string | null;
   };
 }
 export async function runEmotionalPhysics(

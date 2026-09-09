@@ -190,8 +190,10 @@ export default function EmotionalPhysicsView({
   const meta = view._meta ?? {};
   const modelId = typeof meta.model_id === "string" ? meta.model_id : null;
   const parseError = typeof meta.parse_error === "string" ? meta.parse_error : null;
-  // #162 (b) -- the stop mark: a reply the provider cut off.
-  const stopped = stopMark(meta.stop_reason);
+  // #162 (b) / #196 -- the stop mark: ONLY a reply the ONE backend
+  // vocabulary classed as "cut". A normal OpenAI "stop" or Gemini "STOP"
+  // marks nothing now, and neither does a word the table does not know.
+  const stopped = stopMark(meta.stop_reason, meta.stop_class);
 
   return (
     <section className={styles.root} aria-label="Emotional Physics view">

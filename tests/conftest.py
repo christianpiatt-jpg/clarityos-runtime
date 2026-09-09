@@ -303,6 +303,17 @@ def manual_confirm(monkeypatch):
 # the same CI gates from the start.
 # ===========================================================================
 _FILE_MARKERS: dict[str, set[str]] = {
+    # ---- #196 / #199 / #200 one word, one refusal, one reading ----
+    # runtime_spine: all THREE gates refuse with one status and one body
+    # (the third shape joined at #199), and the physics _meta carries the
+    # vocabulary class beside the raw vendor token.
+    # determinism_surface: the stop table is a pure mapping -- the same
+    # token always reads the same word, and an unlisted one is never a
+    # guess. of_n stays per bearing.
+    "test_one_word_one_refusal.py": {
+        "runtime_spine",
+        "determinism_surface",
+    },
     # ---- #124 citizens numbered / cohort derived / founder = controller ----
     # runtime_spine: both founder gates + /me + /membership/state.
     # privacy_surface: the founder rows carry no hash / salt / operator id.

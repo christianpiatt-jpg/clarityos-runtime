@@ -349,8 +349,9 @@ export function SeedComposer({
 }
 
 export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }) {
-  // #162 (b) -- the stop mark: a reply the provider cut off.
-  const stopped = stopMark(ep?._meta?.stop_reason);
+  // #162 (b) / #196 -- ONLY a reply the ONE backend vocabulary classed
+  // as "cut"; "normal" and "unknown" both render nothing.
+  const stopped = stopMark(ep?._meta?.stop_reason, ep?._meta?.stop_class);
   return (
     <section data-testid="section-emotional-physics">
       <SectionHeader>1. Emotional Physics</SectionHeader>

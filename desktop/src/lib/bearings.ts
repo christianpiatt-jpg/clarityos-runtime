@@ -31,10 +31,18 @@ export function bearingRows(rp: Record<string, unknown> | null | undefined): Bea
   });
 }
 
-/** #167b -- the stop mark. A provider stop signal other than end_turn means
- *  the model was cut off (max_tokens, a refusal, ...). null / absent is a
- *  mock or an unknown stop, not a cut -- no mark. */
-export function stopMark(stopReason: unknown): string | null {
+/** #196 (CT-1 2026-09-09) -- the stop mark, read from the ONE backend
+ *  vocabulary (stop_vocabulary.py) and never from the raw token. The
+ *  class is "normal" | "cut" | "unknown"; ONLY "cut" earns a mark.
+ *  "unknown" renders NOTHING -- it is not a cut and not a completion,
+ *  and the backend has already logged the word once. Absent class (a
+ *  mock, a provider that sends no signal, an older wire) renders
+ *  nothing too. The RAW vendor token is what the mark NAMES (R5.3),
+ *  so "stopped early: max_tokens" still says which instrument spoke. */
+export type StopClass = "normal" | "cut" | "unknown";
+
+export function stopMark(stopReason: unknown, stopClass: unknown): string | null {
+  if (stopClass !== "cut") return null;
   if (typeof stopReason !== "string" || !stopReason.trim()) return null;
-  return stopReason === "end_turn" ? null : stopReason;
+  return stopReason.trim();
 }

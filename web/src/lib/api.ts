@@ -623,6 +623,8 @@ export interface MeshState {
 
 export interface MarkovEnvelopeLatest {
   ok: boolean;
+  // #203 -- the write has always carried it; the wire now does too.
+  state_index?: number | null;
   state_vector?: number[];
   predictive_vector?: number[];
   qc_envelope?: Record<string, number>;
@@ -2289,8 +2291,12 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     ts_ms:       number;
     parse_error: string | null;
     // #162 (b) -- #128 shipped the provider stop signal, raw; null on
-    // mock. The panels mark a reply whose stop_reason is not end_turn.
+    // mock. R5.3 -- the raw vendor token, which the mark NAMES.
     stop_reason?: string | null;
+    // #196 -- the ONE backend vocabulary's reading of that token:
+    // "normal" | "cut" | "unknown". Absent when no signal arrived. The
+    // panels mark ONLY "cut"; "unknown" renders nothing.
+    stop_class?: string | null;
   } & WindowMeta;   // #139 -- the window the kernel READ
 }
 // ★ thread_id is the RELATIONSHIP KEY, and it is spelled identically

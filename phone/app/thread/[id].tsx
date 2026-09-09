@@ -31,9 +31,11 @@ type ChatMessage = ThreadMessage & {
   grounding_status?: GroundingStatus | null;
   directive_metadata?: Record<string, DirectiveMeta> | null;
   // #161 -- the provider's stop signal, when the wire carries one (it does
-  // not today: see api.ts ThreadMessageResult.stop_reason). Shown as its
-  // word when not end_turn; nothing when absent.
+  // not today: see api.ts ThreadMessageResult.stop_reason). #196 -- the
+  // mark now needs the vocabulary's class too, so a normal "stop" from
+  // OpenAI or "STOP" from Gemini can never read as a cut.
   stop_reason?: string | null;
+  stop_class?: string | null;
 };
 
 const DIRECTIVE_LABEL: Record<string, string> = {
@@ -105,6 +107,7 @@ export default function ThreadDetailScreen() {
           grounding_status: r.grounding_status ?? null,
           directive_metadata: r.directive_metadata ?? null,
           ...(r.stop_reason != null ? { stop_reason: r.stop_reason } : {}),   // #161 -- only when the wire sends it
+          ...(r.stop_class != null ? { stop_class: r.stop_class } : {}),      // #196 -- same rule
         },
       ]);
       setDraft("");
@@ -379,9 +382,9 @@ function Bubble({ message }: { message: ChatMessage }) {
         <Text style={styles.bubbleModel}>{message.model}</Text>
       )}
       {/* #161 -- the stop mark: a reply the provider cut off (not end_turn) */}
-      {isAssistant && stopMark(message.stop_reason) ? (
+      {isAssistant && stopMark(message.stop_reason, message.stop_class) ? (
         <Text style={[styles.bubbleModel, { color: "#ff8a8a" }]} accessibilityRole="text">
-          stopped early: {stopMark(message.stop_reason)}
+          stopped early: {stopMark(message.stop_reason, message.stop_class)}
         </Text>
       ) : null}
       {/* A19/A30 — per-turn directive badges (cite grounding + others) */}

@@ -1551,10 +1551,20 @@ def _validate_credentials(username: str, password: str) -> None:
 
 
 def _require_admin(session: dict = Depends(require_session)) -> dict:
+    """The bootstrap-admin gate. The PREDICATE is its own (the configured
+    admin username, not the controller flag — see _require_founder); the
+    REFUSAL is not.
+
+    #199 (CT-1 2026-09-09) — ONE refusal. This was the third shape on the
+    site: 403 {"error": "forbidden", "message": "Admin only"} beside the
+    two controller gates' 403 ADMIN_ONLY_REFUSAL. CT-1's reason, recorded:
+    a single member-facing refusal is what keeps the site securable later
+    — three strings is three things to get wrong. Same status as before;
+    only the body and the string moved."""
     if session["user"] != ADMIN_USER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=error_response("forbidden", "Admin only"),
+            detail=dict(ADMIN_ONLY_REFUSAL),
         )
     return session
 
@@ -3795,8 +3805,15 @@ def markov_envelope_latest(
         )
     state_vector = state.get("state_vector") or []
     predictive_vector = state.get("envelope_predictive_vector") or list(state_vector)
+    # #203 (CT-1 2026-09-09) -- state_index is written on every state
+    # (_persist_markov_state) and never reached the wire. Additive: the
+    # panel renders the rows it earns, and this is one somebody computed.
+    # qc_envelope / envelope_metrics still ship unchanged -- on the thread
+    # path they are the identity envelope and three zero trends, which is
+    # why the panel stopped RENDERING them; nothing about the write moved.
     return {
         "ok": True,
+        "state_index": state.get("state_index"),
         "state_vector": state_vector,
         "predictive_vector": predictive_vector,
         "qc_envelope": state.get("qc_envelope") or {},

@@ -56,6 +56,7 @@ import felt_gap_reader                # Phase-1 — felt-gap Layer-B classifier 
 import kernel_logging
 import local_model_runtime           # v45 — on-device inference runtime
 import memory_vault                  # v46 — encrypted local KV store
+import stop_vocabulary               # #196 — the ONE stop-token table
 import turn_record                   # W1_TURN — the per-turn record (seal/observe)
 import orchestrator_routing          # board #50 — routing handoff, SHADOW ONLY
 import orchestrator_schemas          # locked schemas — conformed to, never amended
@@ -2324,8 +2325,14 @@ def run_emotional_physics(
             "ts_ms":       now_ms,
             "parse_error": parse_error,
             # #128 -- the provider's stop signal, copied raw whether or not
-            # the body parsed. None on mock (surfaced later; no UI yet).
+            # the body parsed. None on mock. R5.3: the raw token stays so a
+            # surface can name the instrument.
             "stop_reason": response.get("stop_reason"),
+            # #196 (CT-1 2026-09-09) -- ONE vocabulary reads that token:
+            # "normal" | "cut" | "unknown", or absent when the provider sent
+            # no signal at all. Only "cut" earns a mark on any surface;
+            # "unknown" renders NOTHING and is logged once by the table.
+            "stop_class": stop_vocabulary.classify_stop(response.get("stop_reason")),
             # #139 -- what the kernel actually read; the browser renders it.
             **window,
         },
