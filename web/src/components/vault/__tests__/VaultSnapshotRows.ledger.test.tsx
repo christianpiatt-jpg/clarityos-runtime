@@ -1,13 +1,18 @@
 /**
- * #180b (2) -- the vault rail renders what the continuity snapshot carries:
- * five flags as WORDS, eight stores each with its last update in the title,
- * the last episode as one line. Absent -> "—". now_ts is C.
+ * #180b (2) -- the continuity snapshot's rows render what it carries: five
+ * flags as WORDS, eight stores each with its last update in the title, the
+ * last episode as one line. Absent -> "—". now_ts is C.
+ *
+ * #218 (CT-1 2026-09-09) -- these rows MOVED off the cockpit rail to /vault.
+ * The assertions came with them, unchanged, including every provenance title:
+ * the rail is quiet now, but the ledger contract is not weaker for it. The
+ * rail's own (new) contract is pinned in cockpitV2/__tests__/
+ * quiet_rail_and_reasons.test.tsx.
  */
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 
-import VaultStatus from "../VaultStatus";
+import VaultSnapshotRows from "../VaultSnapshotRows";
 
 const DASH = "—";
 const TS = 1_788_546_523;
@@ -29,10 +34,10 @@ const SNAP = {
 };
 
 function mount(snapshot: unknown) {
-  return render(<MemoryRouter><VaultStatus snapshot={snapshot as never} /></MemoryRouter>);
+  return render(<VaultSnapshotRows snapshot={snapshot as never} />);
 }
 
-describe("VaultStatus (#180b 2)", () => {
+describe("VaultSnapshotRows (#180b 2, moved by #218)", () => {
   it("★ five words, never a number; false reads not ok", () => {
     mount(SNAP);
     expect(screen.getByTestId("flag-identity_ok")).toHaveTextContent("identity not ok");
@@ -70,9 +75,9 @@ describe("VaultStatus (#180b 2)", () => {
     expect(screen.getByTestId("vault-episode")).toHaveTextContent(`last episode ${DASH} · weight ${DASH}`);
     expect(screen.getByText("No counts available.")).toBeInTheDocument();
   });
-  it("a null snapshot renders the rail, dashed, with the link", () => {
+  it("a null snapshot renders the rows, dashed", () => {
     mount(null);
     expect(screen.getByTestId("flag-universal_ok")).toHaveTextContent(DASH);
-    expect(screen.getByText("Open Vault →")).toBeInTheDocument();
+    expect(screen.getByTestId("vault-snapshot-rows")).toBeInTheDocument();
   });
 });

@@ -89,9 +89,50 @@ function EnvelopeFields({ data }: { data: SessionEnvelope }) {
   );
 }
 
+/** #219 (CT-1 2026-09-09) -- ABSENCE NAMES ITS REASON.
+ *
+ *  The panel used to print the server's own line at a member: "No Markov
+ *  state for session <id>". True, useless, and it carries an id nobody
+ *  outside this repo can act on. The backend answers 404 error=no_state,
+ *  and the panel already knows the one thing that tells the two cases
+ *  apart -- how many turns the thread has had.
+ *
+ *    no turns yet          nothing has been said, so nothing was written
+ *    turns but no state    the turns predate the writer (#140 B); a new
+ *                          turn writes one
+ *    any other failure     the wire's own reason, unchanged -- we do not
+ *                          invent an explanation for something we did not
+ *                          diagnose (D5)
+ *
+ *  messageCount null means the thread is not loaded, which is a third
+ *  kind again: we do not know, so we do not guess -- the wire's reason
+ *  stands. */
+export const NO_TURN_YET = "no turn on this thread yet";
+export const NO_TURN_SINCE_WRITER = "no turn on this thread since the state writer shipped";
+/** The order banned a bare "No Markov state for session <id>" outright.
+ *  When the wire says no_state and the turn count is unknown we cannot
+ *  say WHY, but we can still refuse to hand a member an id: this states
+ *  the fact and claims no cause. */
+export const NO_STATE_UNKNOWN_WHY = "no state for this thread yet";
+
+export function absenceReason(
+  errorCode: string | null,
+  wireReason: string | null,
+  messageCount: number | null,
+): string {
+  if (errorCode === "no_state") {
+    if (typeof messageCount !== "number") return NO_STATE_UNKNOWN_WHY;
+    return messageCount === 0 ? NO_TURN_YET : NO_TURN_SINCE_WRITER;
+  }
+  return wireReason || "could not read the envelope";
+}
+
 export default function EnvelopeViewerPanel() {
   const envelope = useCockpit((s) => s.envelope);
   const selectedId = useCockpit((s) => s.session.selectedId);
+  // The thread the rail mirrors (cockpitStore selects the thread id as the
+  // session id), so the turn count is already here -- no new call.
+  const threadMeta = useCockpit((s) => s.thread.meta);
 
   return (
     <section className="cv2-panel">
@@ -99,7 +140,15 @@ export default function EnvelopeViewerPanel() {
       <div className="cv2-panel-body">
         {!selectedId && <p className="cv2-muted">Select a session.</p>}
         {selectedId && envelope.status === "loading" && <p className="cv2-muted">Loading…</p>}
-        {selectedId && envelope.status === "error" && <p className="cv2-err">{envelope.error}</p>}
+        {selectedId && envelope.status === "error" && (
+          <p className="cv2-err" data-testid="envelope-absence">
+            {absenceReason(
+              envelope.errorCode,
+              envelope.error,
+              typeof threadMeta?.message_count === "number" ? threadMeta.message_count : null,
+            )}
+          </p>
+        )}
         {selectedId && envelope.status === "ready" && envelope.data && (
           <EnvelopeFields data={envelope.data} />
         )}

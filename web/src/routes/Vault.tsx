@@ -3,6 +3,10 @@
 // POST /vault/delete. No localStorage.
 
 import { useCallback, useEffect, useState } from "react";
+
+// #218 -- the continuity snapshot's rows, moved off the cockpit rail.
+import VaultSnapshotRows from "../components/vault/VaultSnapshotRows";
+import { useContinuity } from "../hooks/useContinuity";
 import {
   ApiError,
   type ServerVaultItem,
@@ -39,6 +43,16 @@ export default function Vault() {
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<UsageEnvelope | null>(null);
   const [loading, setLoading] = useState(true);
+  // #218 -- the rail's twenty lines live here now. Read-only; the same
+  // /continuity/snapshot the cockpit already reads, no new route.
+  // The hook's loading and error are KEPT: twenty dashed rows look
+  // identical whether the wire is empty, slow or broken, and telling
+  // those apart is the whole point of the order that moved them here.
+  const {
+    snapshot: continuity,
+    loading: continuityLoading,
+    error: continuityError,
+  } = useContinuity();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -174,6 +188,22 @@ export default function Vault() {
       </div>
 
       {error ? <div className="banner err">{error}</div> : null}
+
+      {/* #218 -- counts, coherence flags, per-store stamps and the last
+          episode. They were on the cockpit rail, where they said nothing
+          for a new member; every provenance title came across unchanged. */}
+      <div className="panel" data-testid="vault-continuity">
+        <div className="meta" style={{ marginBottom: 6 }}>CONTINUITY</div>
+        {continuityLoading ? (
+          <p className="muted" data-testid="continuity-loading">Reading…</p>
+        ) : continuityError ? (
+          <p className="banner err" data-testid="continuity-error">
+            counts unread: {continuityError}
+          </p>
+        ) : (
+          <VaultSnapshotRows snapshot={continuity} />
+        )}
+      </div>
 
       <div className="panel-grid">
         <div>

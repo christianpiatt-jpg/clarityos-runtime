@@ -71,10 +71,15 @@ describe("summaryCurrency -- the card's wrapper", () => {
 });
 
 describe("turnCaption / helpers", () => {
-  it("made turn a · now turn b; no made stamp reads a dash", () => {
+  it("made turn a · now turn b; #219 -- no made stamp names its REASON, not a dash", () => {
     expect(turnCaption({ made_turn: 3, now_turn: 5 })).toBe("made turn 3 · now turn 5");
-    expect(turnCaption({ made_turn: null, now_turn: 5 })).toBe("made turn — · now turn 5");
-    expect(turnCaption(null)).toBe("made turn — · now turn —");
+    expect(turnCaption({ made_turn: 3, now_turn: null })).toBe("made turn 3 · now turn —");
+    // #219 (CT-1 2026-09-09): "made turn —" told a member nothing. An em dash
+    // is the right KIND for a missing reading and the wrong thing to show
+    // someone asking whether their summary is current. The band (#190) is
+    // unchanged -- readCurrency above still answers old for this row.
+    expect(turnCaption({ made_turn: null, now_turn: 5 })).toBe("not stamped — summarized before the stamp shipped");
+    expect(turnCaption(null)).toBe("not stamped — summarized before the stamp shipped");
   });
   it("toMs is a formatter's helper: units by magnitude, null for nothing", () => {
     expect(toMs(1_700_000_000)).toBe(1_700_000_000_000);

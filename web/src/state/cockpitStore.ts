@@ -91,7 +91,10 @@ export interface CockpitState {
   session: { status: LoadStatus; items: SessionMeta[]; selectedId: string | null; error: string | null };
   vault: { status: LoadStatus; snapshot: ContinuitySnapshot | null; error: string | null };
   runtime: { status: LoadStatus; envelope: RuntimeEnvelope | null; error: string | null };
-  envelope: { status: LoadStatus; forSessionId: string | null; data: SessionEnvelope | null; error: string | null };
+  // #219 -- errorCode is the wire's own word ("no_state"), kept beside the
+  // sentence so the panel can say WHY there is nothing rather than repeat
+  // the server's bare line at a member.
+  envelope: { status: LoadStatus; forSessionId: string | null; data: SessionEnvelope | null; error: string | null; errorCode: string | null };
   /** Which surface the centre + right columns render. */
   view: CockpitView;
   /** RELATIONSHIPS. A relationship IS a thread carrying the reserved
@@ -160,7 +163,7 @@ function initialState(): CockpitState {
     session: { status: "idle", items: [], selectedId: null, error: null },
     vault: { status: "idle", snapshot: null, error: null },
     runtime: { status: "idle", envelope: null, error: null },
-    envelope: { status: "idle", forSessionId: null, data: null, error: null },
+    envelope: { status: "idle", forSessionId: null, data: null, error: null, errorCode: null },
     view: "thread",   // a member lands where they land today
     relationships: {
       status: "idle", items: [], activeId: null, error: null,
@@ -209,6 +212,12 @@ function errMessage(e: unknown): string {
   if (e instanceof ApiError) return e.message || e.code;
   if (e instanceof Error) return e.message;
   return "unexpected error";
+}
+
+/** #219 -- the wire's own error word, or null when the failure never
+ *  reached the API (a network drop has no code to name). */
+function errCode(e: unknown): string | null {
+  return e instanceof ApiError ? e.code : null;
 }
 
 // --------------------------------------------------------------- slices ----
@@ -289,7 +298,7 @@ const envelopeSlice = {
   actions: {
     /** Load the envelope for a session; ignores stale responses. */
     async loadFor(sessionId: string): Promise<void> {
-      setSlice("envelope", { status: "loading", forSessionId: sessionId, data: null, error: null });
+      setSlice("envelope", { status: "loading", forSessionId: sessionId, data: null, error: null, errorCode: null });
       try {
         const data = await markovEnvelopeLatest(sessionId);
         if (current.session.selectedId === sessionId) {
@@ -297,12 +306,12 @@ const envelopeSlice = {
         }
       } catch (e) {
         if (current.session.selectedId === sessionId) {
-          setSlice("envelope", { status: "error", error: errMessage(e) });
+          setSlice("envelope", { status: "error", error: errMessage(e), errorCode: errCode(e) });
         }
       }
     },
     clear(): void {
-      setSlice("envelope", { status: "idle", forSessionId: null, data: null, error: null });
+      setSlice("envelope", { status: "idle", forSessionId: null, data: null, error: null, errorCode: null });
     },
   },
 };
@@ -585,6 +594,17 @@ const threadSlice = {
             : { turnsSincePhysics: nextTurns }),
           failedSend: null,
         });
+        // ★ #228 (CT-1 2026-09-09) -- THE WRITE WORKED; THE PANEL COULD
+        // NOT SEE IT. The backend writes one Markov state per member turn
+        // on this very request, but the envelope slice is loaded ONLY by
+        // sessionSlice.select -- so after the first turn on a thread the
+        // panel kept its 404 until the member clicked away and back. With
+        // #219 that stale 404 met a fresh message_count and the panel
+        // stated the OPPOSITE of the truth ("no turn since the state
+        // writer shipped", one turn in). A turn changes the envelope, so
+        // the turn reloads it. Fire-and-forget: a failed reload leaves the
+        // panel's own error path, and never costs the member the turn.
+        void envelopeSlice.actions.loadFor(meta.thread_id);
       } catch (e) {
         // ★★ DO NOT DESTROY THE MEMBER'S WORDS.
         //

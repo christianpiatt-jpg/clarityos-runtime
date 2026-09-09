@@ -73,12 +73,15 @@ describe("ThreadInsightsPanel — the summary glow (#190) and its caption (#176)
     expect(screen.getByTestId("thread-summary-currency")).toHaveTextContent("running 0000000");
   });
 
-  it("★ old: no stamp on the row -> magenta, \"made turn —\"; and both axes broken -> magenta", async () => {
+  it("★ old: no stamp on the row -> magenta, and the caption says WHY (#219); both axes broken -> magenta", async () => {
     await mount(meta({ summary_turn: undefined, summary_commit_sha: null }));
     const card = screen.getByTestId("thread-summary-card");
     expect(card).toHaveAttribute("data-currency", "old");
     expect(card.className).toContain("is-old");
-    expect(screen.getByTestId("thread-summary-currency")).toHaveTextContent("old · made turn — · now turn 3 · running abc1234");
+    // #219 -- the band is UNCHANGED (old / is-old above); only the caption
+    // moved: a dash told a member nothing, so the absence names its reason.
+    expect(screen.getByTestId("thread-summary-currency"))
+      .toHaveTextContent("old · not stamped — summarized before the stamp shipped · running abc1234");
   });
 
   it("no clock: the timestamps do not move the verdict", async () => {

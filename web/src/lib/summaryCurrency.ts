@@ -117,11 +117,22 @@ export function summaryCurrency(
   });
 }
 
-/** The caption's turn pair: "made turn a · now turn b"; no made stamp reads
- *  "made turn —". */
+/** #219 (CT-1 2026-09-09) -- ABSENCE NAMES ITS REASON. The caption used to
+ *  read "made turn — · now turn 12", which tells a member nothing: an em
+ *  dash is the right KIND for a missing reading but the wrong thing to
+ *  show someone who wants to know whether their summary is current. A
+ *  summary with no turn stamp was made before the stamp existed, so the
+ *  caption says that, in one sentence, with no jargon and no id.
+ *
+ *  With a stamp it is unchanged: "made turn a · now turn b". This touches
+ *  the caption ONLY -- readCurrency and summaryCurrency, which pick the
+ *  band (#190), are not in this function and are not changed. */
+export const UNSTAMPED_CAPTION = "not stamped — summarized before the stamp shipped";
+
 export function turnCaption(stamps: CurrencyStamps | null | undefined): string {
   const s = stamps ?? {};
   const made = normTurn(s.made_turn);
+  if (made === null) return UNSTAMPED_CAPTION;
   const now = normTurn(s.now_turn);
-  return `made turn ${made === null ? "—" : made} · now turn ${now === null ? "—" : now}`;
+  return `made turn ${made} · now turn ${now === null ? "—" : now}`;
 }
