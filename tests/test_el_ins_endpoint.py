@@ -4,7 +4,7 @@ Tests for v69 / Unit 74 — /el_ins/* HTTP endpoints.
 Covers:
     A. Auth gate on all four endpoints
     B. POST /el_ins/analyze response shape + provider_mode validation
-    C. thread_id present → record stored, absent → not stored
+    C. stored under the operator either way; thread_id is a tag (#284)
     D. GET /el_ins/recent returns operator-scoped records, newest-first
     E. GET /el_ins/thread/{thread_id} filters by thread
     F. GET /el_ins/macro applies since filter
@@ -77,7 +77,7 @@ class TestAnalyzeEndpoint:
         body = r.json()
         assert set(body.keys()) == {"result", "stored", "thread_id", "timestamp"}
         assert body["result"]["analysis"]["ratio_classification"] == "high_el"
-        assert body["stored"] is False
+        assert body["stored"] is True      # #284 -- stored under the operator; thread_id is a tag
         assert body["thread_id"] is None
 
     def test_invalid_provider_mode_returns_400(self, client):
@@ -123,16 +123,39 @@ class TestStorage:
         assert body["stored"] is True
         assert body["thread_id"] == "thread-001"
 
-    def test_no_thread_id_no_store(self, client):
+    def test_no_thread_id_still_stores_under_operator(self, client):
+        # #284 -- the copy promises "stored under the authed operator,
+        # keyed by thread_id when provided"; the code stored nothing and
+        # RECENT read "No EL/INS records yet" straight after a run.
         r = client.post(
             "/el_ins/analyze",
             json={"text": "catastrophic", "provider_mode": "deterministic"},
             headers=_auth(),
         )
-        assert r.json()["stored"] is False
-        # Confirm store remains empty for this operator.
-        r2 = client.get("/el_ins/recent", headers=_auth())
-        assert r2.json()["records"] == []
+        assert r.status_code == 200
+        body = r.json()
+        assert body["stored"] is True
+        assert body["thread_id"] is None
+        rows = client.get("/el_ins/recent", headers=_auth()).json()["records"]
+        assert len(rows) == 1
+        assert rows[0]["thread_id"] is None
+        assert rows[0]["source"] == "on_demand"
+
+    def test_blank_thread_id_is_absent_not_a_tag(self, client):
+        # #284 -- blank / whitespace is ABSENT; it is never a tag and it is
+        # never defaulted to a current thread (#167e).
+        for blank in ("", "   "):
+            r = client.post(
+                "/el_ins/analyze",
+                json={"text": "catastrophic", "provider_mode": "deterministic",
+                      "thread_id": blank},
+                headers=_auth(),
+            )
+            assert r.status_code == 200, repr(blank)
+            assert r.json()["stored"] is True
+            assert r.json()["thread_id"] is None
+        rows = client.get("/el_ins/recent", headers=_auth()).json()["records"]
+        assert len(rows) == 2 and all(row["thread_id"] is None for row in rows)
 
 
 # ===========================================================================

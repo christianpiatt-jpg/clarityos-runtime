@@ -468,7 +468,12 @@ def test_run_feed_ingestion_success(reset_stores, monkeypatch):
     entries = library_store.list_for_user("alice")
     assert len(entries) == 2
     titles = [e["title"] for e in entries]
-    assert any("S" in t for t in titles)
+    # #284 -- the title names the state the surface would show: a state word
+    # when one leads, "indeterminate" on a level field. Never "S?", never
+    # the argmax of a tie.
+    for t in titles:
+        named = t.split("] ", 1)[1].split(" / ", 1)[0]
+        assert named in {"S1", "S2", "S3", "S4", "indeterminate"}, t
 
 
 def test_run_feed_ingestion_unknown_feed_raises_key_error(reset_stores):

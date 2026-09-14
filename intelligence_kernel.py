@@ -1197,6 +1197,7 @@ def run_thread_message(
     response = model_router.route_request(model_id, prompt)
     vendor_calls.append(response)
     assistant_text = str(response.get("text") or "").strip()
+    _answer_call: dict = response   # #284 -- the call whose text became the reply
 
     # A28 — unified directive post-enforcement. The engine validates/transforms
     # the reply per active directive and signals at most one capped re-query
@@ -1219,7 +1220,10 @@ def run_thread_message(
                 retry_prompt = f"{prompt}\n\n{dmeta.retry_instruction}"
             retry_response = model_router.route_request(model_id, retry_prompt)
             vendor_calls.append(retry_response)   # v56 — billed, so metered
-            retry_output = str(retry_response.get("text") or "").strip() or final_output
+            retry_text = str(retry_response.get("text") or "").strip()
+            if retry_text:
+                _answer_call = retry_response   # #284 -- the retry's text is the reply
+            retry_output = retry_text or final_output
             final_output, dmeta = directive_engine.apply_post_enforcement(
                 directives, retry_output, retry_used=True,
             )
@@ -1383,6 +1387,23 @@ def run_thread_message(
         except Exception:  # pragma: no cover (defensive)
             logger.debug("el_ins per-turn hook failed; ignoring", exc_info=True)
 
+    # #284 -- read once, off the call whose text became the reply: the
+    # first call, or the #cite retry when its text stood (an empty retry
+    # falls back to the first call's text, so the flags follow the text --
+    # not simply the LAST call, which is stop_reason's rule on the verify
+    # line). None when no vendor call happened: never a guess.
+    _answer = _answer_call if isinstance(_answer_call, dict) else {}
+    _answer_mock = (
+        bool(_answer.get("mock"))
+        if isinstance(_answer.get("mock"), bool) else None
+    )
+    _answer_fallback_error = (
+        _answer.get("fallback_error")
+        if isinstance(_answer.get("fallback_error"), str)
+        and _answer.get("fallback_error")
+        else None
+    )
+
     # 6. Structured kernel log line — same shape as the ELINS / #G
     #    paths. ``meta`` strips raw text via kernel_logging.safe_meta,
     #    so we only emit lengths + model_id.
@@ -1408,6 +1429,10 @@ def run_thread_message(
             # metadata carries target names (content), and telemetry stays
             # content-free per A20/A24/A25.
             "directives":        directives.directives,
+            # #284 -- whether a real provider answered this turn (bool;
+            # None when no vendor call happened). Content-free, like
+            # model_id; the error string itself stays off the log line.
+            "mock":              _answer_mock,
         },
     )
 
@@ -1429,6 +1454,16 @@ def run_thread_message(
         # (functional payload; [] / {} on non-directive turns).
         "directives":        directives.directives,
         "directive_metadata": directive_metadata,
+        # #284 -- declared, not leaked. The record names whether a real
+        # provider answered: ``mock`` is the answering call's flag (the
+        # call whose text became the reply), ``fallback_error`` the
+        # provider's error when a mock stood in for a failed real call.
+        # None when no vendor call happened (D5). The HTTP layer forwards
+        # both beside grounding_status; /session has rendered provider ·
+        # mock as a FIELD since #147, and the member route said it only
+        # inside the reply text.
+        "mock":              _answer_mock,
+        "fallback_error":    _answer_fallback_error,
         # v56 — additive. Every vendor dispatch this turn made, in order,
         # each carrying the provider's own reported `usage` block. The HTTP
         # layer folds these into the compute meter and settles ONCE for the
@@ -2368,6 +2403,22 @@ def run_emotional_physics(
 # ---------------------------------------------------------------------------
 # v53 — ELINS v2 (Path-C view adapter)
 # ---------------------------------------------------------------------------
+def _attractor_named(envelope: dict) -> str:
+    """#284 -- the word a WRITER names for this envelope's attractor: the
+    leading state when one leads, "indeterminate" on a level field --
+    elins_v2_view.attractor_verdict, the render path's rule. It rides
+    BESIDE the raw argmax on the kernel_run line and never replaces it
+    (R5.3: the measurement stays; the class rides beside it)."""
+    outputs = (envelope or {}).get("outputs") or {}
+    verdict = elins_v2_view.attractor_verdict(
+        outputs.get("state_distribution"), str(outputs.get("attractor") or "S?"),
+    )
+    return (
+        verdict["state"] if verdict["determinate"]
+        else elins_v2_view.INDETERMINATE_ATTRACTOR
+    )
+
+
 def run_elins_v2(
     user_id: str,
     raw_text: str,
@@ -2450,6 +2501,7 @@ def run_elins_v2(
         meta={
             "region":         region,
             "attractor":      envelope["outputs"]["attractor"],
+            "attractor_named": _attractor_named(envelope),   # #284 -- beside, never instead
             "collapse_state": envelope["outputs"]["collapse_state"],
             "multiplier":     envelope["outputs"]["multiplier"],
             "geography_tier": envelope["outputs"]["geography_tier"],
@@ -2568,6 +2620,7 @@ def run_manual_ingestion(
             "region":     region,
             "library_id": library_id,
             "attractor":  envelope["outputs"]["attractor"],
+            "attractor_named": _attractor_named(envelope),   # #284 -- beside, never instead
             "input_len":  len(text),
             # #138 -- the log carries one of the four route WORDS or "other";
             # the raw client string never reaches a log line (the row keeps it).

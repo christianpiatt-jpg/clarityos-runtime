@@ -182,6 +182,65 @@ def compute_state_distribution(intensities: dict) -> tuple[dict, str]:
 
 
 # ---------------------------------------------------------------------------
+# §2b — the attractor tie rule, in ONE place server-side
+#
+# #284 -- the render path refuses to name a state on a level field
+# (web/src/lib/attractor.ts: "indeterminate — no attractor leads"), and
+# the write path recorded the argmax of the same tie ("S1 / soft"). The
+# rule below IS that file's rule: sort the four weights, take the gap
+# between the top two, and a gap under the epsilon names no state. The
+# epsilon is 5 points; the file explains why (a real read had a 15-point
+# gap). tests/test_284_three_persist_lines.py reads the constant out of
+# the .ts file and compares, so the two cannot drift apart silently.
+#
+# ★ ``outputs.attractor`` on the wire is UNCHANGED: it is still the argmax
+# (the surfaces type it S1..S4 and run their own verdict over
+# state_distribution). This helper is for WRITERS -- a record that names
+# a state names the one the surface would show.
+# ---------------------------------------------------------------------------
+ATTRACTOR_TIE_EPSILON: float = 0.05
+INDETERMINATE_ATTRACTOR: str = "indeterminate"
+
+
+def attractor_verdict(state_distribution, fallback: str) -> dict:
+    """Decide whether ``state_distribution`` actually names an attractor.
+
+    Returns ``{"determinate": bool, "state": str | None, "gap": float,
+    "leaders": list[str]}``. Mirrors ``attractorVerdict`` in
+    web/src/lib/attractor.ts for the shapes the engine emits (four floats,
+    a null, a missing key; JS string-coercion edges such as ``Number("")``
+    → 0 are not mirrored and cannot arrive from the engine): fewer than
+    two finite weights → determinate
+    with ``fallback`` (the distribution is unusable; the given attractor
+    stands); a top-two gap under ``ATTRACTOR_TIE_EPSILON`` → indeterminate
+    with ``leaders`` = every state within the epsilon of the top;
+    otherwise the leader. As on the web, a MISSING key is unusable
+    (``Number(undefined)`` is NaN) while a present ``None`` weight counts
+    as 0 (``Number(null)`` is 0).
+    """
+    pairs: list[tuple[str, float]] = []
+    if isinstance(state_distribution, dict):
+        for s in STATES:
+            if s not in state_distribution:
+                continue
+            v = state_distribution[s]
+            try:
+                w = 0.0 if v is None else float(v)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(w):
+                pairs.append((s, w))
+    if len(pairs) < 2:
+        return {"determinate": True, "state": fallback, "gap": 1.0, "leaders": []}
+    pairs.sort(key=lambda p: p[1], reverse=True)   # stable: ties keep S1<S2<S3<S4
+    gap = pairs[0][1] - pairs[1][1]
+    if gap < ATTRACTOR_TIE_EPSILON:
+        leaders = [s for s, w in pairs if pairs[0][1] - w < ATTRACTOR_TIE_EPSILON]
+        return {"determinate": False, "state": None, "gap": gap, "leaders": leaders}
+    return {"determinate": True, "state": pairs[0][0], "gap": gap, "leaders": []}
+
+
+# ---------------------------------------------------------------------------
 # §3 — Collapse threshold classifier
 # ---------------------------------------------------------------------------
 def compute_collapse_state(

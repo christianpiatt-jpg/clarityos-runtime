@@ -91,6 +91,7 @@ import dewey_pipeline
 import dewey_worker
 import library_store
 import timeline_store  # #137 -- the MEMBER timeline (/timeline page), not el_ins
+from ELINS import elins_v2_view  # #284 -- the attractor tie rule, one place
 
 logger = logging.getLogger("clarityos.ingestion_bus")
 
@@ -430,7 +431,20 @@ def persist_to_library(
     now = time.time()
     src_label = str(source or "ingestion")[:50]
     outputs = (envelope or {}).get("outputs") or {}
-    attractor = outputs.get("attractor") or "S?"
+    # #284 -- the write path takes the render path's refusal. On a level
+    # field (top-two weights within elins_v2_view.ATTRACTOR_TIE_EPSILON)
+    # the surface says "indeterminate — no attractor leads"; this title
+    # said the argmax of the tie ("S1 / soft"). Same rule, one place:
+    # elins_v2_view.attractor_verdict. An envelope with no usable
+    # state_distribution keeps the attractor it was given. Existing rows
+    # stay as written (no retrofit).
+    verdict = elins_v2_view.attractor_verdict(
+        outputs.get("state_distribution"), outputs.get("attractor") or "S?",
+    )
+    attractor = (
+        verdict["state"] if verdict["determinate"]
+        else elins_v2_view.INDETERMINATE_ATTRACTOR
+    )
     collapse = outputs.get("collapse_state") or "?"
     caller_title = _opt_str(title)
     title = caller_title if caller_title else f"[{src_label}] {attractor} / {collapse}"

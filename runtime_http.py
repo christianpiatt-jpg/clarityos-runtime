@@ -1081,14 +1081,15 @@ def get_provider_config(
 # v69 / Unit 74 — EL/INS endpoints
 #
 # Four endpoints exposing the el_ins kernel module:
-#   POST /el_ins/analyze              — analyze text, optionally store
+#   POST /el_ins/analyze              — analyze text, store under the operator
 #   GET  /el_ins/recent               — latest N records for authed operator
 #   GET  /el_ins/thread/{thread_id}   — thread-scoped history
 #   GET  /el_ins/macro                — macro-batch view (since=...)
 #
 # All four auth-gated via require_operator. The /analyze endpoint
 # accepts ``provider_mode`` (llm|deterministic|auto) and an optional
-# ``thread_id`` — when present, the record is stored in el_ins_store.
+# ``thread_id``. #284 -- every analysis is stored under the authed
+# operator; thread_id is a TAG on the record, never the gate to it.
 # ---------------------------------------------------------------------------
 
 class ElInsAnalyzeRequest(BaseModel):
@@ -1104,8 +1105,9 @@ class ElInsAnalyzeRequest(BaseModel):
     )
     thread_id: Optional[str] = Field(
         default=None,
-        description="When set, the result is stored in el_ins_store under "
-                    "this thread_id for later retrieval.",
+        description="Optional tag. The result is stored under the authed "
+                    "operator either way; when set, the record is keyed by "
+                    "this thread_id as well (blank counts as absent).",
     )
 
 
@@ -1114,11 +1116,16 @@ def el_ins_analyze(
     body: ElInsAnalyzeRequest,
     operator_id: str = Depends(require_operator),
 ) -> dict[str, Any]:
-    """Analyze ``text`` and (optionally) store the result.
+    """Analyze ``text`` and store the result under the authed operator.
 
     Returns ``{result, stored, thread_id, timestamp}``. ``stored`` is
-    True iff ``thread_id`` was provided and the store accepted the
-    record.
+    True iff the store accepted the record. #284 -- the dashboard copy
+    promises "stored under the authed operator, keyed by thread_id when
+    provided"; until this the code stored NOTHING without a thread_id,
+    and RECENT read "No EL/INS records yet" straight after a run. The
+    thread_id is a tag: a blank or whitespace one is ABSENT (None), and
+    it is never defaulted to a current thread (#167e filed a newsletter
+    reading into a relationship record that way).
 
     Returns 400 on bad ``provider_mode``.
     Returns 401 on missing / invalid / expired X-Session-ID.
@@ -1136,23 +1143,23 @@ def el_ins_analyze(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     timestamp = _time.time()
-    stored = False
-    if body.thread_id:
-        try:
-            el_ins.store_el_ins_record({
-                "operator_id": operator_id,
-                "thread_id":   body.thread_id,
-                "timestamp":   timestamp,
-                "source":      "on_demand",
-                "result":      dict(result),
-            })
-            stored = True
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+    # #284 -- a tag, not a gate: blank is absent, never a default.
+    tag = body.thread_id.strip() if isinstance(body.thread_id, str) else ""
+    thread_tag: Optional[str] = tag or None
+    try:
+        el_ins.store_el_ins_record({
+            "operator_id": operator_id,
+            "thread_id":   thread_tag,
+            "timestamp":   timestamp,
+            "source":      "on_demand",
+            "result":      dict(result),
+        })
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return {
         "result":    result,
-        "stored":    stored,
-        "thread_id": body.thread_id,
+        "stored":    True,
+        "thread_id": thread_tag,
         "timestamp": timestamp,
     }
 

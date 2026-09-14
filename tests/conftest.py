@@ -625,6 +625,23 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_load_envelope.py": {
         "load_envelope",
     },
+    # ---- #284 three persist lines ----
+    # runtime_spine: an operator route now writes the store RECENT reads
+    # without a thread_id; the member message route declares mock and
+    # fallback_error beside grounding_status; the library title takes the
+    # render path's refusal on a level field. privacy_surface: the
+    # fallback_error on the member wire is scrubbed of anything key-shaped
+    # and no member text rides any of the three. determinism_surface: the
+    # server-side tie rule equals web/src/lib/attractor.ts (the epsilon is
+    # read from the file, never retyped).
+    "test_284_three_persist_lines.py": {
+        "runtime_spine", "privacy_surface", "determinism_surface",
+    },
+    # the existing /el_ins/* endpoint file joins the gate with the route it
+    # pins (auth, the store write, cross-operator isolation); it was never in.
+    "test_el_ins_endpoint.py": {
+        "runtime_spine", "privacy_surface",
+    },
     # ---- PASS-6 Phase F — repository hygiene checks ----
     # Repository-shape gates (stray files, dependency freeze,
     # scaffolding presence). Belong in runtime_spine because a broken

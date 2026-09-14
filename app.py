@@ -13445,6 +13445,17 @@ class V47PostMessageResponse(BaseModel):
     # above is retained (it mirrors directive_metadata["cite"]["status"]).
     directives: list[str] = []
     directive_metadata: dict = {}
+    # #284 -- declared, not leaked. /session has rendered ``provider local
+    # · mock true`` as a FIELD since #147; this route said the same fact
+    # only inside the reply text ("[mock openai:gpt-5.4] ..."). ``mock``
+    # is whether a real provider answered this turn (the flag of the call
+    # whose text became the reply); ``fallback_error`` is the provider's
+    # error when a mock stood in for a failed real call, scrubbed of
+    # anything key-shaped and of any URL before it rides a member wire.
+    # Both None when no vendor call
+    # happened. Forwarded from the kernel; never persisted on the message.
+    mock: Optional[bool] = None
+    fallback_error: Optional[str] = None
 
 
 class V47RenameThreadRequest(BaseModel):
@@ -13760,6 +13771,8 @@ def me_threads_post_message(
         assistant_message=_msg_to_model(out["assistant_message"]),
         model_id=out.get("model_id"),
         grounding_status=out.get("grounding_status"),  # A19 — additive
+        mock=out.get("mock"),                                       # #284 — additive
+        fallback_error=_privacy.scrub_credentials(out.get("fallback_error")),  # #284 — additive, scrubbed
         directives=out.get("directives") or [],                    # A30 — additive
         directive_metadata=out.get("directive_metadata") or {},    # A30 — additive
     )

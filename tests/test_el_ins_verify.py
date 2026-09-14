@@ -208,5 +208,6 @@ def test_the_return_contract_and_the_reply_are_unchanged(monkeypatch):
     assert set(out) == {
         "meta", "user_message", "assistant_message", "model_id", "reasoning_mode",
         "anomalies", "grounding_status", "directives", "directive_metadata", "vendor_calls",
+        "mock", "fallback_error",   # #284 -- declared beside grounding_status, by ruling
     }
     assert "el_ins" not in str(out["meta"]) and out["reasoning_mode"] is None

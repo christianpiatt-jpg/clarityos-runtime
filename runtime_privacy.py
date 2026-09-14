@@ -41,9 +41,11 @@ Public helpers
     prompt_preview(text)
     topic_trim(topic)
     event_ref(event_id)
+    scrub_credentials(text)   -- #284
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Optional
 
 SESSION_REF_LEN:         int = 8
@@ -129,3 +131,40 @@ def event_ref(event_id: Optional[Any]) -> str:
     if len(s) <= EVENT_ID_SHORT_LEN:
         return s
     return s[:EVENT_ID_SHORT_LEN] + "..."
+
+
+# ---------------------------------------------------------------------------
+# #284 -- a provider error string on a member wire
+# ---------------------------------------------------------------------------
+# model_router downgrades a failed real call to a mock and stamps the
+# provider's ``str(exc)`` (capped at 200) as ``fallback_error``. Most are
+# "HTTP Error 401: Unauthorized" shapes, but the Gemini request URL
+# carries ``?key=`` and a urllib ValueError echoes the URL it refused, so
+# the string CAN hold a credential. /session showed it to operators
+# (#147); the member message route now declares it too, so it is scrubbed
+# here first: any URL becomes "[url]" (the Gemini one carries the key in
+# its query; the local / ollama ones carry an internal host), then query
+# credentials, bearer tokens of any length and the vendor key prefixes
+# become "[redacted]". Nothing else about the string changes.
+_URL_RE = re.compile(r"(?i)\bhttps?://\S+")
+_CRED_QUERY_RE = re.compile(
+    r"(?i)\b(key|api[_-]?key|token|secret|authorization|x-api-key)=([^&\s\"'>]+)"
+)
+_CRED_BEARER_RE = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")
+_CRED_PREFIX_RE = re.compile(
+    r"(?:\bsk-[A-Za-z0-9_-]{8,}|sk-ant-[A-Za-z0-9_-]{8,}|AIza[0-9A-Za-z_-]{20,}"
+    r"|xai-[A-Za-z0-9]{8,}|gsk_[A-Za-z0-9]{8,})"
+)
+
+
+def scrub_credentials(text: Optional[str]) -> Optional[str]:
+    """Return ``text`` with anything credential-shaped replaced by
+    ``[redacted]``. ``None`` / empty / non-string returns ``None`` -- an
+    absent error stays absent (D5), it never becomes ""."""
+    if not isinstance(text, str) or not text:
+        return None
+    out = _URL_RE.sub("[url]", text)
+    out = _CRED_QUERY_RE.sub(lambda m: f"{m.group(1)}=[redacted]", out)
+    out = _CRED_BEARER_RE.sub("bearer [redacted]", out)
+    out = _CRED_PREFIX_RE.sub("[redacted]", out)
+    return out
