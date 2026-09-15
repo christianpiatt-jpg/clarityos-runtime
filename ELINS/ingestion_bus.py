@@ -60,8 +60,9 @@ Public API:
                        envelope, item_meta=None,
                        visibility="private",
                        title=None, origin_route=None,       # #138 -- provenance,
-                       origin_thread_id=None,               #   additive, nullable
-                       origin_turn_id=None, run_id=None) -> str   # library_id
+                       origin_thread_id=None,               #   nullable; stamped via
+                       origin_turn_id=None, run_id=None,    #   library_store.stamp_provenance
+                       route="ingest_manual") -> str        # library_id; route = this site's word
 
     # Generic packet log (additive Phase-2 surface — see
     # THREE_PRODUCT_SUITE_PLAN.md). RSS feeds remain the legacy path;
@@ -403,6 +404,7 @@ def persist_to_library(
     origin_thread_id: Optional[str] = None,
     origin_turn_id: Optional[str] = None,
     run_id: Optional[str] = None,
+    route: str = "ingest_manual",
 ) -> str:
     """Store an ingested ELINS v2 envelope as a library entry. Returns
     the library_id.
@@ -411,12 +413,15 @@ def persist_to_library(
     ``"private"``. A future pass may add ``"cohort"`` for explicit
     sharing.
 
-    #138 (CT-1 ruled 09-03) -- an item says where it came from. Five
-    additive, nullable keys at metadata TOP LEVEL (not inside ``item``):
-    ``created_ts`` (now, float), ``origin_route`` (manual | rss |
-    thread_footer | personal), ``origin_thread_id``, ``origin_turn_id``,
-    ``run_id``. Stored as given, never derived here; None when the caller
-    has none. Existing items carry none of them and are not backfilled.
+    #138 (CT-1 ruled 09-03; the basis column, 09-15) -- an item says where
+    it came from. Five nullable keys at metadata TOP LEVEL (not inside
+    ``item``), stamped through library_store.stamp_provenance: ``route`` is
+    this write site's own word ("ingest_manual", or "feed" from the feed
+    path); ``origin_route`` is the client's claim and may name only
+    personal | thread_footer (any other word raises ValueError -> the door
+    answers 400); ``created_ts`` is the server's clock; the three ids are
+    stored stripped, capped, blank -> None. Existing items carry none of
+    them and are not backfilled.
     ``title`` (optional) replaces the generated "[source] attractor /
     collapse" title when the caller supplies one.
     """
@@ -467,17 +472,18 @@ def persist_to_library(
             "visibility":        visibility,
             "item":              item_meta or {},
             "envelope":          envelope,
-            # #138 -- provenance, top level, nullable, never backfilled.
-            "created_ts":        now,
-            "origin_route":      _opt_str(origin_route),
-            "origin_thread_id":  _opt_str(origin_thread_id),
-            "origin_turn_id":    _opt_str(origin_turn_id),
-            "run_id":            _opt_str(run_id),
         },
         "size_bytes": len(capped_text.encode("utf-8")),
         "created_at": now,
         "updated_at": now,
     }
+    # #138 -- provenance, top level, through the ONE stamp on the ledger:
+    # the route's word, the client's claim validated, the server's clock.
+    item["metadata"] = library_store.stamp_provenance(
+        item["metadata"], route,
+        origin_route=origin_route, origin_thread_id=origin_thread_id,
+        origin_turn_id=origin_turn_id, run_id=run_id,
+    )
     # ★ THE TWO CALLS EVERY OTHER LIBRARY WRITE MAKES (app.py /library/write:
     # embed, store, process_object). Before this the bus stored the item and
     # stopped: no vector on the row, no neighborhood pass, so an ingested
@@ -516,7 +522,7 @@ def persist_to_library(
         timeline_store.create(ev_id, {
             "id":         ev_id,
             "user":       user,
-            "kind":       "library.ingest",
+            "kind":       timeline_store.LIBRARY_INGEST_KIND,   # #138 -- the constant, never the literal
             "ref":        item_id,
             "summary":    title[:120],
             "ts":         now,

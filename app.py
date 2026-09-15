@@ -2701,6 +2701,22 @@ def _summary_from(title: str, content: str, max_len: int = 120) -> str:
     return s[:max_len] + ("…" if len(s) > max_len else "")
 
 
+def _owned_thread_or_none(user: str, thread_id) -> Optional[str]:
+    """#138 -- an origin_thread_id arrives in a client body (untrusted): a
+    thread the member does not own is no origin at all -- stored null, never
+    a 400 (the ingest door's rule since 09-08; the same rule here). Only the
+    two errors that mean "not yours" are caught; a vault outage stays loud."""
+    tid = thread_id.strip() if isinstance(thread_id, str) else None
+    if not tid:
+        return None
+    try:
+        threads_vault.get_thread_meta(user, tid)
+    except (KeyError, ValueError):
+        logger.info("library origin_thread_id dropped: not owned or missing")
+        return None
+    return tid
+
+
 def _emit_timeline(user: str, kind: str, ref: Optional[str], summary: str, data: dict) -> None:
     """Best-effort timeline event emission from vault/library write paths.
 
@@ -2904,13 +2920,22 @@ def library_user_write(req: LibraryWriteRequest, session: dict = Depends(require
             status_code=400,
             detail=error_response("bad_title", "title must be non-empty"),
         )
+    # #138 -- the basis column. The server stamps created_ts + origin_route
+    # ("library_write"; a client may name only personal | thread_footer, any
+    # other word is refused 400); the three ids ride from the client body,
+    # an origin_thread_id the member does not own stored null.
+    try:
+        metadata = library_store.stamp_provenance(req.metadata, "library_write")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=error_response("bad_input", str(e)))
+    metadata["origin_thread_id"] = _owned_thread_or_none(user, metadata.get("origin_thread_id"))
     now = time.time()
     item = {
         "user": user,
         "title": req.title.strip(),
         "content": req.content,
         "tags": list(req.tags or []),
-        "metadata": dict(req.metadata or {}),
+        "metadata": metadata,
         "created_at": now,
         "updated_at": now,
     }
@@ -2927,7 +2952,7 @@ def library_user_write(req: LibraryWriteRequest, session: dict = Depends(require
         "library vector_persisted user=%s id=%s size=%d",
         _user_ref(user), item_id, size,
     )
-    _emit_timeline(user, "library.write", item_id,
+    _emit_timeline(user, timeline_store.LIBRARY_WRITE_KIND, item_id,   # #138 -- the constant, never the literal
                    _summary_from(item["title"], item["content"]),
                    {"tags": item["tags"]})
     dewey_worker.process_object(user, "library", item_id, item)
@@ -2961,7 +2986,16 @@ def library_user_update(req: LibraryUpdateRequest, session: dict = Depends(requi
     if req.tags is not None:
         updated["tags"] = list(req.tags)
     if req.metadata is not None:
-        updated["metadata"] = dict(req.metadata)
+        # #138 -- the server's two provenance fields are carried from the
+        # existing item (never overridden, never planted on an item that
+        # predates them -- no backfill); the client's three ids may change.
+        updated["metadata"] = library_store.carry_provenance(
+            existing.get("metadata") or {}, dict(req.metadata),
+        )
+        if "origin_thread_id" in req.metadata:   # the write door's ownership rule, here too
+            updated["metadata"]["origin_thread_id"] = _owned_thread_or_none(
+                user, updated["metadata"].get("origin_thread_id"),
+            )
     updated["updated_at"] = time.time()
     # v3: drop stale vector and re-embed (title/content may have changed).
     updated.pop("object_vector", None)
@@ -2991,6 +3025,10 @@ def library_user_list(session: dict = Depends(require_session), limit: int = 100
     user = session["user"]
     limit = min(max(1, limit), 500)
     items = library_store.list_for_user(user, limit=limit)
+    # #138 -- the reader: every item carries a ``provenance`` render beside
+    # its raw metadata; a null or missing field reads "—" (#110), never "",
+    # never "unknown". Items that predate the five fields read five dashes.
+    items = [dict(i, provenance=library_store.provenance_view(i)) for i in items]
     return {"ok": True, "items": items, "count": len(items)}
 
 
@@ -3144,13 +3182,23 @@ def elins_ingest_brief(
     user = session["user"]
     date_str = req.date or _today_utc()
     title = f"ELINS Brief {date_str}"
+    # #138 -- the server stamps created_ts + origin_route ("elins_brief");
+    # a client value for either is overwritten or refused; the three ids
+    # ride from the body, an unowned origin_thread_id stored null.
+    try:
+        metadata = library_store.stamp_provenance(
+            {"source": "elins", "date": date_str, **dict(req.metadata or {})}, "elins_brief",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=error_response("bad_input", str(e)))
+    metadata["origin_thread_id"] = _owned_thread_or_none(user, metadata.get("origin_thread_id"))
     now = time.time()
     item = {
         "user": user,
         "title": title,
         "content": req.content,
         "tags": ["elins", "brief"],
-        "metadata": {"source": "elins", "date": date_str, **dict(req.metadata or {})},
+        "metadata": metadata,
         "created_at": now,
         "updated_at": now,
     }
@@ -3167,7 +3215,7 @@ def elins_ingest_brief(
         "elins.brief vector_persisted user=%s id=%s date=%s",
         _user_ref(user), item_id, date_str,
     )
-    _emit_timeline(user, "elins.brief", item_id,
+    _emit_timeline(user, timeline_store.ELINS_BRIEF_KIND, item_id,   # #138 -- the constant, never the literal
                    _summary_from(item["title"], item["content"]),
                    {"date": date_str})
     dewey_worker.process_object(user, "library", item_id, item)
@@ -15038,9 +15086,12 @@ class V54IngestManualRequest(BaseModel):
     raw_text: str
     source:   Optional[str] = "manual"
     region:   Optional[str] = None
-    # #138 -- where the item came from. All optional, all stored as given
-    # (an origin_thread_id the member does not own is stored null). The
-    # brief's route words: manual | rss | thread_footer | personal.
+    # #138 -- where the item came from. All optional. This door stamps
+    # origin_route "ingest_manual" itself; a client may name only
+    # library_store.CLIENT_ORIGIN_ROUTES (personal | thread_footer) and any
+    # other word is refused 400 before the ELINS pass runs. The three ids are
+    # stored stripped and capped; an origin_thread_id the member does not
+    # own is stored null. created_ts is the server's, never the client's.
     title:            Optional[str] = None
     origin_route:     Optional[str] = None
     origin_thread_id: Optional[str] = None

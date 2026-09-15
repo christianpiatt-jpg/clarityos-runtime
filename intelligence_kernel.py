@@ -67,6 +67,7 @@ import problem_solver                # v79 — ProblemSolver.REGRESSION_FIRST ke
 import projects_vault                # v51 — project layer
 import runtime_privacy               # PASS-4 FIX-P5 — log redaction helpers
 import threads_vault                 # v47 — threaded interaction substrate
+import library_store
 import users_store
 
 logger = logging.getLogger("clarityos.intelligence_kernel")
@@ -2547,10 +2548,11 @@ def run_elins_v2(
 # ---------------------------------------------------------------------------
 # v54 — Ingestion (manual + RSS/Atom feeds)
 # ---------------------------------------------------------------------------
-#: #138 -- the route vocabulary the brief names. The ROW stores whatever a
-#: caller sent (the order rejects nothing new); the LOG line carries only
-#: one of these words, or "other" for anything else, or None for absent.
-ORIGIN_ROUTES: frozenset = frozenset({"manual", "rss", "thread_footer", "personal"})
+#: #138 -- ONE vocabulary, on the ledger (library_store.ORIGIN_ROUTES). The
+#: row now holds a stamped word (the store refuses anything else); the LOG
+#: line carries one of the six words, "other" for a string outside them,
+#: or None for absent -- never the raw client string.
+ORIGIN_ROUTES: frozenset = frozenset(library_store.ORIGIN_ROUTES)
 
 
 def _origin_route_word(v) -> Optional[str]:
@@ -2595,6 +2597,12 @@ def run_manual_ingestion(
 
     started = time.perf_counter()
 
+    # #138 -- a forged origin_route is refused HERE, before the ELINS pass,
+    # the ESO fetch and the elins_v2 log line are spent on a write that was
+    # never going to land (the refuters' catch). The same rule the stamp
+    # applies; the message never echoes the claim.
+    library_store.check_origin_claim("ingest_manual", origin_route)
+
     envelope = run_elins_v2(
         user_id, text,
         region=region,
@@ -2634,6 +2642,7 @@ def run_manual_ingestion(
         item_meta={"kind": "manual"},
         visibility="private",
         title=title,
+        route="ingest_manual",        # #138 -- this door's own word; the client may name personal | thread_footer
         origin_route=origin_route,
         origin_thread_id=origin_thread_id,
         origin_turn_id=origin_turn_id,
@@ -2654,9 +2663,10 @@ def run_manual_ingestion(
             "attractor":  envelope["outputs"]["attractor"],
             "attractor_named": _attractor_named(envelope),   # #284 -- beside, never instead
             "input_len":  len(text),
-            # #138 -- the log carries one of the four route WORDS or "other";
-            # the raw client string never reaches a log line (the row keeps it).
-            "origin_route": _origin_route_word(origin_route),
+            # #138 -- the log carries the STAMPED word (one of the six on
+            # library_store.ORIGIN_ROUTES); a string outside them never reaches
+            # this line because check_origin_claim refused it before the run.
+            "origin_route": _origin_route_word(origin_route) or "ingest_manual",   # #138 -- the stamped word
             "origin_thread": origin_thread_id is not None,   # #138 -- present / absent, never the id
         },
     )
@@ -2735,7 +2745,7 @@ def run_feed_ingestion(
             region=feed.get("region"),
             raw_text=item_text,
             envelope=env,
-            origin_route="rss",           # #138 -- the feed path names its route; the rest null
+            route="feed",                 # #138 -- the feed path names its route; the rest null
             item_meta={
                 "kind":         "feed_item",
                 "feed_id":      feed_id,

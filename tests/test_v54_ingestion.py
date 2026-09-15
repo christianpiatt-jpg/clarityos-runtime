@@ -996,7 +996,8 @@ def test_138_legacy_call_stores_nulls_and_a_created_ts(reset_stores):
         envelope={"outputs": {"attractor": "S2", "collapse_state": "soft"}},
     )
     md = library_store.get(item_id)["metadata"]
-    for k in ("origin_route", "origin_thread_id", "origin_turn_id", "run_id"):
+    assert md["origin_route"] == "ingest_manual"                   # #138 -- the door's own word, server-stamped
+    for k in ("origin_thread_id", "origin_turn_id", "run_id"):
         assert md[k] is None, k
     assert isinstance(md["created_ts"], float)
     assert library_store.get(item_id)["title"].startswith("[feed:x] S2 / soft")   # the generated title stays
@@ -1043,7 +1044,7 @@ def test_138_rss_ingest_names_its_route_and_nothing_else(reset_stores, monkeypat
     ik.run_feed_ingestion("alice", feed["feed_id"])
     for e in library_store.list_for_user("alice"):
         md = e["metadata"]
-        assert md["origin_route"] == "rss"
+        assert md["origin_route"] == "feed"          # #138 -- the six-word vocabulary
         assert md["origin_thread_id"] is None and md["origin_turn_id"] is None and md["run_id"] is None
         assert isinstance(md["created_ts"], float)
 
@@ -1065,25 +1066,33 @@ def test_138_endpoint_manual_accepts_the_fields_and_rejects_nothing_new(app_modu
     r = client.post("/ingest/manual", headers=_auth(sid), json={"raw_text": "plain", "source": "op"})
     assert r.status_code == 200
     md = library_store.get(r.json()["library_id"])["metadata"]
-    assert md["origin_route"] is None and isinstance(md["created_ts"], float)
+    assert md["origin_route"] == "ingest_manual" and isinstance(md["created_ts"], float)   # #138 -- the door's word
 
 
 def test_138_the_log_carries_a_route_word_never_the_client_string(reset_stores, caplog):
-    """A refuter's catch: the kernel log meta copied the raw origin_route.
-    The row keeps what was sent; the log line carries one of the four
-    words, "other" for anything else, None for absent."""
+    """A refuter's catch (09-08): the kernel log meta copied the raw
+    origin_route. #138 (09-15): the row no longer stores an arbitrary
+    string at all -- a word outside the vocabulary is REFUSED before the
+    write -- and the log line carries one of the six words, never the
+    client's string."""
     import logging
     import intelligence_kernel as ik
     import library_store
     caplog.set_level(logging.INFO, logger="clarityos.kernel.runs")
     marker = "alice@example.com thread_ab12 my private note"
-    out = ik.run_manual_ingestion("alice", "a paste", origin_route=marker)
-    assert library_store.get(out["library_id"])["metadata"]["origin_route"] == marker   # the row, as given
+    before = len(library_store.list_for_user("alice"))
+    with pytest.raises(ValueError) as ei:
+        ik.run_manual_ingestion("alice", "a paste", origin_route=marker)
+    assert marker not in str(ei.value)                                   # the refusal never echoes it
+    assert len(library_store.list_for_user("alice")) == before           # nothing written
+    assert all(marker not in r.getMessage() for r in caplog.records)
+    out = ik.run_manual_ingestion("alice", "a paste", origin_route="thread_footer")
+    assert library_store.get(out["library_id"])["metadata"]["origin_route"] == "thread_footer"
     lines = [r.getMessage() for r in caplog.records if "ingestion_manual" in r.getMessage()]
-    assert lines and all(marker not in ln for ln in lines)
-    assert any('"origin_route": "other"' in ln or "'origin_route': 'other'" in ln for ln in lines)
+    assert lines and any('"origin_route": "thread_footer"' in ln or "'origin_route': 'thread_footer'" in ln for ln in lines)
     assert ik._origin_route_word("thread_footer") == "thread_footer"
-    assert ik._origin_route_word(" rss ") == "rss"
+    assert ik._origin_route_word(" feed ") == "feed"
+    assert ik._origin_route_word(" rss ") == "other"                       # the 09-03 word is no longer a route
     assert ik._origin_route_word("") is None and ik._origin_route_word(None) is None
 
 

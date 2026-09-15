@@ -27,6 +27,14 @@ logger = logging.getLogger("clarityos.timeline_store")
 
 _COLL = "timeline"
 
+# #138 / #287 -- the three kinds a LIBRARY item's write emits, defined ONCE.
+# The emit sites (app.py /library/write and /elins/ingest/brief;
+# ELINS/ingestion_bus.persist_to_library) import these names, never the
+# literals -- a grep-pin test holds them to it -- and the web Timeline
+# reader's comment (#151) references this tuple.
+LIBRARY_TIMELINE_KINDS: tuple = ("library.write", "library.ingest", "elins.brief")
+LIBRARY_WRITE_KIND, LIBRARY_INGEST_KIND, ELINS_BRIEF_KIND = LIBRARY_TIMELINE_KINDS
+
 
 def _backend() -> str:
     return os.environ.get("CLARITYOS_BACKEND", "memory").lower()

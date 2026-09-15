@@ -647,6 +647,15 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_load_envelope.py": {
         "load_envelope",
     },
+    # ---- #138 provenance: the basis column on the engine's own ledger ----
+    # runtime_spine: four member/founder write routes stamp the five fields
+    # server-side, refuse a forged origin_route, and the list reader renders
+    # a dash for absence; the three timeline kinds are one constant.
+    # privacy_surface: a refused route word is never echoed (a client string
+    # can carry an address); an unowned thread id is stored null.
+    "test_138_provenance_ledger.py": {
+        "runtime_spine", "privacy_surface",
+    },
     # ---- #285 + #289 the el_ins store gets a floor and one key ----
     # runtime_spine: the store's Firestore branch is real (write, restart,
     # read back) and every writer and reader of EL/INS records keys on the

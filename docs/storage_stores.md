@@ -22,7 +22,13 @@ JSONL-file-backed rather than Firestore-backed.
 
 - **`library_store.py`** — per-user authored library entries. Collection
   `library_user`, key `l_<token>`; fields `id, user, title, content, tags,
-  metadata, size_bytes, created_at, updated_at`.
+  metadata, size_bytes, created_at, updated_at`. Since #138 (2026-09-15)
+  `metadata` carries five provenance fields at its top level on every write —
+  `created_ts`, `origin_route` (one of `library_store.ORIGIN_ROUTES`,
+  server-stamped; a client may name only `personal` | `thread_footer`),
+  `origin_thread_id`, `origin_turn_id`, `run_id` — via `stamp_provenance`;
+  `/library/list` renders a null as `—` (`provenance_view`); the three library
+  timeline kinds are `timeline_store.LIBRARY_TIMELINE_KINDS`. No backfill.
 - **`envelopes_store.py`** — one envelope base-layer document per user.
   Collection `envelopes`, doc id = username; fields `user, elins_briefs,
   envelope_vector, updated_at`. Whole-document `set` semantics.
