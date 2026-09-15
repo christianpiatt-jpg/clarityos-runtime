@@ -18,7 +18,7 @@ import time
 import pytest
 from fastapi import FastAPI
 
-from conftest import TestClient
+from conftest import TestClient, provision_operator  # #289
 
 import el_ins
 import intelligence_kernel as ik
@@ -339,6 +339,7 @@ class TestKernelIntegration:
                 "provider": "mock", "mock": True, "ts": time.time(),
             },
         )
+        provision_operator("alice")   # #289 -- the hook stores under the op_ id (== "alice" here)
         yield
 
     def test_per_turn_off_no_anomalies(self):

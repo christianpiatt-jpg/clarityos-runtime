@@ -130,6 +130,28 @@ def _allow_temp_evidence_dirs(monkeypatch):
     )
 
 
+def provision_operator(username, operator_id=None):
+    """#289 -- give a test user the minted op_ id the kernel's per-turn hook
+    now stores under (the routes always resolved it; the hook stored under
+    the account name). Defaults to the house convention: the user string AS
+    the operator_id. Creates the users doc when absent; never stomps an id a
+    test set deliberately unless one is passed. Returns the id in force."""
+    import users_store
+    doc = users_store.get_user(username)
+    if not doc:
+        users_store.create_user(
+            username, password_hash=b"", salt="", tier="member",
+            created_at=time.time(),
+        )
+        doc = users_store.get_user(username) or {}
+    current = doc.get("operator_id")
+    if operator_id is None and isinstance(current, str) and current:
+        return current
+    op = operator_id or username
+    users_store.update_user(username, {"operator_id": op})
+    return op
+
+
 @pytest.fixture(autouse=True)
 def _session_users_carry_operator_id(monkeypatch):
     """v87 — require_operator resolves session → users_store doc →
@@ -625,6 +647,18 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_load_envelope.py": {
         "load_envelope",
     },
+    # ---- #285 + #289 the el_ins store gets a floor and one key ----
+    # runtime_spine: the store's Firestore branch is real (write, restart,
+    # read back) and every writer and reader of EL/INS records keys on the
+    # minted op_ id. privacy_surface: the stored key is never the account
+    # name (an address) and the hook's refusal line carries a hash.
+    "test_285_289_el_ins_floor_and_one_key.py": {
+        "runtime_spine", "privacy_surface",
+    },
+    # the store and the per-turn hook join the gate with the floor and the
+    # key they pin (neither was in it).
+    "test_el_ins_store.py": {"runtime_spine"},
+    "test_el_ins_per_turn_hook.py": {"runtime_spine"},
     # ---- #284 three persist lines ----
     # runtime_spine: an operator route now writes the store RECENT reads
     # without a thread_id; the member message route declares mock and

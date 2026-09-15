@@ -1325,18 +1325,37 @@ def run_thread_message(
         # one try per step inside, a WARNING naming the step that failed.
         _run_felt_gap_reader(user_id, thread_id, text)
         try:
+            # #289 -- ONE KEY. The read routes resolve the session to the
+            # minted op_ id (runtime_http._resolve_authed_identity ->
+            # users_store.operator_id_for) and read by it; this hook stored
+            # under the ACCOUNT NAME, so a per-turn record and an on-demand
+            # record for the same human landed in different buckets and
+            # RECENT never showed a turn. Resolve through the same function
+            # -- one mapping -- and with no op_ id store NOTHING and say so
+            # (never the address, never an invented id; D5). The same key
+            # carries the hook's two sibling writes below (the record and
+            # anomaly timeline events), which /timeline/* reads by op_ id.
+            _el_ins_op_id: Optional[str] = None
             if operator_state.get_el_ins_per_turn(user_id):
+                _el_ins_op_id = users_store.operator_id_for(user_id)
+                if not _el_ins_op_id:
+                    logger.warning(
+                        "el_ins per-turn: no operator_id for user_ref=%s; "
+                        "record NOT stored (#289: the op_ id is the one key)",
+                        users_store._uref(user_id),
+                    )
+            if _el_ins_op_id:
                 import el_ins as _el_ins
                 _result = _el_ins.analyze_text(text, provider_mode="deterministic")
                 _el_ins.store_el_ins_record({
-                    "operator_id": user_id,
+                    "operator_id": _el_ins_op_id,
                     "thread_id":   thread_id,
                     "timestamp":   time.time(),
                     "source":      "per_turn",
                     "result":      dict(_result),
                 })
                 # v71 — read the stamped record back to pick up TSI.
-                _rows = _el_ins.get_thread_el_ins(user_id, thread_id)
+                _rows = _el_ins.get_thread_el_ins(_el_ins_op_id, thread_id)
                 if _rows:
                     _latest = _rows[0]
                     _analysis = (_latest.get("result") or {}).get("analysis", {})
@@ -1357,15 +1376,18 @@ def run_thread_message(
                         if _new_anoms:
                             _el_ins.store_anomalies(list(_new_anoms))
                             anomalies_emitted = [dict(a) for a in _new_anoms]
-                    except Exception:  # pragma: no cover (defensive)
-                        logger.debug("el_ins anomaly hook failed; ignoring", exc_info=True)
+                    except Exception as _e:  # never the turn's cost -- never silent (#285)
+                        logger.warning(
+                            "el_ins per-turn: anomaly step failed err=%s user_ref=%s",
+                            type(_e).__name__, users_store._uref(user_id),
+                        )
                     # v73 / Unit 82 — emit timeline events for the record
                     # + each anomaly. Same fail-soft pattern: timeline is
                     # a diagnostic surface and must never break the chat
                     # path.
                     try:
                         _rec_ev = _el_ins.build_record_event(
-                            user_id,
+                            _el_ins_op_id,   # #289 -- the one key
                             el=float(_analysis.get("el_score") or 0.0),
                             ins=float(_analysis.get("ins_score") or 0.0),
                             tsi=_latest.get("tsi") if isinstance(_latest.get("tsi"), int) else None,
@@ -1375,17 +1397,27 @@ def run_thread_message(
                         _el_ins.store_event(_rec_ev)
                         for _a in anomalies_emitted:
                             _anom_ev = _el_ins.build_anomaly_event(
-                                user_id,
+                                _el_ins_op_id,   # #289 -- the one key
                                 anomaly_id=str(_a.get("id") or ""),
                                 anomaly_type=str(_a.get("type") or ""),
                                 severity=int(_a.get("severity") or 0),
                                 message=str(_a.get("message") or ""),
                             )
                             _el_ins.store_event(_anom_ev)
-                    except Exception:  # pragma: no cover (defensive)
-                        logger.debug("el_ins timeline hook failed; ignoring", exc_info=True)
-        except Exception:  # pragma: no cover (defensive)
-            logger.debug("el_ins per-turn hook failed; ignoring", exc_info=True)
+                    except Exception as _e:  # never the turn's cost -- never silent (#285)
+                        logger.warning(
+                            "el_ins per-turn: timeline step failed err=%s user_ref=%s",
+                            type(_e).__name__, users_store._uref(user_id),
+                        )
+        except Exception as _e:
+            # #285 -- the store is network-backed now, so this branch is
+            # ordinary, not theoretical: fail-soft AND loud, like the felt-gap
+            # reader above. The TYPE only -- a google error message names the
+            # document path and the project -- and the hash, never the address.
+            logger.warning(
+                "el_ins per-turn: store step failed err=%s user_ref=%s",
+                type(_e).__name__, users_store._uref(user_id),
+            )
 
     # #284 -- read once, off the call whose text became the reply: the
     # first call, or the #cite retry when its text stood (an empty retry

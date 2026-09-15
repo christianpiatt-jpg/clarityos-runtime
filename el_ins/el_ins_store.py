@@ -1,13 +1,42 @@
 """
 el_ins/el_ins_store.py — Unit 74 / v69, Unit 76 / v70.
 
-Per-operator EL/INS analysis store. Mirrors the macro_scheduler_store
-+ users_store pattern: ``memory`` backend with a Firestore-eligible
-hook, ``_reset_for_tests`` exposed.
+Per-operator EL/INS analysis store. Mirrors the timeline_store pattern:
+``memory`` backend, or a lazily-initialised Firestore client when
+``CLARITYOS_BACKEND=firestore``; ``_reset_for_tests`` stays memory-only.
 
 Records are append-only. Keys are (operator_id, thread_id, ts_ms) so
 the same operator can have multiple threads each with their own
 ordered history.
+
+#285 -- THE FLOOR. Until this, every write and read touched ``_MEM`` and
+``_backend()`` was defined and never called: ``stored: True`` was true of
+the process, and a container replacement emptied it (TSI, the summary,
+RECENT -- all within one instance's lifetime). Now the branch is real,
+one Firestore document per record under a per-operator subcollection::
+
+    el_ins_records/{operator_id}/records/{ts_ms:013d}_{token}
+    { operator_id, thread_id (null when absent), timestamp, source,
+      result, tsi (when threaded) }
+
+The subcollection IS the operator key, so no read needs a composite
+index: RECENT and the summary order by ``timestamp`` alone (the
+automatic single-field index), a thread read filters ``thread_id`` alone
+and sorts here, macro-since is a single-field range. No composite index
+exists for any operator_id-keyed collection in production and none is
+managed from this repository, so a where+order_by read would have failed
+the first time it ran live; memory_vault's per-user document + ``entries``
+subcollection is the same idiom. TSI is computed BEFORE the single write
+from the thread's prior records plus this one -- the rows the memory
+branch always sampled -- so a record is written once, already stamped.
+Order: memory keeps insertion order newest-first; Firestore orders by
+``timestamp`` descending; the two agree whenever records are stamped at
+write time, which every caller does. No retrofit: nothing in ``_MEM``
+survives a restart to migrate.
+
+#289 -- ONE KEY. ``operator_id`` is the minted ``op_...`` id
+(users_store.operator_id_for), never the account name: the per-turn hook
+and the on-demand route store under the same key the read routes use.
 
 v70 / Unit 76 — Added Thread Stability Index (TSI) + drift
 detection. Each record carries an optional ``tsi`` field stamped at
@@ -35,6 +64,7 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 import time
 from typing import Any, Literal, Optional, TypedDict
 
@@ -96,6 +126,83 @@ def _backend() -> str:
     return os.environ.get("CLARITYOS_BACKEND", "memory").lower()
 
 
+# ---------- Firestore backend (lazy-init; the timeline_store idiom) --------
+_COLL = "el_ins_records"
+_SUBCOLL = "records"
+_firestore_client = None
+
+
+def _get_firestore():
+    global _firestore_client
+    if _firestore_client is not None:
+        return _firestore_client
+    try:
+        from google.cloud import firestore  # type: ignore
+    except ImportError as e:
+        raise RuntimeError(
+            "CLARITYOS_BACKEND=firestore but google-cloud-firestore is not installed."
+        ) from e
+    try:
+        _firestore_client = firestore.Client()
+    except Exception as e:  # pragma: no cover
+        raise RuntimeError(f"Could not initialise Firestore client: {e}") from e
+    logger.info("el_ins_store firestore client initialised")
+    return _firestore_client
+
+
+def _records_coll(operator_id: str):
+    """The operator's own subcollection -- the key is the path."""
+    return (
+        _get_firestore()
+        .collection(_COLL)
+        .document(operator_id)
+        .collection(_SUBCOLL)
+    )
+
+
+def _doc_id(ts: float) -> str:
+    """Sortable-prefix, collision-free document id: 13-digit ms + token.
+    Two records in the same millisecond (a burst of turns; a 15 ms clock)
+    must not overwrite each other in an append-only store."""
+    return f"{int(float(ts) * 1000):013d}_{secrets.token_hex(4)}"
+
+
+def _newest_first(rows: list) -> list:
+    return sorted(rows, key=lambda r: float(r.get("timestamp") or 0.0), reverse=True)
+
+
+def _fire_rows(operator_id: str, *, limit: Optional[int] = None) -> list:
+    """All of the operator's records newest-first (Firestore branch). One
+    order_by on a single field -- the automatic index."""
+    from google.cloud import firestore  # type: ignore
+    q = _records_coll(operator_id).order_by(
+        "timestamp", direction=firestore.Query.DESCENDING,
+    )
+    if limit is not None:
+        q = q.limit(int(limit))
+    return [d.to_dict() for d in q.stream()]
+
+
+def _fire_thread_rows(operator_id: str, thread_id: str) -> list:
+    """The thread's records newest-first (Firestore branch). One equality
+    filter, sorted here -- no composite index."""
+    from google.cloud.firestore_v1 import FieldFilter  # type: ignore
+    q = _records_coll(operator_id).where(
+        filter=FieldFilter("thread_id", "==", thread_id),
+    )
+    return _newest_first([d.to_dict() for d in q.stream()])
+
+
+def _fire_rows_since(operator_id: str, cutoff: float) -> list:
+    """Records at or after ``cutoff`` newest-first (Firestore branch). One
+    range filter on ``timestamp`` -- no composite index."""
+    from google.cloud.firestore_v1 import FieldFilter  # type: ignore
+    q = _records_coll(operator_id).where(
+        filter=FieldFilter("timestamp", ">=", float(cutoff)),
+    )
+    return _newest_first([d.to_dict() for d in q.stream()])
+
+
 def _validate(record: dict) -> ElInsRecord:
     """Defensive normalisation. Raises ValueError on bad input so the
     caller HTTP layer can surface a 400 cleanly."""
@@ -149,30 +256,39 @@ def _validate(record: dict) -> ElInsRecord:
 # Public API
 # ---------------------------------------------------------------------------
 def store_el_ins_record(record: dict) -> None:
-    """Append a validated record to the operator's history. Newest-first
-    insertion so reads stay O(N) without re-sort.
+    """Append a validated record to the operator's history: newest-first
+    in memory; one document under the operator's subcollection in
+    Firestore (#285).
 
-    v70 / Unit 76 — After insertion, when ``thread_id`` is set, compute
-    the thread's Thread Stability Index (TSI) including this new
-    record and stamp it on the record under ``tsi``. Records without
-    a thread_id (None) carry no TSI — TSI is a per-thread concept.
+    v70 / Unit 76 — when ``thread_id`` is set, compute the thread's
+    Thread Stability Index (TSI) including this new record and stamp it
+    on the record under ``tsi``. Records without a thread_id (None)
+    carry no TSI — TSI is a per-thread concept. #285: the TSI is computed
+    BEFORE the write, over the thread's prior records plus this one (the
+    same rows the post-insert read always sampled), so the record is
+    written once, already stamped.
     """
     coerced = _validate(record)
     op = coerced["operator_id"]
-    bucket = _MEM.setdefault(op, [])
-    # Insert at index 0 so the most recent record is always first.
-    bucket.insert(0, coerced)
-    # Stamp TSI on the just-inserted record. Skipped when there is
-    # no thread_id (TSI is a per-thread metric).
     tid = coerced.get("thread_id")
     if isinstance(tid, str) and tid:
         try:
-            stability = compute_thread_stability(
-                op, tid, window=STABILITY_DEFAULT_WINDOW,
+            prior = get_thread_el_ins(op, tid)[: STABILITY_DEFAULT_WINDOW - 1]
+            stability = _stability_from_rows(
+                tid, [coerced] + prior, STABILITY_DEFAULT_WINDOW,
             )
             coerced["tsi"] = int(stability.get("tsi") or 0)
-        except Exception:  # pragma: no cover (defensive — never break store on TSI)
-            logger.debug("tsi stamping failed; record stored without tsi", exc_info=True)
+        except Exception as _e:  # never break the store on TSI -- but never silent (#285)
+            logger.warning(
+                "el_ins store: tsi stamping failed err=%s; record stored without tsi",
+                type(_e).__name__,
+            )
+    if _backend() == "firestore":
+        _records_coll(op).document(_doc_id(coerced["timestamp"])).set(dict(coerced))
+    else:
+        bucket = _MEM.setdefault(op, [])
+        # Insert at index 0 so the most recent record is always first.
+        bucket.insert(0, coerced)
 
 
 def get_thread_el_ins(
@@ -185,6 +301,8 @@ def get_thread_el_ins(
         raise ValueError("operator_id must be a non-empty string")
     if not isinstance(thread_id, str) or not thread_id:
         raise ValueError("thread_id must be a non-empty string")
+    if _backend() == "firestore":
+        return _fire_thread_rows(operator_id, thread_id)
     bucket = _MEM.get(operator_id) or []
     return [r for r in bucket if r.get("thread_id") == thread_id]
 
@@ -201,6 +319,8 @@ def get_recent_el_ins(
     except (TypeError, ValueError):
         n = 100
     n = max(1, min(1000, n))
+    if _backend() == "firestore":
+        return _fire_rows(operator_id, limit=n)
     bucket = _MEM.get(operator_id) or []
     return list(bucket[:n])
 
@@ -212,13 +332,17 @@ def get_macro_el_ins(
     ``since`` is None, returns every record (newest-first)."""
     if not isinstance(operator_id, str) or not operator_id:
         raise ValueError("operator_id must be a non-empty string")
-    bucket = _MEM.get(operator_id) or []
     if since is None:
-        return list(bucket)
+        if _backend() == "firestore":
+            return _fire_rows(operator_id)
+        return list(_MEM.get(operator_id) or [])
     try:
         cutoff = float(since)
     except (TypeError, ValueError) as e:
         raise ValueError(f"since must be a number, got {since!r}") from e
+    if _backend() == "firestore":
+        return _fire_rows_since(operator_id, cutoff)
+    bucket = _MEM.get(operator_id) or []
     return [r for r in bucket if r["timestamp"] >= cutoff]
 
 
@@ -347,10 +471,14 @@ def compute_thread_stability(
     except (TypeError, ValueError):
         n = STABILITY_DEFAULT_WINDOW
     n = max(1, min(100, n))
+    return _stability_from_rows(thread_id, get_thread_el_ins(operator_id, thread_id), n)
 
-    bucket = _MEM.get(operator_id) or []
-    thread_rows = [r for r in bucket if r.get("thread_id") == thread_id]
-    sampled = thread_rows[:n]  # newest-first
+
+def _stability_from_rows(thread_id: str, thread_rows: list, n: int) -> dict:
+    """The stability read over rows already in hand (newest-first). Pure:
+    #285 lets the writer stamp TSI before its single write and the reader
+    answer from either backend through the same arithmetic."""
+    sampled = list(thread_rows)[:n]  # newest-first
     if not sampled:
         return {
             "thread_id": thread_id,
@@ -438,8 +566,7 @@ def compute_operator_summary(
         n = 20
     n = max(1, min(1000, n))
 
-    bucket = _MEM.get(operator_id) or []
-    sampled = bucket[:n]
+    sampled = get_recent_el_ins(operator_id, limit=n)   # #285 -- either backend
     counts = {"high_el": 0, "high_ins": 0, "balanced": 0}
     tsis: list[int] = []
     for r in sampled:
@@ -470,4 +597,6 @@ def compute_operator_summary(
 # Test hook
 # ---------------------------------------------------------------------------
 def _reset_for_tests() -> None:
+    # #285 -- memory-only by order: Firestore outlives a process, and so
+    # does the fake the tests point at (that is the durability test).
     _MEM.clear()

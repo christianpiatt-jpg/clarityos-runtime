@@ -17,7 +17,7 @@ import time
 import pytest
 from fastapi import FastAPI
 
-from conftest import TestClient
+from conftest import TestClient, provision_operator  # #289
 
 import el_ins
 import intelligence_kernel as ik
@@ -101,6 +101,7 @@ class TestValidation:
 def _isolate(monkeypatch):
     import memory_vault
     el_ins._reset_for_tests()
+    provision_operator("alice")   # #289 -- the hook stores under the op_ id (== "alice" here)
     # operator_state lives in memory_vault — reset both so the
     # ``el_ins_per_turn`` flag doesn't leak between test files.
     memory_vault._reset_for_tests()

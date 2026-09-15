@@ -106,6 +106,17 @@ def get_user(username: str) -> Optional[dict]:
     return _MEMORY_USERS.get(username)
 
 
+def operator_id_for(username: str) -> Optional[str]:
+    """#289 -- THE username -> operator_id mapping, in one place. The minted
+    ``op_...`` value on the user doc (auth_magiclink._ensure_user); None when
+    the account carries none. Callers decide the refusal: runtime_http's
+    session resolver answers 409, the kernel's per-turn hook stores nothing
+    and says so. Never the address, never an invented id."""
+    doc = get_user(username) or {}
+    op = doc.get("operator_id")
+    return op if isinstance(op, str) and op else None
+
+
 def create_user(
     username: str,
     password_hash,

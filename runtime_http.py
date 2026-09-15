@@ -137,9 +137,10 @@ def _resolve_authed_identity(x_session_id: Optional[str]) -> tuple[str, str]:
         )
     user = session["user"]
     import users_store as _users
-    user_doc = _users.get_user(user) or {}
-    operator_id = user_doc.get("operator_id")
-    if not isinstance(operator_id, str) or not operator_id:
+    # #289 -- ONE mapping: users_store.operator_id_for is the username ->
+    # op_ id resolver for this route AND for the kernel's per-turn hook.
+    operator_id = _users.operator_id_for(user)
+    if not operator_id:
         # Authenticated but unprovisioned — the request cannot be
         # satisfied in the account's current state. 409 (not 500):
         # a named conflict is actionable and doesn't spend the error

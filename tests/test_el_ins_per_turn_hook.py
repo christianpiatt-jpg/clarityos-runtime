@@ -14,6 +14,8 @@ import time
 
 import pytest
 
+from conftest import provision_operator  # #289
+
 import el_ins
 import intelligence_kernel as ik
 import model_router as mr
@@ -24,6 +26,7 @@ import threads_vault
 @pytest.fixture(autouse=True)
 def _isolate(monkeypatch):
     el_ins._reset_for_tests()
+    provision_operator("alice")   # #289 -- the hook stores under the op_ id (== the user string in tests)
     # Stub the model router so run_thread_message never goes to network.
     monkeypatch.setattr(
         mr, "route_request",
