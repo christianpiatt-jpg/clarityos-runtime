@@ -39,7 +39,7 @@ export interface ElinsV2RunRequest {
   elins_version?: string | null;
   region?: string | null;
   input: ElinsV2Input;
-  // #139 -- the kernel cuts a tail window sized per surface; the caller's
+  // #139 -- the kernel declares the window it read (whole since 2026-09-16); the caller's
   // message boundaries over input.raw_text let it say which messages it read.
   surface?: "personal" | "thread";
   message_boundaries?: number[] | null;

@@ -429,7 +429,7 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_bearings_seal.py": {
         "runtime_spine", "determinism_surface",
     },
-    # ---- #139 the insight window: tail, sized per surface, kernel cuts ----
+    # ---- #139 the insight window: the kernel declares what it read (no size since 2026-09-16) ----
     # determinism_surface: cut_window is a pure function whose numbers the
     # browser renders verbatim. runtime_spine: both insight routes and the
     # summary_turn stamp on the thread meta (#190 passenger).

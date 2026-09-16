@@ -38,8 +38,10 @@ The subsystem guarantees:
 
 - `EMOTIONAL_PHYSICS_TASK: str` (line 1332) — task key for
   `model_router.TASK_DEFAULTS`; value `"emotional_physics"`.
-- `EMOTIONAL_PHYSICS_INPUT_CHAR_CAP: int` (line 1346) — silent
-  truncation cap on user input; value `6_000`.
+- (historical) `EMOTIONAL_PHYSICS_INPUT_CHAR_CAP` — the silent 6,000 head
+  cap was replaced by #139's declared tail window (2026-09-03) and the
+  size was deleted 2026-09-16: `WINDOW_CHARS = {"personal": None,
+  "thread": None}`; the kernel reads the whole text and declares it.
 - `run_emotional_physics(user_id: str, text: str) -> dict` (line
   1494) — the kernel entry point.
 
@@ -66,8 +68,9 @@ The subsystem guarantees:
 {"text": str}    # required, non-empty after strip
 ```
 
-- `text` is silently truncated to `EMOTIONAL_PHYSICS_INPUT_CHAR_CAP`
-  (6000) characters before prompt construction.
+- `text` is read WHOLE (no size since 2026-09-16); `_meta` declares it
+  (`window_cap` None, `window_chars == total_chars`) and names a router
+  fallback as a class (`provider_fallback`) when no model read it.
 - Empty, whitespace-only, or non-string input is rejected at the HTTP
   layer with status 400; the kernel function raises `ValueError` for
   the same conditions when called directly.
@@ -118,7 +121,7 @@ intelligence_kernel.py:1494.
 Behaviour:
 
 1. Validate text (raise `ValueError` on empty/whitespace/non-string).
-2. Truncate to `EMOTIONAL_PHYSICS_INPUT_CHAR_CAP` silently.
+2. Declare the window (`cut_window`; the whole text since 2026-09-16).
 3. Resolve model via `_resolve_model(user_id, task=EMOTIONAL_PHYSICS_TASK)`.
 4. Build prompt: `_EMOTIONAL_PHYSICS_PROMPT + "\nSITUATION:\n" + cleaned`.
 5. Dispatch via `model_router.route_request(model_id, prompt)`.
@@ -196,9 +199,9 @@ directly pinning the v52 block:
 
 ## Invariants
 
-1. **Char cap.** Input is truncated to
-   `EMOTIONAL_PHYSICS_INPUT_CHAR_CAP` (6000) before prompt
-   construction; truncation is silent — no warning, no error.
+1. **No char cap (since 2026-09-16).** Input is read whole and declared
+   in `_meta`; the vendor's own input ceiling and the call timeout are
+   the limits left, and a fallback is named on the wire as a class.
 2. **Schema.** Output always contains the 4 keys in
    `_EMOTIONAL_PHYSICS_KEYS`; each value is a dict (`{}` when missing
    or invalid).

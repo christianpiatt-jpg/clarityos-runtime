@@ -42,7 +42,7 @@ const TABS: { id: InsightsTab; label: string }[] = [
 /** ★★★ WHAT THIS PANEL ACTUALLY READ — as the KERNEL says it did.
  *
  * Rendered above BOTH analytical views. #139 (CT-1 ruled 09-03): the
- * kernel cuts a TAIL window sized per surface (thread 12,000) and returns
+ * kernel read the whole text (no size since 2026-09-16; #139's tail window before) and returns
  * the window it read in `_meta`; this line renders that `_meta` and
  * nothing local. Before a reading arrives there is no window to declare,
  * and the line says so with a dash rather than a guess. Wording and
@@ -72,7 +72,7 @@ function WindowDeclaration({ w }: { w: TranscriptWindow | null }) {
     <div
       data-testid="window-declaration"
       title={`_meta.window_anchor ${w.window_anchor} · _meta.window_surface ${w.window_surface} · _meta.window_chars · _meta.total_chars · _meta.window_first_message · _meta.window_last_message · _meta.total_messages · _meta.window_coverage_reason ${w.window_coverage_reason ?? "—"}`}
-      style={DECL_STYLE(partial ? "var(--color-accent-red, #E74C3C)" : "var(--color-text-secondary)")}
+      style={DECL_STYLE(partial || w.provider_fallback ? "var(--color-accent-red, #E74C3C)" : "var(--color-text-secondary)")}
     >
       {partial ? (
         <>
@@ -93,6 +93,15 @@ function WindowDeclaration({ w }: { w: TranscriptWindow | null }) {
           read: all {n(w.total_chars)} chars — {n(w.total_messages)} of {n(w.total_messages)} messages
         </>
       )}
+      {/* 2026-09-16 -- with no size on the window the vendor's ceiling is the
+          cap that is left; a refused or timed-out call comes back as the
+          router's mock, and the kernel names that as a class. Never "read:
+          all" over a reading no model made. */}
+      {w.provider_fallback ? (
+        <span data-testid="window-provider-fallback" style={{ display: "block", marginTop: 2 }}>
+          ⚠ no model read it ({w.provider_fallback})
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -148,7 +157,7 @@ export default function ThreadInsightsPanel() {
 
   // #139 -- the WHOLE composed transcript goes to the kernel, with the
   // message boundaries computed over that exact string; the kernel cuts
-  // the tail window (thread: 12,000) and declares it in _meta. Nothing is
+  // the whole text (no size since 2026-09-16) and declares it in _meta. Nothing is
   // sliced here any more.
   const threadText = useMemo(() => composeTranscript(messages), [messages]);
   const boundaries = useMemo(() => computeBoundaries(messages), [messages]);

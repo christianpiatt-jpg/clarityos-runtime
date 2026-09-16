@@ -223,3 +223,22 @@ describe("D1 — the rendered declaration MOVES with the kernel's _meta", () => 
     expect(decl().textContent).not.toBe(small);
   });
 });
+
+describe("no model read it (2026-09-16: the vendor's ceiling is the cap that is left)", () => {
+  it("★ the PHYSICS declaration says so, as the kernel's class, beside 'read: all' (ELINS makes no model call)", async () => {
+    const ms = thread(3, 20);
+    const total = composeTranscript(ms).length;
+    vi.mocked(physicsLib.analyzeEmotionalPhysics).mockResolvedValue({
+      ...PHYSICS,
+      _meta: {
+        ...WINDOW, window_cap: null, window_chars: total, total_chars: total, total_messages: 3, window_messages: 3,
+        window_first_message: 1, window_last_message: 3, window_truncated_mid_message: false,
+        provider_fallback: "timeout",
+      },
+    } as never);
+    await mount(ms);
+    await act(async () => { cockpit.thread.actions.setTab("physics"); });
+    await waitFor(() => expect(decl()).toHaveTextContent("read: all"));
+    expect(screen.getByTestId("window-provider-fallback")).toHaveTextContent("no model read it (timeout)");
+  });
+});

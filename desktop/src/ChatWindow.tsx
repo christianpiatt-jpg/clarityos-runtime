@@ -319,14 +319,15 @@ export default function ChatWindow({ onSignOut, onNavigate }: ChatWindowProps) {
   }, [activeMeta, busy]);
 
   // Compose the active thread's transcript once per messages change.
-  // Cap to 6KB so we don't blow the backend's text limit. Empty string
-  // when there are no messages yet (the views then render their empty
-  // state without firing a request).
+  // The whole transcript, no slice: the backend has no text limit on the
+  // insight window (CT-1 2026-09-16, "delete the char cap"); the kernel
+  // reads it whole and declares what it read in _meta. Empty string when
+  // there are no messages yet (the views then render their empty state
+  // without firing a request).
   const threadText = useMemo(() => {
     const composed = messages
       .map((m) => `${m.role}: ${m.content}`)
-      .join("\n")
-      .slice(0, 6000);
+      .join("\n");
     return composed.trim();
   }, [messages]);
 

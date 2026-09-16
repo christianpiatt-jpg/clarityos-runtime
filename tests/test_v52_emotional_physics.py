@@ -283,39 +283,35 @@ def test_run_emotional_physics_empty_text_raises_value_error(reset_stores):
         ik.run_emotional_physics("alice", None)  # type: ignore[arg-type]
 
 
-def test_run_emotional_physics_caps_long_input(reset_stores, monkeypatch):
-    """#139 -- inputs longer than the surface's window are cut to their
-    TAIL (CT-1 ruled 09-03; this was a silent HEAD cut at 6,000); the call
-    still succeeds, the prompt's user text is exactly the window, and
-    _meta declares what was read."""
+def test_run_emotional_physics_reads_a_long_input_whole(reset_stores, monkeypatch):
+    """#139 cut a tail (CT-1 ruled 09-03; before that a silent HEAD cut at
+    6,000). CT-1 ruled again 2026-09-16 -- "delete the char cap" -- so a
+    long input is read WHOLE: the call succeeds, the prompt's user text is
+    the whole text, and _meta declares that (window_cap None)."""
     import intelligence_kernel as ik
     payload = _valid_payload()
     captured = _install_fake_handler(monkeypatch, json.dumps(payload))
 
     # Two sentinels that do NOT appear in the prompt template: the head is
-    # "H", the tail is "Z". A tail cut keeps only Z.
-    cap = ik.WINDOW_CHARS["thread"]
-    overage = 500
-    huge = ("H" * overage) + ("Z" * cap)
+    # "H", the tail is "Z". A whole read keeps both.
+    assert ik.WINDOW_CHARS["thread"] is None
+    head, tail = 500, 12_000
+    huge = ("H" * head) + ("Z" * tail)
     out = ik.run_emotional_physics("alice", huge)
 
     assert out["_meta"]["parse_error"] is None
     assert captured["prompt"] is not None
 
-    # The user text is appended after "SITUATION:\n" — split there and
-    # measure the tail length directly.
     split_token = "SITUATION:\n"
     assert split_token in captured["prompt"]
-    user_tail = captured["prompt"].split(split_token, 1)[1]
-    assert len(user_tail) == cap
-    # The window kept the TAIL: all Z, no H.
-    assert set(user_tail) == {"Z"}
-    assert "H" not in user_tail
+    user_text = captured["prompt"].split(split_token, 1)[1]
+    assert user_text == huge
+    assert set(user_text) == {"H", "Z"}
     assert "Z" not in ik._EMOTIONAL_PHYSICS_PROMPT and "H" not in ik._EMOTIONAL_PHYSICS_PROMPT
     # And the kernel says so.
     m = out["_meta"]
-    assert m["window_anchor"] == "tail" and m["window_surface"] == "thread"
-    assert m["window_chars"] == cap and m["total_chars"] == cap + overage
+    assert m["window_anchor"] == "tail" and m["window_surface"] == "thread" and m["window_cap"] is None
+    assert m["window_chars"] == m["total_chars"] == head + tail
 
 
 def test_run_emotional_physics_emits_kernel_log_line(

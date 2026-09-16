@@ -233,15 +233,15 @@ function PersonalElinsView({
             boxSizing: "border-box",
           }}
         />
-        {/* ★★★ THE SILENT CLIFF AT 6,000 CHARACTERS.
-            intelligence_kernel.py:1845 does `cleaned = cleaned[:6000]` and
-            its own docstring says "Truncation is silent — the call still
-            succeeds." It is a HEAD slice: it keeps the beginning and drops
-            the end. In a narrative seed the current state is at the END, so
-            a long paste returns a confident read of its oldest half with
-            nothing anywhere signalling that the rest was never seen.
-            This is the frontend half — count and warn before sending. The
-            _meta half is backend and waits on the blocked deploy. */}
+        {/* THE CLIFF IS GONE (CT-1 2026-09-16, "delete the char cap"). This
+            counter was born to warn about a silent 6,000 HEAD slice in the
+            kernel; #139 made it a declared TAIL window; now the kernel reads
+            the whole seed and declares it in _meta (this shell posts no
+            surface, so the kernel reads it as the thread surface -- a
+            pre-existing gap, named in the RETURN). The count stays because
+            it is true; there is no limit left to warn about. (The warning
+            this replaced also said "keeps the first 6,000" while the web's
+            said "keeps the last" -- the web was right since #139.) */}
         <div
           id="seed-counter"
           data-testid="seed-counter"
@@ -250,21 +250,10 @@ function PersonalElinsView({
             fontFamily: "var(--font-mono)",
             fontSize: 10,
             letterSpacing: "0.03em",
-            color: seed.length > SEED_CHAR_LIMIT
-              ? "var(--color-accent-red, #E74C3C)"
-              : "var(--color-text-secondary)",
+            color: "var(--color-text-secondary)",
           }}
         >
-          {seed.length.toLocaleString()} / {SEED_CHAR_LIMIT.toLocaleString()} characters
-          {seed.length > SEED_CHAR_LIMIT ? (
-            <span data-testid="seed-overflow-warning" style={{ display: "block", marginTop: 2 }}>
-              ⚠ {(seed.length - SEED_CHAR_LIMIT).toLocaleString()} characters past the
-              limit will NOT be read. The engine keeps the first{" "}
-              {SEED_CHAR_LIMIT.toLocaleString()} and silently drops the rest — and the
-              end of a seed is usually the current state. Trim from the top, not
-              the bottom.
-            </span>
-          ) : null}
+          {seed.length.toLocaleString()} characters
         </div>
         <div style={{ marginTop: 8 }}>
           <button
@@ -658,10 +647,9 @@ function renderValue(v: unknown): string {
 // measurement, not from taste.
 export const ATTRACTOR_TIE_EPSILON = 0.05;
 
-// Mirrors intelligence_kernel.EMOTIONAL_PHYSICS_INPUT_CHAR_CAP (6_000). Kept
-// as a literal because web/ and the runtime share no code; if the backend cap
-// moves, this must move with it.
-export const SEED_CHAR_LIMIT = 6000;
+// SEED_CHAR_LIMIT (the 6,000 mirror of the kernel's cap) is gone: since
+// 2026-09-16 the kernel has no size on either surface and there is
+// nothing to mirror.
 
 export type AttractorVerdict =
   | { determinate: true; state: "S1" | "S2" | "S3" | "S4"; gap: number }

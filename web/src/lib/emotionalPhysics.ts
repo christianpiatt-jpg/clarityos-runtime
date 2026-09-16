@@ -53,9 +53,9 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
 
 export interface EmotionalPhysicsRequest {
   text: string;
-  // #139 -- the kernel cuts a tail window sized per surface (personal
-  // 6,000 · thread 12,000); the caller's message boundaries over `text`
-  // let it say which messages the window covers.
+  // #139 -- the kernel declares the window it read (the whole text since
+  // 2026-09-16; a tail sized per surface before); the caller's message
+  // boundaries over `text` let it say which messages the window covers.
   surface?: "personal" | "thread";
   message_boundaries?: number[] | null;
   // #113 -- the thread this run belongs to. Sent only when given: the

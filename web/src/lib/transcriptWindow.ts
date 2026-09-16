@@ -1,8 +1,8 @@
 // transcriptWindow — what the instrument actually read.
 //
-// ★★★ THE KERNEL CUTS. THE BROWSER DECLARES. (#139, CT-1 ruled 2026-09-03)
-// Anchor = TAIL on every surface; size = 6,000 for Personal ELINS
-// (relational turns weigh more), 12,000 everywhere else. This file no
+// ★★★ THE KERNEL READS AND DECLARES. THE BROWSER RENDERS. (#139, CT-1 ruled
+// 2026-09-03: a tail window sized per surface. 2026-09-16, CT-1 again: NO
+// size -- the whole text, still declared.) This file no
 // longer slices anything: the panel sends the WHOLE composed transcript
 // plus the message boundaries it computed over that exact string, and the
 // kernel answers with the window it read in `_meta`. The declaration line
@@ -20,7 +20,10 @@
 //
 // ★★ Three constants used to describe one window and two of them lied by
 // omission (this file's 6,000 head slice, the kernel's 6,000 head cut, no
-// cap at all on /elins/v2/run). There is one now, and it is the kernel's.
+// cap at all on /elins/v2/run). There is one now, and it is the kernel's --
+// and since 2026-09-16 (CT-1: "delete the char cap") the kernel's has no
+// size: it reads the whole text and declares it (window_cap null,
+// window_chars == total_chars), so "read: all" is the normal line.
 
 export interface TranscriptMessage {
   role: string;
@@ -34,7 +37,7 @@ export interface TranscriptMessage {
 export interface WindowMeta {
   window_anchor?: "tail" | "head" | string;
   window_surface?: "personal" | "thread" | string;
-  window_cap?: number;
+  window_cap?: number | null;   // null since 2026-09-16: no size
   window_chars?: number;
   total_chars?: number;
   window_coverage?: "boundaries" | "ABSENT" | string;
@@ -44,6 +47,10 @@ export interface WindowMeta {
   window_first_message?: number | null;
   window_last_message?: number | null;
   window_truncated_mid_message?: boolean | null;
+  /** 2026-09-16 -- the class of a router fallback (timeout / http_error /
+   *  provider_error / unconfigured) when NO model read the text; absent
+   *  when the provider answered. */
+  provider_fallback?: string | null;
 }
 
 /** The window facts the declaration renders. Numbers come from `_meta`;
@@ -70,6 +77,8 @@ export interface TranscriptWindow {
   window_truncated_mid_message: boolean | null;
   /** Why the coverage numbers are null, when they are; null otherwise. */
   window_coverage_reason: string | null;
+  /** Null when a model answered; else the kernel's class for why it did not. */
+  provider_fallback: string | null;
 }
 
 /** Compose the transcript exactly as the panels send it: role-prefixed
@@ -138,5 +147,7 @@ export function windowFromMeta(raw: unknown): TranscriptWindow | null {
     window_coverage_reason:
       typeof meta.window_coverage_reason === "string" && meta.window_coverage_reason
         ? meta.window_coverage_reason : null,
+    provider_fallback:
+      typeof meta.provider_fallback === "string" && meta.provider_fallback ? meta.provider_fallback : null,
   };
 }

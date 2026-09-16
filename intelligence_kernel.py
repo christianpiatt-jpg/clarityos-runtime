@@ -2006,8 +2006,6 @@ _EMOTIONAL_PHYSICS_KEYS: tuple = (
     "external_expression",
 )
 
-# Hard cap on the user's text so an over-long input can't blow the
-# prompt budget. Truncation is silent — the call still succeeds.
 # ---------------------------------------------------------------------------
 # #139 -- the insight window: tail-anchored, sized per surface, declared
 # ---------------------------------------------------------------------------
@@ -2021,7 +2019,23 @@ _EMOTIONAL_PHYSICS_KEYS: tuple = (
 #
 # * THREAD_CONTEXT_CHAR_BUDGET (the REPLY path, above) is a different
 #   window and is deliberately not touched.
-WINDOW_CHARS: dict = {"personal": 6_000, "thread": 12_000}
+#
+# CT-1 RULED AGAIN (2026-09-16, "delete the char cap on thread and personal
+# elins"): NO SIZE. Both surfaces read the WHOLE text, and the kernel still
+# DECLARES what it read (window_chars == total_chars, coverage = every
+# message, window_cap None on the line so a reader can see there was no
+# cap). The size column is None on both rows; the surface column stays --
+# it names the window on the line and gates the whose_field door (#303 A4).
+# Not touched by that ruling either: THREAD_CONTEXT_CHAR_BUDGET (the reply
+# path) and the summary window (#304, _summary_window) -- different windows,
+# named in the RETURN. A member who pastes a whole thread now sends the
+# whole thread to the model: the latency is the member's; the vendor cost
+# is UNMETERED on both insight routes (neither carries metered_compute) --
+# a gap named for CT-1. Past the vendor's own input ceiling, or the call
+# timeout, the router degrades to a MOCK: _meta names that as a class
+# (provider_fallback, below) so "read: all N chars" is never declared over
+# a reading no model made.
+WINDOW_CHARS: dict = {"personal": None, "thread": None}
 WINDOW_DEFAULT_SURFACE: str = "thread"
 WINDOW_ANCHOR: str = "tail"
 
@@ -2085,6 +2099,27 @@ def _message_coverage(boundaries, start: int, total: int) -> dict:
     }
 
 
+def _provider_fallback(response: dict) -> dict:
+    """2026-09-16 -- the CLASS of a router fallback, or {} when the provider
+    answered (D5: absent, not a false). ``unconfigured``: no key, the
+    deterministic mock. ``timeout`` / ``http_error`` / ``provider_error``:
+    the vendor was called and answered with no body. Never the error text
+    -- the router logs that once; the wire carries the kind."""
+    if not response.get("mock"):
+        return {}
+    err = response.get("fallback_error")
+    if not err:
+        return {"provider_fallback": "unconfigured"}
+    low = str(err).lower()
+    # the vendor ANSWERED with a status (urllib: "HTTP Error <code>: <reason>"),
+    # even one whose reason says "timeout" (408 / 504): that is an http_error
+    if low.startswith("http error") or "http error" in low:
+        return {"provider_fallback": "http_error"}
+    if "timed out" in low or "timeout" in low:
+        return {"provider_fallback": "timeout"}
+    return {"provider_fallback": "provider_error"}
+
+
 def cut_window(text: str, surface: Optional[str] = None,
                message_boundaries: Optional[list] = None) -> tuple:
     """THE ONE CUT (#139). ``(window_text, window_meta)`` for one request.
@@ -2094,14 +2129,16 @@ def cut_window(text: str, surface: Optional[str] = None,
     picks the size from WINDOW_CHARS; anything else (including None) is the
     default surface, and ``window_surface`` on the line says which one was
     used. A window is never longer than the text, so a short text reads
-    whole and the declaration can say so.
+    whole and the declaration can say so. A ``None`` size (CT-1 2026-09-16:
+    "delete the char cap") reads the WHOLE text and says so: ``window_cap``
+    rides as None, ``window_chars`` equals ``total_chars``.
     """
     if not isinstance(text, str):
         raise ValueError("text must be a string")
     surf = surface if isinstance(surface, str) and surface in WINDOW_CHARS else WINDOW_DEFAULT_SURFACE
     cap = WINDOW_CHARS[surf]
     total = len(text)
-    start = max(0, total - cap)
+    start = 0 if cap is None else max(0, total - cap)
     window_text = text[start:]
     meta: dict = {
         "window_anchor":  WINDOW_ANCHOR,
@@ -2393,11 +2430,11 @@ def run_emotional_physics(
                 "stop_reason": "end_turn",  # #128 raw vendor value; None on mock
                 # #139 -- the window the kernel READ (cut_window):
                 "window_anchor": "tail", "window_surface": "thread",
-                "window_cap": 12000, "window_chars": 12000, "total_chars": 96176,
+                "window_cap": None, "window_chars": 96176, "total_chars": 96176,   # no size since 2026-09-16
                 "window_coverage": "boundaries",   # or "ABSENT" + reason
-                "total_messages": 44, "window_messages": 6,
-                "window_first_message": 38, "window_last_message": 44,
-                "window_truncated_mid_message": True,
+                "total_messages": 44, "window_messages": 44,
+                "window_first_message": 1, "window_last_message": 44,
+                "window_truncated_mid_message": False,
             },
         }
 
@@ -2412,14 +2449,16 @@ def run_emotional_physics(
         raise ValueError("text must be a string")
     if not text.strip():
         raise ValueError("text must be a non-empty string after stripping")
-    # #139 -- the KERNEL cuts: tail-anchored, sized per surface, declared
-    # back in _meta. The cut runs on the text as received so the caller's
-    # boundaries stay true; the strip is for the prompt only.
+    # #139 -- the KERNEL declares what it read, back in _meta, from the text
+    # as received (the caller's boundaries stay true); since 2026-09-16 there
+    # is no size -- the whole text is the window. The strip is for the
+    # prompt only.
     window_text, window = cut_window(text, surface, message_boundaries)
     cleaned = window_text.strip()
     if not cleaned:
-        # A text whose TAIL is all whitespace passed the check above on its
-        # head; the model must never be handed an empty situation.
+        # Unreachable since 2026-09-16 (the window is the text, and the text
+        # was checked above); kept as the seam if a size ever returns. It
+        # was: a text whose TAIL is all whitespace passed the head check.
         raise ValueError(
             "the window is empty: the last %d characters of the text are whitespace"
             % window["window_chars"]
@@ -2486,6 +2525,12 @@ def run_emotional_physics(
             "stop_class": stop_vocabulary.classify_stop(response.get("stop_reason")),
             # #139 -- what the kernel actually read; the browser renders it.
             **window,
+            # 2026-09-16 -- and whether a MODEL read it: with no size on the
+            # window the vendor's ceiling is the one left, and a refused or
+            # timed-out call comes back as a mock. The class rides here,
+            # absent when the provider answered, so the window line is never
+            # "read: all" over a reading no model made.
+            **_provider_fallback(response),
         },
     }
     # #306 -- on a parse MISS the wire says how long the reply was and
@@ -2512,6 +2557,7 @@ def run_emotional_physics(
             "total_chars":    window["total_chars"],     # #139
             "raw_len":     len(raw_text),
             "parse_error": parse_error,
+            "provider_fallback": out["_meta"].get("provider_fallback"),   # 2026-09-16: a class, or None
             "substantive_fields":      _count_substantive_fields(result_body),
             "substantive_denominator": SUBSTANTIVE_DENOMINATOR,
             "signal_clarity_value":    _signal_clarity_value(result_body),

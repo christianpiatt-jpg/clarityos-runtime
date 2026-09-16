@@ -26,7 +26,6 @@ import { describe, it, expect } from "vitest";
 import {
   attractorVerdict,
   ATTRACTOR_TIE_EPSILON,
-  SEED_CHAR_LIMIT,
 } from "../PersonalElins";
 
 const d = (S1: number, S2: number, S3: number, S4: number) => ({ S1, S2, S3, S4 });
@@ -90,11 +89,3 @@ describe("attractorVerdict — the tie-break", () => {
   });
 });
 
-describe("SEED_CHAR_LIMIT", () => {
-  it("mirrors the backend cap that truncates silently", () => {
-    // intelligence_kernel.py:1845 — cleaned = cleaned[:6000], a HEAD slice.
-    // It keeps the beginning and drops the end, and the end of a narrative
-    // seed is where the current state lives.
-    expect(SEED_CHAR_LIMIT).toBe(6000);
-  });
-});

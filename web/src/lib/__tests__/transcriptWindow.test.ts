@@ -110,7 +110,14 @@ describe("windowFromMeta — the kernel's numbers, rendered unchanged", () => {
       window_chars: 12000, total_chars: 96176, window_anchor: "tail", window_surface: "thread",
       window_messages: 6, window_first_message: 38, window_last_message: 44,
       total_messages: 44, window_truncated_mid_message: true, window_coverage_reason: null,
+      provider_fallback: null,
     });
+  });
+
+  it("★ carries the fallback class when no model read the text, null when the provider answered", () => {
+    expect(windowFromMeta({ ...META, provider_fallback: "timeout" })?.provider_fallback).toBe("timeout");
+    expect(windowFromMeta({ ...META, provider_fallback: "" })?.provider_fallback).toBeNull();
+    expect(windowFromMeta(META)?.provider_fallback).toBeNull();
   });
 
   it("no _meta, or a _meta without the window, is null — not a guess", () => {

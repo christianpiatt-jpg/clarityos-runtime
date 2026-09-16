@@ -2355,7 +2355,7 @@ export interface InsightMeta {
 // #139 -- these two doors are the PERSONAL surface's (the cockpit's
 // personal run and /personal-elins); the thread panel goes through
 // lib/emotionalPhysics and lib/elinsV2 with surface "thread". The kernel
-// cuts the tail window (personal 6,000) and declares it in _meta.
+// reads the whole text (no size since 2026-09-16) and declares it in _meta.
 export const runEmotionalPhysics = (
   text: string,
   thread_id?: string | null,

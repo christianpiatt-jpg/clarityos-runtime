@@ -66,8 +66,8 @@ interface Props {
   runOn?: {
     rawText: string;
     region?: string | null;
-    // #139 -- which surface sizes the kernel's window (personal 6,000 ·
-    // thread 12,000; the kernel cuts the tail) and the caller's message
+    // #139 -- which surface the kernel names on its window line (no size
+    // since 2026-09-16; the whole text is read) and the caller's message
     // boundaries over rawText so the kernel can say which messages it read.
     surface?: "personal" | "thread";
     messageBoundaries?: number[] | null;
@@ -142,7 +142,7 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const canRerun = !!runOn && typeof runOn.rawText === "string"
     && runOn.rawText.trim().length > 0;
 
-  // #139 -- what this run READ: the kernel's tail window, when the reading
+  // #139 -- what this run READ: the kernel's window (the whole text since 2026-09-16), when the reading
   // on screen declares one; otherwise the whole input (a run that predates
   // the stamp, or a controlled envelope without _meta).
   const declaredChars = view?._meta?.window_chars;
@@ -264,7 +264,7 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
         </button>
       ) : null}
       {/* ★ "send to corpus". The text the diagnostic READ -- the kernel's
-          tail window (#139), reproduced here from _meta.window_chars on the
+          window (#139; the whole text since 2026-09-16), reproduced here from _meta.window_chars on the
           same unit, or the whole input when no window is declared -- goes
           through the same front door as the cockpit box. Rendered only when
           that text is in hand; a button that could send nothing is not

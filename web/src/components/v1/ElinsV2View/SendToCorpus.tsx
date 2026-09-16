@@ -2,7 +2,7 @@
  * SendToCorpus — the "send to corpus" control in the ElinsV2View footer.
  *
  * A diagnostic run is transient: the input text is analysed and discarded.
- * This posts the text the run READ (#139: the kernel's tail window, or the
+ * This posts the text the run READ (#139: the kernel's window -- the whole text since 2026-09-16 -- or the
  * whole input when none is declared) through the corpus front door
  * (/ingest/manual), so the run the member just read can be KEPT in the
  * library with an object_vector -- the same door as the cockpit box, with a

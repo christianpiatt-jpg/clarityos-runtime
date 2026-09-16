@@ -337,13 +337,10 @@ export function SeedComposer({
           boxSizing: "border-box",
         }}
       />
-      {/* ★★★ THE CLIFF AT 6,000 CHARACTERS -- now a TAIL cut (#139).
-          intelligence_kernel.cut_window keeps the LAST 6,000 characters
-          on the personal surface (WINDOW_CHARS["personal"]) and returns
-          the window it read in _meta. Before #139 it was a silent HEAD
-          slice that kept the beginning and dropped the end -- the current
-          state -- which is what this counter was born to warn about. The
-          count and the warning stay; the words now say which end is kept. */}
+      {/* THE CLIFF IS GONE (CT-1 2026-09-16, "delete the char cap"). It was a
+          silent 6,000 HEAD slice, then #139's declared TAIL window; now the
+          kernel reads the whole seed and declares it in _meta. The count
+          stays because it is true; there is no limit left to warn about. */}
       <div
         id="seed-counter"
         data-testid="seed-counter"
@@ -352,21 +349,10 @@ export function SeedComposer({
           fontFamily: "var(--font-mono)",
           fontSize: 10,
           letterSpacing: "0.03em",
-          color: seed.length > SEED_CHAR_LIMIT
-            ? "var(--color-accent-red, #E74C3C)"
-            : "var(--color-text-secondary)",
+          color: "var(--color-text-secondary)",
         }}
       >
-        {seed.length.toLocaleString()} / {SEED_CHAR_LIMIT.toLocaleString()} characters
-        {seed.length > SEED_CHAR_LIMIT ? (
-          <span data-testid="seed-overflow-warning" style={{ display: "block", marginTop: 2 }}>
-            ⚠ {(seed.length - SEED_CHAR_LIMIT).toLocaleString()} characters past the
-            limit will NOT be read. The engine keeps the last{" "}
-            {SEED_CHAR_LIMIT.toLocaleString()} — the end of a seed, usually the
-            current state — and drops the opening. If the opening matters, trim
-            from the top yourself so it fits.
-          </span>
-        ) : null}
+        {seed.length.toLocaleString()} characters
       </div>
       {/* #303 A4 -- whose field. The member chooses; nothing is defaulted
           (an unchosen field is refused by the door, in the #238 shape). */}
@@ -979,10 +965,9 @@ function renderValue(v: unknown): string {
 // SAME implementation. It shipped here in cdae4ba and missed that consumer,
 // which kept rendering the raw backend value. Re-exported so existing
 // importers (and the test suite) keep working unchanged.
-// Mirrors intelligence_kernel.WINDOW_CHARS["personal"] (6_000, a TAIL window
-// since #139). Kept as a literal because web/ and the runtime share no code;
-// if the backend table moves, this must move with it.
-export const SEED_CHAR_LIMIT = 6000;
+// SEED_CHAR_LIMIT (the 6,000 mirror of the kernel's window) is gone: since
+// 2026-09-16 the kernel has no size on the personal surface (WINDOW_CHARS
+// is None) and the page has nothing to mirror.
 
 export {
   attractorVerdict,

@@ -15047,8 +15047,9 @@ class V52EmotionalPhysicsRequest(BaseModel):
     # The relationship this run belongs to. OPTIONAL: absent means the
     # run is anonymous and nothing is recorded, exactly as before.
     thread_id: Optional[str] = None
-    # #139 -- which surface is asking: the window is sized per surface
-    # (personal 6,000 · thread 12,000), tail-anchored, cut by the kernel.
+    # #139 -- which surface is asking: it names the window on the line and
+    # gates the whose_field door; no size since 2026-09-16 (the kernel
+    # reads the whole text and declares it).
     surface: Literal["personal", "thread"] = "thread"
     # #139 -- the caller's cumulative message END offsets (CODE POINTS) over
     # the exact text it sent, so the kernel can say which messages the
@@ -15089,7 +15090,8 @@ def me_emotional_physics_analyze(
     # hook: the seal must exist before the return it will be scored
     # against, or the residual is fitted.
     # #139 -- the record carries what the engine READ (the window), not
-    # the whole transcript the browser now sends; the same helper cuts.
+    # the whole transcript the browser now sends; the same helper cuts
+    # (no size since 2026-09-16: the window is the whole text, still declared).
     window_text, _window = intelligence_kernel.cut_window(
         text, req.surface, req.message_boundaries,
     )
@@ -15201,23 +15203,21 @@ def elins_v2_run(
             ),
         )
 
-    # #139 -- the KERNEL cuts, with the same helper physics uses: tail,
-    # sized per surface. Until now this route had no cap at all and the
-    # browser sliced the head. The record carries what the engine read,
-    # and the window facts ride back in _meta for the browser to render.
+    # #139 -- the KERNEL declares, with the same helper physics uses. It
+    # cut a tail sized per surface from 2026-09-03 to 2026-09-16; since
+    # CT-1's "delete the char cap" the window is the whole text. The record
+    # carries what the engine read, and the window facts ride back in _meta
+    # for the browser to render.
     window_text, window = intelligence_kernel.cut_window(
         raw_text, req.surface, req.message_boundaries,
     )
     if not window_text.strip():
-        # the text had content, its TAIL has none: say so, rather than the
-        # kernel's "raw_text must be non-empty" for a raw_text that was not
+        # Unreachable since 2026-09-16 (the window is raw_text, checked
+        # above); kept as the seam if a size ever returns, with a message
+        # that does not describe a cut.
         raise HTTPException(
             status_code=400,
-            detail=error_response(
-                "bad_input",
-                "the window is empty: the last %d characters of raw_text are whitespace"
-                % window["window_chars"],
-            ),
+            detail=error_response("bad_input", "the window is empty: raw_text is whitespace"),
         )
     whose_field = _require_whose_field(req.surface, req.whose_field)   # #303 A4
     _record_run_against_thread(user, req.thread_id, window_text, whose_field=whose_field)

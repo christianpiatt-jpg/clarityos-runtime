@@ -29,8 +29,8 @@ interface Props {
   text?: string | null;
   /** Optional callback fired on every successful analysis. */
   onAnalyze?: (resp: EmotionalPhysicsResponse) => void;
-  /** #139 -- which surface sizes the kernel's window (personal 6,000 ·
-   *  thread 12,000; the kernel cuts the tail). Default: thread. */
+  /** #139 -- which surface the kernel names on its window line (no size
+   *  since 2026-09-16; the whole text is read). Default: thread. */
   surface?: "personal" | "thread";
   /** #139 -- the caller's cumulative message end offsets over `text`, so
    *  the kernel can say which messages its window covers. */

@@ -2,8 +2,13 @@
 #139 -- the insight window: tail-anchored, sized per surface, kernel-
 authoritative. + the summary_turn passenger (#190 needs it).
 
-WHAT THESE PIN. The table is the ruling (personal 6,000 · thread 12,000 ·
-tail); cut_window keeps the LAST characters and says so; the coverage
+CT-1 2026-09-16 ("delete the char cap on thread and personal elins"): the
+SIZE is gone. Both surfaces read the whole text; the kernel still declares
+what it read (window_chars == total_chars, every message covered, window_cap
+None). The pins below say so; the reply-path budget stays untouched.
+
+WHAT THESE PIN. The table names the two surfaces and no size (the ruling
+below); cut_window reads the whole text and says so; the coverage
 numbers come from the caller's boundaries and are ABSENT (never guessed)
 when those are missing or wrong; both insight routes accept the two new
 fields, cut with the one helper, and return the window in _meta; the
@@ -58,28 +63,30 @@ def _expected_coverage(ends, start):
 # cut_window
 # --------------------------------------------------------------------------
 def test_the_table_is_the_ruling():
-    assert ik.WINDOW_CHARS == {"personal": 6_000, "thread": 12_000}
+    # 2026-09-16: no size on either surface; the surfaces themselves stay named
+    assert ik.WINDOW_CHARS == {"personal": None, "thread": None}
     assert ik.WINDOW_DEFAULT_SURFACE == "thread" and ik.WINDOW_ANCHOR == "tail"
 
 
-def test_thread_surface_keeps_the_last_12000():
+def test_thread_surface_reads_the_whole_text_and_says_so():
     text = ("H" * 500) + ("Z" * 12_000)
     w, m = ik.cut_window(text, "thread")
-    assert w == "Z" * 12_000
-    assert m["window_anchor"] == "tail" and m["window_surface"] == "thread" and m["window_cap"] == 12_000
-    assert m["window_chars"] == 12_000 and m["total_chars"] == 12_500
+    assert w == text
+    assert m["window_anchor"] == "tail" and m["window_surface"] == "thread" and m["window_cap"] is None
+    assert m["window_chars"] == 12_500 == m["total_chars"]
 
 
-def test_personal_surface_keeps_the_last_6000():
+def test_personal_surface_reads_the_whole_text_and_says_so():
     text = ("H" * 500) + ("Z" * 6_000)
     w, m = ik.cut_window(text, "personal")
-    assert w == "Z" * 6_000 and m["window_cap"] == 6_000 and m["window_surface"] == "personal"
+    assert w == text and m["window_cap"] is None and m["window_surface"] == "personal"
+    assert m["window_chars"] == 6_500 == m["total_chars"]
 
 
 def test_default_and_unknown_surfaces_are_thread():
     text = "Z" * 13_000
     assert ik.cut_window(text)[1]["window_surface"] == "thread"
-    assert ik.cut_window(text, None)[1]["window_chars"] == 12_000
+    assert ik.cut_window(text, None)[1]["window_chars"] == 13_000
     assert ik.cut_window(text, "operator")[1]["window_surface"] == "thread"
 
 
@@ -92,18 +99,14 @@ def test_coverage_from_boundaries_on_a_96k_thread():
     text, ends = _transcript(44, 2_180)          # ~96k chars, 44 messages
     assert ends[-1] == len(text)
     w, m = ik.cut_window(text, "thread", ends)
-    start = len(text) - 12_000
+    start = 0                                    # no size: the window starts at the start
     exp = _expected_coverage(ends, start)
     assert m["window_coverage"] == "boundaries" and m["window_coverage_reason"] is None
     assert m["total_messages"] == 44 and m["window_last_message"] == 44
-    assert m["window_first_message"] == exp["first"] and m["window_messages"] == exp["whole"]
-    assert m["window_truncated_mid_message"] is exp["mid"] is True
-    # the window really is the tail: it ends where the text ends and holds
-    # the whole of message first+1 but not message first-1
-    assert text.endswith(w)
-    parts = text.split("\n")
-    assert parts[exp["first"]] in w              # first+1 (0-based first)
-    assert parts[exp["first"] - 2] not in w      # first-1
+    assert m["window_first_message"] == exp["first"] == 1 and m["window_messages"] == exp["whole"] == 44
+    assert m["window_truncated_mid_message"] is exp["mid"] is False
+    # the window really is the whole text
+    assert w == text
 
 
 def test_coverage_on_a_boundary_aligned_cut_is_not_mid_message():
@@ -200,43 +203,77 @@ def _install_fake_handler(monkeypatch, response_text):
     return captured
 
 
-def test_physics_meta_declares_a_tail_window_of_12000_on_a_96k_transcript(reset_stores, monkeypatch):
+def test_physics_meta_declares_the_whole_96k_transcript(reset_stores, monkeypatch):
     captured = _install_fake_handler(monkeypatch, json.dumps(_valid_payload()))
     text, ends = _transcript(44, 2_180)
     out = ik.run_emotional_physics("alice", text, surface="thread", message_boundaries=ends)
     m = out["_meta"]
-    assert m["window_chars"] == 12_000 and m["window_anchor"] == "tail" and m["window_surface"] == "thread"
+    assert m["window_chars"] == len(text) and m["window_anchor"] == "tail" and m["window_surface"] == "thread"
+    assert m["window_cap"] is None
     assert m["total_chars"] == len(text) and m["total_messages"] == 44 and m["window_last_message"] == 44
-    assert m["window_coverage"] == "boundaries" and 1 < m["window_first_message"] <= 44
-    # the prompt carries exactly the window
+    assert m["window_coverage"] == "boundaries" and m["window_first_message"] == 1 and m["window_messages"] == 44
+    # the prompt carries exactly the whole text
     user_tail = captured["prompt"].split("SITUATION:\n", 1)[1]
-    assert user_tail == text[-12_000:].strip()
+    assert user_tail == text.strip()
     assert out["_meta"]["parse_error"] is None
 
 
-def test_a_whitespace_tail_window_is_refused_never_sent_empty(reset_stores, monkeypatch):
-    """The head has content, the last 12,000 characters are whitespace: the
-    model must not be handed an empty situation (a refuter's catch)."""
+def test_a_whitespace_tail_is_read_whole_and_a_whitespace_text_is_refused(reset_stores, monkeypatch):
+    """With no size, a text whose TAIL is whitespace is read whole (its head
+    has content); a text that is whitespace throughout is refused before any
+    model call, as it always was."""
     captured = _install_fake_handler(monkeypatch, json.dumps(_valid_payload()))
     text = "user: real content here\nassistant: " + (" " * 12_000)
+    m = ik.run_emotional_physics("alice", text, surface="thread")["_meta"]
+    assert m["window_chars"] == len(text) and captured["prompt"] is not None
+    captured["prompt"] = None
     with pytest.raises(ValueError) as e:
-        ik.run_emotional_physics("alice", text, surface="thread")
-    assert "window is empty" in str(e.value)
+        ik.run_emotional_physics("alice", " \n\t " * 100, surface="thread")
+    assert "non-empty" in str(e.value)
     assert captured["prompt"] is None                   # no model call
 
 
-def test_physics_personal_surface_is_6000(reset_stores, monkeypatch):
+def test_provider_fallback_is_a_class_on_the_line_and_absent_when_the_model_answered(reset_stores, monkeypatch):
+    """2026-09-16 -- with no size, the vendor's ceiling is the cap that is
+    left; a refused or timed-out call degrades to a mock, and the window
+    line must not read "all N chars" over a reading no model made. The
+    class rides in _meta; the vendor's text never does."""
+    import urllib.error
+    text, _ = _transcript(6, 300)
+    # the provider answered: no key at all
+    _install_fake_handler(monkeypatch, json.dumps(_valid_payload()))
+    m = ik.run_emotional_physics("alice", text, surface="thread")["_meta"]
+    assert "provider_fallback" not in m and m["parse_error"] is None
+    # the call timed out: the router hands back a mock; the class is "timeout"
+    def timed_out(model_id, prompt, *, temperature, max_tokens):
+        raise TimeoutError("The read operation timed out")
+    monkeypatch.setitem(mr._PROVIDER_HANDLERS, "anthropic", timed_out)
+    m = ik.run_emotional_physics("alice", text, surface="thread")["_meta"]
+    assert m["provider_fallback"] == "timeout" and m["parse_error"] is not None
+    assert m["window_chars"] == len(text)
+    assert "timed out" not in json.dumps(m)                 # the class, never the text
+    # the vendor refused with a status: "http_error"
+    def refused(model_id, prompt, *, temperature, max_tokens):
+        raise urllib.error.HTTPError("https://vendor.invalid/v1", 400, "Bad Request", None, None)
+    monkeypatch.setitem(mr._PROVIDER_HANDLERS, "anthropic", refused)
+    assert ik.run_emotional_physics("alice", text, surface="thread")["_meta"]["provider_fallback"] == "http_error"
+    # no key configured at all: the deterministic mock is "unconfigured"
+    monkeypatch.setattr(mr, "route_request", lambda model_id, prompt, **kw: mr._mock_result(model_id, "anthropic", prompt, 0.0))
+    assert ik.run_emotional_physics("alice", text, surface="thread")["_meta"]["provider_fallback"] == "unconfigured"
+
+
+def test_physics_personal_surface_reads_whole(reset_stores, monkeypatch):
     _install_fake_handler(monkeypatch, json.dumps(_valid_payload()))
     text, ends = _transcript(20, 500)
     m = ik.run_emotional_physics("alice", text, surface="personal", message_boundaries=ends)["_meta"]
-    assert m["window_chars"] == 6_000 and m["window_surface"] == "personal"
+    assert m["window_chars"] == len(text) and m["window_surface"] == "personal" and m["window_cap"] is None
 
 
 def test_physics_default_is_thread_and_coverage_absent_without_boundaries(reset_stores, monkeypatch):
     _install_fake_handler(monkeypatch, json.dumps(_valid_payload()))
     text, _ = _transcript(20, 500)
     m = ik.run_emotional_physics("alice", text)["_meta"]
-    assert m["window_surface"] == "thread" and m["window_chars"] == min(12_000, len(text))
+    assert m["window_surface"] == "thread" and m["window_chars"] == len(text)
     assert m["window_coverage"] == "ABSENT" and m["window_messages"] is None
 
 
@@ -269,11 +306,12 @@ def test_physics_route_accepts_surface_and_boundaries_and_returns_the_window(res
                     json={"text": text, "surface": "thread", "message_boundaries": ends})
     assert r.status_code == 200, r.text[:200]
     m = r.json()["_meta"]
-    assert m["window_chars"] == 12_000 and m["window_anchor"] == "tail" and m["total_messages"] == 44
+    assert m["window_chars"] == len(text) and m["window_anchor"] == "tail" and m["total_messages"] == 44
+    assert m["window_cap"] is None and m["window_first_message"] == 1
     r = client.post("/me/emotional_physics/analyze", headers=h,
                     json={"text": text, "surface": "personal", "message_boundaries": ends,
                           "whose_field": "author"})   # #303 A4 -- a personal run names its field
-    assert r.json()["_meta"]["window_chars"] == 6_000
+    assert r.json()["_meta"]["window_chars"] == len(text)
     r = client.post("/me/emotional_physics/analyze", headers=h, json={"text": text, "surface": "operator"})
     assert r.status_code == 422                 # the two surfaces are the whole vocabulary
 
@@ -286,25 +324,33 @@ def test_elins_route_cuts_with_the_same_helper_and_declares(reset_stores):
     assert r.status_code == 200, r.text[:200]
     body = r.json()
     m = body["_meta"]
-    assert m["window_chars"] == 12_000 and m["window_anchor"] == "tail" and m["window_last_message"] == 44
-    # the engine READ the window: L1 measures the stripped window, never the whole
+    assert m["window_chars"] == len(text) and m["window_anchor"] == "tail" and m["window_last_message"] == 44
+    assert m["window_cap"] is None and m["window_first_message"] == 1
+    # the engine READ the whole text: L1 measures the stripped text
     l1 = body["pipeline"]["L1_ingest"]
-    assert 0 < l1["char_count"] <= 12_000 and l1["char_count"] == len(text[-12_000:].strip())
+    assert l1["char_count"] == len(text.strip())
     assert "raw_text" not in body["input"] and "text" not in l1      # #177 holds
     r = client.post("/elins/v2/run", headers=h,
                     json={"input": {"raw_text": text}, "surface": "personal", "message_boundaries": ends,
                           "whose_field": "author"})   # #303 A4
-    assert r.json()["_meta"]["window_chars"] == 6_000 and r.json()["pipeline"]["L1_ingest"]["char_count"] <= 6_000
+    assert r.json()["_meta"]["window_chars"] == len(text) and r.json()["pipeline"]["L1_ingest"]["char_count"] == len(text.strip())
 
 
-def test_both_routes_refuse_a_whitespace_tail_with_the_reason(reset_stores, monkeypatch):
+def test_both_routes_read_a_whitespace_tail_whole_and_refuse_a_whitespace_text(reset_stores, monkeypatch):
     _install_fake_handler(monkeypatch, json.dumps(_valid_payload()))
     h = _session("w_erin")
     text = "user: real content here\nassistant: " + (" " * 12_000)
     r = client.post("/me/emotional_physics/analyze", headers=h, json={"text": text, "surface": "thread"})
-    assert r.status_code == 400 and "window is empty" in r.text
+    assert r.status_code == 200 and r.json()["_meta"]["window_chars"] == len(text)
     r = client.post("/elins/v2/run", headers=h, json={"input": {"raw_text": text}, "surface": "thread"})
-    assert r.status_code == 400 and "window is empty" in r.text and "12000" in r.text
+    assert r.status_code == 200 and r.json()["_meta"]["window_chars"] == len(text)
+    # whitespace throughout: refused at the door of both routes (their own
+    # strip check, 400 with the word "empty"), never sent
+    blank = " \n" * 50
+    r = client.post("/me/emotional_physics/analyze", headers=h, json={"text": blank, "surface": "thread"})
+    assert r.status_code == 400 and "empty" in r.text.lower(), (r.status_code, r.text[:120])
+    r = client.post("/elins/v2/run", headers=h, json={"input": {"raw_text": blank}, "surface": "thread"})
+    assert r.status_code == 400 and "empty" in r.text.lower(), (r.status_code, r.text[:120])
 
 
 def test_the_door_refuses_non_int_boundaries(reset_stores, monkeypatch):
