@@ -345,7 +345,31 @@ export interface MarkovResult {
       caps?: Record<string, number>;
     };
     recast: string;
+    // #315 -- the verb-owner set: the seven grammar counters (G1..G7, #135)
+    // and the three per-turn flows D / N / T (#133), the SAME dict the thread
+    // shadow logs, computed from the text alone (no store, no thread, no
+    // model). Optional: absent from a backend older than this field. T and N
+    // are a number or the "UNMAPPED" marker (no denominator); E is always
+    // the marker (no producer identified).
+    verb_owner_set?: MarkovVerbOwnerSet;
   };
+}
+
+export interface MarkovVerbOwnerSet {
+  G1: number; G2: number; G3: number; G4: number; G5: number; G6: number; G7: number;
+  G4_reflexive_only: boolean;
+  G_sentences: number;
+  D: number;
+  D_status: string;
+  T: number | string;
+  T_status: string;
+  N: number | string;
+  N_status: string;
+  E: string;
+  E_status: string;
+  counts: Record<string, number>;
+  computed: boolean;
+  reason: string;
 }
 
 export const markov = (text: string, meta?: Record<string, unknown>) =>

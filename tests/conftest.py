@@ -665,6 +665,17 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "privacy_surface",
     },
+    # ---- #315 /markov renders the verb-owner set ----
+    # runtime_spine: the /markov response carries verb_owner_set (G1..G7 +
+    # D/N/T), the same dict the thread shadow logs, from one pure producer;
+    # nothing stored, no thread_id. determinism_surface: #117's two rules
+    # (a noun-only "current", the sentence-starter stop-list) on fixed
+    # sentences, and W1 of the walk loaded from OUTSIDE the tree (skipped
+    # with the reason when absent).
+    "test_315_markov_verb_owner_set.py": {
+        "runtime_spine",
+        "determinism_surface",
+    },
     # ---- #307 E3 the twelve-window pin ----
     # determinism_surface: the ELINS counting layer over CT-1's litigation
     # record, loaded from OUTSIDE the tree (skipped, with the reason, when

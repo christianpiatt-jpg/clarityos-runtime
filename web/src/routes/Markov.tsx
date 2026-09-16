@@ -39,6 +39,33 @@ function present(v: unknown): string {
 
 const COUNT_ORDER = ["P1", "P2", "P3", "P4", "Ts", "Te", "M", "hydronic"] as const;
 
+// #315 -- the verb-owner set, one row under the P-series: the seven grammar
+// counters and the three flows, read off `verb_owner_set` exactly as the
+// thread shadow logs them. A missing key (older backend, or T / N with no
+// denominator, which arrive as the "UNMAPPED" marker) reads "—".
+const VERB_ORDER = ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "D", "N", "T"] as const;
+const FLOW_KEYS = new Set(["D", "N", "T"]);
+
+/** A counter (G1..G7, D) is an integer; a ratio (N, T) always shows four
+ *  places, so a measured 0 reads "0.0000" and not like a counter's 0.
+ *  Anything that is not a finite number -- absent, or the UNMAPPED marker --
+ *  reads a dash (the marker's KIND rides in the title). */
+function verbCell(k: string, v: unknown): string {
+  if (typeof v !== "number" || !Number.isFinite(v)) return "\u2014";
+  return k === "N" || k === "T" ? v.toFixed(4) : String(Math.trunc(v));
+}
+
+function verbTitle(k: string, set: { D_status?: string; N_status?: string; T_status?: string; reason?: string } | undefined): string {
+  if (!FLOW_KEYS.has(k)) return `${k}: grammar counter (#135)`;
+  const status = k === "D" ? set?.D_status : k === "N" ? set?.N_status : set?.T_status;
+  if (!status) return `${k}: flow (absent)`;
+  if (status !== "UNMAPPED" || !set?.reason) return `${k}: ${status}`;
+  // the kernel joins the three flows' reasons with " \u00b7 " and prefixes
+  // each with its letter; this flow's own segment, without the prefix
+  const own = set.reason.split(" \u00b7 ").find((s) => s.startsWith(`${k}: `));
+  return `${k}: UNMAPPED \u2014 ${own ? own.slice(k.length + 2) : set.reason}`;
+}
+
 export default function Markov() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -130,6 +157,22 @@ export default function Markov() {
                     data-at-cap={atCap ? "true" : undefined}
                   >
                     {k}: {shown}
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* #315 -- one row, the order's own label: verbs · G1–G7 · D/N/T.
+                A flow's status rides in the title (CANDIDATE, or UNMAPPED
+                with the kernel's reason), never in the cell. */}
+            <div className="row" style={{ marginTop: 6 }} data-testid="markov-verbs">
+              <span className="label" style={{ marginRight: 4 }}>verbs · G1–G7 · D/N/T</span>
+              {VERB_ORDER.map((k) => {
+                const set = r.result?.verb_owner_set;
+                const v = set?.[k];
+                return (
+                  <span key={k} className="tag" title={verbTitle(k, set)} data-verb={k}>
+                    {k}: {verbCell(k, v)}
                   </span>
                 );
               })}

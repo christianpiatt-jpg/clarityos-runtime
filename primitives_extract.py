@@ -45,6 +45,62 @@ _ENTITY_STOP = frozenset({
     "august", "september", "october", "november", "december",
 })
 
+# #117 (b) -- capitalised because they START A SENTENCE, not because they
+# name anything: function words and connectives that a walk of an EEOC
+# comment (2026-09-16) put into P1 -- Under · Yet · Given · Rather · Even ·
+# Consequently · Instead · One -- plus a short set of their kin, and the
+# legal "Id". Single capital letters ("B", the "U" / "S" / "C" a citation
+# like U.S.C. splits into) are stopped by the length rule in _entities, not
+# by a list. ACRONYMS bypass both lists; a multi-word run bypasses them too,
+# except that a LEADING article or connective is dropped from it
+# (_RUN_STARTER_STOP).
+_SENTENCE_START_STOP = frozenset({
+    "under", "yet", "given", "rather", "even", "consequently", "instead",
+    "one", "id", "although", "though", "because", "since", "unless", "until",
+    "after", "before", "moreover", "further", "furthermore", "nevertheless",
+    "nonetheless", "otherwise", "indeed", "accordingly", "additionally",
+    "similarly", "likewise", "meanwhile", "still", "such", "each", "every",
+    "any", "some", "all", "both", "either", "neither", "much", "many",
+    "most", "more", "less", "only", "just", "again", "already", "always",
+    "never", "often", "once", "perhaps", "what", "which", "who", "whom",
+    "whose", "why", "how", "whether", "about", "above", "across", "against",
+    "along", "among", "around", "beyond", "between", "into", "onto", "over",
+    "per", "through", "toward", "towards", "upon", "within", "without",
+    "our", "your", "their", "its", "his", "her", "my", "me", "us", "them",
+    "him", "no", "not", "nor", "yes", "see", "first", "second", "third",
+    "finally", "two", "three",
+})
+# #117 (b) -- a capitalised RUN that begins with an ARTICLE or a CONNECTIVE is
+# that word glued to what follows ("Yet Congress", "The Commission"): the
+# word is dropped and the rest kept. ONLY articles and connectives: a refuter
+# showed that stripping every stop-word beheaded real names -- "The First
+# Amendment" -> "Amendment", "Second Circuit" -> "Circuit", "August Wilson"
+# -> "Wilson", "Both Parties" -> "Parties" -- so ordinals, numbers, months,
+# determiners, pronouns and prepositions stay OUT of this set (they stop a
+# single word only). The cost that remains is the rare name that begins with
+# an article or a connective ("The Hague" -> "Hague", "Even Stevens" ->
+# "Stevens"); named in the RETURN.
+# Also the conjunctions, relatives, citation signals, pronouns and the
+# prepositions that begin a legal sentence ("But Congress", "If Congress",
+# "See Smith v. Jones", "In Denver", "Under Title VII"): none of them begins
+# a proper name in this prose, so they are stripped from a run's head too.
+# "under" is the ONE exception, kept for "Under Secretary" at the cost of
+# "Under Title VII" staying glued -- a trade named in the RETURN. The cost
+# of the prepositions is a title like "In Living Color" -> "Living Color".
+_RUN_STARTER_STOP = frozenset({
+    "the", "a", "an", "this", "that", "these", "those",
+    "yet", "given", "rather", "even", "consequently", "instead", "moreover",
+    "however", "therefore", "thus", "also", "further", "furthermore",
+    "nevertheless", "nonetheless", "otherwise", "indeed", "accordingly",
+    "additionally", "similarly", "likewise", "meanwhile", "although",
+    "though", "because", "since", "unless", "until",
+    "and", "but", "or", "nor", "if", "then", "so", "as", "when", "where",
+    "while", "whether", "see", "cf", "here", "there",
+    "it", "we", "you", "they", "he", "she",
+    "in", "on", "at", "to", "for", "of", "by", "with", "from", "after",
+    "before", "between", "among", "against", "within", "without", "upon",
+})
+
 # Curated action-verb lexicon (base forms). Augmented by -ing/-ed morphology.
 _ACTION_VERBS = frozenset({
     "build", "create", "make", "run", "use", "move", "flow", "cause", "drive",
@@ -104,6 +160,43 @@ _GRADIENTS = ("gradient", "slope", "differential", "incline", "decline",
 _PRESSURE = ("pressure", "strain", "load", "stress", "chokepoint", "hotspot",
              "overload")
 
+# #117 (a) -- "current" is a FLOW only as a NOUN (the water sense). As an
+# adjective -- "under the current rule", "current practice" -- it fires on
+# every legal text (a walk of an EEOC comment carried it three times, every
+# one an adjective). A noun use is the plural ("strong currents"), or the
+# singular followed by the END of the text or a sentence mark (. ; : ! ?),
+# or by a word an adjective cannot directly precede: "of", a preposition of
+# motion, a verb of being or of motion ("against the current", "the current
+# of the river", "the current runs", "the current swept the boat"). Anything
+# else after it -- another word, a hyphen, a digit, a section sign, a quote,
+# a paren, a comma -- is adjective context ("current-law", "current 2024
+# rule", "current § 1614", "the current, proposed rule"). Prepositions an
+# adjective CAN precede (through, with, at, in, for, to, on, from, by) are
+# deliberately not followers: "current through June" is an adjective.
+# A CLOSING quote, paren, bracket, dash or ellipsis after it is the noun's
+# side ('"against the current" he said', "(against the current)").
+# Word boundary is kept; the CONTEXT is what is added. RESIDUE, named (a
+# refuter's list): FIRES on an adjective before under / over / across /
+# along / toward / into / is ("records kept current under section 1614",
+# "the version current is 2.0") and on a predicate adjective at a sentence
+# end ("the rule is current."); MISSES a noun before a relative or a
+# conjunction ("the current that swept", "the current and the tide"), a
+# noun before the deliberately excluded prepositions ("the current in the
+# river", "the current at the mouth"), and a noun before a verb outside
+# the list ("the current quickened").
+_FLOW_NOUN_ONLY = frozenset({"current"})
+_NOUN_FOLLOWERS = frozenset({
+    "of", "against", "along", "across", "into", "over", "under", "toward",
+    "towards", "is", "was", "are", "were", "runs", "ran", "flows", "flowed",
+    "carries", "carried", "pulls", "pulled", "moves", "moved", "swept",
+    "sweeps", "dragged", "drags", "took", "takes", "pushed", "pushes",
+    "turned", "turns", "rushes", "rushed",
+})
+_NEXT_CHAR_RE = re.compile(r"\s*(\S)?")
+_NEXT_WORD_RE = re.compile(r"\s*([a-z][a-z'\-]*)")
+# sentence marks, plus the CLOSING marks that end a noun phrase
+_SENTENCE_MARKS = frozenset(".;:!?)]}\"'”’—–…")
+
 _WORD_RE = re.compile(r"[A-Za-z][A-Za-z'\-]*")
 _ENTITY_RE = re.compile(r"\b([A-Z][A-Za-z0-9]*(?:\s+[A-Z][A-Za-z0-9]*)*)\b")
 
@@ -143,9 +236,18 @@ def _entities(text: str) -> List[str]:
     for m in _ENTITY_RE.finditer(text):
         phrase = m.group(1).strip()
         words = phrase.split()
+        while len(words) >= 2 and words[0].lower() in _RUN_STARTER_STOP:
+            words = words[1:]                      # #117 (b): the glued starter
+        phrase = " ".join(words)
         is_acronym = phrase.isupper() and len(phrase) >= 2
-        if len(words) == 1 and not is_acronym and phrase.lower() in _ENTITY_STOP:
-            continue
+        if len(words) == 1 and not is_acronym:
+            # #117 (b) -- a single letter is never an entity; a sentence-
+            # initial function word is capitalised for its position, not
+            # for what it names.
+            if len(phrase) == 1:
+                continue
+            if phrase.lower() in _ENTITY_STOP or phrase.lower() in _SENTENCE_START_STOP:
+                continue
         out.append(phrase)
     return _dedup(out)[:_CAP_TERMS]
 
@@ -180,10 +282,33 @@ def _clauses_matching(text: str, *, markers=None, words=None) -> List[str]:
     return _dedup(out)
 
 
+def _noun_use(kw: str, low: str) -> bool:
+    """#117 (a) -- does ``kw`` occur as a noun anywhere in ``low``? The plural
+    is a noun; the singular is one when followed by end, punctuation, or a
+    word an adjective cannot directly precede (_NOUN_FOLLOWERS)."""
+    if re.search(rf"\b{re.escape(kw)}(?:s|es)\b", low):
+        return True
+    for m in re.finditer(rf"\b{re.escape(kw)}\b", low):
+        nxt = _NEXT_CHAR_RE.match(low, m.end())
+        char = nxt.group(1) if nxt else None
+        if char is None or char in _SENTENCE_MARKS:
+            return True                              # end of text, or a sentence mark
+        if not char.isalpha():
+            continue                                 # hyphen / digit / § / quote / paren / comma: adjective
+        word = _NEXT_WORD_RE.match(low, m.end())
+        if word and word.group(1) in _NOUN_FOLLOWERS:
+            return True
+    return False
+
+
 def _hydronic_terms(text: str, keywords) -> List[str]:
     low = text.lower()
     out: List[str] = []
     for kw in keywords:  # fixed tuple order → deterministic
+        if kw in _FLOW_NOUN_ONLY:
+            if _noun_use(kw, low):
+                out.append(kw)
+            continue
         if re.search(rf"\b{re.escape(kw)}(?:s|es)?\b", low):
             out.append(kw)
     return out[:_CAP_HYDRO]

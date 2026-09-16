@@ -1168,6 +1168,11 @@ def markov_adapter(text: str, meta: dict | None, user: str) -> dict:
     ``user``) plus the P-series decomposition (``primitives``/
     ``primitives_formatted``/``primitives_meta``) and the ``recast``.
     Replaces the v2.1 stub (``score``/``tags``/``interpretation``).
+
+    #315 -- and ``verb_owner_set``: the seven grammar counters G1..G7 with
+    the three flows D / N / T, the SAME dict the thread shadow logs
+    (_verb_owner_set, pure compute over ``text``). Rendered by the web
+    /markov page; stored nowhere; no thread_id; the model call is unchanged.
     """
     override = (meta or {}).get("model")
     # Route through select_model so founder/user model preferences apply;
@@ -1183,6 +1188,9 @@ def markov_adapter(text: str, meta: dict | None, user: str) -> dict:
     primitives = primitives_extract.extract_primitives(text)
     primitives_formatted = primitives_extract.format_primitives(primitives)
     primitives_meta = primitives_extract.build_metadata(primitives)
+    # #315 -- pure compute FIRST, before the paid model call: the verb-owner
+    # set from the same P-series counts (extracted once, above).
+    verb_owner_set = _verb_owner_set(text, counts=primitives_meta["counts"])
 
     prompt = _build_recast_prompt(primitives_formatted, text)
     result = model_router.route_request(model_id, prompt)
@@ -1205,6 +1213,8 @@ def markov_adapter(text: str, meta: dict | None, user: str) -> dict:
         "primitives_formatted": primitives_formatted,
         "primitives_meta":      primitives_meta,
         "recast":               recast,
+        # #315 -- render only: the verb-owner set beside the P-series
+        "verb_owner_set":       verb_owner_set,
     }
 
 
@@ -6785,21 +6795,20 @@ def _emophysics_plan(user: str, text: str, payload: dict) -> dict:
     return record
 
 
-def _emophysics_shadow(user: str, text: str) -> dict:
-    """Extract the P-series counts and log what cannot yet be mapped.
-
-    Returns the log payload (for tests). Never raises to the caller -- the
-    call site wraps it too, but this is the member's message path and one
-    guard is not enough.
-
-    #133 -- after its own line is written, the shadow hands its counts to
-    _emophysics_plan, which logs an ExpressionPlan on a second line
-    (emophysics_shadow.plan) and attaches the record under ``plan`` for
-    tests. The first line is byte-equal to what it was.
-    """
-    counts = primitives_extract.build_metadata(
-        primitives_extract.extract_primitives(text)
-    )["counts"]
+def _verb_owner_set(text: str, counts: Optional[dict] = None) -> dict:
+    """#315 -- THE VERB-OWNER SET, from the text alone: the P-series counts,
+    the seven grammar counters (#135, G1..G7) and the three per-turn flows
+    D / N / T (#133) with their statuses, E marked unmapped. PURE COMPUTE:
+    no store, no thread, no model, no log. ONE producer for two readers --
+    the thread shadow (_emophysics_shadow) logs exactly this dict and then
+    attaches its plan; POST /markov (markov_adapter) returns it beside the
+    P-series under ``verb_owner_set``. Counts and ratios only, never text.
+    ``counts`` lets a caller that already extracted the P-series pass them
+    (the adapter does); the shadow passes text alone."""
+    if counts is None:
+        counts = primitives_extract.build_metadata(
+            primitives_extract.extract_primitives(text)
+        )["counts"]
     # #135 -- the seven grammar counters ride the same payload, counted
     # and logged, routed on by nothing. 0 here is a TRUE COUNT (a text
     # with no stative frame has zero of them), not a sentinel: the
@@ -6863,11 +6872,29 @@ def _emophysics_shadow(user: str, text: str) -> dict:
     # * Rounding is a DISPLAY decision and it happens here, at the log
     # boundary. The returned payload keeps full precision so a consumer
     # never inherits a truncation made for readability.
+    return payload
+
+
+def _emophysics_shadow(user: str, text: str) -> dict:
+    """Extract the P-series counts and log what cannot yet be mapped.
+
+    Returns the log payload (for tests). Never raises to the caller -- the
+    call site wraps it too, but this is the member's message path and one
+    guard is not enough.
+
+    #133 -- after its own line is written, the shadow hands its counts to
+    _emophysics_plan, which logs an ExpressionPlan on a second line
+    (emophysics_shadow.plan) and attaches the record under ``plan`` for
+    tests. The first line is byte-equal to what it was.
+    """
+    payload = _verb_owner_set(text)
+    n_mapped = isinstance(payload["N"], float)
+    t_mapped = isinstance(payload["T"], float)
     log_payload = dict(payload)
     if n_mapped:
-        log_payload["N"] = round(n_value, 4)
+        log_payload["N"] = round(payload["N"], 4)
     if t_mapped:
-        log_payload["T"] = round(t_value, 4)
+        log_payload["T"] = round(payload["T"], 4)
     logger.info("emophysics_shadow user=%s payload=%s",
                 _user_ref(user), log_payload)
     # #133 -- the plan rides beside the counts, on its own line, so the
