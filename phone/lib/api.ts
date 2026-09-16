@@ -978,21 +978,34 @@ export const founderAnalyticsSummary = () =>
   );
 
 // ---------- v44 — Model router ----------
+// #151 -- the ids the router registry carries (model_router.MODEL_REGISTRY
+// at 762ef43); the old gpt-4.2 / claude-3.7 / gemini-2.0 were ids the
+// backend rejects (the web moved to the served registry at #126).
 export type V44ModelId =
-  | "openai:gpt-4.2"
-  | "anthropic:claude-3.7"
-  | "google:gemini-2.0"
+  | "openai:gpt-5.4"
+  | "openai:gpt-5.4-mini"
+  | "anthropic:claude-haiku-4-5-20251001"
+  | "google:gemini-2.5-flash"
   | "xai:groq-llama"
   | "local:llama3.1"
+  | "ollama:llama3.1"
+  | "deepseek:deepseek-v4-flash"
+  | "deepseek:deepseek-v4-pro"
+  | "mistral:mistral-large-2512"
   | "auto";
 
 export const V44_MODEL_IDS: V44ModelId[] = [
   "auto",
-  "openai:gpt-4.2",
-  "anthropic:claude-3.7",
-  "google:gemini-2.0",
+  "openai:gpt-5.4",
+  "openai:gpt-5.4-mini",
+  "anthropic:claude-haiku-4-5-20251001",
+  "google:gemini-2.5-flash",
   "xai:groq-llama",
   "local:llama3.1",
+  "ollama:llama3.1",
+  "deepseek:deepseek-v4-flash",
+  "deepseek:deepseek-v4-pro",
+  "mistral:mistral-large-2512",
 ];
 
 export interface V44RouterStatus {
@@ -1143,6 +1156,11 @@ export interface ThreadMeta {
   // ``POST /me/threads/{id}/summarize`` lands.
   summary: string | null;
   summary_ts_ms: number | null;
+  // #161a -- the stamps the web's sha fence reads (#127 / #190): the code
+  // that MADE the summary and the message_count it was made at. Absent on
+  // rows that predate the stamps.
+  summary_commit_sha?: string | null;
+  summary_turn?: number | null;
 }
 
 export interface ThreadMessage {

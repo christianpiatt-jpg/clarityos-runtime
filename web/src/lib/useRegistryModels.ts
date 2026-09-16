@@ -1,10 +1,11 @@
 /**
  * useRegistryModels — the model ids a picker may offer, from the SERVER.
  *
- * ★ WHY (#126). The web constant V44_MODEL_IDS said gpt-4.2 / claude-3.7 /
+ * ★ WHY (#126, 2026-09-03 -- HISTORY, not the state of the tree; #167f).
+ * The web constant V44_MODEL_IDS THEN said gpt-4.2 / claude-3.7 /
  * gemini-2.0 while the router registry (model_router.MODEL_REGISTRY) said
- * gpt-5.4 / claude-haiku-4-5 / gemini-2.5-flash. Two dropdowns offered ids
- * is_valid_model rejects. The registry is the source of truth and GET
+ * gpt-5.4 / claude-haiku-4-5 / gemini-2.5-flash, so two dropdowns offered
+ * ids is_valid_model rejects. The registry is the source of truth and GET
  * /runtime/providers/models already returns it; this hook fetches it once
  * per mount and hands back `supported` (which includes the "auto" sentinel).
  *

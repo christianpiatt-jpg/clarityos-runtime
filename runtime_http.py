@@ -1368,23 +1368,32 @@ def el_ins_operator_reasoning_mode(
     thread_id: Optional[str] = None,
     operator_id: str = Depends(require_operator),
 ) -> dict[str, Any]:
-    """Return the reasoning-mode currently implied by the operator's
-    most-recent EL/INS record.
+    """The PROVIDER MODE the kernel would choose for the operator's next
+    read (``select_reasoning_mode`` over the latest record in the
+    operator's default scope), beside the record it was read from.
 
-    Shape::
+    #290 -- the default scope keeps per-turn rows and untagged on-demand
+    rows and drops a thread-tagged on-demand row unless ``?thread_id=``
+    names that thread. F (#303-#307) -- ``ratio_classification`` / ``source``
+    / ``thread_id`` are the record's own, so the cockpit indicator reads
+    this one route; the mode is a provider choice, not an operator
+    statistic. Shape::
 
         {
           "operator_id":    str,
           "reasoning_mode": str,    # grounding | analysis | structured_reflection
-                                    # | stabilization | normal
+                                    # | stabilization | extended_reasoning | normal
           "el":             float | None,
           "ins":            float | None,
           "tsi":            int | None,
-          "timestamp":      float | None
+          "timestamp":      float | None,
+          "ratio_classification": str | None,   # high_el | high_ins | balanced
+          "source":         str | None,         # on_demand | per_turn | macro
+          "thread_id":      str | None
         }
 
-    Empty-history operators get
-    ``reasoning_mode="normal"`` with every other field None.
+    No record in scope: ``reasoning_mode="normal"`` with every other field
+    None (the empty shape, not an error).
     """
     import el_ins  # lazy
     import intelligence_kernel as _ik

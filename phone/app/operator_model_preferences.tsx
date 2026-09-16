@@ -28,10 +28,12 @@ const PROVIDERS: readonly string[] = [
   "anthropic", "openai", "gemini", "xai", "local",
 ] as const;
 
+// #151 -- the names the router registry carries (model_router.MODEL_REGISTRY);
+// the old claude-3.7 / gpt-4.2 / gemini-2.0 are ids the backend rejects.
 const DEFAULT_MODELS: Record<string, string> = {
-  anthropic: "claude-3.7",
-  openai:    "gpt-4.2",
-  gemini:    "gemini-2.0",
+  anthropic: "claude-haiku-4-5-20251001",
+  openai:    "gpt-5.4",
+  gemini:    "gemini-2.5-flash",
   xai:       "groq-llama",
   local:     "llama3.1",
 };

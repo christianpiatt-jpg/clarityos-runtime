@@ -162,12 +162,13 @@ class TestD6HttpConcurrency:
         # redaction policies that are deliberately out of scope for this
         # test:
         #   * ``clarityos.kernel.runs`` — the structured audit/telemetry
-        #     stream emitted by ``kernel_logging.log_kernel_run``;
-        #     full ``user_id`` retention is intentional for the audit
-        #     trail (see kernel_logging.py).
+        #     stream emitted by ``kernel_logging.log_kernel_run``; since
+        #     #154 (2026-09-16) its ``user_id`` is runtime_privacy.user_hash
+        #     (it used to retain the full username), so it is swept below.
         #   * ``clarityos.v29``        — ``v29_hardening.log_event`` has
-        #     its own ``redact_user`` helper (12-char prefix + ``…``)
-        #     that pre-dates and is independent of runtime_privacy.
+        #     its own ``redact_user`` helper, which since #154 (2026-09-16)
+        #     is runtime_privacy.user_hash (16 hex of sha256; it was a
+        #     12-char prefix + ``…`` before).
         # The assertion scopes to the loggers FIX-P5 actually refactored.
         FIXP5_LOGGERS = {
             "clarityos",
@@ -175,6 +176,7 @@ class TestD6HttpConcurrency:
             "clarityos.model_router",
             "clarityos.operator_state",
             "clarityos.memory_vault",
+            "clarityos.kernel.runs",       # #154 -- hashed now, swept
         }
         raw_usernames = set(usernames)
         raw_session_ids = {r["sid"] for r in results}
@@ -262,6 +264,7 @@ _FIXP5_LOGGERS: set[str] = {
     "clarityos.model_router",
     "clarityos.operator_state",
     "clarityos.memory_vault",
+    "clarityos.kernel.runs",       # #154 -- the kernel_run line carries the hash now
 }
 
 

@@ -158,14 +158,20 @@ logging.basicConfig(
 logger = logging.getLogger("clarityos")
 
 
-# PASS-4 FIX-P5 — Local helpers ``_session_ref`` / ``_user_ref`` are
-# thin aliases over ``runtime_privacy``. Existing call sites in this
-# module keep their familiar names; the centralised helpers are the
-# single source of truth for redaction shape across the runtime.
+# PASS-4 FIX-P5 — ``_session_ref`` is a thin alias over ``runtime_privacy``.
+# #154 -- ``_user_ref`` is a HASH (runtime_privacy.user_hash: 16 hex of
+# sha256, the users_store._uref shape auth_magiclink logs), NEVER the address
+# prefix runtime_privacy.user_ref returns: a username is an e-mail address,
+# and eight characters of it is most of the local part. Every log site in
+# this module goes through this one name -- the housekeeping refuters found
+# four that did not (login failed, register duplicate, invite created, admin
+# reset_password) and they do now; tests/test_housekeeping_2026_09_16.py
+# walks every logger call in this file for a bare identity. An absent id
+# keeps runtime_privacy's "<none>" marker.
 import runtime_privacy as _privacy
 
 _session_ref = _privacy.session_ref
-_user_ref = _privacy.user_ref
+_user_ref = _privacy.user_hash
 
 
 # ===========================================================================
@@ -583,9 +589,8 @@ def _backfill_membership_granted() -> int:
         paid = any(t.get("type") == "checkout_session_completed" for t in txs)
         if acts and not paid and all((t.get("metadata") or {}).get("manual") for t in acts):
             users_store.update_user(u, {"membership_granted": True})
-            # users_store._uref is a HASH; app's _user_ref is a username PREFIX,
-            # which for an email-keyed account is eight characters of the
-            # address. Never the prefix here.
+            # #154 -- this site named the rule first (a hash, never the prefix);
+            # app's _user_ref is the same hash now.
             logger.info("membership_granted.backfilled user_ref=%s", users_store._uref(u))
             marked += 1
     return marked
@@ -1311,7 +1316,7 @@ def login(req: LoginRequest, request: Request):
     if not user or not bcrypt.checkpw(
         req.password.encode("utf-8"), user["password_hash"]
     ):
-        logger.warning("login failed username=%s", req.username)
+        logger.warning("login failed user=%s", _user_ref(req.username))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=error_response("bad_credentials", "Username or password is incorrect"),
@@ -1378,7 +1383,7 @@ def register(req: RegisterRequest, request: Request):
 
     # Duplicate-username protection
     if users_store.user_exists(username):
-        logger.warning("register duplicate username=%s", username)
+        logger.warning("register duplicate user=%s", _user_ref(username))
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=error_response("user_exists", "Username is already taken"),
@@ -1523,7 +1528,7 @@ def auth_password_set(
         email, {"password_hash": pwd_hash, "auth_method": "password"}
     )
     v29_hardening.log_event(
-        "password_set", user=_user_ref(email),
+        "password_set", user=email,          # log_event hashes (#154); a pre-hashed value would hash twice
         route="/auth/password/set", success=True,
     )
     return {"status": "ok"}
@@ -1718,7 +1723,7 @@ def invite_create(req: CreateInviteRequest, session: dict = Depends(_require_adm
         "exp": int(expires_at),
     })
     url = f"{INVITE_BASE_URL.rstrip('/')}/invite/{token}"
-    logger.info("invite created cohort=%s inviter=%s id=%s", cohort, session["user"], invite_id)
+    logger.info("invite created cohort=%s inviter=%s id=%s", cohort, _user_ref(session["user"]), invite_id)
     return {
         "ok": True,
         "invite_id": invite_id,
@@ -1754,7 +1759,7 @@ def admin_reset_password(
     users_store.update_user(req.username, {"password_hash": pwd_hash})
     logger.info(
         "admin reset_password target=%s by_admin=%s",
-        req.username, session["user"],
+        _user_ref(req.username), _user_ref(session["user"]),
     )
     return {
         "ok": True,
@@ -2292,7 +2297,7 @@ def _handle_subscription_event(event_type: str, obj: dict) -> None:
                 )
                 v29_hardening.log_event(
                     "billing_welcome_link_sent", route="/billing/webhook",
-                    user=_user_ref(email_lower), success=True,
+                    user=email_lower, success=True,    # log_event hashes (#154); never pre-hash
                 )
             except Exception as e:  # pragma: no cover — send is non-critical
                 # Never fail the webhook on a send hiccup; Stripe would retry
@@ -10378,7 +10383,7 @@ def _send_email_placeholder(user: str, delivered_record: dict) -> bool:
         logger.info(
             "elins email stub host=%s user=%s report=%s to=%s",
             smtp_host, _user_ref(user), delivered_record.get("report_id"),
-            smtp_to or "<user-resolved>",
+            _user_ref(smtp_to) if smtp_to else "<user-resolved>",   # an address, hashed
         )
         return True
     except Exception as e:  # pragma: no cover
@@ -14806,12 +14811,21 @@ def _member_names(user: str, thread_id) -> list:
 
 
 def _n_points(user: str, thread_id, surface: Optional[str]) -> int:
-    """#307 E1 -- the S-card's n, on the wire. Personal surface with a
-    relationship the member owns: ``scored_turns`` from the same function
-    /me/relationships/{id}/turns serves (a point is a scored turn; a
-    direction needs two). Anywhere else 1 -- a single read, said honestly
-    (the cockpit thread carries no thread_id until #113)."""
-    if surface != "personal" or not isinstance(thread_id, str) or not thread_id.strip():
+    """#307 E1 -- the S-card's n, on the wire: ``scored_turns`` of the thread
+    the run names, from the same function /me/relationships/{id}/turns
+    serves (a point is a scored turn; a direction needs two). #113 -- the
+    cockpit thread panels send their thread_id now, so a thread the member
+    owns counts on EVERY surface (``surface`` no longer gates it). No
+    thread, or a thread the member does not own: 1 -- a single read, said
+    honestly. NEVER 0: a thread's first read has no earlier turn to score
+    against (turn_record scores a record against the one before it), and a
+    read that happened is one point -- the same kind as the no-thread case
+    -- so the count is floored at 1. That makes n = max(1, reads - 1): 1
+    after one or two reads on a thread, 2 after three. Whether n should be
+    scored turns (E1's definition) or recorded turns (the order's literal
+    "two runs") is CT-1's ruling, named in the housekeeping RETURN."""
+    _ = surface   # #113 -- kept in the signature for the callers; not a gate
+    if not isinstance(thread_id, str) or not thread_id.strip():
         return 1
     tid = thread_id.strip()
     try:
@@ -14819,9 +14833,10 @@ def _n_points(user: str, thread_id, surface: Optional[str]) -> int:
     except Exception:
         return 1
     try:
-        return int(turn_record.trust_signal(user, tid).get("scored_turns") or 0)
+        scored = int(turn_record.trust_signal(user, tid).get("scored_turns") or 0)
     except Exception:
         return 1
+    return max(1, scored)          # a read happened: one point, never 0
 
 
 def _record_run_against_thread(

@@ -45,6 +45,8 @@ import time
 
 import membership_store
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.membership_billing")
 
 
@@ -106,7 +108,7 @@ def charge(user_id: str, amount: float, description: str) -> dict:
 
     logger.info(
         "billing charge mode=%s user=%s amount=%.2f description=%s billing_id=%s",
-        mode, user_id, amount, description, record["billing_id"],
+        mode, runtime_privacy.user_hash(user_id), amount, description, record["billing_id"],
     )
     return record
 

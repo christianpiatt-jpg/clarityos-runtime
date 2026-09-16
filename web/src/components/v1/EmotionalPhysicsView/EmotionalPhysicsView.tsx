@@ -35,6 +35,9 @@ interface Props {
   /** #139 -- the caller's cumulative message end offsets over `text`, so
    *  the kernel can say which messages its window covers. */
   messageBoundaries?: number[] | null;
+  /** #113 -- the thread this run belongs to; the backend records a turn on
+   *  it and counts its scored turns for the S-card. */
+  threadId?: string | null;
 }
 
 // Canonical v52 layer keys. Must match the backend's
@@ -116,7 +119,7 @@ function analysedAtMs(resp: EmotionalPhysicsResponse | null | undefined): number
 }
 
 export default function EmotionalPhysicsView({
-  response, text, onAnalyze, surface, messageBoundaries,
+  response, text, onAnalyze, surface, messageBoundaries, threadId,
 }: Props) {
   const [view, setView] = useState<EmotionalPhysicsResponse | null>(response ?? null);
   const [loading, setLoading] = useState(false);
@@ -138,6 +141,7 @@ export default function EmotionalPhysicsView({
         text,
         surface: surface ?? "thread",
         message_boundaries: messageBoundaries ?? null,
+        thread_id: threadId ?? null,   // #113
       });
       setView(resp);
       // Even on a genuinely fresh run the reading's own stamp is preferable:
@@ -150,7 +154,7 @@ export default function EmotionalPhysicsView({
     } finally {
       setLoading(false);
     }
-  }, [canRerun, text, onAnalyze, surface, messageBoundaries]);
+  }, [canRerun, text, onAnalyze, surface, messageBoundaries, threadId]);
 
   useEffect(() => {
     if (response || !canRerun) return;

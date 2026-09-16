@@ -27,6 +27,8 @@ import threading
 import time
 from typing import Any, Iterable, Optional
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.v29")
 
 
@@ -227,13 +229,16 @@ def _reset_rate_limits_for_tests() -> None:
 # Single-line key=value records. Stable enough for log scraping; never
 # embeds user content (only event type, redacted user id, route, timing,
 # outcome, and explicit numeric counts).
-_LOG_USER_PREFIX = 12  # truncate user id in logs
-
-
 def redact_user(user: Optional[str]) -> str:
+    """#154 -- the user on a v29 log line is a HASH (runtime_privacy.user_hash:
+    16 hex of sha256, the users_store._uref shape), never a prefix: the
+    twelve-character prefix this used to keep is the whole local part of
+    most e-mail-keyed usernames. ``"<anon>"`` for an absent user stays, so
+    every log_event / TimedBlock / enforce_rate_limit caller is fixed here
+    without a call-site edit (pinned in tests/test_housekeeping_2026_09_16.py)."""
     if not user:
         return "<anon>"
-    return user[:_LOG_USER_PREFIX] + ("…" if len(user) > _LOG_USER_PREFIX else "")
+    return runtime_privacy.user_hash(user)
 
 
 def log_event(

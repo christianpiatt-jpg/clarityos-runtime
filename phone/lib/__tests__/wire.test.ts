@@ -1,6 +1,6 @@
 /** #161 -- the sha fence and the stop mark. */
 import { describe, it, expect } from "vitest";
-import { normSha, shortSha, stopMark } from "../wire";
+import { normSha, shortSha, stopMark, readCurrency, summaryCurrency, turnCaption, UNSTAMPED_CAPTION, healthWord } from "../wire";
 
 describe("normSha / shortSha", () => {
   it("\u2605 \"unknown\" is not a sha; case and whitespace fold", () => {
@@ -36,5 +36,34 @@ describe("stopMark", () => {
     // gone until he rules -- pinned here so the loss is deliberate, not a
     // deleted assertion. stop_vocabulary.py names the whole set.
     expect(stopMark("refusal", "unknown")).toBeNull();
+  });
+});
+
+describe("#161a -- the fence as the web renders it (readCurrency / turnCaption)", () => {
+  it("\u2605 fresh needs BOTH axes; one broken is aged; no stamp is old whatever the sha", () => {
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: "abc", live_sha: "ABC" })).toBe("fresh");
+    expect(readCurrency({ made_turn: 3, now_turn: 4, made_sha: "abc", live_sha: "abc" })).toBe("aged");
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: "abc", live_sha: "def" })).toBe("aged");
+    expect(readCurrency({ made_turn: 3, now_turn: 4, made_sha: "abc", live_sha: "def" })).toBe("old");
+    expect(readCurrency({ made_turn: null, now_turn: 3, made_sha: "abc", live_sha: "abc" })).toBe("old");
+    expect(readCurrency({ made_turn: 3, now_turn: 3, made_sha: "unknown", live_sha: "unknown" })).toBe("aged");
+  });
+  it("no summary is none, a different kind from old; the caption names an absent stamp", () => {
+    expect(summaryCurrency({ summary: null }, "abc")).toBe("none");
+    expect(summaryCurrency({ summary: "s", summary_turn: 2, message_count: 2, summary_commit_sha: "abc" }, "abc")).toBe("fresh");
+    expect(turnCaption({ made_turn: 2, now_turn: 5 })).toBe("made turn 2 · now turn 5");
+    expect(turnCaption({ made_turn: null, now_turn: 5 })).toBe(UNSTAMPED_CAPTION);
+  });
+});
+
+describe("#151 -- the cloud probe's word", () => {
+  it("\u2605 401 / 403 are the two auth words; another status names itself; none is unreachable; never a server string", () => {
+    expect(healthWord(401)).toBe("not signed in");
+    expect(healthWord(403)).toBe("not permitted");
+    expect(healthWord(500)).toBe("HTTP 500");
+    expect(healthWord(404)).toBe("HTTP 404");
+    expect(healthWord(0)).toBe("unreachable");
+    expect(healthWord(undefined)).toBe("unreachable");
+    expect(healthWord("Internal Server Error")).toBe("unreachable");
   });
 });

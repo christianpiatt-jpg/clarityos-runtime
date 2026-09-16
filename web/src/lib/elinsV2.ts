@@ -43,6 +43,8 @@ export interface ElinsV2RunRequest {
   // message boundaries over input.raw_text let it say which messages it read.
   surface?: "personal" | "thread";
   message_boundaries?: number[] | null;
+  // #113 -- the thread this run belongs to (see lib/emotionalPhysics.ts).
+  thread_id?: string | null;
 }
 
 export interface ElinsV2EtfAgg {
@@ -154,6 +156,7 @@ export async function runElinsV2(req: ElinsV2RunRequest): Promise<ElinsV2Envelop
         // #139 -- which window, and where the messages end
         surface:            req.surface ?? "thread",
         message_boundaries: req.message_boundaries ?? null,
+        ...(req.thread_id ? { thread_id: req.thread_id } : {}),   // #113
         input: {
           raw_text:       req.input.raw_text,
           source_type:    req.input.source_type ?? null,

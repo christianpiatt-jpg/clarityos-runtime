@@ -20,6 +20,8 @@ import logging
 import time
 from typing import Any, Optional
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.kernel.runs")
 
 LOG_VERSION: str = "kernel_logging.v41.1"
@@ -84,7 +86,11 @@ def log_kernel_run(
     callers/tests can assert on it."""
     record: dict[str, Any] = {
         "kind": str(kind or "unknown"),
-        "user_id": str(user_id) if user_id is not None else None,
+        # #154 -- a log line carries a hash, never an address: the user on
+        # this audit line is runtime_privacy.user_hash, the same 16 hex every
+        # other line carries for that user (so the stream stays joinable per
+        # user); it used to be the raw username, which is an e-mail address.
+        "user_id": runtime_privacy.user_hash(str(user_id)) if user_id is not None else None,
         "external_signal_mode": external_signal_mode,
         "eso_source": eso_source,
         "duration_ms": round(float(duration_ms or 0.0), 2),

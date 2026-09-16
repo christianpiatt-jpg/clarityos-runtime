@@ -34,6 +34,29 @@ describe("#305 C5 -- no signal is a dash", () => {
   });
 });
 
+describe("#308 -- the ESO badge reads the flag the macro card reads", () => {
+  it("cloud_perplexity is ESO on; cloud_only is off even when the run carried an ESO", () => {
+    const { rerender } = render(<GlobalPanel section={{ ...BASE, has_eso: true } as never} esoMode="cloud_only" />);
+    expect(screen.getByTestId("global-eso")).toHaveTextContent("ESO off");
+    rerender(<GlobalPanel section={{ ...BASE, has_eso: false } as never} esoMode="cloud_perplexity" />);
+    expect(screen.getByTestId("global-eso")).toHaveTextContent("ESO");
+    expect(screen.getByTestId("global-eso").textContent).not.toMatch(/off/);
+    // null: no macro pass has run -- the flag is ABSENT, and absence is a
+    // dash on this badge as it is on the macro card, never "off"
+    rerender(<GlobalPanel section={{ ...BASE, has_eso: true } as never} esoMode={null} />);
+    expect(screen.getByTestId("global-eso")).toHaveTextContent("ESO —");
+    expect(screen.getByTestId("global-eso").textContent).not.toMatch(/off/);
+    // and a blank string is the same absence the macro card renders as "—"
+    rerender(<GlobalPanel section={{ ...BASE, has_eso: true } as never} esoMode="" />);
+    expect(screen.getByTestId("global-eso")).toHaveTextContent("ESO —");
+  });
+  it("no mode passed at all: the run's own has_eso (older callers), and the title names THAT key", () => {
+    render(<GlobalPanel section={{ ...BASE, has_eso: true } as never} />);
+    expect(screen.getByTestId("global-eso")).toHaveTextContent("ESO");
+    expect(screen.getByTestId("global-eso").getAttribute("title")).toBe("snapshot.global.has_eso");
+  });
+});
+
 describe("#305 C6 -- a tie names no top primitive", () => {
   it("★ within 5 points: '—'; a clear lead: the key", () => {
     expect(topPrimitiveWord({ ...BASE, top_primitives: [{ key: "pressure", intensity: 0.30 }, { key: "tension", intensity: 0.27 }] } as never)).toBe("—");

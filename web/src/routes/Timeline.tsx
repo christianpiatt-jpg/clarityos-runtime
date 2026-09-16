@@ -1,9 +1,14 @@
 // Timeline — vertical chronological view of system-generated events.
 // Server is the only source of truth. Reads from GET /timeline/list.
 //
-// Events are emitted by the backend on vault/library writes (kind values:
-// vault.write, vault.update, vault.delete, library.write, library.update);
-// ELINS ingestion will emit too once that surface ships.
+// Events are emitted by the backend on vault / library writes. Kind values
+// on the wire (#151 -- this comment reads the tree, not a roadmap):
+// vault.write · vault.update · vault.delete · library.write · library.update
+// · library.ingest · elins.brief · elins.primitive. library.write /
+// library.ingest / elins.brief are timeline_store.LIBRARY_TIMELINE_KINDS
+// (#138 / #287, the engine's own ledger); library.update is emitted by
+// app.py's library update route; ingestion emits library.ingest from
+// ELINS/ingestion_bus.persist_to_library.
 //
 // Filters: kind (dropdown, populated from loaded events) + since/until date.
 

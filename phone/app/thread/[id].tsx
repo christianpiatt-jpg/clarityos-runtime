@@ -7,7 +7,9 @@
 // Style follows memory_vault.tsx patterns + session/[id].tsx for the
 // composer keyboard behaviour.
 
-import { stopMark } from "../../lib/wire";
+import { stopMark, shortSha, summaryCurrency, turnCaption } from "../../lib/wire";
+import { liveShaOnce } from "../../lib/liveSha";
+import { health } from "../../lib/api";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform,
@@ -49,6 +51,16 @@ export default function ThreadDetailScreen() {
 
   const [meta, setMeta] = useState<ThreadMeta | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // #161a -- the sha of the code running, for the summary card's fence
+  // (web hooks/useLiveCommitSha): read ONCE per app boot (lib/liveSha caches
+  // it across screens); unreachable reads null, which never compares equal
+  // (stale, not current).
+  const [liveSha, setLiveSha] = useState<string | null>(null);
+  useEffect(() => {
+    let on = true;
+    void liveShaOnce(health).then((s) => { if (on) setLiveSha(s); });
+    return () => { on = false; };
+  }, []);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -254,11 +266,18 @@ export default function ThreadDetailScreen() {
           message log. Hidden when no summary has been generated. */}
       {meta.summary ? (
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>
-            SUMMARY
-            {meta.summary_ts_ms
-              ? ` · ${relativeTime(meta.summary_ts_ms)}`
-              : ""}
+          {/* #161a -- the web's sha fence: fresh / aged / old by turns and by
+              the sha that made it against the sha running; NO clock (age is
+              turns, and the "3m ago" that used to ride here is gone), and the
+              currency word is the web's, lower-case. */}
+          <Text
+            style={styles.summaryLabel}
+            accessibilityLabel={`summary ${summaryCurrency(meta, liveSha)}`}
+            testID="thread-summary-currency"
+          >
+            SUMMARY · {summaryCurrency(meta, liveSha)}
+            {` · ${turnCaption({ made_turn: meta.summary_turn ?? null, now_turn: meta.message_count })}`}
+            {` · running ${shortSha(liveSha)}`}
           </Text>
           <Text style={styles.summaryText}>{meta.summary}</Text>
         </View>

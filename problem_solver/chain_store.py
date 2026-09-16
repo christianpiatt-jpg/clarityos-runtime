@@ -36,6 +36,7 @@ import logging
 from typing import Optional, Protocol, runtime_checkable
 
 import memory_vault
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
 
 logger = logging.getLogger("clarityos.problem_solver.chain_store")
 
@@ -207,7 +208,7 @@ class VaultBackedRegressionChainStore:
             except Exception as e:   # pragma: no cover (defensive)
                 logger.warning(
                     "vault read failed user=%s key=%s err=%s",
-                    self.user_id, key, e,
+                    runtime_privacy.user_hash(self.user_id), key, e,
                 )
                 continue
             if isinstance(value, dict) and "chain_id" in value:

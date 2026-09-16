@@ -383,6 +383,7 @@ export default function ThreadInsightsPanel() {
               text={runOn.rawText}
               surface="thread"
               messageBoundaries={runOn.messageBoundaries}
+              threadId={meta.thread_id}
               onAnalyze={cockpit.thread.actions.setPhysics}
             />
           </>

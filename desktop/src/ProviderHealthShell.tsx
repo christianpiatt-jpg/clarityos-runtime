@@ -96,9 +96,11 @@ export default function ProviderHealthShell({ onSignOut, onNavigate }: Props) {
             <h1 style={{ margin: 0, fontSize: 18, color: "var(--color-text-primary)" }}>PROVIDER HEALTH</h1>
             <p style={{ margin: "4px 0 12px", color: "var(--color-text-secondary)", fontSize: 13 }}>
               Lightweight reachability check for each LLM provider. Real
-              providers issue a 1-token completion (3-second timeout);
-              the <code>mock</code> entry is the always-available
-              deterministic fallback.
+              providers are probed with their models-list endpoint on the
+              same host and auth header a real call uses (no tokens spent,
+              3-second timeout); a 401/403 means the provider answered and
+              rejected the key. The <code>mock</code> entry is the
+              always-available deterministic fallback.
             </p>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <div style={{ flex: 1, fontSize: 12, color: "var(--color-text-secondary)" }}>

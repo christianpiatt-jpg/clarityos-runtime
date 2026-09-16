@@ -3,13 +3,23 @@
  * Reuses the existing components/runtime/EnvelopeRenderer (props-driven) and
  * feeds it the RuntimeEnvelope held in the runtime slice.
  *
- * Spec §7 — refreshes every 10s WHILE OPEN. Collapsed by default; the poll
- * starts on open and is cleared on close and on unmount.
+ * Spec §7 said every 10 s WHILE OPEN; the envelope is 62.5 KB and a sitting
+ * pulled it 18 times, so the poll is now RUNTIME_POLL_MS (60 s) while open.
+ * Collapsed by default; the poll starts on open and is cleared on close and
+ * on unmount. THE CALLER, named: this panel -> cockpit.runtime.actions.load
+ * (state/cockpitStore.ts) -> services/runtime.fetchRuntimeEnvelope -> GET
+ * /runtime/envelope. Nothing else in web/src POLLS that route; the one other
+ * reader, hooks/useEnvelope.ts (components/cockpit/RuntimePanel, mounted by
+ * routes/Cockpit.tsx at /admin/cockpit -- the admin's V1 cockpit, which
+ * App.tsx still routes), fetches it once per mount and has no interval.
  */
 import { useEffect, useState } from "react";
 
 import { useCockpit, cockpit } from "../../state/cockpitStore";
 import EnvelopeRenderer from "../runtime/EnvelopeRenderer";
+
+/** How often the OPEN panel re-reads /runtime/envelope. Never below 60 s. */
+export const RUNTIME_POLL_MS = 60_000;
 
 export default function RuntimePanel() {
   const runtime = useCockpit((s) => s.runtime);
@@ -26,7 +36,7 @@ export default function RuntimePanel() {
     void cockpit.runtime.actions.load();   // first paint has data
     const id = window.setInterval(() => {
       void cockpit.runtime.actions.load();
-    }, 10_000);
+    }, RUNTIME_POLL_MS);
     return () => window.clearInterval(id);
   }, [open]);
 

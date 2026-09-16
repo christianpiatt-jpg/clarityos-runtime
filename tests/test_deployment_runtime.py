@@ -624,6 +624,7 @@ class TestE3ObservabilitySurface:
         "clarityos.model_router",
         "clarityos.operator_state",
         "clarityos.memory_vault",
+        "clarityos.kernel.runs",       # #154 -- the kernel_run line carries the hash now
     })
 
     @pytest.fixture

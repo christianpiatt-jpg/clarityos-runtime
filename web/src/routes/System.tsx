@@ -3,13 +3,13 @@
 
 import { useEffect, useState } from "react";
 import {
-  ApiError,
   config,
   health,
   isAuthed,
   type ConfigResponse,
   type HealthResponse,
 } from "../lib/api";
+import { healthWord } from "../lib/healthWord";
 import { APP_CONFIG, setApiBaseOverride } from "../lib/config";
 
 interface Probe {
@@ -38,10 +38,12 @@ export default function System() {
         result: r,
       });
     } catch (e: any) {
+      // #151 -- the word is lib/healthWord (shared with the phone): a status
+      // names itself, never the server's message string.
       setProbe({
         status: "err",
         latencyMs: Math.round(performance.now() - t0),
-        detail: e?.message || String(e),
+        detail: healthWord(e?.status),
       });
     }
   }
@@ -55,7 +57,7 @@ export default function System() {
         if (!cancelled) setCfg(r.data);
       } catch (e: any) {
         if (!cancelled) {
-          setCfgErr(e instanceof ApiError ? e.message : (e?.message || "Could not load config"));
+          setCfgErr(healthWord(e?.status));   // #151 -- a status names itself, never the server's string
         }
       }
     })();

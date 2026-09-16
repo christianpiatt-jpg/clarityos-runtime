@@ -17,7 +17,7 @@ export default function ContinuityCard({ continuity }: ContinuityCardProps) {
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Continuity</h2>
-        {admin ? <Link to="/founder" style={mutedLinkStyle}>operator profile →</Link> : null}
+        {admin ? <Link to="/dashboard#continuity" style={mutedLinkStyle}>operator profile →</Link> : null}
       </header>
       {!c || c.history_count === 0 ? (
         <div style={{ fontSize: 12, color: "var(--os-text-tertiary, #585858)" }}>

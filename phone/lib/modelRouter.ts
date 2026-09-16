@@ -155,12 +155,16 @@ export type CanonicalModelId = string;
  * being silently masked.
  */
 export const canonicalModelMap: Record<CanonicalModelId, ModelId> = {
-  "openai:gpt-4o":          "chatgpt",
-  "openai:gpt-4o-mini":     "chatgpt",
-  "anthropic:claude-3.7":   "claude",
-  "google:gemini-2.0-flash": "gemini",
-  "xai:groq-llama":         "grok",
-  "local:llama3.1":         "local",
+  // #151 -- keyed by the ids MODEL_REGISTRY actually carries at 762ef43
+  // (the gpt-4o / claude-3.7 / gemini-2.0-flash keys named ids the backend
+  // does not have, so every lookup returned null).
+  "openai:gpt-5.4":                     "chatgpt",
+  "openai:gpt-5.4-mini":                "chatgpt",
+  "anthropic:claude-haiku-4-5-20251001": "claude",
+  "google:gemini-2.5-flash":            "gemini",
+  "xai:groq-llama":                     "grok",
+  "local:llama3.1":                     "local",
+  "ollama:llama3.1":                    "local",
 };
 
 /**

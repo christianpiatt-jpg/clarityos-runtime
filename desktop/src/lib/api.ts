@@ -241,6 +241,11 @@ export interface ThreadMeta {
   archived: boolean;
   summary: string | null;
   summary_ts_ms: number | null;
+  // #161a -- the stamps the web's sha fence reads (#127 / #190): the code
+  // that MADE the summary and the message_count it was made at. Absent on
+  // rows that predate the stamps.
+  summary_commit_sha?: string | null;
+  summary_turn?: number | null;
   // v51 — project membership. ``null`` for legacy threads not tied to
   // any project. Filtering by project_id is server-side via the
   // ``GET /me/threads?project_id=X`` query.

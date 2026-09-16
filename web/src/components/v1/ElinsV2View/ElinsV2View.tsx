@@ -162,6 +162,9 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
         // messages end. The thread surface is this view's default.
         surface: runOn.surface ?? "thread",
         message_boundaries: runOn.messageBoundaries ?? null,
+        // #113 -- the thread the footer already keeps on the item is the
+        // thread the run belongs to; the backend counts its turns.
+        thread_id: runOn.origin?.threadId ?? null,
       };
       const env = await runElinsV2(req);
       setView(env);

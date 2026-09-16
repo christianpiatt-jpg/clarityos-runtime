@@ -1,10 +1,12 @@
 /**
  * #145 -- /dashboard is the WINDOW every member may look through; the
- * doors are the admin's. Five "open ->" links into /founder (four cards +
- * the footer) and the footer's /elins link render only for the controller.
+ * doors are the admin's. #308 -- the four card links are in-page anchors
+ * (/dashboard#regional etc.), no longer doors into /founder; the footer
+ * keeps one /founder door and the /elins link. All of them render only for
+ * the controller.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 const authState: {
@@ -39,6 +41,8 @@ function doors(container: HTMLElement) {
   return {
     founder: container.querySelectorAll('a[href="/founder"]').length,
     elins: container.querySelectorAll('a[href="/elins"]').length,
+    anchors: ["regional", "macro", "entities", "continuity"]
+      .filter((a) => container.querySelector(`a[href="/dashboard#${a}"]`) !== null).length,
   };
 }
 
@@ -52,20 +56,40 @@ describe("the dashboard doors (#145)", () => {
     const { container } = render(<MemoryRouter><DashboardRoot /></MemoryRouter>);
     await screen.findByText("Entity graph");
     expect(screen.getByText("Macro-ELINS")).toBeInTheDocument();
-    expect(doors(container)).toEqual({ founder: 0, elins: 0 });
+    expect(doors(container)).toEqual({ founder: 0, elins: 0, anchors: 0 });
   });
 
-  it("★ the controller sees the five doors and the feed link", async () => {
+  it("★ the controller sees ONE founder door, the feed link, and four in-page anchors (#308)", async () => {
     authState.profile = { cohort: "controller", controller: true };
     const { container } = render(<MemoryRouter><DashboardRoot /></MemoryRouter>);
     await screen.findByText("Entity graph");
-    expect(doors(container)).toEqual({ founder: 5, elins: 1 });
+    expect(doors(container)).toEqual({ founder: 1, elins: 1, anchors: 4 });
+    for (const id of ["global", "regional", "macro", "entities", "continuity"]) {
+      expect(container.querySelector(`#${id}`)).not.toBeNull();
+    }
   });
 
   it("a null profile fails closed: no door", async () => {
     authState.profile = null;
     const { container } = render(<MemoryRouter><DashboardRoot /></MemoryRouter>);
     await screen.findByText("Entity graph");
-    expect(doors(container)).toEqual({ founder: 0, elins: 0 });
+    expect(doors(container)).toEqual({ founder: 0, elins: 0, anchors: 0 });
+  });
+});
+
+describe("the dashboard anchors (#308)", () => {
+  it("★ the fragment walks to its card once the snapshot has rendered", async () => {
+    authState.profile = { cohort: "founding", controller: true };
+    const spy = vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(() => {});
+    render(<MemoryRouter initialEntries={["/dashboard#regional"]}><DashboardRoot /></MemoryRouter>);
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect((spy.mock.contexts as Element[]).map((e) => e.id)).toContain("regional");
+    // a Refresh replaces the snapshot; it must not walk the page back to the card
+    const fetches = vi.mocked(api.elinsDashboard).mock.calls.length;   // the mock's count spans the file
+    fireEvent.click(screen.getByText("Refresh"));
+    await waitFor(() => expect(vi.mocked(api.elinsDashboard).mock.calls.length).toBe(fetches + 1));
+    await act(async () => { await Promise.resolve(); });
+    expect(spy).toHaveBeenCalledTimes(1);
+    spy.mockRestore();
   });
 });

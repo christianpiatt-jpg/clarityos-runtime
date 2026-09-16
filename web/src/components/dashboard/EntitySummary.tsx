@@ -16,7 +16,7 @@ export default function EntitySummary({ entityGraph }: EntitySummaryProps) {
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Entity graph</h2>
-        {admin ? <Link to="/founder" style={mutedLinkStyle}>open entity graph →</Link> : null}
+        {admin ? <Link to="/dashboard#entities" style={mutedLinkStyle}>open entity graph →</Link> : null}
       </header>
       {entityGraph.available ? (
         <div>

@@ -55,6 +55,8 @@ from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.daily_personal_elins")
 
 # ---------------------------------------------------------------------------
@@ -631,7 +633,7 @@ def run_daily_personal_elins(
     if _is_envelope_empty(news, emails, micro, macro):
         logger.info(
             "daily_personal_elins: empty day for %s on %s — short-circuiting",
-            user_id, target_date.isoformat(),
+            runtime_privacy.user_hash(user_id), target_date.isoformat(),
         )
         return {
             "type":  ENVELOPE_TYPE,

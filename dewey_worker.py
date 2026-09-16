@@ -22,6 +22,8 @@ import dewey_memberships_store
 import dewey_pipeline
 from dewey_pipeline import is_within_basin
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.dewey_worker")
 
 
@@ -74,7 +76,7 @@ def process_object(user: str, object_kind: str, object_id: str, object_doc: dict
     try:
         neighborhoods = dewey_neighborhoods_store.list_for_user(user)
     except Exception as e:
-        logger.warning("dewey worker neighborhood-list failed user=%s err=%s", user, e)
+        logger.warning("dewey worker neighborhood-list failed user=%s err=%s", runtime_privacy.user_hash(user), e)
         return 0
 
     obj_vec = object_doc.get("object_vector")
@@ -126,7 +128,7 @@ def process_object(user: str, object_kind: str, object_id: str, object_doc: dict
     if written:
         logger.info(
             "dewey worker user=%s kind=%s obj=%s memberships=%d",
-            user, object_kind, object_id, written,
+            runtime_privacy.user_hash(user), object_kind, object_id, written,
         )
     return written
 

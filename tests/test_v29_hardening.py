@@ -183,7 +183,12 @@ def test_log_event_redacts_user(caplog, reset_stores):
     with caplog.at_level(logging.INFO, logger="clarityos.v29"):
         h.log_event("test_event", user="alice123longusername", route="/x", success=True)
     msg = caplog.records[-1].getMessage()
-    assert "alice123long" in msg  # truncated prefix kept
+    # #154 (2026-09-16): the user on the line is a HASH (the users_store._uref
+    # shape), never a prefix -- twelve characters of an e-mail-keyed username
+    # is its whole local part. The full name never appears; the hash does.
+    import users_store
+    assert "alice123long" not in msg
+    assert f"user={users_store._uref('alice123longusername')}" in msg
     assert "longusername" not in msg.replace("alice123long", "")
 
 

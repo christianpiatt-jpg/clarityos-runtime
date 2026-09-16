@@ -522,7 +522,7 @@ def _fs_load_user(user_id: str) -> dict[str, dict]:
     except (OSError, json.JSONDecodeError) as e:  # pragma: no cover (defensive)
         logger.warning(
             "vault fs load failed user=%s err=%s",
-            runtime_privacy.user_ref(user_id), e,
+            runtime_privacy.user_hash(user_id), e,
         )
         return {}
     return dict(doc.get("entries") or {})
@@ -873,7 +873,7 @@ def vault_get(user_id: str, key: str, default: Any = None) -> Any:
     except (ValueError, json.JSONDecodeError, KeyError) as e:
         logger.warning(
             "vault_get decrypt failed user=%s key=%s err=%s",
-            runtime_privacy.user_ref(user_id), key, e,
+            runtime_privacy.user_hash(user_id), key, e,
         )
         raise
 
@@ -892,7 +892,7 @@ def vault_list(user_id: str) -> dict[str, Any]:
         except Exception as e:  # pragma: no cover (defensive)
             logger.warning(
                 "vault_list decrypt failed user=%s key=%s err=%s",
-                runtime_privacy.user_ref(user_id), k, e,
+                runtime_privacy.user_hash(user_id), k, e,
             )
     return out
 
@@ -916,7 +916,7 @@ def vault_list_prefix(user_id: str, prefixes: tuple[str, ...] | str) -> dict[str
         except Exception as e:  # pragma: no cover (defensive)
             logger.warning(
                 "vault_list decrypt failed user=%s key=%s err=%s",
-                runtime_privacy.user_ref(user_id), k, e,
+                runtime_privacy.user_hash(user_id), k, e,
             )
     return out
 

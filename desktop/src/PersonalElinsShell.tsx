@@ -8,6 +8,12 @@
 // Path C: NO new backend, NO route library, NO new state machinery
 // beyond plain useState. ``insights={null}`` so the v1 shell drops
 // to a 2-column grid (sidebar + center, no insights pane).
+//
+// #161a -- the web's refusal gate where the web has it (lib/refusal.ts,
+// #238 / #237 (1)): when the physics reader declined wholesale, or ELINS
+// found no signal, sections 3 and 4 carry the declining layer's own
+// sentence and NO number, and section 1's projection card carries the
+// refusal, not guidance. Parity, not a feature.
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -20,6 +26,9 @@ import {
   type EmotionalPhysicsResponse,
 } from "./lib/api";
 import DesktopShell from "./DesktopShell";
+import { stopMark } from "./lib/bearings";
+// #238 -- the ONE reading of "a layer above declined" (ported from the web).
+import { sectionRefusal, physicsRefusal, type Refusal } from "./lib/refusal";
 
 const DEFAULT_SEED = "Personal current state — open snapshot for analysis.";
 
@@ -281,8 +290,8 @@ function PersonalElinsView({
 
       <SectionEmotionalPhysics ep={ep} />
       <SectionAttractor elins={elins} />
-      <SectionCollapseRisk elins={elins} />
-      <SectionFieldWeather elins={elins} />
+      <SectionCollapseRisk ep={ep} elins={elins} />
+      <SectionFieldWeather ep={ep} elins={elins} />
     </div>
   );
 }
@@ -291,9 +300,31 @@ function PersonalElinsView({
 // Sections — pure functions of (ep, elins)
 // ---------------------------------------------------------------------------
 function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }) {
+  // #161a -- the stop mark where the web has it (#162 b / #196): ONLY a
+  // reply the ONE backend vocabulary classed as "cut" marks.
+  const stopped = stopMark(ep?._meta?.stop_reason, ep?._meta?.stop_class);
+  // #237 (1) on the web -- under a decline the projection card carries the
+  // refusal (the web's data-testid "layer-refusal"; "physics-refusal" there
+  // is the #303 A4 door, which this surface has no door for), never the
+  // guidance the reader wrote over an input it could not assess. The three
+  // reading cards stay, as the web keeps its bearings: "unclear" on every
+  // bearing IS the reading, and the curvature note is where the decline is
+  // explained -- so that note reads on the curvature card AND as the reason
+  // below it (the web shows map + projection, #303 A1, which this surface
+  // has not taken; named in the housekeeping RETURN).
+  const refusal = physicsRefusal(ep);
   return (
     <section data-testid="section-emotional-physics">
       <SectionHeader>1. Emotional Physics</SectionHeader>
+      {stopped ? (
+        <div
+          role="status"
+          data-testid="stop-mark"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-accent-red, #E74C3C)", marginBottom: 6 }}
+        >
+          stopped early: {stopped}
+        </div>
+      ) : null}
       {!ep ? (
         <Muted>Awaiting first run…</Muted>
       ) : (
@@ -301,7 +332,11 @@ function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }
           <LayerCard label="Field curvature" body={ep.field_curvature} />
           <LayerCard label="Edge pressure" body={ep.edge_pressure} />
           <LayerCard label="Relational primitives" body={ep.relational_primitives} />
-          <LayerCard label="External expression" body={ep.external_expression} />
+          {refusal.refused ? (
+            <RefusalCard label="External expression" refusal={refusal} testId="layer-refusal" />
+          ) : (
+            <LayerCard label="External expression" body={ep.external_expression} />
+          )}
         </div>
       )}
     </section>
@@ -374,12 +409,20 @@ function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
   );
 }
 
-function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
+function SectionCollapseRisk({ ep, elins }: { ep: EmotionalPhysicsResponse | null; elins: ElinsV2Envelope | null }) {
   // Per spec — render P0..P3 only for the v1 of this view.
   const slots: Array<"P0" | "P1" | "P2" | "P3"> = ["P0", "P1", "P2", "P3"];
+  // #238 -- when the layer above declined, or ELINS found no signal, NO
+  // risk percentage is produced here: not a 33%, not a 0%. The panel still
+  // renders, carrying the reason in that layer's own words.
+  const refusal = sectionRefusal(ep, elins);
   return (
     <section data-testid="section-collapse-risk">
       <SectionHeader>3. Collapse Risk (P0–P3)</SectionHeader>
+      {refusal.refused ? (
+        <RefusalLine refusal={refusal} testId="collapse-risk-refusal" />
+      ) : (
+      <>
       {/* ★ These are INDEPENDENT probabilities, not shares of a whole.
           Measured live: 33/0/0/22 = 55%, and 10/21/1/15 = 47%. Neither sums
           to 100 because neither should. Rendering them as adjacent cells of
@@ -423,21 +466,30 @@ function SectionCollapseRisk({ elins }: { elins: ElinsV2Envelope | null }) {
           ))}
         </div>
       )}
+      </>
+      )}
     </section>
   );
 }
 
-function SectionFieldWeather({ elins }: { elins: ElinsV2Envelope | null }) {
+function SectionFieldWeather({ ep, elins }: { ep: EmotionalPhysicsResponse | null; elins: ElinsV2Envelope | null }) {
+  // #238 -- the phrase bank must not assemble from an empty envelope: on a
+  // refusal nothing is composed at all, the reason is the sentence.
+  const refusal = sectionRefusal(ep, elins);
   return (
     <section data-testid="section-field-weather">
       <SectionHeader>4. Field Weather</SectionHeader>
-      <div style={{
-        fontSize: 13,
-        color: "var(--color-text-primary)",
-        lineHeight: 1.5,
-      }}>
-        {deriveFieldWeather(elins)}
-      </div>
+      {refusal.refused ? (
+        <RefusalLine refusal={refusal} testId="field-weather-refusal" />
+      ) : (
+        <div style={{
+          fontSize: 13,
+          color: "var(--color-text-primary)",
+          lineHeight: 1.5,
+        }}>
+          {deriveFieldWeather(elins)}
+        </div>
+      )}
     </section>
   );
 }
@@ -464,6 +516,48 @@ function Muted({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontSize: 12, color: "var(--color-text-secondary)", padding: 8 }}>
       {children}
+    </div>
+  );
+}
+
+/** #238 -- the one sentence a silenced panel carries. The reason is the
+ *  declining layer's own words; the layer NAME rides in a title, never in
+ *  the prose, because a member should not have to know our layer names. */
+function RefusalLine({ refusal, testId }: { refusal: Refusal; testId: string }) {
+  return (
+    <div
+      role="status"
+      data-testid={testId}
+      title={refusal.source ? `refused by: ${refusal.source}` : undefined}
+      style={{
+        fontSize: 13,
+        color: "var(--color-text-secondary)",
+        lineHeight: 1.5,
+      }}
+    >
+      {refusal.reason}
+    </div>
+  );
+}
+
+/** The RefusalLine in a LayerCard's frame, so section 1's grid keeps its
+ *  fourth slot: the card exists, and says why it is quiet. */
+function RefusalCard({ label, refusal, testId }: { label: string; refusal: Refusal; testId: string }) {
+  return (
+    <div style={{
+      border: "1px solid rgba(255,255,255,0.15)",
+      background: "var(--color-bg-surface)",
+      padding: 10,
+    }}>
+      <div style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        color: "var(--color-text-secondary)",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        marginBottom: 6,
+      }}>{label}</div>
+      <RefusalLine refusal={refusal} testId={testId} />
     </div>
   );
 }

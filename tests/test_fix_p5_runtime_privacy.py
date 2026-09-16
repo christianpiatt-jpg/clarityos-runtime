@@ -232,7 +232,8 @@ def _logger_calls(path: Path) -> list[tuple[int, str]]:
 class TestNoFullUserInLogs:
     """For every module in the FIX-P5 scope, every ``logger.X`` call
     that contains ``user=%s`` in its format string must also reference
-    a redaction helper (``user_ref`` / ``_user_ref``). This is the
+    a redaction helper (``user_hash`` / ``_user_ref``; #154 -- the prefix
+    helper ``user_ref`` is accepted by this scan but no longer called). This is the
     grep-style guard the spec asks for."""
 
     @pytest.mark.parametrize("rel_path", [
@@ -247,7 +248,7 @@ class TestNoFullUserInLogs:
         offenders = []
         for line_no, block in _logger_calls(path):
             if "user=%s" in block and not (
-                "_user_ref" in block or "user_ref" in block
+                "_user_ref" in block or "user_ref" in block or "user_hash" in block
             ):
                 offenders.append((line_no, block[:200]))
         assert offenders == [], (
@@ -310,13 +311,19 @@ class TestAppLocalSessionRefRemoved:
             assert app_module._session_ref(raw) == runtime_privacy.session_ref(raw)
 
     def test_user_ref_alias_present_in_app(self):
-        """FIX-P5 adds ``_user_ref`` to app.py as the mirror alias —
-        all the user=%s redactions go through it. Confirm it exists
-        and is equivalent to ``runtime_privacy.user_ref``."""
+        """FIX-P5 added ``_user_ref`` to app.py as the one name every
+        user=%s redaction goes through. #154 (2026-09-16): it is a HASH now
+        (users_store._uref, 16 hex of sha256) -- a username is an e-mail
+        address and the old 8-char prefix was most of the local part. The
+        absent-id marker is still runtime_privacy's."""
         import app as app_module
+        import users_store
         assert hasattr(app_module, "_user_ref")
-        for raw in (None, "", "x", "alice"):
-            assert app_module._user_ref(raw) == runtime_privacy.user_ref(raw)
+        for raw in (None, ""):
+            assert app_module._user_ref(raw) == runtime_privacy.user_ref(raw) == "<none>"
+        for raw in ("x", "alice", "someone.private@example.com"):
+            assert app_module._user_ref(raw) == users_store._uref(raw)
+            assert app_module._user_ref(raw) != runtime_privacy.user_ref(raw)
 
 
 class TestOperatorStateTopicTrimDelegates:

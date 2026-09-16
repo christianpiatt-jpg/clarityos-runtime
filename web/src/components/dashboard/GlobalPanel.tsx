@@ -30,9 +30,27 @@ const PRIMITIVE_COLORS: Record<string, string> = {
 
 export interface GlobalPanelProps {
   section: V38DashboardSection;
+  /** #308 -- the flag the macro card reads (snapshot.macro.external_signal_mode):
+   *  "cloud_perplexity" is ESO on, any other string is off, and null (no
+   *  macro pass has run yet) is ABSENT -- the macro card renders that null
+   *  as "—" and so does this badge; a missing key is never a claim. When
+   *  the caller passes nothing at all the badge falls back to the run's own
+   *  has_eso (older callers). */
+  esoMode?: string | null;
 }
 
-export default function GlobalPanel({ section }: GlobalPanelProps) {
+export type EsoWord = "on" | "off" | "absent";
+
+export function esoWord(esoMode: string | null | undefined, hasEso: boolean): EsoWord {
+  if (esoMode === undefined) return hasEso ? "on" : "off";
+  if (esoMode === null || esoMode.trim() === "") return "absent";   // the macro card's `|| "—"` reads "" as absent too
+  return esoMode === "cloud_perplexity" ? "on" : "off";
+}
+
+export default function GlobalPanel({ section, esoMode }: GlobalPanelProps) {
+  const eso = esoWord(esoMode, section.has_eso);
+  // the title names the key the badge READ: the macro flag, or the run's own has_eso for older callers
+  const esoTitle = esoMode === undefined ? "snapshot.global.has_eso" : "snapshot.macro.external_signal_mode";
   if (!section.available) {
     return (
       <section style={panelStyle}>
@@ -53,10 +71,12 @@ export default function GlobalPanel({ section }: GlobalPanelProps) {
         <h2 style={{ margin: 0, fontSize: 16 }}>Global</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <span style={mutedStyle}>{section.day || "today"}</span>
-          {section.has_eso ? (
-            <span style={esoOnStyle}>ESO</span>
+          {eso === "on" ? (
+            <span style={esoOnStyle} data-testid="global-eso" title={esoTitle}>ESO</span>
+          ) : eso === "off" ? (
+            <span style={esoOffStyle} data-testid="global-eso" title={esoTitle}>ESO off</span>
           ) : (
-            <span style={esoOffStyle}>ESO off</span>
+            <span style={esoOffStyle} data-testid="global-eso" title={esoTitle}>ESO —</span>
           )}
         </div>
       </header>

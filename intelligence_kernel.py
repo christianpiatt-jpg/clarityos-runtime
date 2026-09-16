@@ -424,7 +424,7 @@ def run_ELINS(
             except Exception as e:
                 logger.warning(
                     "kernel save_daily_run failed user=%s err=%s",
-                    runtime_privacy.user_ref(user), e,
+                    runtime_privacy.user_hash(user), e,
                 )
             if update_indexes:
                 try:
@@ -434,7 +434,7 @@ def run_ELINS(
                 except Exception as e:  # pragma: no cover (defensive)
                     logger.warning(
                         "kernel update_indexes failed user=%s err=%s",
-                        runtime_privacy.user_ref(user), e,
+                        runtime_privacy.user_hash(user), e,
                     )
 
         # operator_state — analysis-derived topic so raw text never leaks.

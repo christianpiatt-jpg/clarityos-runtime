@@ -51,6 +51,8 @@ import usage_billing
 import usage_records
 import users_store
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.compute_meter")
 
 # Characters per token used for the reserve estimate. English prose runs
@@ -137,7 +139,7 @@ class ComputeMeter:
             logger.info(
                 "meter reserve user=%s req=%s model=%s est_in=%d max_out=%d "
                 "reserve=0 unlimited=True",
-                self.user, self.request_id, model_id, tokens, max_output_tokens,
+                runtime_privacy.user_hash(self.user), self.request_id, model_id, tokens, max_output_tokens,
             )
             return 0
         res = users_store.consume_g_credit_tx(self.user, self.request_id, cost=amount)
@@ -162,7 +164,7 @@ class ComputeMeter:
         logger.info(
             "meter reserve user=%s req=%s model=%s est_in=%d max_out=%d "
             "reserve=%d replay=%s",
-            self.user, self.request_id, model_id, tokens, max_output_tokens,
+            runtime_privacy.user_hash(self.user), self.request_id, model_id, tokens, max_output_tokens,
             amount, res.get("replay"),
         )
         return amount
@@ -252,7 +254,7 @@ class ComputeMeter:
             # the correct failure direction.
             logger.warning(
                 "meter settle shortfall user=%s req=%s delta=%d err=%s",
-                self.user, self.request_id, delta, e,
+                runtime_privacy.user_hash(self.user), self.request_id, delta, e,
             )
         # #142 -- an unlimited meter's row records what was MEASURED and that
         # nothing was debited (settle_micro 0), so no roll-up counts a
@@ -267,7 +269,7 @@ class ComputeMeter:
         logger.info(
             "meter settle user=%s req=%s reserve=%d settle=%d delta=%+d calls=%d "
             "vendor=%d service=%d total=%d invariant=%s",
-            self.user, self.request_id, self.reserved_micro,
+            runtime_privacy.user_hash(self.user), self.request_id, self.reserved_micro,
             breakdown["debited_micro"], delta, self.calls,
             breakdown["vendor_micro"], breakdown["service_micro"],
             breakdown["total_cost_micro"], breakdown["invariant_holds"],

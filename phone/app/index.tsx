@@ -6,6 +6,7 @@ import NodeStatusBlock from "../components/NodeStatus";
 import SegmentedToggle from "../components/EngineToggle";
 import ElInsIndicator from "../components/ElInsIndicator";
 import * as api from "../lib/api";
+import { healthWord } from "../lib/wire";
 import { storage, KEYS } from "../lib/storage";
 import { colors, radius, space } from "../lib/theme";
 
@@ -36,7 +37,10 @@ export default function HomeScreen() {
       const r = await api.health();
       setCloud({ status: "ok", meta: `${r.version} · ${Date.now() - t0}ms` });
     } catch (e: any) {
-      setCloud({ status: "err", meta: e?.message || "unreachable" });
+      // #151 -- the word is lib/wire.healthWord (pinned there): 401 "not
+      // signed in", 403 "not permitted", another status "HTTP <n>", no
+      // status "unreachable"; never the server's message string.
+      setCloud({ status: "err", meta: healthWord(e?.status) });
     }
   }, []);
 

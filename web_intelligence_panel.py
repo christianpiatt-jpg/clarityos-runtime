@@ -43,6 +43,8 @@ from urllib.parse import unquote, urlparse
 
 import runtime_intelligence_wiring as _wiring_mod
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.web_intelligence_panel")
 
 # ---------------------------------------------------------------------------
@@ -180,7 +182,7 @@ def build_response(method: str, path: str) -> tuple:
         snapshot = _wiring_mod.get_intelligence_snapshot(user_id)
     except Exception as e:
         logger.warning(
-            "web_intelligence_panel: wiring failed for %s: %s", user_id, e,
+            "web_intelligence_panel: wiring failed for %s: %s", runtime_privacy.user_hash(user_id), e,
         )
         return _error_response(
             500, "wiring_failed",

@@ -1,8 +1,8 @@
 // components/dashboard/DashboardRoot.tsx
 // Composite — single-screen ELINS intelligence surface.
 
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { elinsDashboard, type V38DashboardSnapshot } from "../../lib/api";
 import { useIsController } from "../RequireAdmin";
 import GlobalPanel from "./GlobalPanel";
@@ -16,8 +16,26 @@ export default function DashboardRoot() {
   const [busy, setBusy] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   // #145 -- the page is the WINDOW every member may look through; the
-  // doors (the five "open ->" links and this footer) are the admin's.
+  // doors are the admin's. #308 -- the four card links are in-page anchors
+  // now (/dashboard#regional etc.), no longer doors into /founder; the
+  // footer keeps the one /founder door.
   const admin = useIsController();
+
+  // #308 -- a react-router Link rewrites the URL and never scrolls to a
+  // fragment, and on a cold load the cards render after the fetch, so the
+  // fragment has nothing to land on: this walks to the card once the
+  // snapshot has rendered (the ids are on the wrappers below) -- ONCE per
+  // navigation (location.key), so a Refresh, which replaces the snapshot,
+  // does not drag the page back to the card.
+  const { hash, key: navKey } = useLocation();
+  const walked = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hash || !snapshot || walked.current === navKey) return;
+    const el = document.getElementById(hash.slice(1));
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    walked.current = navKey;
+  }, [hash, navKey, snapshot]);
 
   const load = useCallback(async () => {
     setBusy(true); setError(null);
@@ -64,15 +82,20 @@ export default function DashboardRoot() {
 
       {snapshot && (
         <div style={layoutStyle}>
-          <div style={{ gridColumn: "1 / span 2" }}>
-            <GlobalPanel section={snapshot.global} />
+          <div id="global" style={{ gridColumn: "1 / span 2" }}>
+            {/* #308 -- the ESO badge reads the flag the macro card reads */}
+            <GlobalPanel section={snapshot.global} esoMode={snapshot.macro?.external_signal_mode ?? null} />
           </div>
-          <div style={{ gridColumn: "1 / span 2" }}>
+          <div id="regional" style={{ gridColumn: "1 / span 2" }}>
             <RegionalGrid regional={snapshot.regional} />
           </div>
-          <MacroSummary macro={snapshot.macro} />
-          <EntitySummary entityGraph={snapshot.entity_graph} />
-          <div style={{ gridColumn: "1 / span 2" }}>
+          <div id="macro">
+            <MacroSummary macro={snapshot.macro} />
+          </div>
+          <div id="entities">
+            <EntitySummary entityGraph={snapshot.entity_graph} />
+          </div>
+          <div id="continuity" style={{ gridColumn: "1 / span 2" }}>
             <ContinuityCard continuity={snapshot.continuity} />
           </div>
         </div>

@@ -18,7 +18,7 @@ export default function RegionalGrid({ regional }: RegionalGridProps) {
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Regional</h2>
-        {admin ? <Link to="/founder" style={mutedLinkStyle}>open regional surface →</Link> : null}
+        {admin ? <Link to="/dashboard#regional" style={mutedLinkStyle}>open regional surface →</Link> : null}
       </header>
       <div style={gridStyle}>
         {REGION_ORDER.map((region) => {

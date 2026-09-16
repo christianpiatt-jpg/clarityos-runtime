@@ -76,10 +76,29 @@ def user_ref(user_id: Optional[str]) -> str:
 
     Same shape as ``session_ref``: ``"<none>"`` for empty input,
     first ``USER_REF_LEN`` characters + ``"..."`` otherwise.
+
+    #154 -- NO log line in the tree uses this prefix any more: a username
+    is an e-mail address, and eight characters of it is most of the local
+    part. ``user_hash`` is the log reference; this stays for its pinned
+    shape and for callers that are not log lines.
     """
     if not user_id or not isinstance(user_id, str):
         return _NONE_MARKER
     return user_id[:USER_REF_LEN] + "..."
+
+
+def user_hash(user_id: Optional[str]) -> str:
+    """#154 -- the ONE log reference for a user: 16 hex of sha256, the shape
+    ``users_store._uref`` and ``auth_magiclink._email_hash`` log (pinned
+    equal in tests/test_housekeeping_2026_09_16.py). Every module that logs
+    a user goes through this name -- app.py's ``_user_ref`` is this, and the
+    kernel, the vault and the router call it directly. ``"<none>"`` for an
+    absent or non-string id, the marker ``session_ref`` uses.
+    """
+    if not user_id or not isinstance(user_id, str):
+        return _NONE_MARKER
+    import hashlib
+    return hashlib.sha256(user_id.encode("utf-8")).hexdigest()[:16]
 
 
 def prompt_preview(text: Optional[str]) -> str:

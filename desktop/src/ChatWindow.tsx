@@ -36,6 +36,8 @@ import {
 import type { ElinsV2Envelope } from "./lib/elinsV2";
 import type { EmotionalPhysicsResponse } from "./lib/emotionalPhysics";
 import Composer from "./Composer";
+import { shortSha, summaryCurrency, turnCaption } from "./lib/sha";
+import { useLiveCommitSha } from "./hooks/useLiveCommitSha";
 import ThreadView from "./ThreadView";
 import DesktopShell from "./DesktopShell";
 import ElinsV2View from "./components/v1/ElinsV2View/ElinsV2View";
@@ -59,6 +61,8 @@ export default function ChatWindow({ onSignOut, onNavigate }: ChatWindowProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeMeta, setActiveMeta] = useState<ThreadMeta | null>(null);
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
+  // #161a -- the sha of the code running, for the summary card's fence.
+  const { sha: liveSha } = useLiveCommitSha();
 
   const [listLoading, setListLoading] = useState(true);
   const [threadLoading, setThreadLoading] = useState(false);
@@ -591,8 +595,22 @@ export default function ChatWindow({ onSignOut, onNavigate }: ChatWindowProps) {
           </div>
 
           {activeMeta.summary ? (
-            <div className="summary-card">
-              <div className="label">Summary</div>
+            // #161a -- the web's sha fence: fresh / aged / old by TURNS and by
+            // the sha that made it against the sha running; no clock.
+            <div
+              className="summary-card"
+              data-testid="thread-summary-card"
+              data-currency={summaryCurrency(activeMeta, liveSha)}
+            >
+              <div
+                className="label"
+                data-testid="thread-summary-currency"
+                title="meta.summary_turn · meta.message_count · meta.summary_commit_sha · /health.commit_sha"
+              >
+                Summary · {summaryCurrency(activeMeta, liveSha)}
+                {" · "}{turnCaption({ made_turn: activeMeta.summary_turn ?? null, now_turn: activeMeta.message_count })}
+                {" · running "}{shortSha(liveSha)}
+              </div>
               <div className="body selectable">{activeMeta.summary}</div>
             </div>
           ) : (

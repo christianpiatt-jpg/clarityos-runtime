@@ -1330,7 +1330,7 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
         "text_chars=%d",
         engine, model_id, task,
         runtime_privacy.session_ref(env["session_id"]),
-        runtime_privacy.user_ref(env["operator_id"]),
+        runtime_privacy.user_hash(env["operator_id"]),
         env["runtime_mode"], env["override_decision"],
         env["elins_inputs_keys"], len(env["text"]),
     )

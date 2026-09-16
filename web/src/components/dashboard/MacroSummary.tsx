@@ -16,7 +16,7 @@ export default function MacroSummary({ macro }: MacroSummaryProps) {
     <section style={panelStyle}>
       <header style={headerStyle}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Macro-ELINS</h2>
-        {admin ? <Link to="/founder" style={mutedLinkStyle}>open macro view →</Link> : null}
+        {admin ? <Link to="/dashboard#macro" style={mutedLinkStyle}>open macro view →</Link> : null}
       </header>
       {macro.last_run_id ? (
         <div>

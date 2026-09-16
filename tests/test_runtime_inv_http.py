@@ -8,8 +8,8 @@ Locked invariants covered:
     INV-H3 — /billing/intent/confirm response field projection: only
              the safe field set; client_secret + raw metadata absent
     INV-H4 — /me/billing maps billing_state=="failed" → status="failed"
-    INV-H5 — _session_ref / _user_ref are byte-identical aliases for
-             runtime_privacy.session_ref / user_ref
+    INV-H5 — _session_ref is a byte-identical alias for runtime_privacy.session_ref;
+             _user_ref is runtime_privacy.user_hash (#154: the hash, never the prefix)
 """
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ class TestINV_H1_NoRawUserIdInLoggers:
         offenders: list[tuple[int, str]] = []
         for line_no, block in _logger_calls(path):
             if "user=%s" in block and not (
-                "_user_ref" in block or "user_ref" in block
+                "_user_ref" in block or "user_ref" in block or "user_hash" in block
             ):
                 offenders.append((line_no, block[:200]))
         assert offenders == [], (
@@ -223,5 +223,14 @@ class TestINV_H5_LocalHelpersAreAliases:
         None, "", "x", "alice", "very_long_username_xx",
     ])
     def test_inv_h5_user_ref_matches_runtime_privacy(self, raw):
+        """#154 (2026-09-16): app._user_ref is a HASH (users_store._uref), no
+        longer the prefix alias -- a username is an e-mail address. The
+        absent-id marker is still runtime_privacy's; a present id must NOT
+        equal the prefix helper's output."""
         import app as app_module
-        assert app_module._user_ref(raw) == runtime_privacy.user_ref(raw)
+        import users_store
+        if not raw:
+            assert app_module._user_ref(raw) == runtime_privacy.user_ref(raw) == "<none>"
+        else:
+            assert app_module._user_ref(raw) == users_store._uref(raw)
+            assert app_module._user_ref(raw) != runtime_privacy.user_ref(raw)

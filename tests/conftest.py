@@ -647,6 +647,13 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_load_envelope.py": {
         "load_envelope",
     },
+    # ---- housekeeping "held at tag" 2026-09-16 (#113 · #154) ----
+    # runtime_spine: a cockpit thread's runs count on the ELINS wire's
+    # n_points. privacy_surface: app._user_ref is a hash, never the prefix.
+    "test_housekeeping_2026_09_16.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- #303-#307 seal what reads, count what counts ----
     # runtime_spine: the whose_field door on both personal routes, the
     # counsel fold, the ring, n_points on the ELINS wire, the summary

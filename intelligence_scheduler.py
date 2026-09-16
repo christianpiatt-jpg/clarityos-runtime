@@ -52,6 +52,8 @@ from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.intelligence_scheduler")
 
 # ---------------------------------------------------------------------------
@@ -270,7 +272,7 @@ def run_daily_personal_elins_once(
     except Exception as e:
         logger.warning(
             "intelligence_scheduler: daily ELINS failed for %s: %s",
-            user_id, e,
+            runtime_privacy.user_hash(user_id), e,
         )
         return None
 
@@ -284,7 +286,7 @@ def run_news_basin_once(user_id: str) -> Optional[dict]:
     except Exception as e:
         logger.warning(
             "intelligence_scheduler: news basin failed for %s: %s",
-            user_id, e,
+            runtime_privacy.user_hash(user_id), e,
         )
         return None
 
@@ -303,7 +305,7 @@ def run_email_ep_dash_once(raw: str, user_id: str) -> Optional[dict]:
     except Exception as e:
         logger.warning(
             "intelligence_scheduler: email dash failed for %s: %s",
-            user_id, e,
+            runtime_privacy.user_hash(user_id), e,
         )
         return None
 

@@ -58,6 +58,10 @@ export interface EmotionalPhysicsRequest {
   // let it say which messages the window covers.
   surface?: "personal" | "thread";
   message_boundaries?: number[] | null;
+  // #113 -- the thread this run belongs to. Sent only when given: the
+  // backend records a turn on it (the member must own it) and the ELINS
+  // wire's _meta.n_points counts that thread's scored turns.
+  thread_id?: string | null;
 }
 
 /**
@@ -89,6 +93,7 @@ export async function analyzeEmotionalPhysics(
         text,
         surface: req.surface ?? "thread",
         message_boundaries: req.message_boundaries ?? null,
+        ...(req.thread_id ? { thread_id: req.thread_id } : {}),   // #113
       }),
     });
   } catch (e) {

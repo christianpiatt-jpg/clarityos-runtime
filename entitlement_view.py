@@ -35,6 +35,8 @@ import billing_config
 import membership_store
 import users_store
 
+import runtime_privacy   # #154 -- the ONE log hash (users_store._uref shape)
+
 logger = logging.getLogger("clarityos.entitlement_view")
 
 SOURCE_TAG = "clarityos.entitlement_view.v83.1"
@@ -61,7 +63,7 @@ def _is_founding_member(user: str) -> bool:
         )
     except Exception as e:   # pragma: no cover (defensive)
         logger.warning(
-            "entitlement_view: is_member failed user=%s err=%s", user, e,
+            "entitlement_view: is_member failed user=%s err=%s", runtime_privacy.user_hash(user), e,
         )
         return False
 
@@ -144,7 +146,7 @@ def compute_entitlement_view(user: str) -> dict:
         doc = users_store.get_user(user)
     except Exception as e:   # pragma: no cover (defensive)
         logger.warning(
-            "entitlement_view: get_user failed user=%s err=%s", user, e,
+            "entitlement_view: get_user failed user=%s err=%s", runtime_privacy.user_hash(user), e,
         )
     if not doc:
         return _empty_view(user)
@@ -153,7 +155,7 @@ def compute_entitlement_view(user: str) -> dict:
         view = users_store.get_membership_view(user) or {}
     except Exception as e:   # pragma: no cover (defensive)
         logger.warning(
-            "entitlement_view: membership_view failed user=%s err=%s", user, e,
+            "entitlement_view: membership_view failed user=%s err=%s", runtime_privacy.user_hash(user), e,
         )
         view = {}
 
