@@ -21,8 +21,8 @@
  */
 import { useMemo, useState, type CSSProperties } from "react";
 
-import { useCockpit, cockpit, type InsightsTab } from "../../state/cockpitStore";
-import { summaryCurrency, shortSha, turnCaption } from "../../lib/summaryCurrency";
+import { useCockpit, cockpit, isSummaryRecent, type InsightsTab } from "../../state/cockpitStore";
+import { summaryCurrency, shortSha, turnCaption, summaryBoxLine } from "../../lib/summaryCurrency";
 import { useLiveCommitSha } from "../../hooks/useLiveCommitSha";
 import {
   composeTranscript,
@@ -308,13 +308,13 @@ export default function ThreadInsightsPanel() {
                   <span
                     className="cv2-card-currency"
                     data-testid="thread-summary-currency"
-                    title="meta.summary_turn · meta.message_count · meta.summary_commit_sha · /health.commit_sha · meta.summary_model_id · meta.summary_window_chars · meta.summary_total_chars"
+                    title="meta.summary_turn · meta.message_count · meta.summary_commit_sha · /health.commit_sha · meta.summary_window_chars · meta.summary_total_chars · meta.summary_window_first_message · meta.summary_window_last_message · meta.summary_total_messages · meta.summary_model_id"
                   >
                     {cur}
                     {" · "}{turnCaption({ made_turn: meta.summary_turn, now_turn: meta.message_count })}
                     {" · running "}{shortSha(liveSha)}
-                    {" · model "}{meta.summary_model_id ?? "—"}
-                    {" · last "}{meta.summary_window_chars ?? "—"}{" of "}{meta.summary_total_chars ?? "—"}
+                    {/* #304 -- the box line: what the summary READ, then who wrote it */}
+                    {" · "}{summaryBoxLine(meta)}
                   </span>
                 </div>
                 <div className="cv2-card-body">{meta.summary}</div>
@@ -330,8 +330,12 @@ export default function ThreadInsightsPanel() {
                   className="cv2-btn"
                   disabled={busy}
                   onClick={() => void cockpit.thread.actions.summarize()}
+                  title={isSummaryRecent(meta)
+                    ? "the summary is younger than 10 minutes: this press re-summarises now (force)"
+                    : undefined}
+                  data-testid="thread-summarize"
                 >
-                  {busy ? "…" : "SUMMARIZE"}
+                  {busy ? "…" : isSummaryRecent(meta) ? "RE-SUMMARISE NOW" : "SUMMARIZE"}
                 </button>
                 <button
                   type="button"

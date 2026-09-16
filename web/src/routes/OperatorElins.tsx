@@ -21,6 +21,7 @@ import {
   type ElInsRecord,
   type ElInsThreadStabilityResponse,
 } from "../lib/api";
+import { readsNeeded } from "../lib/counts";
 
 const PROVIDER_MODES: readonly ElInsProviderMode[] = [
   "auto", "llm", "deterministic",
@@ -205,7 +206,7 @@ export default function OperatorElins() {
                 <th style={thStyle}>Classification</th>
                 <th style={thStyle}>EL</th>
                 <th style={thStyle}>INS</th>
-                <th style={thStyle}>Mode</th>
+                <th style={thStyle} title="result.reasoning_mode -- the provider mode chosen for the read">Provider mode</th>
                 <th style={thStyle}>Source</th>
               </tr>
             </thead>
@@ -273,7 +274,11 @@ export default function OperatorElins() {
                 background: stabilityColor(stability.stability),
               }} />
               <span style={{ fontFamily: "var(--font-mono)" }}>
-                {stabilityLabel(stability.stability)} · TSI {stability.tsi}/100
+                {/* F -- a window of one read has no stability and no TSI: it
+                    says how many reads it has and how many it needs. */}
+                {stability.window < 2
+                  ? readsNeeded(stability.window)
+                  : `${stabilityLabel(stability.stability)} · TSI ${stability.tsi}/100`}
               </span>
             </div>
           ) : null}

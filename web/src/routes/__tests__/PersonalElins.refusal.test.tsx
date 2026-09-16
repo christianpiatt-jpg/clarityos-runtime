@@ -10,7 +10,7 @@
  * The fixture below IS that screen.
  */
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 vi.mock("../../lib/api", async () => {
@@ -78,6 +78,9 @@ const ELINS_SPEAKING = {
     multiplier: 1,
   },
   meta: { engine: "clarity_elins_v2", view_kind: "v2" },
+  // #307 E1 -- a prior read exists, so the #238 pins below keep their full
+  // sentences; the single-read copy is pinned in PersonalElins.seal.test.
+  _meta: { n_points: 2 },
 };
 
 afterEach(() => vi.clearAllMocks());
@@ -176,6 +179,7 @@ describe("#238 — nothing speaks below a refusal", () => {
     vi.mocked(runEmotionalPhysics).mockResolvedValue(ep as never);
     vi.mocked(runElinsV2).mockResolvedValue(elins as never);
     render(<MemoryRouter><PersonalElins /></MemoryRouter>);
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
     await screen.findByTestId("section-emotional-physics");
   }
 
@@ -228,6 +232,7 @@ describe("#237 — the block carries the refusal, and no internal key", () => {
     vi.mocked(runEmotionalPhysics).mockResolvedValue(ep as never);
     vi.mocked(runElinsV2).mockResolvedValue(ELINS_SPEAKING as never);
     render(<MemoryRouter><PersonalElins /></MemoryRouter>);
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
     await screen.findByTestId("section-emotional-physics");
   }
 
@@ -239,39 +244,46 @@ describe("#237 — the block carries the refusal, and no internal key", () => {
     expect(screen.queryByTestId("layer-message_guidance")).toBeNull();
   });
 
-  test("★ (2) no internal key reaches glass, and the holding back is DECLARED", async () => {
+  // #303 A1/A2 (CT-1 2026-09-16) -- the block is now a PROJECTION: ONE
+  // field, risk_if_unchanged, under CT-1's word. Counsel (what to say, the
+  // moves, the next step) is never read on a member surface, so "no internal
+  // key reaches glass" is no longer a holding-back rule here: the keys are
+  // not looked at. The #237 cut rule (3) still governs the one field.
+  test("★ (2) no internal key reaches glass: the projection reads ONE field, under its word", async () => {
     await mount(EP_READ);
     expect(screen.queryByText(/risk_if_unchanged/)).toBeNull();
     expect(screen.queryByText(/next_step/)).toBeNull();
     expect(screen.queryByText(/ext_step/)).toBeNull();
-    expect(screen.queryByTestId("layer-risk_if_unchanged")).toBeNull();
-    // declared, with a count — never silently dropped
-    const held = screen.getByTestId("layer-unnamed-external-expression");
-    expect(held).toHaveTextContent("2 readings not yet named");
-    // the keys live in the title, for CT-1, not in the prose
-    expect(held).toHaveAttribute("title", "risk_if_unchanged · next_step");
+    expect(screen.getByTitle("risk_if_unchanged")).toHaveTextContent("if nothing changes");
+    expect(screen.getByTestId("layer-risk_if_unchanged")).toHaveTextContent(EP_READ.external_expression.risk_if_unchanged);
+    // counsel is not on the glass, and no "held back" line replaces it
+    expect(screen.queryByText(/Provide a specific situation/)).toBeNull();
+    expect(screen.queryByText(/Share the specific interpersonal/)).toBeNull();
+    expect(screen.queryByTestId("layer-message_guidance")).toBeNull();
+    expect(screen.queryByTestId("layer-unnamed-external-expression")).toBeNull();
   });
 
-  test("(2) the rule is key-agnostic — a key the prompt never asked for is held too", async () => {
+  test("(2) the rule is key-agnostic — a key the prompt never asked for is not read at all", async () => {
     const odd = {
       ...EP_READ,
       external_expression: { ...EP_READ.external_expression, ext_step: "x", reads_as_distant: false },
     };
     await mount(odd);
     expect(screen.queryByText(/ext_step/)).toBeNull();
-    expect(screen.getByTestId("layer-unnamed-external-expression")).toHaveTextContent("4 readings not yet named");
+    expect(screen.queryByText(/reads_as_distant/)).toBeNull();
+    expect(screen.queryByTestId("layer-unnamed-external-expression")).toBeNull();
   });
 
   test("★ (3) prose is not cut mid-word at 40 characters", async () => {
     const long = {
       ...EP_READ,
       external_expression: {
-        recommended_posture: "Resubmit with a specific interpersonal or relational situation to analyze",
+        risk_if_unchanged: "Resubmit with a specific interpersonal or relational situation to analyze",
         notes: "n",
       },
     };
     await mount(long);
-    const v = await screen.findByTestId("layer-recommended_posture");
+    const v = await screen.findByTestId("layer-risk_if_unchanged");
     expect(v).toHaveTextContent("situation to analyze");
     expect(v.textContent).not.toBe("Resubmit with a specific interpersonal o");
   });
@@ -279,29 +291,27 @@ describe("#237 — the block carries the refusal, and no internal key", () => {
   test("(3) a value that DOES exceed the ceiling declares its cut", async () => {
     const huge = {
       ...EP_READ,
-      external_expression: { recommended_posture: "x".repeat(500), notes: "n" },
+      external_expression: { risk_if_unchanged: "x".repeat(500), notes: "n" },
     };
     await mount(huge);
-    expect((await screen.findByTestId("layer-recommended_posture")).textContent).toMatch(/…$/);
+    expect((await screen.findByTestId("layer-risk_if_unchanged")).textContent).toMatch(/…$/);
   });
 
-  test("★ (4) a list renders as a list, and nothing is dropped from it", async () => {
+  test("★ (4) counsel never lands on a member surface, as a list or otherwise", async () => {
     const four = {
       ...EP_READ,
       external_expression: {
+        counsel: { message_guidance: ["one", "two", "three", "four"], next_step: "five" },
         message_guidance: ["one", "two", "three", "four"],
         notes: "n",
       },
     };
     await mount(four);
-    const v = await screen.findByTestId("layer-message_guidance");
-    // a real list element, one item per line -- not a joined sentence
-    expect(v.tagName).toBe("UL");
-    expect(v.querySelectorAll("li")).toHaveLength(4);
-    // all four survive (the old renderer kept THREE and joined them with ", ")
-    for (const w of ["one", "two", "three", "four"]) {
-      expect(v).toHaveTextContent(w);
+    await screen.findByTestId("projection-card");
+    expect(screen.queryByTestId("layer-message_guidance")).toBeNull();
+    for (const w of ["one", "two", "three", "four", "five"]) {
+      expect(screen.queryByText(w)).toBeNull();
     }
-    expect(v.textContent).not.toMatch(/one, two/);
+    expect(screen.getByTestId("layer-risk_if_unchanged")).toHaveTextContent("—");
   });
 });

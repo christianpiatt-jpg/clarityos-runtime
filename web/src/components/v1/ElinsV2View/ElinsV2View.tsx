@@ -43,6 +43,12 @@ import { ApiError, type TrustSignal } from "../../../lib/api";
 import { labelFor } from "../../../lib/labels";
 import { tailByCodePoints } from "../../../lib/transcriptWindow";
 import { trustLine } from "../../../lib/trustSignal";
+// #305 / #307 -- the count words: n_points and the ring off the wire,
+// edges off L4, a stress intensity as hits.
+import {
+  DERIVED_FROM_STRESS_ONLY, NEEDS_PRIOR_READ, ONE_POINT_NO_TREND,
+  edgesOf, hasPrior, nPointsOf, ringOf, stressHits,
+} from "../../../lib/counts";
 import SendToCorpus from "./SendToCorpus";
 import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
 import styles from "./ElinsV2View.module.css";
@@ -222,6 +228,11 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const fcInstrument = fcVersion ? `elins ${fcVersion}` : labelFor("etf_table").instrument;
   // #110c -- no signal is a different KIND: the whole rail is one line.
   const noSignal = signature.no_signal === true;
+  // #307 E1 -- n off the wire only; #305 -- edges off L4; #303 A3 -- the ring.
+  const nPoints = nPointsOf(view);
+  const edges = edgesOf(view);
+  const ring = ringOf(view);
+  const engineLine = ring ? `engine: ${view.meta.engine} · ring: ${ring}` : `engine: ${view.meta.engine}`;
   // #184 -- the one reading a signal-less run can still carry: a domain hit.
   const noSignalDomain = (() => {
     const domain = obj(pipe.L3_domain);
@@ -273,7 +284,7 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   if (noSignal) {
     return (
       <section className={styles.root} aria-label="ELINS v2 view">
-        <Heading title="ELINS v2" subtitle={`engine: ${view.meta.engine}`} />
+        <Heading title="ELINS v2" subtitle={engineLine} />
         {/* #110c -- CT-1: no signal means NOTHING ELSE is a reading. One
             line, the instrument named, no numbers from a run that found
             none. #184 -- unless L3_domain scored a domain: then the line
@@ -303,7 +314,7 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
     <section className={styles.root} aria-label="ELINS v2 view">
       <Heading
         title="ELINS v2"
-        subtitle={`engine: ${view.meta.engine}`}
+        subtitle={engineLine}
       />
 
       <DomainBlock domain={obj(pipe.L3_domain)} />
@@ -316,13 +327,14 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
       <AttractorBlock
         distribution={outputs.state_distribution}
         attractor={outputs.attractor}
+        nPoints={nPoints}
       />
       <MathRail view={view} trust={trust} />
       <CollapseBlock collapse={outputs.collapse_state} />
-      <ForecastRow f5={obj(l8.forecast_5day)} engine={engine} instrument={fcInstrument} />
-      <P0P8Block grid={outputs.P0_P8} timeline={outputs.timeline} />
+      <ForecastRow f5={obj(l8.forecast_5day)} engine={engine} instrument={fcInstrument} nPoints={nPoints} edges={edges} />
+      <P0P8Block grid={outputs.P0_P8} timeline={outputs.timeline} edges={edges} />
       <GeographyBlock tier={outputs.geography_tier} />
-      <MultiplierBlock multiplier={outputs.multiplier} />
+      <MultiplierBlock multiplier={outputs.multiplier} edges={edges} />
       <Provenance view={view} sigVersion={sigVersion} fcVersion={fcVersion} />
 
       {actions}
@@ -430,6 +442,8 @@ function SignatureLine({ summary, instrument }: { summary: Obj; instrument: stri
   const tokens: Array<{ key: string; path: string; label: string; value: string }> = [
     { key: "signal", path: "pipeline.L10_signature.summary.signal", label: "signal", value: str(summary.signal) ?? DASH },
     { key: "trend", path: "pipeline.L10_signature.summary.trend", label: "trend", value: str(summary.trend) ?? DASH },
+    // #305 -- hits are a per-primitive reading (the rail rows); this token is
+    // the SUM over the four stress primitives and stays the number it is.
     { key: "stress_score", path: "pipeline.L10_signature.summary.stress_score", label: "stress", value: fmt(num(summary.stress_score)) },
     { key: "relief_score", path: "pipeline.L10_signature.summary.relief_score", label: "relief", value: fmt(num(summary.relief_score)) },
     {
@@ -518,11 +532,15 @@ function SurvivalTable({
 /** #180a (d) -- forecast_5day as one sparkline row; forecast_engine's
  *  envelopes folded beneath it. */
 function ForecastRow({
-  f5, engine, instrument,
+  f5, engine, instrument, nPoints = null, edges = null,
 }: {
   f5: Obj;
   engine: Obj;
   instrument: string;
+  /** #305 -- the forecast renders only at n >= 2; below it, one sentence. */
+  nPoints?: number | null;
+  /** #305 -- while edges == 0 the envelopes are derived from stress only. */
+  edges?: number | null;
 }) {
   const days = Array.isArray(f5.days) ? f5.days.map((d) => obj(d)) : [];
   const nets = days.map((d) => num(d.projected_net));
@@ -549,6 +567,14 @@ function ForecastRow({
   return (
     <div className={styles.section} data-testid="forecast-row">
       <Caption k="forecast_5day" path="pipeline.L8_temporal.forecast_5day" instrument={instrument} />
+      {!hasPrior(nPoints) ? (
+        // #305 -- standard_elins._layer_6_forecast_5day still computes its
+        // curve (untouched); a single point is not a trend, so nothing of
+        // it is drawn.
+        <div className={styles.subtle} data-testid="forecast-one-point" title="_meta.n_points">
+          {ONE_POINT_NO_TREND}
+        </div>
+      ) : (<>
       <div className={styles.forecastRow}>
         {path ? (
           <svg
@@ -587,9 +613,13 @@ function ForecastRow({
           );
         }) : <span>{DASH}</span>}
       </div>
+      </>)}
       <details className={styles.envelopes} data-testid="forecast-envelopes">
         <summary title="pipeline.L8_temporal.forecast_engine">
           {labelFor("forecast_engine").word}{" · "}{instrument}
+          {edges === 0 ? (
+            <span data-testid="env-stress-only" title="pipeline.L4_narrative.edge_count">{` · ${DERIVED_FROM_STRESS_ONLY}`}</span>
+          ) : null}
           {nDays !== null ? (
             <span title="pipeline.L8_temporal.forecast_engine.days" data-testid="env-days">{` · ${nDays} days`}</span>
           ) : null}
@@ -643,7 +673,7 @@ function EnvelopeLine({ name, path, value }: { name: string; path: string; value
   if (list) text = list.map((n) => n.toFixed(2)).join(" ");
   else if (value === null || value === undefined) text = DASH;
   else if (typeof value === "number" || typeof value === "string") text = String(value);
-  else if (Array.isArray(value)) text = `[${value.length}]`;
+  else if (Array.isArray(value)) text = DASH;   // #306 -- a list that is not numbers is a dash, never "[n]"
   else text = `{${Object.keys(obj(value)).length}}`;
   return (
     <div className={styles.envelopeRow} data-testid={`env-${name.replace(/\s+/g, "_")}`}>
@@ -754,7 +784,11 @@ function MathRail({ view, trust }: { view: ElinsV2Envelope; trust?: TrustSignal 
             <span className={styles.railKey} title={key}>{label}</span>
             {edges > 0 && intensity !== null ? (
               <>
-                <span className={styles.railVal}>{intensity.toFixed(3)}</span>
+                {/* #305 -- a STRESS intensity reads as hits ("k of 5 hits");
+                    the relief row (alignment) keeps its number. */}
+                <span className={styles.railVal} title={`intensity ${intensity.toFixed(3)}`}>
+                  {slug === "alignment" ? intensity.toFixed(3) : stressHits(intensity)}
+                </span>
                 <span className={styles.railNote}>
                   {edges} edge{edges === 1 ? "" : "s"}
                 </span>
@@ -787,10 +821,12 @@ function MathRail({ view, trust }: { view: ElinsV2Envelope; trust?: TrustSignal 
 }
 
 function AttractorBlock({
-  distribution, attractor,
+  distribution, attractor, nPoints = null,
 }: {
   distribution: Record<Attractor, number>;
   attractor: Attractor;
+  /** #307 E2 -- the four percentages render only at n >= 2 (n off the wire). */
+  nPoints?: number | null;
 }) {
   const states: Attractor[] = ["S1", "S2", "S3", "S4"];
   // ★★ THE SECOND CONSUMER. The tie-break shipped to PersonalElins in
@@ -804,6 +840,13 @@ function AttractorBlock({
   return (
     <div className={styles.section}>
       <div className={styles.sectionLabel} title="attractor">{labelFor("attractor").word}</div>
+      {!hasPrior(nPoints) ? (
+        // #307 E2 -- at a single read S1/S2 are structurally zero (B-2):
+        // the card says so instead of four percentages.
+        <div className={styles.subtle} data-testid="attractor-needs-prior" title="_meta.n_points">
+          {NEEDS_PRIOR_READ}
+        </div>
+      ) : (
       <div className={styles.attractorRow}>
         {states.map((s) => {
           // #185 -- a missing share is "—" and no bar, never a 0 that reads
@@ -836,6 +879,7 @@ function AttractorBlock({
           );
         })}
       </div>
+      )}
       {verdict.determinate ? (
         <div className={styles.subtle} data-testid="attractor-determinate">
           attractor: <strong>{verdict.state}</strong> ·{" "}
@@ -901,10 +945,12 @@ function TimelineDays({
 }
 
 function P0P8Block({
-  grid, timeline,
+  grid, timeline, edges = null,
 }: {
   grid: Record<PKey, number>;
   timeline?: ElinsV2Envelope["outputs"]["timeline"];
+  /** #305 -- while edges == 0 the grid derives from stress only. */
+  edges?: number | null;
 }) {
   const rows: Array<{
     label: string;
@@ -939,6 +985,9 @@ function P0P8Block({
   return (
     <div className={styles.section}>
       <Caption k="P0_P8" path="outputs.P0_P8" />
+      {edges === 0 ? (
+        <div className={styles.subtle} data-testid="pgrid-stress-only" title="pipeline.L4_narrative.edge_count">{DERIVED_FROM_STRESS_ONLY}</div>
+      ) : null}
       <div className={styles.pGrid} role="table" aria-label="P0 to P8 grid">
         <div className={styles.pGridHeader} role="row">
           <span />
@@ -1013,7 +1062,7 @@ function tierDescriptor(t: GeographyTier): string {
   }
 }
 
-function MultiplierBlock({ multiplier }: { multiplier: number }) {
+function MultiplierBlock({ multiplier, edges = null }: { multiplier: number; edges?: number | null }) {
   // #180a -- an absent or non-finite multiplier is a dash, not "1.00x": a
   // neutral multiplier is a reading the wire has to send.
   const m = num(multiplier);
@@ -1022,6 +1071,9 @@ function MultiplierBlock({ multiplier }: { multiplier: number }) {
     <div className={styles.section}>
       {/* #180a (g) -- the key in the title, the instrument in the caption. */}
       <Caption k="multiplier" path="outputs.multiplier" />
+      {edges === 0 ? (
+        <div className={styles.subtle} data-testid="multiplier-stress-only" title="pipeline.L4_narrative.edge_count">{DERIVED_FROM_STRESS_ONLY}</div>
+      ) : null}
       <div className={styles.multRow}>
         <span className={styles.multValue} data-testid="multiplier-value">
           {m === null ? DASH : `${m.toFixed(2)}×`}

@@ -84,6 +84,9 @@ export const LABELS: Readonly<Record<string, Label>> = {
   message_guidance:         { word: "what to say",              instrument: PHYSICS },
   friction_reduction_moves: { word: "moves that ease friction", instrument: PHYSICS },
   dominant_pattern:         { word: "the pattern",              instrument: PHYSICS },
+  // #303 A1 -- the PROJECTION, the one layer-4 field a member surface
+  // renders. ET-1's PROVISIONAL word, same rule as the three above.
+  risk_if_unchanged:        { word: "if nothing changes",       instrument: PHYSICS },
   // #185 -- the ELINS view's rail of the three measured layers; was captioned
   // "Math rail", an instrument's name. Provisional word, same rule.
   math_rail:                { word: "what's measured",          instrument: ELINS },

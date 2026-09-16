@@ -34,6 +34,7 @@ from .el_ins_store import (
     get_macro_el_ins,
     compute_thread_stability,
     compute_operator_summary,
+    scope_default,
     STABILITY_DEFAULT_WINDOW,
     _reset_for_tests,
 )
@@ -104,6 +105,7 @@ __all__ = [
     "get_macro_el_ins",
     "compute_thread_stability",
     "compute_operator_summary",
+    "scope_default",
     "STABILITY_DEFAULT_WINDOW",
     "build_json_export",
     "build_pdf_export",

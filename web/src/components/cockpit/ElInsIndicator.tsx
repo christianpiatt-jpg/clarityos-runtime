@@ -5,7 +5,9 @@
 // label with a tap-through to the full /operator/el_ins surface.
 //
 // Behaviour:
-//   - Fires getElInsRecent(1) on mount.
+//   - Reads ONE route on mount, /el_ins/operator/reasoning_mode (#290: the
+//     operator's default scope; the cockpit's selected thread is passed so
+//     that thread's on-demand analyses count while it is selected).
 //   - Renders a small card with: "Stability: Balanced" / "High-EL" /
 //     "High-INS", plus a tooltip with the latest stability_notes when
 //     present.
@@ -16,13 +18,13 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useCockpit } from "../../state/cockpitStore";
 import {
   getElInsAnomalies,
   getElInsReasoningMode,
-  getElInsRecent,
   getTimeline,
-  type ElInsRecord,
   type ElInsReasoningModeLabel,
+  type ElInsReasoningModeResponse,
 } from "../../lib/api";
 
 // v72 / Unit 80 — anomaly "new" window. The red dot fires when at
@@ -54,24 +56,30 @@ const MODE_LABELS: Record<string, string> = {
 };
 
 export default function ElInsIndicator() {
-  const [latest, setLatest] = useState<ElInsRecord | null>(null);
+  // #290 -- ONE route, the operator's default scope: a thread-tagged
+  // on-demand analysis is that thread's reading and does not move this
+  // badge unless the operator selects the thread. The route carries the
+  // record's classification beside the mode.
+  const [latest, setLatest] = useState<ElInsReasoningModeResponse | null>(null);
   const [reasoningMode, setReasoningMode] = useState<ElInsReasoningModeLabel | null>(null);
   const [hasRecentAnomaly, setHasRecentAnomaly] = useState(false);
   const [hasRecentTimelineEvent, setHasRecentTimelineEvent] = useState(false);
   const [hidden, setHidden] = useState(false);
+  // #290 -- "unless the operator selects that thread": the cockpit's active
+  // thread is the per-turn hook's own tag namespace, so it is the selection.
+  const activeThread = useCockpit((s) => s.thread.meta?.thread_id ?? null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [r, m, a, t] = await Promise.all([
-          getElInsRecent(1),
-          getElInsReasoningMode().catch(() => null),
+        const [m, a, t] = await Promise.all([
+          getElInsReasoningMode(activeThread).catch(() => null),
           getElInsAnomalies(20).catch(() => null),
           getTimeline(20).catch(() => null),
         ]);
         if (cancelled) return;
-        setLatest(r.records[0] ?? null);
+        setLatest(m);
         if (m) setReasoningMode(m.reasoning_mode);
         if (a) {
           const cutoff = Date.now() / 1000 - ANOMALY_NEW_WINDOW_SECONDS;
@@ -88,15 +96,15 @@ export default function ElInsIndicator() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [activeThread]);
 
   if (hidden) return null;
 
-  const cls = latest?.result?.analysis?.ratio_classification || null;
+  const cls = latest?.ratio_classification || null;
   const label = cls ? (LABELS[cls] || cls) : "—";
-  const tooltip = latest?.result?.stability_notes || (latest
-    ? `EL ${latest.result.analysis.el_score.toFixed(2)} · INS ${latest.result.analysis.ins_score.toFixed(2)}`
-    : "no EL/INS records yet");
+  const tooltip = latest && typeof latest.el === "number" && typeof latest.ins === "number"
+    ? `EL ${latest.el.toFixed(2)} · INS ${latest.ins.toFixed(2)}`
+    : "no EL/INS records yet";
   const modeLabel = reasoningMode ? (MODE_LABELS[reasoningMode] || reasoningMode) : null;
 
   return (
@@ -168,7 +176,8 @@ export default function ElInsIndicator() {
             letterSpacing: "0.5px",
           }}
         >
-          Reasoning Mode: {modeLabel}
+          {/* F -- the provider mode chosen for the next read, as such. */}
+          Provider mode: {modeLabel}
         </span>
       ) : null}
     </div>

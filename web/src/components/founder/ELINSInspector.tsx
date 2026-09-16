@@ -10,6 +10,20 @@ import {
 import ForecastPanel from "./forecast/ForecastPanel";
 import RegionalPanel from "./regional/RegionalPanel";
 
+/** #305 -- no_signal:true is ABSENCE: the signal, trend, top primitive and
+ *  the two scores read a dash, never 0 / "balanced". Every other key rides
+ *  through as sent. */
+export function synthesisView(syn: unknown): unknown {
+  if (!syn || typeof syn !== "object") return syn;
+  const s = syn as Record<string, unknown>;
+  if (s.no_signal !== true) return s;
+  const dashed: Record<string, unknown> = { ...s };
+  for (const k of ["signal", "trend", "top_primitive", "top_primitive_intensity", "stress_score", "relief_score"]) {
+    if (k in dashed) dashed[k] = "\u2014";
+  }
+  return dashed;
+}
+
 export default function ELINSInspector() {
   const [text, setText] = useState("");
   const [domainHint, setDomainHint] = useState("");
@@ -134,7 +148,7 @@ export default function ELINSInspector() {
       {obj && (
         <div style={{ marginTop: 12 }}>
           <h3 style={{ fontSize: 13, margin: "0 0 6px 0" }}>Synthesis</h3>
-          <pre style={preStyle}>{JSON.stringify(obj.synthesis, null, 2)}</pre>
+          <pre style={preStyle} data-testid="inspector-synthesis">{JSON.stringify(synthesisView(obj.synthesis), null, 2)}</pre>
           <h3 style={{ fontSize: 13, margin: "8px 0 6px 0" }}>Primitives</h3>
           <pre style={preStyle}>{JSON.stringify(obj.primitives.intensities, null, 2)}</pre>
           <h3 style={{ fontSize: 13, margin: "8px 0 6px 0" }}>5-day forecast</h3>

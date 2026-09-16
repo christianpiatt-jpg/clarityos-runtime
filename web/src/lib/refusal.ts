@@ -46,8 +46,9 @@ export interface Refusal {
   refused: boolean;
   /** The reason, in the declining layer's own words. Null when not refused. */
   reason: string | null;
-  /** Which layer declined — for the title attribute, never for prose. */
-  source: "physics" | "elins" | null;
+  /** Which layer declined — for the title attribute, never for prose.
+   *  "whose_field" (#303 A4): the door refused the run itself. */
+  source: "physics" | "elins" | "whose_field" | null;
 }
 
 const NOT_REFUSED: Refusal = { refused: false, reason: null, source: null };
@@ -140,6 +141,23 @@ export function elinsRefusal(elins: ElinsV2Envelope | null | undefined): Refusal
  * first because it is the layer above on the member's screen, and CT-1's rule
  * is that the reason appears in the same words that layer used.
  */
+/** #303 A4 -- THE DOOR REFUSED THE RUN: a personal run did not say whose
+ *  field it reads, or named the instrument's. The backend's fixed sentence
+ *  is the reason (it names no client word). Rendered in the #238 shape --
+ *  the panel exists, says why it is quiet, and nothing below it speaks. */
+export const WHOSE_FIELD_CODES = ["whose_field_required", "whose_field_refused"] as const;
+
+export function doorRefusal(e: unknown): Refusal | null {
+  const code = (e as { code?: unknown } | null)?.code;
+  if (typeof code !== "string" || !(WHOSE_FIELD_CODES as readonly string[]).includes(code)) return null;
+  const message = (e as { message?: unknown } | null)?.message;
+  return {
+    refused: true,
+    reason: typeof message === "string" && message.trim() ? message : code,
+    source: "whose_field",
+  };
+}
+
 export function sectionRefusal(
   ep: EmotionalPhysicsResponse | null | undefined,
   elins: ElinsV2Envelope | null | undefined,

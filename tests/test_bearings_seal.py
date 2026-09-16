@@ -272,7 +272,8 @@ def test_a_physics_run_with_a_thread_seals_five_strings_and_a_run_id_onto_its_tu
     h = _session("b_alice")
     tid = threads_vault.create_thread("b_alice", "rel", project_id="relationships")["thread_id"]
     r = client.post("/me/emotional_physics/analyze", headers=h,
-                    json={"text": "the ridge is contested and the pressure is rising", "thread_id": tid, "surface": "personal"})
+                    json={"text": "the ridge is contested and the pressure is rising", "thread_id": tid, "surface": "personal",
+                          "whose_field": "author"})   # #303 A4 -- a personal run names its field
     assert r.status_code == 200, r.text[:200]
     assert captured["temperature"] == 0.0                      # #109, on the wire
     run_id = r.json()["_meta"]["ts_ms"]

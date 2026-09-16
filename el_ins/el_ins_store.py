@@ -347,6 +347,25 @@ def get_macro_el_ins(
 
 
 # ---------------------------------------------------------------------------
+# #290 -- the operator's default scope. An on-demand analysis TAGGED with a
+# thread is that thread's reading, not the operator's: it is excluded from
+# the operator rollup and the cockpit indicator unless the operator
+# selects that thread. Per-turn (hook) records ride under the operator
+# always; an untagged on-demand record is the operator's own.
+# ---------------------------------------------------------------------------
+def scope_default(rows: list, thread_id: Optional[str] = None) -> list:
+    """Pure filter over rows already in hand, order preserved."""
+    sel = thread_id.strip() if isinstance(thread_id, str) and thread_id.strip() else None
+    out: list = []
+    for r in rows:
+        tag = r.get("thread_id")
+        if tag and r.get("source") == "on_demand" and tag != sel:
+            continue
+        out.append(r)
+    return out
+
+
+# ---------------------------------------------------------------------------
 # v70 / Unit 76 — Drift detection + Thread Stability Index
 # ---------------------------------------------------------------------------
 def _variance(xs: list[float]) -> float:

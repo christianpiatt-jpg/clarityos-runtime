@@ -65,7 +65,8 @@ describe("relationships.open() reads what the relationship saved", () => {
 
     await act(async () => { await cockpit.relationships.actions.open("r1"); });
     await act(async () => { await cockpit.personal.actions.run("seed text"); });
-    expect(api.runEmotionalPhysics).toHaveBeenCalledWith("seed text", "r1");
+    // #303 A4 -- the personal surface, and whose field (none chosen here)
+    expect(api.runEmotionalPhysics).toHaveBeenCalledWith("seed text", "r1", "personal", null);
     expect(result.current.ep).toBe(EP);
     expect(result.current.runs.r1?.ep).toBe(EP);
     // the run re-reads what the relationship saved (the count moves)

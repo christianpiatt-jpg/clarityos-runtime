@@ -808,7 +808,9 @@ def s_state_label(intensities: dict) -> Optional[str]:
 # --------------------------------------------------------------------------
 # The three-step record, as ONE callable
 # --------------------------------------------------------------------------
-def record_turn(user_id: str, thread_id: str, text: str) -> dict:
+def record_turn(
+    user_id: str, thread_id: str, text: str, *, whose_field: Optional[str] = None,
+) -> dict:
     """Read this turn, observe the PREVIOUS seal against it, then seal for
     the turn that does not exist yet.
 
@@ -838,6 +840,18 @@ def record_turn(user_id: str, thread_id: str, text: str) -> dict:
         next_turn_index(user_id, thread_id),
         persistence_expectation(read),
     )
+    # #303 A4 -- whose field the member said this run reads, on the turn it
+    # sealed. One token, guarded like every stored value; the key is
+    # OMITTED when the door carried none (never "" -- D5). The route has
+    # already refused anything outside its three words.
+    if isinstance(whose_field, str) and whose_field.strip():
+        tok = _reject_prose(whose_field.strip(), "whose_field")
+        with _RECORD_LOCK:
+            rec = memory_vault.vault_get(user_id, key)
+            if isinstance(rec, dict):
+                rec = dict(rec)
+                rec["whose_field"] = tok
+                memory_vault.vault_put(user_id, key, rec)
     return {"sealed_key": key, "observed_prior": observed}
 
 

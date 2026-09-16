@@ -205,7 +205,7 @@ class TestReasoningModeEndpoint:
     def test_shape_locked(self, client):
         el_ins.store_el_ins_record({
             "operator_id": "op_alice", "thread_id": "t1",
-            "timestamp": 1700000000.0, "source": "on_demand",
+            "timestamp": 1700000000.0, "source": "per_turn",   # #290 -- the hook's shape; on_demand+thread is the thread's
             "result": _mk("balanced", 2.0, 2.0),
         })
         r = client.get("/el_ins/operator/reasoning_mode", headers=_auth())
@@ -213,6 +213,7 @@ class TestReasoningModeEndpoint:
         body = r.json()
         assert set(body.keys()) == {
             "operator_id", "reasoning_mode", "el", "ins", "tsi", "timestamp",
+            "ratio_classification", "source", "thread_id",   # F -- the record beside the mode
         }
 
     def test_empty_history_returns_normal(self, client):
@@ -227,7 +228,7 @@ class TestReasoningModeEndpoint:
     def test_high_el_record_yields_grounding(self, client):
         el_ins.store_el_ins_record({
             "operator_id": "op_alice", "thread_id": "t1",
-            "timestamp": 1700000000.0, "source": "on_demand",
+            "timestamp": 1700000000.0, "source": "per_turn",   # #290 -- the hook's shape; on_demand+thread is the thread's
             "result": _mk("high_el", 8.0, 1.0),
         })
         # Single record → TSI 100 → "extended_reasoning" (TSI > 80 dominates).
@@ -244,7 +245,7 @@ class TestReasoningModeEndpoint:
         ]):
             el_ins.store_el_ins_record({
                 "operator_id": "op_alice", "thread_id": "t1",
-                "timestamp": float(1700000000 + i), "source": "on_demand",
+                "timestamp": float(1700000000 + i), "source": "per_turn",   # #290
                 "result": _mk(cls, el, 1.0),
             })
         r = client.get("/el_ins/operator/reasoning_mode", headers=_auth())
@@ -257,7 +258,7 @@ class TestReasoningModeEndpoint:
     def test_cross_operator_isolation(self, client):
         el_ins.store_el_ins_record({
             "operator_id": "op_bob", "thread_id": "t1",
-            "timestamp": 1700000000.0, "source": "on_demand",
+            "timestamp": 1700000000.0, "source": "per_turn",   # #290 -- the hook's shape; on_demand+thread is the thread's
             "result": _mk("high_el", 8.0, 1.0),
         })
         # Alice sees nothing.

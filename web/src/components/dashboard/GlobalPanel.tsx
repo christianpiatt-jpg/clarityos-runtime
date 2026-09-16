@@ -4,6 +4,20 @@
 
 import type { V38DashboardSection } from "../../lib/api";
 import { labelFor } from "../../lib/labels";
+import { ATTRACTOR_TIE_EPSILON } from "../../lib/attractor";
+
+/** #305 -- no signal reads a dash, never 0 / "balanced"; and (#284's rule,
+ *  the same 5-point epsilon) a top primitive within the epsilon of the next
+ *  is NOT named -- a tie names no winner. */
+export function topPrimitiveWord(section: V38DashboardSection): string {
+  if (section.no_signal === true) return "\u2014";
+  const tops = section.top_primitives || [];
+  const first = tops[0];
+  if (!first) return "\u2014";
+  const second = tops[1];
+  if (second && Math.abs(first.intensity - second.intensity) < ATTRACTOR_TIE_EPSILON) return "\u2014";
+  return first.key;
+}
 
 const PRIMITIVE_COLORS: Record<string, string> = {
   pressure:      "#ff7b72",
@@ -50,14 +64,16 @@ export default function GlobalPanel({ section }: GlobalPanelProps) {
       <div style={statsRowStyle}>
         {/* #180a (i) -- the literals carry their instrument (labels.ts) and
             the snapshot key rides in the title. */}
-        <Stat k="ep_mean" path="snapshot.global.ep_mean" value={section.ep_mean.toFixed(3)} />
-        <Stat k="top_primitive" path="snapshot.global.top_primitives[0].key" value={section.top_primitives[0]?.key || "—"} />
+        <Stat k="ep_mean" path="snapshot.global.ep_mean" value={section.no_signal === true ? "—" : section.ep_mean.toFixed(3)} />
+        <Stat k="top_primitive" path="snapshot.global.top_primitives[0].key" value={topPrimitiveWord(section)} />
         <Stat k="forecast_horizon" path="snapshot.global.forecast" value={`${section.forecast.length} days`} />
       </div>
 
       <h3 style={subHeader}>Top primitives</h3>
       <div>
-        {section.top_primitives.map((p) => (
+        {section.no_signal === true ? (
+          <div style={mutedStyle} data-testid="global-no-signal" title="snapshot.global.no_signal">—</div>
+        ) : section.top_primitives.map((p) => (
           <div key={p.key} style={{ marginBottom: 4 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
               <span style={{ color: "var(--os-text-secondary, #A0A0A0)" }} title="snapshot.global.top_primitives[].key">{p.key}</span>

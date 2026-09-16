@@ -37,6 +37,7 @@ import {
   getRelationshipTurns,
   postThreadMessage,
   summarizeThread,
+  type WhoseField,
   renameThread,
   deleteThread,
   type ThreadMeta,
@@ -54,7 +55,24 @@ type ThreadStatus = "loading" | "ready" | "sending" | "error";
 
 /** ★ A VIEW SWITCH, not a route and not a tab. The cockpit chrome stays;
  *  only the centre and right columns change what they render. */
+import { doorRefusal, type Refusal } from "../lib/refusal";
+
 export type CockpitView = "thread" | "personal";
+
+/** #304 -- mirrors app.py _SUMMARY_RECENT_WINDOW_MS: a summary younger
+ *  than this is served from cache unless the press says force. The
+ *  SECOND press inside the window therefore sends force:true ("re-summarise
+ *  now"); the first press on an older summary sends none. */
+export const SUMMARY_RECENT_WINDOW_MS = 10 * 60 * 1000;
+
+export function isSummaryRecent(
+  meta: { summary?: string | null; summary_ts_ms?: number | null } | null | undefined,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!meta || !meta.summary) return false;
+  const ts = meta.summary_ts_ms;
+  return typeof ts === "number" && Number.isFinite(ts) && nowMs - ts < SUMMARY_RECENT_WINDOW_MS;
+}
 
 const PERSONAL_DEFAULT_SEED =
   "Personal current state — open snapshot for analysis.";
@@ -126,6 +144,12 @@ export interface CockpitState {
     /** #23 W2 -- every run kept by relationship id ("" = none). ep /
      *  elins / lastRunTs above always mirror runs[activeId ?? ""]. */
     runs: Record<string, PersonalRun>;
+    /** #303 A4 -- whose field the next personal run reads, member-chosen;
+     *  "" until chosen (the door refuses a run that does not say). */
+    whoseField: WhoseField | "";
+    /** #303 A4 -- the door's refusal of the last run, in the #238 shape;
+     *  null when the last run was accepted. */
+    refusal: Refusal | null;
   };
   thread: {
     status: ThreadStatus;
@@ -171,7 +195,7 @@ function initialState(): CockpitState {
     },
     personal: {
       seed: PERSONAL_DEFAULT_SEED, status: "idle", ep: null, elins: null,
-      lastRunTs: null, error: null, runs: {},
+      lastRunTs: null, error: null, runs: {}, whoseField: "", refusal: null,
     },
     thread: {
       status: "loading", meta: null, items: [], messages: [], error: null,
@@ -384,6 +408,7 @@ const personalSlice = {
   },
   actions: {
     setSeed(seed: string): void { setSlice("personal", { seed }); },
+    setWhoseField(whoseField: WhoseField | ""): void { setSlice("personal", { whoseField }); },
 
     /** Run the pair. Mirrors routes/PersonalElins.tsx:52-70 exactly: the
      *  physics call is fatal to the run, the ELINS v2 call is NOT -- its
@@ -398,12 +423,14 @@ const personalSlice = {
       // was the same subject as run 1. Null when none is selected, and
       // then both calls send the bodies they always sent.
       const rel = current.relationships.activeId;
-      setSlice("personal", { status: "loading", error: null });
+      // #303 A4 -- the run carries whose field it reads; the door decides.
+      const whose = current.personal.whoseField || null;
+      setSlice("personal", { status: "loading", error: null, refusal: null });
       try {
-        const ep = await runEmotionalPhysics(seed, rel);
+        const ep = await runEmotionalPhysics(seed, rel, "personal", whose);
         let elins: ApiElinsV2Envelope | null = null;
         try {
-          elins = await runElinsV2(seed, null, rel);
+          elins = await runElinsV2(seed, null, rel, "personal", whose);
         } catch {
           elins = null;   // non-fatal, same as the route
         }
@@ -425,6 +452,13 @@ const personalSlice = {
         // so the header count moves without a re-click.
         if (rel) void loadRelationshipDetail(rel);
       } catch (e) {
+        // #303 A4 -- the door refused: the #238 shape, not an error banner.
+        // Nothing ran, so nothing is kept under the relationship.
+        const door = doorRefusal(e);
+        if (door) {
+          setSlice("personal", { status: "ready", ep: null, elins: null, refusal: door });
+          return;
+        }
         setSlice("personal", { status: "error", error: errMessage(e) });
       }
     },
@@ -628,7 +662,9 @@ const threadSlice = {
       setSlice("thread", { busy: true, error: null });
       try {
         // A (#180b 4): /summarize's meta.* replace thread.meta whole (see send).
-        setSlice("thread", { meta: await summarizeThread(meta.thread_id) });
+        // #304 -- a second press inside 10 minutes sends force:true
+        // ("re-summarise now"); otherwise the server's recency skip stands.
+        setSlice("thread", { meta: await summarizeThread(meta.thread_id, isSummaryRecent(meta)) });
       } catch (e) {
         setSlice("thread", { error: errMessage(e) });
       } finally {

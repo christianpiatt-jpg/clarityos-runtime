@@ -13439,6 +13439,15 @@ class V47ThreadMetaModel(BaseModel):
     # #190 passenger -- the message_count the summary was made at (turns,
     # never a clock). None on rows that predate the stamp.
     summary_turn: Optional[int] = None
+    # #304 -- the model that wrote the summary and the window it read;
+    # None on rows that predate the stamp. The box line reads
+    # "last <window_chars> of <total_chars> -- messages a-b of c . model X".
+    summary_model_id: Optional[str] = None
+    summary_window_chars: Optional[int] = None
+    summary_total_chars: Optional[int] = None
+    summary_total_messages: Optional[int] = None
+    summary_window_first_message: Optional[int] = None
+    summary_window_last_message: Optional[int] = None
     # v51 — project membership. ``None`` for threads not tied to
     # any project (existing v47-v50 threads remain valid). Set at
     # creation via ``POST /me/threads`` body and surfaced on every
@@ -13573,6 +13582,16 @@ def _meta_to_model(meta: dict) -> V47ThreadMetaModel:
             if isinstance(meta.get("summary_turn"), int) and not isinstance(meta.get("summary_turn"), bool)
             else None
         ),
+        # #304 -- stored by threads_vault, read as stored (None when absent).
+        summary_model_id=(
+            meta.get("summary_model_id")
+            if isinstance(meta.get("summary_model_id"), str) and meta.get("summary_model_id").strip()
+            else None
+        ),
+        **{
+            k: (meta.get(k) if isinstance(meta.get(k), int) and not isinstance(meta.get(k), bool) else None)
+            for k in threads_vault.SUMMARY_WINDOW_KEYS
+        },
         project_id=project_id_val,
     )
 
@@ -14720,7 +14739,94 @@ def me_regression_first_replay(
 # ---------------------------------------------------------------------
 # The relationship key -- what makes a run ADDRESSABLE
 # ---------------------------------------------------------------------
-def _record_run_against_thread(user: str, thread_id, text: str) -> Optional[str]:
+# ---------------------------------------------------------------------
+# #303 A4 -- WHOSE FIELD a personal run reads. Member-chosen, stored on
+# the turn, rendered in the title. A personal run that does not say is
+# refused before anything is recorded or called; "instrument" is a word
+# the member may choose and the door refuses (the instrument's field is
+# not a member's to run). A refusal names no client string: three fixed
+# sentences, never the word that was sent. The thread panel carries no
+# whose_field (it carries no thread_id either, until #113) and is not
+# asked for one.
+# ---------------------------------------------------------------------
+WHOSE_FIELD_MEMBER: tuple = ("author", "addressee", "observer")
+WHOSE_FIELD_INSTRUMENT: str = "instrument"
+WHOSE_FIELD_REQUIRED_MSG: str = (
+    "a personal run names whose field it reads: author, addressee or observer"
+)
+WHOSE_FIELD_INSTRUMENT_MSG: str = "the instrument's field is not a member's to run"
+# #237 rule: no internal key on glass -- an unknown word gets the same
+# sentence as an absent one; the code (whose_field_refused) tells them apart.
+WHOSE_FIELD_UNKNOWN_MSG: str = WHOSE_FIELD_REQUIRED_MSG
+
+
+def _require_whose_field(surface: Optional[str], whose_field) -> Optional[str]:
+    """The token for a personal run; None on any other surface."""
+    if surface != "personal":
+        return None
+    tok = whose_field.strip().lower() if isinstance(whose_field, str) else ""
+    if not tok:
+        raise HTTPException(
+            status_code=400,
+            detail=error_response("whose_field_required", WHOSE_FIELD_REQUIRED_MSG),
+        )
+    if tok == WHOSE_FIELD_INSTRUMENT:
+        raise HTTPException(
+            status_code=400,
+            detail=error_response("whose_field_refused", WHOSE_FIELD_INSTRUMENT_MSG),
+        )
+    if tok not in WHOSE_FIELD_MEMBER:
+        raise HTTPException(
+            status_code=400,
+            detail=error_response("whose_field_refused", WHOSE_FIELD_UNKNOWN_MSG),
+        )
+    return tok
+
+
+def _member_names(user: str, thread_id) -> list:
+    """#303 A5 -- the member name list a physics run's prose is scrubbed
+    against: the account's local part (the address itself is caught by the
+    e-mail rule) and the relationship's title AS ONE PHRASE, when the run
+    names one the member owns. Never the title's words one by one: a
+    refuter showed "the high road" would turn every "the" in the notes and
+    the bearing "high" into "[name]". Assembled per request; never logged,
+    never returned."""
+    names: list = []
+    local = (user or "").split("@", 1)[0].strip()
+    if local:
+        names.append(local)
+    if isinstance(thread_id, str) and thread_id.strip():
+        try:
+            title = threads_vault.get_thread_meta(user, thread_id.strip()).get("title") or ""
+        except Exception:
+            title = ""
+        if isinstance(title, str) and title.strip():
+            names.append(title.strip())
+    return names
+
+
+def _n_points(user: str, thread_id, surface: Optional[str]) -> int:
+    """#307 E1 -- the S-card's n, on the wire. Personal surface with a
+    relationship the member owns: ``scored_turns`` from the same function
+    /me/relationships/{id}/turns serves (a point is a scored turn; a
+    direction needs two). Anywhere else 1 -- a single read, said honestly
+    (the cockpit thread carries no thread_id until #113)."""
+    if surface != "personal" or not isinstance(thread_id, str) or not thread_id.strip():
+        return 1
+    tid = thread_id.strip()
+    try:
+        threads_vault.get_thread_meta(user, tid)          # ownership gate
+    except Exception:
+        return 1
+    try:
+        return int(turn_record.trust_signal(user, tid).get("scored_turns") or 0)
+    except Exception:
+        return 1
+
+
+def _record_run_against_thread(
+    user: str, thread_id, text: str, whose_field: Optional[str] = None,
+) -> Optional[str]:
     """Put a standalone run on the recorded path when it names a thread.
 
     *** OPTIONAL BY CONSTRUCTION. A request without ``thread_id`` returns
@@ -14749,7 +14855,7 @@ def _record_run_against_thread(user: str, thread_id, text: str) -> Optional[str]
         # #114 -- the sealed key comes back so a physics run can seal its
         # bearings onto ITS OWN turn after the model answers. None on every
         # path that recorded nothing.
-        return turn_record.record_turn(user, tid, text)["sealed_key"]
+        return turn_record.record_turn(user, tid, text, whose_field=whose_field)["sealed_key"]
     except Exception as exc:
         # No identifiers in the log (INV-H1): the error locates the
         # fault, the member does not need to be in it to do that.
@@ -14908,6 +15014,10 @@ class V52EmotionalPhysicsRequest(BaseModel):
     # StrictInt: a bool or a numeric string is refused at the door (422),
     # not coerced into a plausible offset.
     message_boundaries: Optional[list[StrictInt]] = None
+    # #303 A4 -- whose field this run reads: author | addressee | observer,
+    # member-chosen. Required on the personal surface (absent -> 400);
+    # "instrument" -> 400; ignored on the thread surface.
+    whose_field: Optional[str] = None
 
 
 @app.post("/me/emotional_physics/analyze")
@@ -14941,12 +15051,18 @@ def me_emotional_physics_analyze(
     window_text, _window = intelligence_kernel.cut_window(
         text, req.surface, req.message_boundaries,
     )
-    sealed_key = _record_run_against_thread(user, req.thread_id, window_text)
+    # #303 A4 -- a personal run says whose field it reads, or it is refused
+    # here, before the turn is recorded and before the model is called.
+    whose_field = _require_whose_field(req.surface, req.whose_field)
+    sealed_key = _record_run_against_thread(
+        user, req.thread_id, window_text, whose_field=whose_field,
+    )
 
     try:
         out = intelligence_kernel.run_emotional_physics(
             user, text,
             surface=req.surface, message_boundaries=req.message_boundaries,
+            member_names=_member_names(user, req.thread_id),   # #303 A5
         )
     except ValueError as e:
         raise HTTPException(
@@ -15009,6 +15125,9 @@ class V53ElinsV2Request(BaseModel):
     # helper serves both routes.
     surface: Literal["personal", "thread"] = "thread"
     message_boundaries: Optional[list[StrictInt]] = None
+    # #303 A4 -- the same word the physics half carries; one personal run,
+    # one field, on both turns it records.
+    whose_field: Optional[str] = None
 
 
 @app.post("/elins/v2/run")
@@ -15058,7 +15177,8 @@ def elins_v2_run(
                 % window["window_chars"],
             ),
         )
-    _record_run_against_thread(user, req.thread_id, window_text)
+    whose_field = _require_whose_field(req.surface, req.whose_field)   # #303 A4
+    _record_run_against_thread(user, req.thread_id, window_text, whose_field=whose_field)
 
     try:
         envelope = intelligence_kernel.run_elins_v2(
@@ -15072,6 +15192,10 @@ def elins_v2_run(
             detail=error_response("bad_input", str(e)),
         )
     envelope["_meta"] = dict(window)
+    # #303 A3 -- the counters counted: the event ring. #307 E1 -- the
+    # S-card's n, from the relationship's scored turns (1 without one).
+    envelope["_meta"]["ring"] = intelligence_kernel.RING_EVENT
+    envelope["_meta"]["n_points"] = _n_points(user, req.thread_id, req.surface)
     return envelope
 
 

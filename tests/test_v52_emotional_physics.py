@@ -365,7 +365,7 @@ def test_endpoint_analyze_happy_path(app_module, client, monkeypatch):
     assert r.status_code == 200, r.json()
     body = r.json()
     assert body["field_curvature"]["intensity"] == "medium"
-    assert body["external_expression"]["next_step"]
+    assert body["external_expression"]["counsel"]["next_step"]   # #303 A2 -- counsel folded, kept
     assert body["_meta"]["model_id"] == "anthropic:claude-haiku-4-5-20251001"
     assert body["_meta"]["parse_error"] is None
 

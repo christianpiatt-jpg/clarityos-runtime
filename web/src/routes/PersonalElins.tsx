@@ -10,7 +10,7 @@
 //
 // ``insights={null}`` drops the v1 grid to 2 columns (no insights pane).
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ApiError,
@@ -19,11 +19,17 @@ import {
   type ElinsV2Envelope,
   type EmotionalPhysicsResponse,
   type RelationalPrimitives,
+  WHOSE_FIELDS,
+  type WhoseField,
 } from "../lib/api";
 import { useCockpit } from "../state/cockpitStore";
 import { bearingRows, stopMark } from "../lib/bearings";
 // #238 -- the ONE reading of "a layer above declined".
-import { sectionRefusal, physicsRefusal, type Refusal } from "../lib/refusal";
+import { sectionRefusal, physicsRefusal, doorRefusal, type Refusal } from "../lib/refusal";
+// #305 / #307 -- the count words: n_points off the wire, edges, hits.
+import {
+  DERIVED_FROM_STRESS_ONLY, NEEDS_PRIOR_READ, edgesOf, hasPrior, nPointsOf, ringOf, sealedAtTurn,
+} from "../lib/counts";
 import { labelFor, hasLabel } from "../lib/labels";
 import {
   getAuthSnapshot,
@@ -49,6 +55,11 @@ export default function PersonalElins() {
   const navigate = useNavigate();
 
   const [seed, setSeed] = useState<string>(DEFAULT_SEED);
+  // #303 A4 -- whose field the run reads, member-chosen; "" until chosen.
+  const [whoseField, setWhoseField] = useState<WhoseField | "">("");
+  // #303 A4 -- the door's refusal of the last run, in the #238 shape.
+  const [refusal, setRefusal] = useState<Refusal | null>(null);
+  const firstRun = useRef(false);
   const [ep, setEp] = useState<EmotionalPhysicsResponse | null>(null);
   const [elins, setElins] = useState<ElinsV2Envelope | null>(null);
   const [lastRunTs, setLastRunTs] = useState<number | null>(null);
@@ -60,14 +71,16 @@ export default function PersonalElins() {
   // member had selected. The store is the app's one selection; read it.
   const relationshipId = useCockpit((s) => s.relationships.activeId);
 
-  const run = useCallback(async (text: string, rel: string | null) => {
+  const run = useCallback(async (text: string, rel: string | null, whose: WhoseField | "") => {
     setLoading(true);
     setError(null);
+    setRefusal(null);
     try {
-      const epRes = await runEmotionalPhysics(text, rel);
+      // #303 A4 -- the run carries whose field it reads; the door decides.
+      const epRes = await runEmotionalPhysics(text, rel, "personal", whose || null);
       setEp(epRes);
       try {
-        const elinsRes = await runElinsV2(text, null, rel);
+        const elinsRes = await runElinsV2(text, null, rel, "personal", whose || null);
         setElins(elinsRes);
       } catch {
         // ELINS v2 failure is non-fatal — leave panel empty.
@@ -75,6 +88,15 @@ export default function PersonalElins() {
       }
       setLastRunTs(Date.now());
     } catch (e) {
+      // #303 A4 -- the door refused: the #238 shape in section 1, nothing
+      // below it speaks, and no red banner.
+      const door = doorRefusal(e);
+      if (door) {
+        setRefusal(door);
+        setEp(null);
+        setElins(null);
+        return;
+      }
       setError(e instanceof ApiError ? e.message : String(e));
     } finally {
       setLoading(false);
@@ -82,16 +104,22 @@ export default function PersonalElins() {
   }, []);
 
   useEffect(() => {
-    // The mount run is the DEFAULT seed -- boilerplate, not the member's
-    // text about anyone -- so it is never recorded against a relationship.
-    // Re-run carries the selected relationship: a run on it saves a turn.
-    void run(DEFAULT_SEED, null);
+    // #303 A4 -- a personal run needs a field, and a run without one is
+    // refused by construction, so the surface no longer knocks at mount
+    // (a refuter's catch: every visit fired a doomed request and opened on
+    // the refusal). The FIRST choice of a field runs the DEFAULT seed once
+    // -- boilerplate, not the member's text about anyone, so never recorded
+    // against a relationship -- the same first reading the mount used to
+    // give. Re-run carries the seed and the selected relationship.
+    if (!whoseField || firstRun.current) return;
+    firstRun.current = true;
+    void run(DEFAULT_SEED, null, whoseField);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [whoseField]);
 
   const onReRun = useCallback(() => {
-    void run(seed, relationshipId);
-  }, [run, seed, relationshipId]);
+    void run(seed, relationshipId, whoseField);
+  }, [run, seed, relationshipId, whoseField]);
 
   const onNavigate = useCallback((label: string) => {
     // ★ THE MISSING EDGE. /threads and /personal-elins each own the full
@@ -154,6 +182,9 @@ export default function PersonalElins() {
           ep={ep}
           elins={elins}
           relationshipId={relationshipId}
+          whoseField={whoseField}
+          onWhoseFieldChange={setWhoseField}
+          refusal={refusal}
         />
       }
       insights={null}
@@ -175,10 +206,15 @@ interface ViewProps {
   elins: ElinsV2Envelope | null;
   /** #162 (c) -- the relationship a Re-run saves a turn under. */
   relationshipId?: string | null;
+  /** #303 A4 -- whose field the run reads, and the door's refusal. */
+  whoseField?: WhoseField | "";
+  onWhoseFieldChange?: (w: WhoseField | "") => void;
+  refusal?: Refusal | null;
 }
 
 function PersonalElinsView({
   seed, onSeedChange, onReRun, lastRunTs, loading, error, ep, elins, relationshipId,
+  whoseField, onWhoseFieldChange, refusal,
 }: ViewProps) {
   return (
     <div
@@ -238,9 +274,11 @@ function PersonalElinsView({
         onSeedChange={onSeedChange}
         onReRun={onReRun}
         loading={loading}
+        whoseField={whoseField}
+        onWhoseFieldChange={onWhoseFieldChange}
       />
 
-      <SectionEmotionalPhysics ep={ep} />
+      <SectionEmotionalPhysics ep={ep} refusal={refusal} whoseField={whoseField} />
       <SectionAttractor elins={elins} />
       <SectionCollapseRisk elins={elins} ep={ep} />
       <SectionFieldWeather elins={elins} ep={ep} />
@@ -254,12 +292,16 @@ function PersonalElinsView({
  *  cockpit view renders the SAME control rather than a second copy --
  *  a second copy is the vocabulary drift this build exists to stop. */
 export function SeedComposer({
-  seed, onSeedChange, onReRun, loading,
+  seed, onSeedChange, onReRun, loading, whoseField, onWhoseFieldChange,
 }: {
   seed: string;
   onSeedChange: (s: string) => void;
   onReRun: () => void;
   loading: boolean;
+  /** #303 A4 -- whose field the run reads. Member-chosen here; the door
+   *  refuses a run that does not say, and refuses "instrument". */
+  whoseField?: WhoseField | "";
+  onWhoseFieldChange?: (w: WhoseField | "") => void;
 }) {
   return (
     <div>
@@ -326,6 +368,34 @@ export function SeedComposer({
           </span>
         ) : null}
       </div>
+      {/* #303 A4 -- whose field. The member chooses; nothing is defaulted
+          (an unchosen field is refused by the door, in the #238 shape). */}
+      {onWhoseFieldChange ? (
+        <div style={{ marginTop: 8 }}>
+          <label
+            htmlFor="whose-field"
+            style={{
+              fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-text-secondary)",
+              textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4,
+            }}
+          >Whose field</label>
+          <select
+            id="whose-field"
+            data-testid="whose-field"
+            value={whoseField ?? ""}
+            onChange={(e) => onWhoseFieldChange(e.target.value as WhoseField | "")}
+            title="whose_field"
+            style={{
+              background: "var(--color-bg-surface-alt)", color: "var(--color-text-primary)",
+              fontFamily: "var(--font-mono)", fontSize: 12, border: "1px solid var(--color-text-secondary)",
+              borderRadius: "var(--radius-small)", padding: "4px 8px",
+            }}
+          >
+            <option value="">— choose —</option>
+            {WHOSE_FIELDS.map((w) => <option key={w} value={w}>{w}</option>)}
+          </select>
+        </div>
+      ) : null}
       <div style={{ marginTop: 8 }}>
         <button
           type="button"
@@ -350,13 +420,34 @@ export function SeedComposer({
   );
 }
 
-export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse | null }) {
+/** #303 A1 -- THE RENDER IS A MAP AND A PROJECTION. The map is the three
+ *  readings of the input (field curvature, edge pressure, the five
+ *  bearings); the projection is ONE field, risk_if_unchanged. Counsel --
+ *  what to say, the moves, the next step -- is not rendered on a member
+ *  surface (it stays on the wire under external_expression.counsel for
+ *  router contracts). The block is stamped with the turn the kernel's
+ *  window sealed at (_meta.window_last_message; a dash when the wire
+ *  carries none -- no date is parsed), the model line names the ring
+ *  (A3), and the field the member chose rides in the title (A4). */
+export function SectionEmotionalPhysics({ ep, refusal, whoseField }: {
+  ep: EmotionalPhysicsResponse | null;
+  /** #303 A4 -- the door's refusal, rendered in the #238 shape. */
+  refusal?: Refusal | null;
+  whoseField?: WhoseField | "";
+}) {
   // #162 (b) / #196 -- ONLY a reply the ONE backend vocabulary classed
   // as "cut"; "normal" and "unknown" both render nothing.
   const stopped = stopMark(ep?._meta?.stop_reason, ep?._meta?.stop_class);
+  const modelId = typeof ep?._meta?.model_id === "string" ? ep._meta.model_id : null;
+  const ring = ringOf(ep);
   return (
     <section data-testid="section-emotional-physics">
-      <SectionHeader>1. Emotional Physics</SectionHeader>
+      <SectionHeader>
+        <span data-testid="physics-title">
+          {/* the ACCEPTED field: the one stored on the turn, never a word the door refused */}
+          1. Emotional Physics{whoseField && ep && !refusal?.refused ? <span title="whose_field">{` · field: ${whoseField}`}</span> : null}
+        </span>
+      </SectionHeader>
       {stopped ? (
         <div
           role="status"
@@ -366,27 +457,63 @@ export function SectionEmotionalPhysics({ ep }: { ep: EmotionalPhysicsResponse |
           stopped early: {stopped}
         </div>
       ) : null}
-      {!ep ? (
+      {refusal?.refused ? (
+        <RefusalLine refusal={refusal} testId="physics-refusal" />
+      ) : !ep ? (
         <Muted>Awaiting first run…</Muted>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <LayerCard label="Field curvature" body={ep.field_curvature} hideUnnamed />
-          <LayerCard label="Edge pressure" body={ep.edge_pressure} hideUnnamed />
-          {/* #162 (a) -- five NAMED bearings; LayerCard's first-four slice
-              used to drop the fifth. */}
-          <BearingsCard rp={ep.relational_primitives} />
-          {/* #237 (1) -- under a decline this card carries the refusal,
-              not guidance. The other three cards are readings of the
-              input and stay as they are. */}
-          <LayerCard
-            label="External expression"
-            body={ep.external_expression}
-            refusal={physicsRefusal(ep)}
-            hideUnnamed
-          />
-        </div>
+        <>
+          <div
+            data-testid="physics-model-line"
+            title="_meta.model_id · _meta.ring · _meta.window_last_message"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 6 }}
+          >
+            model {modelId ?? "\u2014"} · ring {ring ?? "\u2014"} · {sealedAtTurn(ep._meta?.window_last_message)}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <LayerCard label="Field curvature" body={ep.field_curvature} hideUnnamed />
+            <LayerCard label="Edge pressure" body={ep.edge_pressure} hideUnnamed />
+            {/* #162 (a) -- five NAMED bearings; LayerCard's first-four slice
+                used to drop the fifth. */}
+            <BearingsCard rp={ep.relational_primitives} />
+            {/* #237 (1) -- under a decline this card carries the refusal,
+                not guidance. #303 A1 -- otherwise it is the PROJECTION:
+                risk_if_unchanged and nothing else. */}
+            <ProjectionCard body={ep.external_expression} refusal={physicsRefusal(ep)} />
+          </div>
+        </>
       )}
     </section>
+  );
+}
+
+/** #303 A1 -- the projection card: ONE field. Counsel is never read here. */
+function ProjectionCard({ body, refusal }: { body: Record<string, unknown>; refusal: Refusal }) {
+  const risk = body && typeof body.risk_if_unchanged === "string" && body.risk_if_unchanged.trim()
+    ? body.risk_if_unchanged.trim() : null;
+  return (
+    <div
+      data-testid="projection-card"
+      style={{ border: "1px solid rgba(20, 24, 28, 0.12)", background: "var(--color-bg-surface)", padding: 10 }}
+    >
+      <div style={{
+        fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-text-secondary)",
+        textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6,
+      }}>Projection</div>
+      {refusal.refused ? (
+        <div role="status" data-testid="layer-refusal" style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
+          {refusal.reason}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.4 }}>
+          <span title="risk_if_unchanged" style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-secondary)" }}>
+            {labelFor("risk_if_unchanged").word}
+          </span>
+          {": "}
+          <span data-testid="layer-risk_if_unchanged">{risk ? renderValue(risk) : "\u2014"}</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -480,18 +607,31 @@ export function SectionAttractor({ elins }: { elins: ElinsV2Envelope | null }) {
               </div>
             );
           })()}
-          <div style={{
-            display: "flex",
-            gap: 12,
-            marginTop: 10,
-            fontFamily: "var(--font-mono)",
-            fontSize: 12,
-            color: "var(--color-text-secondary)",
-          }}>
-            {(["S1", "S2", "S3", "S4"] as const).map((s) => (
-              <span key={s}>{s}: {fmtPct(elins.outputs.state_distribution?.[s])}</span>
-            ))}
-          </div>
+          {/* #307 E2 -- the four percentages render only at n >= 2; at a
+              single read S1/S2 are structurally zero (B-2) and the card says
+              so instead of printing them. n comes off the wire (E1) only. */}
+          {hasPrior(nPointsOf(elins)) ? (
+            <div style={{
+              display: "flex",
+              gap: 12,
+              marginTop: 10,
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: "var(--color-text-secondary)",
+            }} data-testid="attractor-shares">
+              {(["S1", "S2", "S3", "S4"] as const).map((s) => (
+                <span key={s}>{s}: {fmtPct(elins.outputs.state_distribution?.[s])}</span>
+              ))}
+            </div>
+          ) : (
+            <div
+              data-testid="attractor-needs-prior"
+              title="_meta.n_points"
+              style={{ marginTop: 10, fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-secondary)" }}
+            >
+              {NEEDS_PRIOR_READ}
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -534,6 +674,17 @@ export function SectionCollapseRisk(
           }}
         >
           Independent risks — each is its own probability. These do not sum to 100%.
+        </div>
+      ) : null}
+      {/* #305 -- while the causal chain has no edge the cells derive from
+          the stress intensities alone, and say so. */}
+      {!refusal.refused && elins && edgesOf(elins) === 0 ? (
+        <div
+          data-testid="collapse-risk-stress-only"
+          title="pipeline.L4_narrative.edge_count"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-text-secondary)", marginBottom: 6 }}
+        >
+          {DERIVED_FROM_STRESS_ONLY}
         </div>
       ) : null}
       {refusal.refused ? (
@@ -588,7 +739,7 @@ export function SectionFieldWeather(
           color: "var(--color-text-primary)",
           lineHeight: 1.5,
         }}>
-          {deriveFieldWeather(elins)}
+          {deriveFieldWeather(elins, nPointsOf(elins))}
         </div>
       )}
     </section>
@@ -848,30 +999,35 @@ function attractorReading(a: "S1" | "S2" | "S3" | "S4"): string {
   }
 }
 
-function deriveFieldWeather(elins: ElinsV2Envelope | null): string {
+/** #305 -- until a prior read exists (n_points >= 2) the weather sentence
+ *  DROPS ITS VERB: a single read can name a state, not a motion. */
+function deriveFieldWeather(elins: ElinsV2Envelope | null, nPoints: number | null = null): string {
   if (!elins) return "Awaiting deeper analysis…";
   const { attractor, collapse_state, multiplier } = elins.outputs;
+  const prior = hasPrior(nPoints);
   // ★ The same tie applies here. "Field is calm" on a level distribution is
   // the same false reassurance as the S1 label, in prose.
   const verdict = attractorVerdict(
     elins.outputs.state_distribution as Record<string, number>, attractor,
   );
   if (!verdict.determinate && collapse_state !== "hard" && collapse_state !== "soft") {
-    return "No attractor leads. The field is level rather than settled — "
-      + "read the pressure and collapse figures directly.";
+    return prior
+      ? "No attractor leads. The field is level rather than settled — "
+        + "read the pressure and collapse figures directly."
+      : "No attractor.";
   }
   if (collapse_state === "hard") {
-    return "Hard collapse trajectory. Field is unstable; intervention warranted.";
+    return prior ? "Hard collapse trajectory. Field is unstable; intervention warranted." : "Hard collapse trajectory.";
   }
   if (collapse_state === "soft") {
-    return "Soft pressure rising. Watch the edge for fragmentation.";
+    return prior ? "Soft pressure rising. Watch the edge for fragmentation." : "Soft pressure.";
   }
   switch (attractor) {
-    case "S1": return "Stable coherence. Field is calm.";
-    case "S2": return "Pressured coherence. Strain bearable; structure intact.";
-    case "S3": return "Pressured incoherence. Field is fragmenting at the edges.";
+    case "S1": return prior ? "Stable coherence. Field is calm." : "Stable coherence.";
+    case "S2": return prior ? "Pressured coherence. Strain bearable; structure intact." : "Pressured coherence.";
+    case "S3": return prior ? "Pressured incoherence. Field is fragmenting at the edges." : "Pressured incoherence.";
     case "S4":
-      return `Collapse trajectory forming (multiplier ${multiplier.toFixed(2)}).`;
+      return prior ? `Collapse trajectory forming (multiplier ${multiplier.toFixed(2)}).` : "Collapse trajectory.";
   }
 }
 

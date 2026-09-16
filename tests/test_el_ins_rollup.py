@@ -54,7 +54,7 @@ def _isolate():
 def _seed(operator: str, ts: float, el: float, ins: float, cls: str = "balanced"):
     el_ins.store_el_ins_record({
         "operator_id": operator, "thread_id": "t1",
-        "timestamp":   ts, "source": "on_demand",
+        "timestamp":   ts, "source": "per_turn",   # #290 -- the hook's shape; on_demand+thread is the thread's
         "result":      _mk(cls, el, ins),
     })
 
@@ -242,7 +242,7 @@ class TestRollupEndpoints:
         el_ins.store_el_ins_record({
             "operator_id": "op_alice", "thread_id": "t1",
             "timestamp":   now_ts - 10,
-            "source":      "on_demand",
+            "source":      "per_turn",   # #290
             "result":      _mk("balanced", 4.0, 4.0),
         })
         for window in ("24h", "7d", "30d"):
@@ -266,7 +266,7 @@ class TestCrossOperatorIsolation:
         el_ins.store_el_ins_record({
             "operator_id": "op_bob", "thread_id": "t1",
             "timestamp":   now_ts - 10,
-            "source":      "on_demand",
+            "source":      "per_turn",   # #290
             "result":      _mk("balanced", 4.0, 4.0),
         })
         r = client.get("/el_ins/rollup/24h", headers=_auth("op_alice"))

@@ -157,14 +157,75 @@ _CRED_PREFIX_RE = re.compile(
 )
 
 
-def scrub_credentials(text: Optional[str]) -> Optional[str]:
+# #303 A5 -- model PROSE on a member wire. The physics body is a model's
+# free text about the member's situation; before it reaches glass an
+# address, a phone number or a name the member is known by becomes a
+# class token. A phone needs separators, a "+" or parentheses so a bare
+# integer (a timestamp, a count, a date such as 2026-09-16) is never eaten.
+_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+_PHONE_RE = re.compile(
+    r"(?<![\w.-])(?:"
+    # the (ddd) ddd-dddd / ddd-ddd-dddd shapes, with an optional country prefix
+    r"(?:\+\d{1,3}[ .-]?)?(?:\(\d{3}\)[ .-]?|\d{3}[ .-])\d{3}[ .-]\d{4}"
+    # an international number behind a "+", never a "+N <date>"
+    r"|\+\d{1,3}(?![ .-]?(?:19|20)\d{2}-\d{2}-\d{2})(?:[ .-]?\d{2,4}){2,4}"
+    r")(?![\w-])"
+)
+_NAME_MIN_CHARS = 3
+
+
+def _name_patterns(names) -> list:
+    out: list = []
+    for n in names or ():
+        if not isinstance(n, str):
+            continue
+        n = n.strip()
+        if len(n) < _NAME_MIN_CHARS:
+            continue
+        out.append(re.compile(r"(?<!\w)" + re.escape(n) + r"(?!\w)", re.IGNORECASE))
+    return out
+
+
+def scrub_credentials(text: Optional[str], names=None) -> Optional[str]:
     """Return ``text`` with anything credential-shaped replaced by
     ``[redacted]``. ``None`` / empty / non-string returns ``None`` -- an
-    absent error stays absent (D5), it never becomes ""."""
+    absent error stays absent (D5), it never becomes "".
+
+    #303 A5 -- extended: an e-mail address becomes "[email]", a phone
+    number "[phone]", and every entry of ``names`` (the member name list
+    the caller assembles; whole words, case-insensitive) "[name]"."""
     if not isinstance(text, str) or not text:
         return None
     out = _URL_RE.sub("[url]", text)
     out = _CRED_QUERY_RE.sub(lambda m: f"{m.group(1)}=[redacted]", out)
     out = _CRED_BEARER_RE.sub("bearer [redacted]", out)
     out = _CRED_PREFIX_RE.sub("[redacted]", out)
+    out = _EMAIL_RE.sub("[email]", out)
+    out = _PHONE_RE.sub("[phone]", out)
+    for pat in _name_patterns(names):
+        out = pat.sub("[name]", out)
     return out
+
+
+def scrub_prose(value, names=None, prose_keys=None, _prose=None):
+    """#303 A5 -- ``scrub_credentials`` over every string leaf of a nested
+    dict / list. A new structure is returned; keys untouched, non-strings
+    untouched, an empty string kept empty.
+
+    ``prose_keys``: when given, the NAME pass runs only on string leaves
+    under one of these keys (everything beneath a prose key is prose too);
+    e-mails and phones are scrubbed everywhere. An enum value is never a
+    name, and a name that happens to spell an enum member ("low", "stable")
+    must not turn a bearing into "[name]" -- the seal reads the enums after
+    this pass. When ``prose_keys`` is None the names run everywhere."""
+    in_prose = True if prose_keys is None else bool(_prose)
+    if isinstance(value, str):
+        return scrub_credentials(value, names if in_prose else None) if value else value
+    if isinstance(value, list):
+        return [scrub_prose(v, names, prose_keys, in_prose) for v in value]
+    if isinstance(value, dict):
+        return {
+            k: scrub_prose(v, names, prose_keys, in_prose or (prose_keys is not None and k in prose_keys))
+            for k, v in value.items()
+        }
+    return value

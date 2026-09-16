@@ -5,7 +5,7 @@
  * dictionary's word with the instrument key in its title.
  */
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 vi.mock("../../lib/api", async () => {
@@ -43,6 +43,7 @@ describe("PersonalElins -- words, no zero fallbacks (#185)", () => {
     vi.mocked(runEmotionalPhysics).mockResolvedValue(EP as never);
     vi.mocked(runElinsV2).mockResolvedValue(ELINS as never);
     render(<MemoryRouter><PersonalElins /></MemoryRouter>);
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
     // #237 (CT-1 2026-09-09), CORRECTED after a refuter: `stable` and
     // `reads_as_distant` exist ONLY in this fixture. Neither is in the physics
     // schema, and EVERY key the schema does define already has one of CT-1's
@@ -61,11 +62,14 @@ describe("PersonalElins -- words, no zero fallbacks (#185)", () => {
     // unchanged and still pinned by `stable` above, in a card that still
     // renders its unnamed keys.
     expect(screen.queryByTestId("layer-reads_as_distant")).toBeNull();
-    expect(screen.getByTestId("layer-unnamed-external-expression")).toHaveTextContent("not yet named");
+    // #303 A1/A2 -- the external-expression block is a PROJECTION of one
+    // field now; counsel and its words are not on the glass at all.
+    expect(screen.queryByTestId("layer-unnamed-external-expression")).toBeNull();
+    expect(screen.queryByTitle("message_guidance")).toBeNull();
+    expect(screen.queryByTitle("recommended_posture")).toBeNull();
+    expect(screen.getByTitle("risk_if_unchanged")).toHaveTextContent("if nothing changes");
     // the dictionary word, the raw key in the title -- the WORDS, never the raw key
     expect(screen.getByTitle("signal_clarity")).toHaveTextContent("how clear");
-    expect(screen.getByTitle("recommended_posture")).toHaveTextContent("posture to take");
-    expect(screen.getByTitle("message_guidance")).toHaveTextContent("what to say");
     expect(labelFor("friction_reduction_moves").word).not.toBe("friction_reduction_moves");
     expect(screen.queryByText(/recommended_posture:/)).toBeNull();
   });
@@ -74,6 +78,7 @@ describe("PersonalElins -- words, no zero fallbacks (#185)", () => {
     vi.mocked(runEmotionalPhysics).mockResolvedValue(EP as never);
     vi.mocked(runElinsV2).mockResolvedValue(ELINS as never);
     render(<MemoryRouter><PersonalElins /></MemoryRouter>);
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
     expect(await screen.findByTestId("risk-P0")).toHaveTextContent("33%");
     expect(screen.getByTestId("risk-P1")).toHaveTextContent("—");
     expect(screen.getByTestId("risk-P3")).toHaveTextContent("—");

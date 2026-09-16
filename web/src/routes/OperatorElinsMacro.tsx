@@ -15,6 +15,7 @@ import {
   type ElInsRatioClassification,
   type ElInsRecord,
 } from "../lib/api";
+import { readsNeeded } from "../lib/counts";
 
 interface WindowChoice { label: string; sinceSecondsAgo: number | null; }
 const WINDOWS: readonly WindowChoice[] = [
@@ -104,12 +105,22 @@ export default function OperatorElinsMacro() {
             <div className="kv">
               <div className="k">total records</div>
               <div className="v">{stats.total}</div>
-              <div className="k">% balanced</div>
-              <div className="v">{stats.pct.balanced.toFixed(1)}%</div>
-              <div className="k">% high_el</div>
-              <div className="v">{stats.pct.high_el.toFixed(1)}%</div>
-              <div className="k">% high_ins</div>
-              <div className="v">{stats.pct.high_ins.toFixed(1)}%</div>
+              {/* F -- a percentage of one read is that read: say the count. */}
+              {stats.total < 2 ? (
+                <>
+                  <div className="k">classification split</div>
+                  <div className="v" data-testid="el-ins-macro-needs2">{readsNeeded(stats.total)}</div>
+                </>
+              ) : (
+                <>
+                  <div className="k">% balanced</div>
+                  <div className="v">{stats.pct.balanced.toFixed(1)}%</div>
+                  <div className="k">% high_el</div>
+                  <div className="v">{stats.pct.high_el.toFixed(1)}%</div>
+                  <div className="k">% high_ins</div>
+                  <div className="v">{stats.pct.high_ins.toFixed(1)}%</div>
+                </>
+              )}
               <div className="k">avg EL score</div>
               <div className="v">{stats.avg_el.toFixed(2)}</div>
               <div className="k">avg INS score</div>

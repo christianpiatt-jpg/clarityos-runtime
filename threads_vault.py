@@ -85,6 +85,16 @@ class ThreadMeta(TypedDict):
     # rows written before the stamp existed (never backfilled) and when the
     # summary is cleared.
     summary_turn: Optional[int]
+    # #304 -- the model that wrote the summary and the window it read
+    # (chars of the whole thread; messages a-b of c, 1-based). None on rows
+    # that predate the stamp (never backfilled) and when the summary is
+    # cleared. The kernel computes them from its one cut (_summary_window).
+    summary_model_id: Optional[str]
+    summary_window_chars: Optional[int]
+    summary_total_chars: Optional[int]
+    summary_total_messages: Optional[int]
+    summary_window_first_message: Optional[int]
+    summary_window_last_message: Optional[int]
     # v51 — project membership. None for threads that aren't part of
     # any project (existing v47-v50 threads stay valid). When set,
     # ``GET /me/threads?project_id=X`` filters on this field.
@@ -133,6 +143,21 @@ def _message_key(thread_id: str, ts_ms: int, seq: int) -> str:
     return f"{_MESSAGES_PREFIX}{thread_id}.{int(ts_ms)}_{int(seq):06d}"
 
 
+#: #304 -- the five window stamps a summary carries. ONE constant: the
+#: kernel's ``_summary_window`` emits exactly these keys and this module
+#: stores and reads exactly these.
+SUMMARY_WINDOW_KEYS: tuple = (
+    "summary_window_chars", "summary_total_chars", "summary_total_messages",
+    "summary_window_first_message", "summary_window_last_message",
+)
+
+
+def _nonneg_int(v: Any) -> Optional[int]:
+    """A stamp is a non-negative int or it is None (never a bool, never a
+    coerced string -- a wrong count is worse than none)."""
+    return int(v) if isinstance(v, int) and not isinstance(v, bool) and v >= 0 else None
+
+
 def _coerce_meta(raw: Any, *, thread_id: str) -> ThreadMeta:
     """Normalise a meta dict loaded from the vault into ThreadMeta shape.
     v50: also surfaces ``summary`` + ``summary_ts_ms``. Anything legacy
@@ -178,6 +203,13 @@ def _coerce_meta(raw: Any, *, thread_id: str) -> ThreadMeta:
         "summary_ts_ms": summary_ts_ms,
         "summary_commit_sha": summary_commit_sha,
         "summary_turn":  summary_turn,
+        # #304 -- the summary's model + window stamps; None when absent.
+        "summary_model_id": (
+            raw.get("summary_model_id").strip()
+            if isinstance(raw.get("summary_model_id"), str) and raw.get("summary_model_id").strip()
+            else None
+        ),
+        **{k: _nonneg_int(raw.get(k)) for k in SUMMARY_WINDOW_KEYS},
         "project_id":    project_id_val,
     }
     return out
@@ -423,8 +455,14 @@ def update_thread_summary(
     *,
     commit_sha: Optional[str] = None,
     summary_turn: Optional[int] = None,
+    model_id: Optional[str] = None,
+    window: Optional[dict] = None,
 ) -> ThreadMeta:
     """Persist a freshly-computed summary onto the thread's meta.
+
+    #304 -- ``model_id`` stamps the model that wrote it and ``window`` the
+    facts of the transcript it read (keys = SUMMARY_WINDOW_KEYS). Both are
+    stored, never derived here; absent -> None; cleared with the summary.
 
     ``commit_sha`` (#127) stamps the code that produced it; None when the
     caller could not read one. It is stored, never derived here.
@@ -459,11 +497,21 @@ def update_thread_summary(
             if isinstance(summary_turn, int) and not isinstance(summary_turn, bool) and summary_turn >= 0
             else None
         )
+        # #304 -- the model and the window, as given; None when not given.
+        meta["summary_model_id"] = (
+            model_id.strip() if isinstance(model_id, str) and model_id.strip() else None
+        )
+        win = window if isinstance(window, dict) else {}
+        for k in SUMMARY_WINDOW_KEYS:
+            meta[k] = _nonneg_int(win.get(k))
     else:
         meta["summary"] = None
         meta["summary_ts_ms"] = None
         meta["summary_commit_sha"] = None
         meta["summary_turn"] = None
+        meta["summary_model_id"] = None
+        for k in SUMMARY_WINDOW_KEYS:
+            meta[k] = None
 
     memory_vault.vault_put(user_id, _meta_key(thread_id), meta)
     return meta

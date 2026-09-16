@@ -57,7 +57,7 @@ describe("ThreadInsightsPanel — the summary glow (#190) and its caption (#176)
     expect(card).toHaveAttribute("data-currency", "fresh");
     expect(card.className).toContain("is-fresh");
     expect(screen.getByTestId("thread-summary-currency"))
-      .toHaveTextContent("fresh · made turn 3 · now turn 3 · running abc1234 · model — · last — of —");
+      .toHaveTextContent("fresh · made turn 3 · now turn 3 · running abc1234 · last — of — — messages — of — · model —");
   });
 
   it("★ aged: one more turn -> yellow; the same turn on other code -> yellow", async () => {
@@ -92,6 +92,7 @@ describe("ThreadInsightsPanel — the summary glow (#190) and its caption (#176)
   it("#176 -- a stamped model and window read into the caption", async () => {
     await mount(meta({ summary_model_id: "anthropic:claude-haiku-4-5-20251001", summary_window_chars: 4000, summary_total_chars: 9000 }));
     expect(screen.getByTestId("thread-summary-currency"))
-      .toHaveTextContent("model anthropic:claude-haiku-4-5-20251001 · last 4000 of 9000");
+      // #304 -- the box line: what was read, then who wrote it
+      .toHaveTextContent("last 4,000 of 9,000 — messages — of — · model anthropic:claude-haiku-4-5-20251001");
   });
 });

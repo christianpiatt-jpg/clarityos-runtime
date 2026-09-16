@@ -10,6 +10,7 @@ import {
   type ElInsRollupResult,
   type ElInsRollupWindow,
 } from "../lib/api";
+import { readsNeeded } from "../lib/counts";
 
 const WINDOWS: readonly ElInsRollupWindow[] = ["24h", "7d", "30d"] as const;
 
@@ -114,12 +115,22 @@ function RollupCard({
             <div className="k">avg INS</div>
             <div className="v">{result.avg_ins.toFixed(2)}</div>
             <div className="k">avg TSI</div>
-            <div className="v">{result.avg_tsi}/100</div>
+            <div className="v">
+              {/* F -- fewer than two reads have no average (0/100 at n=0 was a zero as a reading). */}
+              {result.record_count < 2
+                ? <span data-testid={`el-ins-rollup-needs2-${window_}`}>{readsNeeded(result.record_count)}</span>
+                : `${result.avg_tsi}/100`}
+            </div>
           </div>
+          {/* F -- the mode is the PROVIDER MODE chosen for each read (the
+              kernel's select_reasoning_mode), rendered as such, not as an
+              operator statistic. */}
           <h4 style={{ margin: "12px 0 4px", fontSize: 11, letterSpacing: "0.5px", color: "var(--os-text-muted, #888)" }}>
-            REASONING MODES
+            PROVIDER MODE CHOSEN · PER READ
           </h4>
-          <ReasoningModePie distribution={result.reasoning_mode_distribution} />
+          {result.record_count === 1
+            ? <div className="muted" style={{ fontSize: 11 }}>{readsNeeded(1)}</div>
+            : <ReasoningModePie distribution={result.reasoning_mode_distribution} />}
         </>
       )}
     </div>

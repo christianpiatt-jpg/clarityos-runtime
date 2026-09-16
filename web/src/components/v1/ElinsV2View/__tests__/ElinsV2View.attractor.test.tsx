@@ -57,6 +57,8 @@ function envelope(dist: Record<string, number>, attractor: string) {
       multiplier: 1,
     },
     meta: { engine: "clarity_elins_v2", view_kind: "v2" },
+    // #307 E2 -- the four columns render only at n >= 2 (n off the wire).
+    _meta: { n_points: 2 },
   } as never;
 }
 

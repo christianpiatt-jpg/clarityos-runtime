@@ -97,6 +97,9 @@ def _empty_section() -> dict:
         "forecast": [],
         "has_eso": False,
         "available": False,
+        # #305 -- an all-zero primitive vector is ABSENCE, not a reading
+        # (standard_elins _layer_3_ep_summary). None until a run exists.
+        "no_signal": None,
     }
 
 
@@ -107,6 +110,15 @@ def _has_eso(run_record: dict) -> bool:
     obj = run_record.get("elins") or {}
     ext = obj.get("external_signals") or {}
     return bool(ext.get("present"))
+
+
+def _no_signal_of(run_record: dict) -> bool:
+    """#305 -- the synthesis flag, read from the persisted ELINS object
+    (synthesis.no_signal, or the output mirror's summary). False when the
+    run predates the flag: a missing flag is not a claim of absence."""
+    obj = run_record.get("elins") or {}
+    syn = obj.get("synthesis") or (obj.get("output_object") or {}).get("summary") or {}
+    return bool(syn.get("no_signal")) if isinstance(syn, dict) else False
 
 
 def _intensities_of(run_record: dict) -> dict:
@@ -181,6 +193,7 @@ def _section_from_run(run_record: Optional[dict], *, day: str) -> dict:
         "forecast": _forecast_of(run_record),
         "has_eso": _has_eso(run_record),
         "available": True,
+        "no_signal": _no_signal_of(run_record),   # #305
     })
     return section
 

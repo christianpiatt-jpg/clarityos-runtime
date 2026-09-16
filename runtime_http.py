@@ -1365,6 +1365,7 @@ async def el_ins_export_pdf(
 # ---------------------------------------------------------------------------
 @el_ins_router.get("/operator/reasoning_mode")
 def el_ins_operator_reasoning_mode(
+    thread_id: Optional[str] = None,
     operator_id: str = Depends(require_operator),
 ) -> dict[str, Any]:
     """Return the reasoning-mode currently implied by the operator's
@@ -1388,7 +1389,15 @@ def el_ins_operator_reasoning_mode(
     import el_ins  # lazy
     import intelligence_kernel as _ik
 
-    rows = el_ins.get_recent_el_ins(operator_id, limit=1)
+    # #290 -- the indicator's record is the latest in the operator's DEFAULT
+    # scope: a thread-tagged on-demand analysis counts only when the operator
+    # selected that thread. Read a bounded batch, scope it, take the newest.
+    # F -- the record's own classification rides beside the mode so the
+    # cockpit indicator reads one route, and the mode is what it is: the
+    # provider mode chosen for the next read, not an operator statistic.
+    rows = el_ins.scope_default(
+        el_ins.get_recent_el_ins(operator_id, limit=1000), thread_id,   # the store's clamp
+    )[:1]
     if not rows:
         return {
             "operator_id":    operator_id,
@@ -1397,6 +1406,9 @@ def el_ins_operator_reasoning_mode(
             "ins":            None,
             "tsi":            None,
             "timestamp":      None,
+            "ratio_classification": None,
+            "source":         None,
+            "thread_id":      None,
         }
     rec = rows[0]
     analysis = (rec.get("result") or {}).get("analysis", {})
@@ -1411,6 +1423,9 @@ def el_ins_operator_reasoning_mode(
         "ins":            ins_score,
         "tsi":            tsi,
         "timestamp":      float(rec.get("timestamp") or 0.0),
+        "ratio_classification": analysis.get("ratio_classification"),
+        "source":         rec.get("source"),
+        "thread_id":      rec.get("thread_id"),
     }
 
 
@@ -1456,10 +1471,14 @@ def el_ins_get_anomaly(
 # ---------------------------------------------------------------------------
 # v72 / Unit 81 — Roll-up endpoints
 # ---------------------------------------------------------------------------
-def _rollup_for(operator_id: str, window_name: str) -> dict[str, Any]:
+def _rollup_for(
+    operator_id: str, window_name: str, thread_id: Optional[str] = None,
+) -> dict[str, Any]:
     import el_ins  # lazy
     try:
-        out = el_ins.compute_rollup(operator_id, window_name)
+        # #290 -- thread-tagged on-demand records are excluded unless the
+        # operator selected that thread (``thread_id``).
+        out = el_ins.compute_rollup(operator_id, window_name, thread_id=thread_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     # v73 / Unit 82 — emit a ``rollup`` timeline event for the
@@ -1489,26 +1508,29 @@ def _rollup_for(operator_id: str, window_name: str) -> dict[str, Any]:
 
 @el_ins_router.get("/rollup/24h")
 def el_ins_rollup_24h(
+    thread_id: Optional[str] = None,
     operator_id: str = Depends(require_operator),
 ) -> dict[str, Any]:
     """Operator-level aggregate over the last 24 hours."""
-    return _rollup_for(operator_id, "24h")
+    return _rollup_for(operator_id, "24h", thread_id)
 
 
 @el_ins_router.get("/rollup/7d")
 def el_ins_rollup_7d(
+    thread_id: Optional[str] = None,
     operator_id: str = Depends(require_operator),
 ) -> dict[str, Any]:
     """Operator-level aggregate over the last 7 days."""
-    return _rollup_for(operator_id, "7d")
+    return _rollup_for(operator_id, "7d", thread_id)
 
 
 @el_ins_router.get("/rollup/30d")
 def el_ins_rollup_30d(
+    thread_id: Optional[str] = None,
     operator_id: str = Depends(require_operator),
 ) -> dict[str, Any]:
     """Operator-level aggregate over the last 30 days."""
-    return _rollup_for(operator_id, "30d")
+    return _rollup_for(operator_id, "30d", thread_id)
 
 
 # ---------------------------------------------------------------------------

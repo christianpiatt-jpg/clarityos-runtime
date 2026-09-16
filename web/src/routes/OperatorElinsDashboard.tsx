@@ -16,6 +16,7 @@ import {
   type ElInsOperatorSummaryResponse,
   type ElInsRecord,
 } from "../lib/api";
+import { readsNeeded } from "../lib/counts";
 
 const DEFAULT_SAMPLE = 20;
 
@@ -112,6 +113,12 @@ export default function OperatorElinsDashboard() {
                 data-testid="el-ins-dashboard-tsi-chart"
               />
               <div style={{ marginTop: 8, fontSize: 12 }}>
+                {summary.sample_size < 2 ? (
+                  // F -- one read has no average and no trend.
+                  <span data-testid="el-ins-dashboard-needs2" style={{ fontFamily: "var(--font-mono)" }}>
+                    {readsNeeded(summary.sample_size)}
+                  </span>
+                ) : (<>
                 <span className="muted">avg TSI:</span>{" "}
                 <span style={{ fontFamily: "var(--font-mono)" }}>{summary.avg_tsi}/100</span>
                 {"  ·  "}
@@ -125,6 +132,7 @@ export default function OperatorElinsDashboard() {
                 >
                   {summary.trend.toUpperCase()}
                 </span>
+                </>)}
                 {"  ·  "}
                 <span className="muted">sample:</span>{" "}
                 <span style={{ fontFamily: "var(--font-mono)" }}>{summary.sample_size}</span>

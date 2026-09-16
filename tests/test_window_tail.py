@@ -271,7 +271,8 @@ def test_physics_route_accepts_surface_and_boundaries_and_returns_the_window(res
     m = r.json()["_meta"]
     assert m["window_chars"] == 12_000 and m["window_anchor"] == "tail" and m["total_messages"] == 44
     r = client.post("/me/emotional_physics/analyze", headers=h,
-                    json={"text": text, "surface": "personal", "message_boundaries": ends})
+                    json={"text": text, "surface": "personal", "message_boundaries": ends,
+                          "whose_field": "author"})   # #303 A4 -- a personal run names its field
     assert r.json()["_meta"]["window_chars"] == 6_000
     r = client.post("/me/emotional_physics/analyze", headers=h, json={"text": text, "surface": "operator"})
     assert r.status_code == 422                 # the two surfaces are the whole vocabulary
@@ -291,7 +292,8 @@ def test_elins_route_cuts_with_the_same_helper_and_declares(reset_stores):
     assert 0 < l1["char_count"] <= 12_000 and l1["char_count"] == len(text[-12_000:].strip())
     assert "raw_text" not in body["input"] and "text" not in l1      # #177 holds
     r = client.post("/elins/v2/run", headers=h,
-                    json={"input": {"raw_text": text}, "surface": "personal", "message_boundaries": ends})
+                    json={"input": {"raw_text": text}, "surface": "personal", "message_boundaries": ends,
+                          "whose_field": "author"})   # #303 A4
     assert r.json()["_meta"]["window_chars"] == 6_000 and r.json()["pipeline"]["L1_ingest"]["char_count"] <= 6_000
 
 

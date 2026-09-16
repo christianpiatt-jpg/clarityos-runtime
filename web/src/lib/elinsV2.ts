@@ -114,7 +114,8 @@ export interface ElinsV2Envelope {
   outputs:       ElinsV2Outputs;
   meta:          ElinsV2Meta;
   // #139 -- the window the kernel READ (cut_window), for the declaration line.
-  _meta?:        WindowMeta;
+  // #303 A3 the ring ("event": the counters counted); #307 E1 n_points.
+  _meta?:        WindowMeta & { ring?: string | null; n_points?: number | null };
 }
 
 // -----------------------------------------------------------------

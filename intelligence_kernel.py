@@ -1632,21 +1632,29 @@ SUMMARY_FENCE_OPEN: str = "<<<TRANSCRIPT"
 SUMMARY_FENCE_CLOSE: str = "TRANSCRIPT>>>"
 
 
-def _format_summary_prompt(messages: list) -> str:
-    """Render the recent transcript + the system instruction into one
-    string suitable for ``model_router.route_request``. Last
-    ``SUMMARY_CONTEXT_MESSAGES`` only; total clamped to
-    ``SUMMARY_CONTEXT_CHAR_BUDGET``.
-    """
-    tail = list(messages or [])[-SUMMARY_CONTEXT_MESSAGES:]
-    lines: list[str] = []
-    for m in tail:
+# #304 -- the window facts a summary is stamped with, in the SAME unit the
+# physics declaration uses (#139): the chars the model READ of the whole
+# thread, and which messages (1-based, over every message with content)
+# the tail touched. Both cuts -- the last SUMMARY_CONTEXT_MESSAGES messages,
+# then the char budget from the front -- keep a SUFFIX of the full
+# transcript, so start = total_chars - window_chars is exact.
+SUMMARY_WINDOW_KEYS: tuple = threads_vault.SUMMARY_WINDOW_KEYS   # ONE constant; the store owns it
+
+
+def _summary_window(messages: list) -> tuple[str, dict]:
+    """``(prompt, facts)``: the prompt as before, plus the window facts of
+    the transcript inside it."""
+    lines_all: list[str] = []
+    for m in list(messages or []):
         role = m.get("role") or "user"
         content = (m.get("content") or "").strip()
         if not content:
             continue
-        lines.append(f"{role}: {content}")
-    transcript = "\n".join(lines)
+        lines_all.append(f"{role}: {content}")
+    full = "\n".join(lines_all)
+    total_messages = len(lines_all)
+    total_chars = len(full)
+    transcript = "\n".join(lines_all[-SUMMARY_CONTEXT_MESSAGES:])
     # ** The fences live in the FIXED header and footer, so the budget
     # truncation below can only ever shorten the transcript between them.
     # Before this change the whole prompt was sliced from the front, which
@@ -1661,7 +1669,34 @@ def _format_summary_prompt(messages: list) -> str:
     if budget > 0 and len(transcript) > budget:
         # Drop from the front of the transcript, keep the tail.
         transcript = transcript[-budget:]
-    return (header + transcript + footer).rstrip()
+    window_chars = len(transcript)
+    first: Optional[int] = None
+    if total_messages:
+        start = total_chars - window_chars
+        ends: list[int] = []
+        cum = 0
+        for i, line in enumerate(lines_all):
+            cum += (0 if i == 0 else 1) + len(line)
+            ends.append(cum)
+        first = next((i + 1 for i, e in enumerate(ends) if e > start), total_messages)
+    facts = {
+        "summary_window_chars":         window_chars,
+        "summary_total_chars":          total_chars,
+        "summary_total_messages":       total_messages,
+        "summary_window_first_message": first,
+        "summary_window_last_message":  total_messages if total_messages else None,
+    }
+    return (header + transcript + footer).rstrip(), facts
+
+
+def _format_summary_prompt(messages: list) -> str:
+    """Render the recent transcript + the system instruction into one
+    string suitable for ``model_router.route_request``. Last
+    ``SUMMARY_CONTEXT_MESSAGES`` only; total clamped to
+    ``SUMMARY_CONTEXT_CHAR_BUDGET``. #304: ONE cut (``_summary_window``);
+    this keeps the name its callers use.
+    """
+    return _summary_window(messages)[0]
 
 
 # ***** #105 half 2 -- A REFUSAL IS NEVER STORED AS A SUMMARY.
@@ -1773,7 +1808,7 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
     # Resolve the model + dispatch. _resolve_model bumps last_model_used
     # the same way the conversational turn does.
     model_id = _resolve_model(user_id, task="thread_summary")
-    prompt = _format_summary_prompt(messages)
+    prompt, window_facts = _summary_window(messages)   # #304 -- one cut, its facts kept
     response = model_router.route_request(model_id, prompt)
     summary_text = str(response.get("text") or "").strip()
 
@@ -1799,6 +1834,9 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
     updated = threads_vault.update_thread_summary(
         user_id, thread_id, summary_text, now_ms, commit_sha=commit_sha,
         summary_turn=summary_turn,
+        # #304 -- the model that wrote it and the window it read, stamped
+        # beside the turn: "last 8,000 of M -- messages a-b of c . model X".
+        model_id=model_id, window=window_facts,
     )
 
     kernel_logging.log_kernel_run(
@@ -1817,6 +1855,8 @@ def summarize_thread(user_id: str, thread_id: str) -> dict:
             "reason":        "refusal_shape" if refused else None,
             "commit_sha":    commit_sha,
             "summary_turn":  summary_turn,   # #190 passenger
+            "window_chars":  window_facts["summary_window_chars"],   # #304
+            "total_chars":   window_facts["summary_total_chars"],    # #304
         },
     )
     return {"meta": updated}
@@ -1924,6 +1964,37 @@ def run_regression_first(
 # kernel as ordinary Python functions, NOT as skill manifests). The
 # prompt is inline below; nothing is imported from /skills_export/.
 EMOTIONAL_PHYSICS_TASK: str = "emotional_physics"
+
+# #303 A3 -- ``_meta.ring``: which KIND of reading a response is. A model
+# read the text ("meaning"); the ELINS counters counted it ("event"). One
+# word on every insight wire so a surface can say which it is showing.
+RING_MEANING: str = "meaning"
+RING_EVENT: str = "event"
+
+# #303 A2 -- COUNSEL is not a reading. The three layer-4 fields that tell a
+# member what to say, what moves to make and what to do next are folded
+# under ``external_expression.counsel`` -- kept on the wire for router
+# contracts and scoring, never dropped, never rendered on a member
+# surface. ``risk_if_unchanged`` (the projection) and
+# ``recommended_posture`` (scored by the substantive counter) stay put.
+PHYSICS_COUNSEL_KEYS: tuple = ("message_guidance", "friction_reduction_moves", "next_step")
+PHYSICS_COUNSEL_KEY: str = "counsel"
+# #303 A5 -- the PROSE leaves of the physics body: the member name list is
+# scrubbed there and nowhere else (an enum is never a name; the #114 seal
+# reads the enums after the scrub).
+PHYSICS_PROSE_KEYS: tuple = ("notes", "risk_if_unchanged", PHYSICS_COUNSEL_KEY)
+
+
+def _fold_counsel(body: dict) -> None:
+    """Move the counsel fields under ``external_expression.counsel``. Only
+    the fields that arrived move; ``counsel`` is absent when none did (D5:
+    an absence is a different kind, never {})."""
+    ext = body.get("external_expression")
+    if not isinstance(ext, dict):
+        return
+    counsel = {k: ext.pop(k) for k in PHYSICS_COUNSEL_KEYS if k in ext}
+    if counsel:
+        ext[PHYSICS_COUNSEL_KEY] = counsel
 
 # The four top-level keys the response MUST carry. Missing keys are
 # filled with an empty dict in the skeleton + the ``_meta.parse_error``
@@ -2289,6 +2360,7 @@ def run_emotional_physics(
     *,
     surface: Optional[str] = None,
     message_boundaries: Optional[list] = None,
+    member_names: Optional[list] = None,
 ) -> dict:
     """v52 — structural-not-sentimental analysis of a situation.
 
@@ -2385,6 +2457,15 @@ def run_emotional_physics(
         if missing and not parse_error:
             parse_error = "missing or invalid keys: " + ",".join(missing)
 
+    # #303 A2 -- counsel folded under external_expression.counsel (kept,
+    # not rendered). #303 A5 -- the model's prose is scrubbed before it
+    # reaches any wire: e-mails, phones and the member name list become
+    # class tokens; enum values carry none and pass through unchanged.
+    _fold_counsel(result_body)
+    result_body = runtime_privacy.scrub_prose(
+        result_body, names=member_names, prose_keys=PHYSICS_PROSE_KEYS,
+    )
+
     now_ms = int(time.time() * 1000)
     out = {
         **result_body,
@@ -2392,6 +2473,8 @@ def run_emotional_physics(
             "model_id":    model_id,
             "ts_ms":       now_ms,
             "parse_error": parse_error,
+            # #303 A3 -- a model read the text: this is the meaning ring.
+            "ring":        RING_MEANING,
             # #128 -- the provider's stop signal, copied raw whether or not
             # the body parsed. None on mock. R5.3: the raw token stays so a
             # surface can name the instrument.
@@ -2405,6 +2488,12 @@ def run_emotional_physics(
             **window,
         },
     }
+    # #306 -- on a parse MISS the wire says how long the reply was and
+    # whether it opened with a refusal shape (the shapes #105 pinned for
+    # summaries). Two facts about the text, never the text.
+    if parsed is None:
+        out["_meta"]["raw_len"] = len(raw_text)
+        out["_meta"]["refusal_shape"] = _looks_like_refusal(raw_text)
 
     # 4. Structured kernel log line. safe_meta strips any raw-text
     #    keys defensively (we already only pass scalars).

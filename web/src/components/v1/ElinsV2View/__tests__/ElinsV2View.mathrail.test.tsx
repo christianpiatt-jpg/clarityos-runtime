@@ -111,10 +111,12 @@ describe("Math rail — edge_count beside every intensity", () => {
       drift:    { primitive: "drift",    intensity: 0.05,   edge_count: 1 },
     })} />);
     const pr = screen.getByTestId("math-rail-pressure");
-    expect(pr).toHaveTextContent("0.412");
+    // #305 -- a STRESS intensity reads as hits (round(i / 0.075) of 5); the
+    // 3-dp number rides in the title.
+    expect(pr).toHaveTextContent("5 of 5 hits");
     expect(pr).toHaveTextContent("3 edges");
     const dr = screen.getByTestId("math-rail-drift");
-    expect(dr).toHaveTextContent("0.050");
+    expect(dr).toHaveTextContent("1 of 5 hits");
     expect(dr).toHaveTextContent("1 edge");
     // alignment left unmeasured in this fixture
     expect(screen.getByTestId("math-rail-alignment")).toHaveTextContent("no edges");

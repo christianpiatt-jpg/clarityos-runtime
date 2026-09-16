@@ -38,8 +38,10 @@ describe("PersonalElins route -- the run carries the selected relationship", () 
     await act(async () => { await cockpit.relationships.actions.open("r1"); });
 
     render(<MemoryRouter><PersonalElins /></MemoryRouter>);
+    expect(api.runEmotionalPhysics).not.toHaveBeenCalled();   // #303 A4 -- no run before a field is chosen
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
     await waitFor(() => expect(api.runEmotionalPhysics).toHaveBeenCalledTimes(1));
-    // the mount run: the default seed, NO relationship
+    // the first-choice run: the default seed, NO relationship
     expect(vi.mocked(api.runEmotionalPhysics).mock.calls[0][1]).toBeNull();
     expect(screen.getByTestId("personal-relationship")).toHaveTextContent("r1");
 
@@ -48,6 +50,7 @@ describe("PersonalElins route -- the run carries the selected relationship", () 
     const [seed, rel] = vi.mocked(api.runEmotionalPhysics).mock.calls[1];
     expect(rel).toBe("r1");
     expect(typeof seed).toBe("string");
-    await waitFor(() => expect(api.runElinsV2).toHaveBeenLastCalledWith(seed, null, "r1"));
+    // #303 A4 -- the personal surface and the chosen field ride too
+    await waitFor(() => expect(api.runElinsV2).toHaveBeenLastCalledWith(seed, null, "r1", "personal", "author"));
   });
 });

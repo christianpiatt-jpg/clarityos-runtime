@@ -80,6 +80,8 @@ const FULL = {
     multiplier: 1.225,
   },
   meta: { engine: "clarity_elins_v2", view_kind: "path_c_adapter", warnings: [], notes: [] },
+  // #307 E1 -- a prior read exists: the forecast and the four columns render.
+  _meta: { n_points: 3 },
 };
 
 /** The shape the older tests send: every layer present but empty. */
@@ -217,7 +219,9 @@ describe("#180a (d) forecast row + folded envelopes", () => {
     expect(within(fold).getByTitle("pipeline.L8_temporal.forecast_engine.domain_envelopes.Legal_Justice")).toBeInTheDocument();
   });
   it("absent: no sparkline, dashes, the seven domain rows still named", () => {
-    sparse();
+    // #305 -- with a prior read (n >= 2) an absent forecast is dashes; the
+    // single-read sentence is pinned in ElinsV2View.counts.test.
+    render(<ElinsV2View envelope={{ ...SPARSE, _meta: { n_points: 2 } } as never} />);
     expect(screen.queryByTestId("forecast-spark")).toBeNull();
     expect(screen.getByTestId("forecast-spark-absent")).toHaveTextContent(DASH);
     expect(screen.getByTestId("forecast-nets")).toHaveTextContent(`start ${DASH} → end ${DASH} · trend ${DASH}`);

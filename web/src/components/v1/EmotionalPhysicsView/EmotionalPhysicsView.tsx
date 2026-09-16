@@ -19,6 +19,7 @@ import {
 import { ApiError, type RelationalPrimitives } from "../../../lib/api";
 import { bearingRows, stopMark } from "../../../lib/bearings";
 import { labelFor } from "../../../lib/labels";
+import { sealedAtTurn } from "../../../lib/counts";
 import styles from "./EmotionalPhysicsView.module.css";
 
 interface Props {
@@ -68,6 +69,12 @@ const NARRATIVE_KEYS = [
   "narrative",
 ] as const;
 const NARRATIVE_KEY_SET: ReadonlySet<string> = new Set(NARRATIVE_KEYS);
+
+// #306 -- the layer fields the schema defines as LISTS (the subset arrays
+// of the v52 prompt). A non-list under one of these names renders "—".
+const LIST_FIELDS: ReadonlySet<string> = new Set([
+  "dominant_forces", "perceived_posture", "dominant_pattern", "recommended_posture",
+]);
 
 /** Is this rendered value prose rather than a reading?
  *
@@ -194,17 +201,31 @@ export default function EmotionalPhysicsView({
   // vocabulary classed as "cut". A normal OpenAI "stop" or Gemini "STOP"
   // marks nothing now, and neither does a word the table does not know.
   const stopped = stopMark(meta.stop_reason, meta.stop_class);
+  // #303 A3 -- the ring beside the model line; #306 -- on a parse miss
+  // the two facts about the reply (never the reply).
+  const ring = typeof meta.ring === "string" && meta.ring ? meta.ring : null;
+  const rawLen = typeof meta.raw_len === "number" ? meta.raw_len : null;
+  const refusalShape = meta.refusal_shape === true;
+  const modelLine = [modelId ? `model: ${modelId}` : null, ring ? `ring: ${ring}` : null]
+    .filter(Boolean).join(" · ");
 
   return (
     <section className={styles.root} aria-label="Emotional Physics view">
       <Heading
         title="Emotional Physics"
-        subtitle={modelId ? `model: ${modelId}` : undefined}
+        subtitle={modelLine || undefined}
       />
+      {/* #303 A1 -- stamped with the turn the window sealed at; a dash
+          when the wire carries none (no date is parsed). */}
+      <div className={styles.subtitle} data-testid="physics-sealed-at" title="_meta.window_last_message">
+        {sealedAtTurn(meta.window_last_message)}
+      </div>
 
       {parseError ? (
-        <div role="status" className={styles.warning}>
+        <div role="status" className={styles.warning} data-testid="physics-parse-error">
           parse error: {parseError}
+          {rawLen !== null ? ` · raw ${rawLen.toLocaleString("en-US")} chars` : ""}
+          {refusalShape ? " · refusal shape" : ""}
         </div>
       ) : null}
       {stopped ? (
@@ -213,7 +234,8 @@ export default function EmotionalPhysicsView({
         </div>
       ) : null}
 
-      {LAYER_ORDER.map((key) =>
+      {/* #303 A1 -- the MAP: the three readings of the input. */}
+      {LAYER_ORDER.filter((key) => key !== "external_expression").map((key) =>
         key === "relational_primitives" ? (
           // #162 (a) -- the five bearings are NAMED rows, not whatever
           // keys happened to arrive.
@@ -227,6 +249,9 @@ export default function EmotionalPhysicsView({
           />
         ),
       )}
+      {/* #303 A1 -- the PROJECTION: risk_if_unchanged, and nothing else of
+          layer 4. Counsel stays on the wire and off the glass. */}
+      <ProjectionBlock data={view.external_expression as Record<string, unknown> | undefined} />
 
       <footer className={styles.footer}>
         {/* ★ No stamp renders nothing at all, rather than a reassuring
@@ -307,6 +332,12 @@ function LayerBlock({
   for (const [k, v] of Object.entries(data)) {
     if (NARRATIVE_KEY_SET.has(k)) continue;
     if (v === null || v === undefined) continue;
+    // #306 -- a LIST field that did not arrive as a list is a dash, never a
+    // count of something it is not.
+    if (LIST_FIELDS.has(k) && !Array.isArray(v)) {
+      params.push([k, "\u2014"]);
+      continue;
+    }
     if (typeof v === "string") {
       params.push([k, v]);
     } else if (typeof v === "number") {
@@ -317,11 +348,8 @@ function LayerBlock({
       const allPrim = v.every(
         (x) => typeof x === "string" || typeof x === "number" || typeof x === "boolean",
       );
-      if (allPrim && v.length > 0 && v.length <= 4) {
-        params.push([k, v.map(String).join(", ")]);
-      } else {
-        params.push([k, `[${v.length}]`]);
-      }
+      // #306 -- the members, or a dash; never "[n]".
+      params.push([k, allPrim && v.length > 0 ? v.map(String).join(", ") : "\u2014"]);
     } else if (typeof v === "object") {
       const keys = Object.keys(v as Record<string, unknown>);
       params.push([k, `{${keys.length}}`]);
@@ -403,6 +431,32 @@ function BearingsBlock({ data }: { data: RelationalPrimitives | undefined }) {
         ) : null}
       </dl>
       {notes ? <div className={styles.narrative}>{notes}</div> : null}
+    </div>
+  );
+}
+
+/** #303 A1 -- the projection: ONE field of layer 4, risk_if_unchanged.
+ *  The caption keeps the layer's name and instrument; a missing field is
+ *  a dash. Counsel (what to say, the moves, the next step) is not read. */
+function ProjectionBlock({ data }: { data: Record<string, unknown> | undefined }) {
+  const label = labelFor("external_expression");
+  const risk = data && typeof data.risk_if_unchanged === "string" && data.risk_if_unchanged.trim()
+    ? data.risk_if_unchanged.trim() : null;
+  return (
+    <div className={styles.layer} data-testid="projection">
+      <div className={styles.layerLabel} title="external_expression" data-testid="layer-external_expression">
+        {label.word} · {label.instrument}
+      </div>
+      <dl className={styles.paramGrid}>
+        <dt className={styles.paramKey} title="risk_if_unchanged">{labelFor("risk_if_unchanged").word}</dt>
+        <dd
+          className={risk && isProse(risk) ? styles.narrative : styles.paramValue}
+          data-testid="projection-risk_if_unchanged"
+          title={risk ?? undefined}
+        >
+          {risk ?? "\u2014"}
+        </dd>
+      </dl>
     </div>
   );
 }

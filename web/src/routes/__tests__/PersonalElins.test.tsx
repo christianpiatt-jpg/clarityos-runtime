@@ -92,6 +92,9 @@ function makeElins(): ElinsV2Envelope {
       timeline: { short_term_days: 365, mid_term_days: 3650, long_term_days: 18250 },
       multiplier: 1.43,
     },
+    // #307 E1 -- a prior read exists: the four shares render (the S2 / S4
+    // pins below read them).
+    _meta: { n_points: 2 },
   };
 }
 
@@ -110,7 +113,7 @@ afterEach(() => {
 // Tests — Section 4 of the brief
 // ---------------------------------------------------------------------------
 describe("PersonalElins route", () => {
-  test("Personal ELINS loads on mount", async () => {
+  test("Personal ELINS runs the default seed on the first choice of a field (#303 A4: never before)", async () => {
     mockEp.mockResolvedValue(makeEp());
     mockElins.mockResolvedValue(makeElins());
 
@@ -119,6 +122,7 @@ describe("PersonalElins route", () => {
         <PersonalElins />
       </MemoryRouter>,
     );
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
 
     // Scope to the heading — the same label also appears as a NavItem
     // button in the sidebar, so a bare findByText would be ambiguous.
@@ -149,6 +153,7 @@ describe("PersonalElins route", () => {
         <PersonalElins />
       </MemoryRouter>,
     );
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
 
     // The 4 layer notes from the fixture should land in the DOM.
     expect(
@@ -156,11 +161,11 @@ describe("PersonalElins route", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/may read as distant/i)).toBeInTheDocument();
     expect(screen.getByText(/boundary needs naming/i)).toBeInTheDocument();
-    // #162 -- LayerCard now renders EVERY reading, so next_step and the
-    // notes both carry this phrase; the pin is that it lands, not once.
-    expect(
-      screen.getAllByText(/send a 3-line clarification/i).length,
-    ).toBeGreaterThanOrEqual(1);
+    // #303 A1/A2 -- layer 4 is a PROJECTION of one field now; next_step is
+    // counsel and stays off the glass, and the projection card carries no
+    // notes. The pin is that the projection lands and counsel does not.
+    expect(screen.getByTestId("layer-risk_if_unchanged")).toHaveTextContent(/drift continues/i);
+    expect(screen.queryByText(/send a 3-line clarification/i)).toBeNull();
   });
 
   test("ELINS v2 run updates state on Re-run click", async () => {
@@ -179,6 +184,7 @@ describe("PersonalElins route", () => {
         <PersonalElins />
       </MemoryRouter>,
     );
+    fireEvent.change(screen.getByTestId("whose-field"), { target: { value: "author" } });   // #303 A4 -- the first choice runs the seed
 
     // First render: S2 chip appears.
     await waitFor(() => {

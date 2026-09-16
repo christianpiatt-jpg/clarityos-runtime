@@ -83,6 +83,7 @@ def compute_rollup(
     window: Union[float, int, timedelta, str],
     *,
     now: Union[float, None] = None,
+    thread_id: Union[str, None] = None,
 ) -> RollupResult:
     """Aggregate the authed operator's EL/INS records over the most
     recent ``window``.
@@ -115,6 +116,10 @@ def compute_rollup(
     # Trim records past `window_end` defensively (in case a clock skew
     # let a future-stamped record through).
     rows = [r for r in rows if r.get("timestamp") and r["timestamp"] <= window_end]
+    # #290 -- the operator's default scope: thread-tagged on-demand records
+    # count only for the thread the operator selected.
+    from .el_ins_store import scope_default
+    rows = scope_default(rows, thread_id)
 
     if not rows:
         return {

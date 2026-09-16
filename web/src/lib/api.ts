@@ -1384,6 +1384,9 @@ export interface V38DashboardSection {
   available: boolean;
   day?: string;
   user?: string;
+  // #305 -- an all-zero primitive vector is ABSENCE, not a reading: the
+  // card reads "—", never 0 / "balanced". null until a run exists.
+  no_signal?: boolean | null;
 }
 
 export interface V38DashboardSnapshot {
@@ -1817,6 +1820,12 @@ export interface ThreadMeta {
   summary_model_id?: string | null;
   summary_window_chars?: number | null;
   summary_total_chars?: number | null;
+  // #304 -- stamped by the backend now, with the messages the window
+  // touched (1-based, over every message with content): "last <chars> of
+  // <total> — messages a-b of c · model X". Absent on rows before the stamp.
+  summary_total_messages?: number | null;
+  summary_window_first_message?: number | null;
+  summary_window_last_message?: number | null;
   // v51 — project membership, surfaced on every meta read. The
   // cockpit partitions its left list on this: a RELATIONSHIP is a
   // thread carrying the reserved relationship project id.
@@ -2297,7 +2306,24 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     // "normal" | "cut" | "unknown". Absent when no signal arrived. The
     // panels mark ONLY "cut"; "unknown" renders nothing.
     stop_class?: string | null;
+    // #303 A3 -- "meaning": a model read the text (physics). The ELINS
+    // envelope says "event": the counters counted.
+    ring?: string | null;
+    // #306 -- on a parse MISS only: how long the reply was and whether it
+    // opened with a refusal shape. Two facts about the text, never the text.
+    raw_len?: number | null;
+    refusal_shape?: boolean | null;
   } & WindowMeta;   // #139 -- the window the kernel READ
+}
+// #303 A4 -- whose field a PERSONAL run reads. Member-chosen; the door
+// refuses a run that does not say, and refuses "instrument" (the
+// instrument's field is not a member's to run).
+export const WHOSE_FIELDS = ["author", "addressee", "observer", "instrument"] as const;
+export type WhoseField = (typeof WHOSE_FIELDS)[number];
+/** #303 A3 / #307 E1 -- what every insight wire carries beside the window. */
+export interface InsightMeta {
+  ring?: string | null;
+  n_points?: number | null;
 }
 // ★ thread_id is the RELATIONSHIP KEY, and it is spelled identically
 // on both halves of the pair below. Omitted when absent, so a run
@@ -2310,10 +2336,17 @@ export const runEmotionalPhysics = (
   text: string,
   thread_id?: string | null,
   surface: "personal" | "thread" = "personal",
+  whose_field?: WhoseField | null,   // #303 A4 -- sent only when chosen; the door decides
 ) =>
   request<EmotionalPhysicsResponse>(
     "/me/emotional_physics/analyze",
-    { method: "POST", body: thread_id ? { text, thread_id, surface } : { text, surface } },
+    {
+      method: "POST",
+      body: {
+        text, ...(thread_id ? { thread_id } : {}), surface,
+        ...(whose_field ? { whose_field } : {}),
+      },
+    },
   );
 
 // ---------- v53 — ELINS v2 (Path C view adapter) ----------
@@ -2341,22 +2374,26 @@ export interface ElinsV2Envelope {
   pipeline?:     Record<string, unknown>;
   outputs:       ElinsV2Outputs;
   meta?:         Record<string, unknown>;
-  // #139 -- the window the kernel READ (cut_window).
-  _meta?:        WindowMeta;
+  // #139 -- the window the kernel READ (cut_window); #303 A3 the ring;
+  // #307 E1 n_points (the S-card reads only that).
+  _meta?:        WindowMeta & InsightMeta;
 }
 export const runElinsV2 = (
   text: string,
   region?: string | null,
   thread_id?: string | null,
   surface: "personal" | "thread" = "personal",   // #139 -- see runEmotionalPhysics
+  whose_field?: WhoseField | null,               // #303 A4
 ) =>
   request<ElinsV2Envelope>(
     "/elins/v2/run",
     {
       method: "POST",
-      body: thread_id
-        ? { region: region ?? null, input: { raw_text: text }, thread_id, surface }
-        : { region: region ?? null, input: { raw_text: text }, surface },
+      body: {
+        region: region ?? null, input: { raw_text: text },
+        ...(thread_id ? { thread_id } : {}), surface,
+        ...(whose_field ? { whose_field } : {}),
+      },
     },
   );
 
@@ -2897,11 +2934,18 @@ export interface ElInsReasoningModeResponse {
   ins:            number | null;
   tsi:            number | null;
   timestamp:      number | null;
+  // F / #290 -- the record the mode was read from, so the cockpit indicator
+  // reads ONE route (the operator's default scope: thread-tagged on-demand
+  // records count only for a selected thread). Absent on an older backend.
+  ratio_classification?: ElInsRatioClassification | null;
+  source?:        ElInsSource | null;
+  thread_id?:     string | null;
 }
 
-export function getElInsReasoningMode(): Promise<ElInsReasoningModeResponse> {
+export function getElInsReasoningMode(thread_id?: string | null): Promise<ElInsReasoningModeResponse> {
   return request<ElInsReasoningModeResponse>(
-    "/el_ins/operator/reasoning_mode",
+    "/el_ins/operator/reasoning_mode"
+      + (thread_id ? `?thread_id=${encodeURIComponent(thread_id)}` : ""),
     { method: "GET", auth: true },
   );
 }

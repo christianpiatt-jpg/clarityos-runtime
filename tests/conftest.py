@@ -647,6 +647,24 @@ _FILE_MARKERS: dict[str, set[str]] = {
     "test_load_envelope.py": {
         "load_envelope",
     },
+    # ---- #303-#307 seal what reads, count what counts ----
+    # runtime_spine: the whose_field door on both personal routes, the
+    # counsel fold, the ring, n_points on the ELINS wire, the summary
+    # window stamps, the #290 rollup / indicator scope.
+    # privacy_surface: model prose is scrubbed of e-mails / phones / the
+    # member name list before the wire; a parse miss reports two facts
+    # about the text and never the text; a refusal names no client word.
+    "test_303_307_seal_what_reads.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
+    # ---- #307 E3 the twelve-window pin ----
+    # determinism_surface: the ELINS counting layer over CT-1's litigation
+    # record, loaded from OUTSIDE the tree (skipped, with the reason, when
+    # the file is absent -- CI has no copy); the four all-zero windows first.
+    "test_307_lit_record_pin.py": {
+        "determinism_surface",
+    },
     # ---- #138 provenance: the basis column on the engine's own ledger ----
     # runtime_spine: four member/founder write routes stamp the five fields
     # server-side, refuse a forged origin_route, and the list reader renders

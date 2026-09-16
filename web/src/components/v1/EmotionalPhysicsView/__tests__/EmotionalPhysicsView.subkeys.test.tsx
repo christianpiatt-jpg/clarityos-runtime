@@ -18,9 +18,11 @@ import { labelFor } from "../../../../lib/labels";
 
 const READING = {
   field_curvature: { intensity: 0.8, gradient_direction: "inward", stability: "low", dominant_forces: ["shame"], notes: "n1" },
-  edge_pressure: { signal_clarity: "high", signal_intensity: 0.6, coherence: "partial", perceived_posture: "defensive", risk_of_misread: "moderate", notes: "n2" },
+  // #303 A1 -- an unknown key shows itself on a MAP layer; the external
+  // expression block is a projection of one field and reads no other key.
+  edge_pressure: { signal_clarity: "high", signal_intensity: 0.6, coherence: "partial", perceived_posture: "defensive", risk_of_misread: "moderate", notes: "n2", unknown_key: "raw" },
   relational_primitives: { trust: "fluctuating" },
-  external_expression: { unknown_key: "raw" },
+  external_expression: { risk_if_unchanged: "drift continues" },
   _meta: { model_id: "anthropic:claude-haiku-4-5-20251001", ts_ms: Date.now(), parse_error: null, stop_reason: "end_turn" },
 };
 

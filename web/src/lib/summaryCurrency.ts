@@ -129,6 +129,31 @@ export function summaryCurrency(
  *  band (#190), are not in this function and are not changed. */
 export const UNSTAMPED_CAPTION = "not stamped — summarized before the stamp shipped";
 
+/** #304 -- the box line: "last 8,000 of M — messages a-b of c · model X".
+ *  Every number is the backend's stamp; an absent stamp reads a dash. */
+export interface SummaryWindowStamps {
+  summary_model_id?: string | null;
+  summary_window_chars?: number | null;
+  summary_total_chars?: number | null;
+  summary_total_messages?: number | null;
+  summary_window_first_message?: number | null;
+  summary_window_last_message?: number | null;
+}
+
+function stamp(v: number | null | undefined): string {
+  return typeof v === "number" && Number.isFinite(v) ? v.toLocaleString("en-US") : "—";
+}
+
+export function summaryBoxLine(m: SummaryWindowStamps | null | undefined): string {
+  const s = m ?? {};
+  const a = s.summary_window_first_message;
+  const b = s.summary_window_last_message;
+  const span = (typeof a === "number" || typeof b === "number") ? `${stamp(a)}-${stamp(b)}` : "—";
+  return `last ${stamp(s.summary_window_chars)} of ${stamp(s.summary_total_chars)}`
+    + ` — messages ${span} of ${stamp(s.summary_total_messages)}`
+    + ` · model ${s.summary_model_id ?? "—"}`;
+}
+
 export function turnCaption(stamps: CurrencyStamps | null | undefined): string {
   const s = stamps ?? {};
   const made = normTurn(s.made_turn);

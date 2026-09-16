@@ -41,6 +41,11 @@ export interface EmotionalPhysicsResponse extends EmotionalPhysicsLayers {
     // #196 -- the ONE backend vocabulary's reading of that token:
     // "normal" | "cut" | "unknown". Only "cut" earns a mark.
     stop_class?: string | null;
+    // #303 A3 -- "meaning" (a model read the text). #306 -- on a parse
+    // MISS only, two facts about the reply and never the reply.
+    ring?: string | null;
+    raw_len?: number | null;
+    refusal_shape?: boolean | null;
     [k: string]:  unknown;
   } & WindowMeta;   // #139 -- the window the kernel READ, for the declaration line
   [k: string]: unknown;
