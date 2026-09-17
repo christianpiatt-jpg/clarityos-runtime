@@ -46,8 +46,8 @@ export default function LocalModelPanel() {
           <p style={helpStyle}>
             On-device inference for <code>local:llama3.1</code>. Configured
             via the <code>CLARITYOS_LOCAL_MODEL_PATH</code> environment
-            variable. When unset, the kernel falls back to a deterministic
-            mock so routing logic still works.
+            variable. When unset, the kernel answers from Clarity's own
+            deterministic path so routing logic still works.
           </p>
 
           <div style={statRowStyle}>
@@ -65,9 +65,15 @@ export default function LocalModelPanel() {
               label="Backend"
               value={data.runtime.backend || "—"}
             />
+            {/* #333 A2 -- DISPLAY ONLY. The wire field is still
+                `runtime.mock`; only the word a member reads changed, because
+                the deterministic path is ClarityOS's own answer and not a
+                stand-in. ★ PROVISIONAL WORDS: "Real /" still implies Clarity
+                is not real, which is the half of this the rename cannot fix
+                on its own. CT-1 to ratify or replace. */}
             <Stat
-              label="Real / mock"
-              value={data.runtime.mock ? "mock" : "real"}
+              label="Real / Clarity"
+              value={data.runtime.mock ? "clarity" : "real"}
               tone={data.runtime.mock ? "muted" : "ok"}
             />
           </div>

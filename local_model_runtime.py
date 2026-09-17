@@ -256,7 +256,7 @@ def _make_mock_handle(path: str, *, error: Optional[str] = None) -> ModelHandle:
 # ---------------------------------------------------------------------------
 # Public — run_local_inference
 # ---------------------------------------------------------------------------
-def _mock_text(model_path: str, prompt: str) -> str:
+def _clarity_text(model_path: str, prompt: str) -> str:
     """Deterministic text for the mock branch. Hashes the prompt so
     callers that log the result get something unique-per-prompt without
     exposing the prompt content itself."""
@@ -266,7 +266,7 @@ def _mock_text(model_path: str, prompt: str) -> str:
     return f"[local-mock {base} {digest}] {suffix}".rstrip()
 
 
-def _mock_inference_result(
+def _clarity_inference_result(
     handle: ModelHandle,
     prompt: str,
     *,
@@ -277,7 +277,7 @@ def _mock_inference_result(
     fallback when a real backend raises mid-inference."""
     out = {
         "ok": True,
-        "text": _mock_text(handle.path, prompt),
+        "text": _clarity_text(handle.path, prompt),
         "model_path": handle.path,
         "backend": handle.backend,
         "mock": True,
@@ -366,7 +366,7 @@ def run_local_inference(
     if handle.mock or handle._native is None:
         with handle._lock:
             handle.inference_count += 1
-        return _mock_inference_result(handle, prompt, started=started)
+        return _clarity_inference_result(handle, prompt, started=started)
 
     # Real branch — guarded so a backend exception degrades to mock.
     try:
@@ -384,7 +384,7 @@ def run_local_inference(
             else:
                 # Unknown backend — degrade to mock.
                 handle.inference_count += 1
-                return _mock_inference_result(handle, prompt, started=started)
+                return _clarity_inference_result(handle, prompt, started=started)
             handle.inference_count += 1
         return {
             "ok": True,
@@ -402,7 +402,7 @@ def run_local_inference(
             handle.backend, e,
         )
         handle.last_error = str(e)[:200]
-        return _mock_inference_result(
+        return _clarity_inference_result(
             handle, prompt, started=started, error=str(e),
         )
 

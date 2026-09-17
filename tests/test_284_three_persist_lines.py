@@ -163,7 +163,7 @@ def _mock_answer(error=None):
     failed real call takes (fallback_error stamped)."""
     import model_router
     def _route(model_id, prompt, **kwargs):
-        return model_router._mock_result(model_id, "gemini", prompt, time.time(), error=error)
+        return model_router._clarity_result(model_id, "gemini", prompt, time.time(), error=error)
     return _route
 
 
@@ -260,7 +260,7 @@ def test_2_the_flags_follow_the_text_that_became_the_reply(reset_stores, monkeyp
     import intelligence_kernel as ik
     import model_router
     import threads_vault as tv
-    first = dict(model_router._mock_result("m", "gemini", "p", 0.0, error="E1"),
+    first = dict(model_router._clarity_result("m", "gemini", "p", 0.0, error="E1"),
                  text="The value is 42.")                     # ungrounded -> a retry fires
     empty_real = {"ok": True, "provider": "openai", "text": "", "mock": False,
                   "ts": 0.0, "stop_reason": "stop", "usage": None}

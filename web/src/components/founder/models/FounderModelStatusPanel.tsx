@@ -119,7 +119,9 @@ export default function FounderModelStatusPanel() {
                 <LocalRow k="path" v={router.local_runtime.path || "(unset)"} />
                 <LocalRow k="loaded" v={router.local_runtime.loaded ? "yes" : "cold"} />
                 <LocalRow k="backend" v={router.local_runtime.backend || "—"} />
-                <LocalRow k="mock" v={router.local_runtime.mock ? "yes" : "no"} />
+                {/* #333 A2 -- the row LABEL only; the value still reads the
+                    `mock` field off the wire, unchanged. */}
+                <LocalRow k="clarity" v={router.local_runtime.mock ? "yes" : "no"} />
                 <LocalRow
                   k="memory footprint"
                   v={`${router.local_runtime.memory_footprint_mb.toFixed(1)} MB`}

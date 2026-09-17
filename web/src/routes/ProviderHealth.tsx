@@ -4,7 +4,8 @@
 // and any error text. Backed by GET /runtime/providers/health. Each
 // real provider is probed server-side with its models-list GET on the
 // same host and auth header the real call uses (#120; no tokens spent);
-// the synthetic "mock" provider is always green.
+// the Clarity provider -- wire key "mock", which #333 A3 holds for CT-1's
+// ruling -- is always green, because it is us.
 
 import { useEffect, useState } from "react";
 import {
@@ -14,7 +15,10 @@ import {
 } from "../lib/api";
 
 // Display order — matches runtime_providers.PROVIDERS_ORDER but with
-// the synthetic "mock" first since it's always available.
+// Clarity first since it is always available. ★ THE STRING BELOW IS A WIRE
+// KEY, NOT COPY: it is matched against the provider names the server returns
+// (and tests/ProviderHealth.test.tsx:129 pins the order), so #333 A2 does NOT
+// rename it. That is A3's ruling.
 const DISPLAY_ORDER: readonly string[] = [
   "mock", "anthropic", "openai", "gemini",
 ] as const;

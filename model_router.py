@@ -458,7 +458,7 @@ def route_request(
     handler = _PROVIDER_HANDLERS.get(provider)
     started = time.time()
     if handler is None:
-        return _mock_result(model_id, provider, prompt, started)
+        return _clarity_result(model_id, provider, prompt, started)
     try:
         return handler(model_id, prompt, temperature=temperature, max_tokens=max_tokens)
     except Exception as e:  # pragma: no cover (real-network path)
@@ -466,10 +466,10 @@ def route_request(
             "model_router provider %s call failed → mock; err=%s",
             provider, e,
         )
-        return _mock_result(model_id, provider, prompt, started, error=str(e))
+        return _clarity_result(model_id, provider, prompt, started, error=str(e))
 
 
-def _mock_result(
+def _clarity_result(
     model_id: str,
     provider: str,
     prompt: str,
@@ -520,7 +520,7 @@ def _mock_result(
 # new dependency lands. Minimal feature set: single non-streaming
 # request, basic-auth-style headers per provider, response-text
 # extraction. Any exception (timeout, auth failure, parse error)
-# falls back to ``_mock_result`` so callers always get the normalised
+# falls back to ``_clarity_result`` so callers always get the normalised
 # router contract back. The fallback path stamps ``fallback_error``
 # on the result for the v65 history-entry ``provider_error`` field.
 
@@ -616,7 +616,7 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     started = time.time()
     stop: Optional[str] = None  # #128 -- captured the moment a body arrives, before any raise
     if not _provider_configured("openai"):
-        return _mock_result(model_id, "openai", prompt, started)
+        return _clarity_result(model_id, "openai", prompt, started)
     key = (os.environ.get("CLARITYOS_OPENAI_KEY") or "").strip()
     # model_id is "openai:gpt-5.4"; strip the prefix for the wire model.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
@@ -663,7 +663,7 @@ def _call_openai(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             logger.warning("openai http error status=%s body=%s", e.code, body)
         else:
             logger.warning("openai non-http error: %s", str(e))
-        degraded = _mock_result(model_id, "openai", prompt, started, error=str(e))
+        degraded = _clarity_result(model_id, "openai", prompt, started, error=str(e))
         # #128 -- an empty-body refusal / filter degrades to mock, but the
         # vendor DID say why. Carry it: this is the case the field is for.
         degraded["stop_reason"] = stop
@@ -674,7 +674,7 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
     started = time.time()
     stop: Optional[str] = None  # #128 -- captured the moment a body arrives, before any raise
     if not _provider_configured("anthropic"):
-        return _mock_result(model_id, "anthropic", prompt, started)
+        return _clarity_result(model_id, "anthropic", prompt, started)
     key = (os.environ.get("CLARITYOS_ANTHROPIC_KEY") or "").strip()
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
@@ -724,7 +724,7 @@ def _call_anthropic(model_id: str, prompt: str, *, temperature: float, max_token
             logger.warning("anthropic http error status=%s body=%s", e.code, body)
         else:
             logger.warning("anthropic non-http error: %s", str(e))
-        degraded = _mock_result(model_id, "anthropic", prompt, started, error=str(e))
+        degraded = _clarity_result(model_id, "anthropic", prompt, started, error=str(e))
         # #128 -- an empty-body refusal / filter degrades to mock, but the
         # vendor DID say why. Carry it: this is the case the field is for.
         degraded["stop_reason"] = stop
@@ -735,7 +735,7 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     started = time.time()
     stop: Optional[str] = None  # #128 -- captured the moment a body arrives, before any raise
     if not _provider_configured("gemini"):
-        return _mock_result(model_id, "gemini", prompt, started)
+        return _clarity_result(model_id, "gemini", prompt, started)
     key = (os.environ.get("CLARITYOS_GEMINI_KEY") or "").strip()
     # model_id is "google:gemini-2.5-flash"; strip prefix for wire.
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
@@ -777,7 +777,7 @@ def _call_gemini(model_id: str, prompt: str, *, temperature: float, max_tokens: 
             logger.warning("gemini http error status=%s body=%s", e.code, body)
         else:
             logger.warning("gemini non-http error: %s", str(e))
-        degraded = _mock_result(model_id, "gemini", prompt, started, error=str(e))
+        degraded = _clarity_result(model_id, "gemini", prompt, started, error=str(e))
         # #128 -- an empty-body refusal / filter degrades to mock, but the
         # vendor DID say why. Carry it: this is the case the field is for.
         degraded["stop_reason"] = stop
@@ -789,8 +789,8 @@ def _call_xai(model_id: str, prompt: str, *, temperature: float, max_tokens: int
     # + OpenAI + Gemini for the real-call wiring. xAI handler kept at
     # mock so v44/v45 test expectations are preserved.
     if not _provider_configured("xai"):
-        return _mock_result(model_id, "xai", prompt, time.time())
-    return _mock_result(model_id, "xai", prompt, time.time())
+        return _clarity_result(model_id, "xai", prompt, time.time())
+    return _clarity_result(model_id, "xai", prompt, time.time())
 
 
 def _call_local(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
@@ -805,7 +805,7 @@ def _call_local(model_id: str, prompt: str, *, temperature: float, max_tokens: i
     """
     started = time.time()
     if not _provider_configured("local"):
-        return _mock_result(model_id, "local", prompt, started)
+        return _clarity_result(model_id, "local", prompt, started)
 
     # Lazy import keeps the model_router test surface (and the rest of
     # the kernel) decoupled from the runtime when local is unused.
@@ -813,11 +813,11 @@ def _call_local(model_id: str, prompt: str, *, temperature: float, max_tokens: i
         import local_model_runtime
     except Exception as e:  # pragma: no cover (import failure path)
         logger.warning("local_model_runtime import failed err=%s", e)
-        return _mock_result(model_id, "local", prompt, started, error=str(e))
+        return _clarity_result(model_id, "local", prompt, started, error=str(e))
 
     handle = _warm_local_handle(local_model_runtime)
     if handle is None:
-        return _mock_result(model_id, "local", prompt, started)
+        return _clarity_result(model_id, "local", prompt, started)
     try:
         out = local_model_runtime.run_local_inference(
             handle, prompt,
@@ -825,7 +825,7 @@ def _call_local(model_id: str, prompt: str, *, temperature: float, max_tokens: i
         )
     except Exception as e:  # pragma: no cover (runtime returns dict, doesn't raise)
         logger.warning("local_model_runtime.run_local_inference failed err=%s", e)
-        return _mock_result(model_id, "local", prompt, started, error=str(e))
+        return _clarity_result(model_id, "local", prompt, started, error=str(e))
 
     # Normalise into the router contract (text/model_id/provider/mock/ts).
     return {
@@ -917,7 +917,7 @@ def _call_ollama(model_id: str, prompt: str, *, temperature: float, max_tokens: 
     """
     started = time.time()
     if not _provider_configured("ollama"):
-        return _mock_result(model_id, "ollama", prompt, started)
+        return _clarity_result(model_id, "ollama", prompt, started)
     base_url = (os.environ.get("CLARITYOS_OLLAMA_URL") or "").strip().rstrip("/")
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
@@ -953,7 +953,7 @@ def _call_ollama(model_id: str, prompt: str, *, temperature: float, max_tokens: 
         }
     except Exception as e:  # pragma: no cover (real-network path)
         logger.warning("ollama call failed → mock; err=%s", e)
-        return _mock_result(model_id, "ollama", prompt, started, error=str(e))
+        return _clarity_result(model_id, "ollama", prompt, started, error=str(e))
 
 
 def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
@@ -962,7 +962,7 @@ def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens
     ``CLARITYOS_DEEPSEEK_KEY``; mock-on-unset mirrors the other handlers."""
     started = time.time()
     if not _provider_configured("deepseek"):
-        return _mock_result(model_id, "deepseek", prompt, started)
+        return _clarity_result(model_id, "deepseek", prompt, started)
     key = (os.environ.get("CLARITYOS_DEEPSEEK_KEY") or "").strip()
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
@@ -998,7 +998,7 @@ def _call_deepseek(model_id: str, prompt: str, *, temperature: float, max_tokens
             logger.warning("deepseek http error status=%s body=%s", e.code, body)
         else:
             logger.warning("deepseek non-http error: %s", str(e))
-        return _mock_result(model_id, "deepseek", prompt, started, error=str(e))
+        return _clarity_result(model_id, "deepseek", prompt, started, error=str(e))
 
 
 def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens: int) -> dict:
@@ -1007,7 +1007,7 @@ def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens:
     ``CLARITYOS_MISTRAL_KEY``; mock-on-unset mirrors the other handlers."""
     started = time.time()
     if not _provider_configured("mistral"):
-        return _mock_result(model_id, "mistral", prompt, started)
+        return _clarity_result(model_id, "mistral", prompt, started)
     key = (os.environ.get("CLARITYOS_MISTRAL_KEY") or "").strip()
     wire_model = model_id.split(":", 1)[1] if ":" in model_id else model_id
     try:
@@ -1043,7 +1043,7 @@ def _call_mistral(model_id: str, prompt: str, *, temperature: float, max_tokens:
             logger.warning("mistral http error status=%s body=%s", e.code, body)
         else:
             logger.warning("mistral non-http error: %s", str(e))
-        return _mock_result(model_id, "mistral", prompt, started, error=str(e))
+        return _clarity_result(model_id, "mistral", prompt, started, error=str(e))
 
 
 _PROVIDER_HANDLERS: dict[str, Any] = {

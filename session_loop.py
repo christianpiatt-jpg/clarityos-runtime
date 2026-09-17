@@ -380,7 +380,7 @@ def step_session(session_state,
 
     # v64 / Unit 65 — Provider-error recording.
     # When the real-HTTP path in model_router fails, the response
-    # dict carries a ``fallback_error`` field (set by ``_mock_result``
+    # dict carries a ``fallback_error`` field (set by ``_clarity_result``
     # when called with ``error=...``). We surface that into the
     # history entry as an optional ``provider_error`` field so
     # operators can see which steps degraded to mock. Absent on

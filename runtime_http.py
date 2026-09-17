@@ -794,7 +794,7 @@ def get_vault(
 #     complete would read available here and fail a real call.
 #
 # The synthetic "mock" provider is always available=true — the
-# fallback path through model_router._mock_result is guaranteed to
+# fallback path through model_router._clarity_result is guaranteed to
 # work (deterministic, no I/O).
 #
 # Returned per provider:

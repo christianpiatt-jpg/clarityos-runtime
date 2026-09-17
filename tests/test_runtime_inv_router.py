@@ -9,7 +9,7 @@ Locked invariants covered:
              read pulls from vault, byte-for-byte same value)
     INV-R3 — Provider HTTP timeout is per-context via ContextVar;
              default = runtime_http_config.DEFAULT_CALL_TIMEOUT
-    INV-R4 — _mock_result uses runtime_privacy.prompt_preview (byte-
+    INV-R4 — _clarity_result uses runtime_privacy.prompt_preview (byte-
              stable mock contract)
     INV-R5 — resolve_model_alias case rules + unknown returns None
     INV-R6 — _PROVIDER_HTTP_TIMEOUT readable via module __getattr__
@@ -147,12 +147,12 @@ class TestINV_R3_ContextVarTimeout:
 
 
 # ---------------------------------------------------------------------------
-# INV-R4 — _mock_result uses runtime_privacy.prompt_preview
+# INV-R4 — _clarity_result uses runtime_privacy.prompt_preview
 # ---------------------------------------------------------------------------
 class TestINV_R4_MockResultUsesPromptPreview:
     def test_inv_r4_preview_matches_runtime_privacy(self, reset_stores):
         long_prompt = ("x" * 30) + ("y" * 200)
-        out = mr._mock_result(
+        out = mr._clarity_result(
             "anthropic:claude-haiku-4-5-20251001", "anthropic", long_prompt, 0.0,
         )
         text = out["text"]

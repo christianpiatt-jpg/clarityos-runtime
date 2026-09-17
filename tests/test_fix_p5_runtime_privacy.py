@@ -341,7 +341,7 @@ class TestOperatorStateTopicTrimDelegates:
 
 
 class TestModelRouterMockUsesPromptPreview:
-    """The mock-result preview from ``model_router._mock_result`` must
+    """The mock-result preview from ``model_router._clarity_result`` must
     now go through ``runtime_privacy.prompt_preview``. The byte-for-
     byte output for a given prompt remains identical (both helpers
     cap at 60 chars without an ellipsis), and FIX-P5 callers don't
@@ -357,7 +357,7 @@ class TestModelRouterMockUsesPromptPreview:
         # has no trailing whitespace at the 60-char boundary so the
         # rstrip is a no-op and the byte-for-byte check is exact.
         long_prompt = ("x" * 30) + ("y" * 200)
-        out = mr._mock_result(
+        out = mr._clarity_result(
             "anthropic:claude-haiku-4-5-20251001", "anthropic", long_prompt, 0.0,
         )
         text = out["text"]
@@ -372,7 +372,7 @@ class TestModelRouterMockUsesPromptPreview:
         """A short prompt round-trips through prompt_preview unchanged
         (subject to the trailing rstrip on the assembled text)."""
         import model_router as mr
-        out = mr._mock_result(
+        out = mr._clarity_result(
             "anthropic:claude-haiku-4-5-20251001", "anthropic", "hello world", 0.0,
         )
         text = out["text"]
@@ -383,7 +383,7 @@ class TestModelRouterMockUsesPromptPreview:
         confirms ``prompt_preview`` returning "" still rstrips to a
         sane mock-result text."""
         import model_router as mr
-        out = mr._mock_result(
+        out = mr._clarity_result(
             "anthropic:claude-haiku-4-5-20251001", "anthropic", "", 0.0,
         )
         # After rstrip the trailing space after the bracket is gone.

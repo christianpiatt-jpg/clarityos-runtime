@@ -258,7 +258,7 @@ def test_provider_fallback_is_a_class_on_the_line_and_absent_when_the_model_answ
     monkeypatch.setitem(mr._PROVIDER_HANDLERS, "anthropic", refused)
     assert ik.run_emotional_physics("alice", text, surface="thread")["_meta"]["provider_fallback"] == "http_error"
     # no key configured at all: the deterministic mock is "unconfigured"
-    monkeypatch.setattr(mr, "route_request", lambda model_id, prompt, **kw: mr._mock_result(model_id, "anthropic", prompt, 0.0))
+    monkeypatch.setattr(mr, "route_request", lambda model_id, prompt, **kw: mr._clarity_result(model_id, "anthropic", prompt, 0.0))
     assert ik.run_emotional_physics("alice", text, surface="thread")["_meta"]["provider_fallback"] == "unconfigured"
 
 

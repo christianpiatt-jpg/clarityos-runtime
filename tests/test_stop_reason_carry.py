@@ -96,7 +96,7 @@ class TestAdaptersCarryTheRawValue:
 
 class TestMockCarriesNone:
     def test_mock_result_has_the_key_and_it_is_none(self):
-        out = mr._mock_result("anthropic:claude-haiku-4-5-20251001", "anthropic", "hi", 0.0)
+        out = mr._clarity_result("anthropic:claude-haiku-4-5-20251001", "anthropic", "hi", 0.0)
         assert "stop_reason" in out
         assert out["stop_reason"] is None
 
