@@ -14866,9 +14866,40 @@ def _n_points(user: str, thread_id, surface: Optional[str]) -> int:
     return max(1, scored)          # a read happened: one point, never 0
 
 
+def _run_intensities(text: str) -> Optional[dict]:
+    """#330 -- the ELINS six-primitive intensity vector for ``text``.
+
+    ★ THE SAME PRODUCER the pipeline itself uses -- ``standard_elins.
+    _layer_1_primitives`` (the pipeline calls it at that module's :472), a
+    pure regex count over the normalised text. No model call, no store, no
+    new lexicon.
+
+    ★ PRE-REGIONAL, and named rather than hidden. ``run_elins_v2`` may bump
+    these when a region is supplied (regional_elins._apply_entity_bump :160
+    on entity terms, and an ESO signal at :208), and the turn is recorded
+    BEFORE the envelope exists -- the three-step order in ``record_turn`` is
+    load-bearing, so the seal cannot wait on the run. #330's test pins that
+    NO region profile in the tree bumps ``trust``, so the bump cannot move
+    the label on any profile; an ESO signal keyed "trust" is the only path
+    that could, and that oracle is gated and mocked.
+
+    Never raises. A record must never cost a response.
+    """
+    try:
+        return standard_elins._layer_1_primitives(text or "")["intensities"]
+    except Exception as exc:
+        # One line, the error TYPE only -- no user, no thread, no text
+        # (INV-H1). Without it the whole leg could go dark invisibly: the
+        # seal would simply stop happening and every card would read
+        # "no prior seal" forever with nothing to grep for.
+        logger.warning("run_intensities_failed err=%s", type(exc).__name__)
+        return None
+
+
 def _record_run_against_thread(
     user: str, thread_id, text: str, whose_field: Optional[str] = None,
-) -> Optional[str]:
+    intensities: Optional[dict] = None,
+) -> Optional[dict]:
     """Put a standalone run on the recorded path when it names a thread.
 
     *** OPTIONAL BY CONSTRUCTION. A request without ``thread_id`` returns
@@ -14894,10 +14925,14 @@ def _record_run_against_thread(
         logger.info("run_record skipped: thread not owned or missing")
         return None
     try:
-        # #114 -- the sealed key comes back so a physics run can seal its
-        # bearings onto ITS OWN turn after the model answers. None on every
-        # path that recorded nothing.
-        return turn_record.record_turn(user, tid, text, whose_field=whose_field)["sealed_key"]
+        # #114 -- the sealed key rides in the return so a physics run can
+        # seal its bearings onto ITS OWN turn after the model answers.
+        # #330 -- the WHOLE record dict comes back now (sealed_key plus the
+        # previous turn's s_state and whether this one met it); None on
+        # every path that recorded nothing, exactly as before.
+        return turn_record.record_turn(
+            user, tid, text, whose_field=whose_field, intensities=intensities,
+        )
     except Exception as exc:
         # No identifiers in the log (INV-H1): the error locates the
         # fault, the member does not need to be in it to do that.
@@ -15098,9 +15133,13 @@ def me_emotional_physics_analyze(
     # #303 A4 -- a personal run says whose field it reads, or it is refused
     # here, before the turn is recorded and before the model is called.
     whose_field = _require_whose_field(req.surface, req.whose_field)
-    sealed_key = _record_run_against_thread(
+    # #330 -- the helper returns the record dict now. The physics route
+    # passes NO intensities this leg (#114's model-call-per-turn ruling is
+    # not given), so its observation is byte-identical to before.
+    _rec = _record_run_against_thread(
         user, req.thread_id, window_text, whose_field=whose_field,
     )
+    sealed_key = _rec.get("sealed_key") if isinstance(_rec, dict) else None
 
     try:
         out = intelligence_kernel.run_emotional_physics(
@@ -15220,7 +15259,13 @@ def elins_v2_run(
             detail=error_response("bad_input", "the window is empty: raw_text is whitespace"),
         )
     whose_field = _require_whose_field(req.surface, req.whose_field)   # #303 A4
-    _record_run_against_thread(user, req.thread_id, window_text, whose_field=whose_field)
+    # #330 -- the attractor's own conclusion goes onto the spine here: the
+    # run's intensity vector rides into the turn record, so the label this
+    # instrument reaches is SEALED for the next turn to be scored against.
+    _rec = _record_run_against_thread(
+        user, req.thread_id, window_text, whose_field=whose_field,
+        intensities=_run_intensities(window_text),
+    )
 
     try:
         envelope = intelligence_kernel.run_elins_v2(
@@ -15238,6 +15283,20 @@ def elins_v2_run(
     # S-card's n, from the relationship's scored turns (1 without one).
     envelope["_meta"]["ring"] = intelligence_kernel.RING_EVENT
     envelope["_meta"]["n_points"] = _n_points(user, req.thread_id, req.surface)
+    # #330 -- what the PREVIOUS turn sealed and whether this run met it.
+    # Both keys are OMITTED when there is no prior seal (D5: the card reads
+    # a dash and says so, never a 0 and never a blank). Nothing new is
+    # stored -- this reports a comparison score_record already makes.
+    # ★ TWO ABSENCES, NOT ONE, and since the label is gated by the surface's
+    # tie rule the second is the COMMON case: a prior turn that sealed no
+    # state at all is not the same as no prior turn. observed_prior is
+    # already computed by record_turn, so the row can say which.
+    if isinstance(_rec, dict):
+        envelope["_meta"]["observed_prior"] = bool(_rec.get("observed_prior"))
+        if "prior_s_state" in _rec:
+            envelope["_meta"]["prior_s_state"] = _rec["prior_s_state"]
+            if "s_state_match" in _rec:
+                envelope["_meta"]["s_state_match"] = _rec["s_state_match"]
     return envelope
 
 

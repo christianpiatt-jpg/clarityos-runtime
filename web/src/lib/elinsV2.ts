@@ -117,7 +117,19 @@ export interface ElinsV2Envelope {
   meta:          ElinsV2Meta;
   // #139 -- the window the kernel READ (cut_window), for the declaration line.
   // #303 A3 the ring ("event": the counters counted); #307 E1 n_points.
-  _meta?:        WindowMeta & { ring?: string | null; n_points?: number | null };
+  // #330 -- the PREVIOUS turn's sealed S-state and whether this run met it.
+  // BOTH ABSENT when there is no prior seal: the card reads a dash and says
+  // so, and an older backend simply does not send them.
+  _meta?:        WindowMeta & {
+    ring?: string | null;
+    n_points?: number | null;
+    prior_s_state?: string | null;
+    s_state_match?: boolean | null;
+    /** #330 -- whether a prior seal was observed AT ALL. Distinguishes
+     *  "no prior turn" from "a prior turn that named no state", which the
+     *  writers' tie rule makes the common case. */
+    observed_prior?: boolean | null;
+  };
 }
 
 // -----------------------------------------------------------------

@@ -54,6 +54,46 @@ export function nPointsOf(env: unknown): number | null {
   return typeof n === "number" && Number.isFinite(n) ? n : null;
 }
 
+/**
+ * #330 -- `_meta.prior_s_state`: the S-state the PREVIOUS turn sealed, or
+ * null when there is no prior seal (the first turn of a relationship, a run
+ * that names no thread, or a backend from before this leg). Null is the
+ * ABSENT case and the card must say so in words -- never render it as a 0
+ * and never as a blank.
+ */
+export function priorSStateOf(env: unknown): string | null {
+  const s = metaOf(env).prior_s_state;
+  return typeof s === "string" && s.trim() ? s : null;
+}
+
+/**
+ * #330 -- `_meta.s_state_match`: did THIS run reach the state the previous
+ * turn sealed. Null when either side is absent -- "this reading was not
+ * taken", which is nothing to be right or wrong about.
+ *
+ * ★ AND THE LEDGER CURRENTLY DISAGREES WITH THAT, which is a ruling owed to
+ * CT-1 and not a rendering bug. When a prior turn sealed a state and this
+ * turn took no reading, score_record scores the record `missed` (a claimed
+ * key against an observation that never answered), while this row says
+ * `undefined`. The row is the honest one; the scorer's third case is the
+ * one-branch ruling named in the #330 RETURN. Do not "fix" the row to match
+ * the ledger -- that would print a miss nobody earned.
+ */
+export function sStateMatchOf(env: unknown): boolean | null {
+  const m = metaOf(env).s_state_match;
+  return typeof m === "boolean" ? m : null;
+}
+
+/**
+ * #330 -- `_meta.observed_prior`: was there a prior seal at all. Lets the row
+ * separate "no prior turn" from "a prior turn that named no state" -- the
+ * second is the COMMON case, because the seal is gated by the surface's own
+ * tie rule and a level field names nothing.
+ */
+export function observedPriorOf(env: unknown): boolean {
+  return metaOf(env).observed_prior === true;
+}
+
 /** `_meta.ring` as sent ("meaning" | "event"), or null. */
 export function ringOf(env: unknown): string | null {
   const r = metaOf(env).ring;

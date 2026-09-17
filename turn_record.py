@@ -697,12 +697,24 @@ _PHYSICS_BLOCKS: tuple = (
 )
 
 
-def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dict:
+def build_geometry_observation(
+    text: str, physics: Optional[dict] = None, *, intensities: Optional[dict] = None,
+) -> dict:
     """Assemble the recomputable half of a turn record.
 
     Holds: the physics enum bearings verbatim (prose stripped), the
-    primitive counts, a pressure reading, and the S-state label when the
-    caller supplies intensities. Every value is an enum member or a count.
+    primitive counts, a pressure reading, and -- when the caller supplies
+    ``intensities`` -- the S-state label the attractor itself concluded.
+    Every value is an enum member or a count.
+
+    ★ #330 -- THE SIGNATURE NOW MATCHES THAT SENTENCE. Before this leg the
+    docstring promised the S-state label and the function had no parameter
+    to carry it; ``s_state_label`` existed with ZERO callers. So a run wrote
+    a turn but sealed only what the EXTRACTOR counted off the text, never
+    what the instrument concluded from it, and the conclusion was never
+    scored against the next turn. ``intensities`` is keyword-only and
+    defaults to None, so every caller that does not pass it produces a
+    byte-identical observation dict.
 
     ``external_expression`` is deliberately absent -- every one of its
     fields is prose (see EmotionalPhysicsView's reclassification), so it is
@@ -755,6 +767,45 @@ def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dic
                     obs[k + "_n"] = len(v)          # a count, not the members
                     readings += 1
 
+    # #330 -- THE ATTRACTOR'S OWN CONCLUSION, ON THE SPINE. Everything
+    # above is what the extractor COUNTED off the text. This is the one
+    # line that says what the instrument MADE of it. Sealed here it becomes
+    # the next turn's claim, and score_record picks it up through
+    # ``claimed`` (:586) with no constant to change -- BEARINGS is
+    # deliberately untouched, because widening it would re-score every
+    # record already stored (#90, no retrofit).
+    #
+    # ★ ABSENT, NEVER NULL (D5). A label that does not arrive omits the key
+    # entirely, so that turn reads UNDEFINED at score time -- "no claim was
+    # made" -- rather than claiming nothing and scoring a match for it.
+    #
+    # ★★ READ THE DISTRIBUTION BEFORE YOU TRUST THIS FIELD. The label is
+    # gated by the surface's own tie rule (s_state_label -> attractor_
+    # verdict), so it names a state only when the card would. #330's
+    # refuter measured what is REACHABLE through the live producer: the
+    # trust and alignment LEXICONS ARE EMPTY (standard_elins._PRIMITIVE_
+    # LEXICON), so tr and al are structurally 0.0, the four scores rarely
+    # separate, and the gate DECLINES on seven of eight real texts. The
+    # field is built, sealed and scored correctly; it does not yet MEAN
+    # much. See tests/test_330_s_state_on_the_spine.py, which measures it
+    # rather than asserting it.
+    #
+    # ★★★ NOT YET SAFE TO PROMOTE, and the RETURN says so: only ONE writer
+    # on a thread's record namespace supplies intensities (/elins/v2/run).
+    # The physics route and the kernel's fenced chat copy
+    # (intelligence_kernel.py:1072) structurally cannot, so when one of
+    # them observes a turn this route sealed, score_record reads a claimed
+    # key against an observation that never took the reading and calls it
+    # MISSED rather than undefined -- a route artefact inside the one
+    # number this module exists to make computable. The ruling that fixes
+    # it is one branch in score_record and is CT-1's, not this leg's (the
+    # order: "NO constant change needed"). Latent at 0%, blocking at 100%.
+    if isinstance(intensities, dict):
+        _label = s_state_label(intensities)
+        if _label is not None:
+            obs["s_state"] = _label
+            readings += 1
+
     # * This function KNOWS where its reading came from -- it computed it
     # from the text that just arrived. So it stamps the provenance itself
     # rather than letting a downstream writer assert it second-hand. The
@@ -788,19 +839,39 @@ def build_geometry_observation(text: str, physics: Optional[dict] = None) -> dic
 
 
 def s_state_label(intensities: dict) -> Optional[str]:
-    """The softmax winner from elins_v2_view, or None when it declines.
+    """The state the SURFACE would name, or None when it would name none.
+
+    ★★ #330 -- THE WRITERS' RULE, NOT THE RAW ARGMAX. ``elins_v2_view
+    .attractor_verdict`` is the tree's rule for exactly this decision, and
+    its own header says why it exists: "a record that names a state names
+    the one the surface would show" (#284). A top-two gap under
+    ATTRACTOR_TIE_EPSILON names NO state. Sealing the bare argmax instead
+    would re-open on a new WRITE path the defect CT-1 measured on the
+    2026-08-27 walk -- a level field with a state printed under it -- and
+    the new card row could read "prior seal: S1 · matched" directly beneath
+    "indeterminate — no attractor leads" on the same card. None omits the
+    key at the seal, so an indeterminate field records ABSENT (D5) rather
+    than a name it cannot support.
 
     ★ D3 -- INVERTED TERM, reported not fixed. trust enters S1 and S2 as a
     MULTIPLIER (elins_v2_view.py:161-162): score_S1 = (1-p)*al*tr. With tr
     absent and read as 0.0, both aligned states are ANNIHILATED rather than
-    reduced, so S3 wins whenever pressure > 0. The label is pinned by a
-    missing term, not by the reading. That is what this record exists to
-    unpin, and it is why markov training waits on it.
+    reduced, so among the raw scores S3 wins whenever pressure > 0.
+
+    ★★ AND MEASURED, on the producer that actually feeds this: the trust
+    and alignment LEXICONS ARE EMPTY (standard_elins._PRIMITIVE_LEXICON),
+    so tr and al can never leave 0.0 on this path at all. The four scores
+    therefore rarely separate, and the gate above declines on SEVEN of
+    eight real texts -- see tests/test_330_s_state_on_the_spine.py, which
+    measures it rather than asserting it. The label is pinned by a missing
+    term, not by the reading. That is what this record exists to unpin, and
+    it is why markov training waits on it.
     """
     try:
         from ELINS import elins_v2_view
-        _dist, attractor = elins_v2_view.compute_state_distribution(intensities or {})
-        return attractor
+        dist, attractor = elins_v2_view.compute_state_distribution(intensities or {})
+        verdict = elins_v2_view.attractor_verdict(dist, attractor)
+        return verdict["state"] if verdict["determinate"] else None
     except Exception:
         return None
 
@@ -810,6 +881,7 @@ def s_state_label(intensities: dict) -> Optional[str]:
 # --------------------------------------------------------------------------
 def record_turn(
     user_id: str, thread_id: str, text: str, *, whose_field: Optional[str] = None,
+    intensities: Optional[dict] = None,
 ) -> dict:
     """Read this turn, observe the PREVIOUS seal against it, then seal for
     the turn that does not exist yet.
@@ -829,12 +901,24 @@ def record_turn(
     the duplication is reported rather than removed under a gate that
     forbids touching it.
     """
-    read = build_geometry_observation(text if isinstance(text, str) else "")
+    read = build_geometry_observation(
+        text if isinstance(text, str) else "", intensities=intensities,
+    )
     pending = pending_seal(user_id, thread_id)
     observed = False
+    prior_s_state = None
     if pending:
-        observe_return(user_id, pending, read)
+        # #330 -- observe_return hands the record back, so the PREVIOUS
+        # seal is read from the write that was already happening. No extra
+        # vault read, and nothing new is stored: this only REPORTS the
+        # comparison score_record will make on its own.
+        _prior = observe_return(user_id, pending, read)
         observed = True
+        _exp = _prior.get("expectation") if isinstance(_prior, dict) else None
+        if isinstance(_exp, dict):
+            _v = _exp.get("s_state")
+            if isinstance(_v, str) and _v:
+                prior_s_state = _v
     key = seal_expectation(
         user_id, thread_id,
         next_turn_index(user_id, thread_id),
@@ -852,7 +936,17 @@ def record_turn(
                 rec = dict(rec)
                 rec["whose_field"] = tok
                 memory_vault.vault_put(user_id, key, rec)
-    return {"sealed_key": key, "observed_prior": observed}
+    out = {"sealed_key": key, "observed_prior": observed}
+    # #330 -- what the previous turn SEALED, and whether this turn met it.
+    # Both keys are OMITTED when there was no prior seal, or when this turn
+    # carried no label: the surface renders a dash and says "no prior seal",
+    # never a 0 and never a blank (D5).
+    if prior_s_state is not None:
+        out["prior_s_state"] = prior_s_state
+        _this = read.get("s_state")
+        if isinstance(_this, str) and _this:
+            out["s_state_match"] = (_this == prior_s_state)
+    return out
 
 
 # --------------------------------------------------------------------------

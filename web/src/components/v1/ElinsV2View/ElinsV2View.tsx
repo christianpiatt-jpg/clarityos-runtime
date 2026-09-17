@@ -47,7 +47,8 @@ import { trustLine } from "../../../lib/trustSignal";
 // edges off L4, a stress intensity as hits.
 import {
   DERIVED_FROM_STRESS_ONLY, NEEDS_PRIOR_READ, ONE_POINT_NO_TREND,
-  edgesOf, hasPrior, nPointsOf, ringOf, stressHits,
+  edgesOf, hasPrior, nPointsOf, observedPriorOf, priorSStateOf, ringOf,
+  sStateMatchOf, stressHits,
 } from "../../../lib/counts";
 import SendToCorpus from "./SendToCorpus";
 import { compressionIndex, compressionWord } from "../../../lib/compressionIndex";
@@ -233,6 +234,10 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const noSignal = signature.no_signal === true;
   // #307 E1 -- n off the wire only; #305 -- edges off L4; #303 A3 -- the ring.
   const nPoints = nPointsOf(view);
+  // #330 -- what the previous turn sealed, and whether this run met it.
+  const priorSeal = priorSStateOf(view);
+  const sealMatch = sStateMatchOf(view);
+  const observedPrior = observedPriorOf(view);
   const edges = edgesOf(view);
   const ring = ringOf(view);
   const engineLine = ring ? `engine: ${view.meta.engine} · ring: ${ring}` : `engine: ${view.meta.engine}`;
@@ -331,6 +336,9 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
         distribution={outputs.state_distribution}
         attractor={outputs.attractor}
         nPoints={nPoints}
+        priorSeal={priorSeal}
+        sealMatch={sealMatch}
+        observedPrior={observedPrior}
       />
       <MathRail view={view} trust={trust} />
       <CollapseBlock collapse={outputs.collapse_state} />
@@ -824,12 +832,19 @@ function MathRail({ view, trust }: { view: ElinsV2Envelope; trust?: TrustSignal 
 }
 
 function AttractorBlock({
-  distribution, attractor, nPoints = null,
+  distribution, attractor, nPoints = null, priorSeal = null, sealMatch = null,
+  observedPrior = false,
 }: {
   distribution: Record<Attractor, number>;
   attractor: Attractor;
   /** #307 E2 -- the four percentages render only at n >= 2 (n off the wire). */
   nPoints?: number | null;
+  /** #330 -- the S-state the PREVIOUS turn sealed; null when there is none. */
+  priorSeal?: string | null;
+  /** #330 -- whether this run met that seal; null when either side is absent. */
+  sealMatch?: boolean | null;
+  /** #330 -- was there a prior seal at all (vs one that named no state). */
+  observedPrior?: boolean;
 }) {
   const states: Attractor[] = ["S1", "S2", "S3", "S4"];
   // ★★ THE SECOND CONSUMER. The tie-break shipped to PersonalElins in
@@ -894,6 +909,25 @@ function AttractorBlock({
           <div>{indeterminateDetail(verdict.leaders)}</div>
         </div>
       )}
+      {/* #330 -- the ONE row this leg adds: what the previous turn SEALED,
+          and whether this run met it. The words are score_record's own
+          ("matched" / "missed"), not a new lexicon. No prior seal is the
+          ABSENT case and says so -- a dash, never a 0 and never a blank. */}
+      <div className={styles.subtle} data-testid="attractor-prior-seal" title="_meta.prior_s_state">
+        {priorSeal === null ? (
+          // ★ TWO ABSENCES, SAID APART. Since the seal follows the surface's
+          // tie rule, a prior turn that named NO state is the common case
+          // and is not the same fact as there being no prior turn.
+          observedPrior
+            ? <>prior seal: {DASH} · prior turn named no state</>
+            : <>prior seal: {DASH} · no prior seal</>
+        ) : (
+          <>
+            prior seal: <strong>{priorSeal}</strong> ·{" "}
+            {sealMatch === null ? "undefined" : sealMatch ? "matched" : "missed"}
+          </>
+        )}
+      </div>
     </div>
   );
 }

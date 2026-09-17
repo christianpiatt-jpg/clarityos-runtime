@@ -676,6 +676,19 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "determinism_surface",
     },
+    # ---- #330 leg 1: the attractor's own conclusion on the spine ----
+    # runtime_spine: the turn record seals what the INSTRUMENT concluded,
+    # not only what the extractor counted; an absent label omits the key
+    # (D5) and every caller that passes no intensities is byte-identical.
+    # determinism_surface: s_state_label is a pure function of the vector,
+    # and the REACHABLE distribution through the live producer is measured
+    # and pinned -- the trust/alignment lexicons are empty, so the label is
+    # a two-valued function of pressure. That pin FAILS when #307(b)
+    # restores a trust term, which is the signal to lift #330's hold.
+    "test_330_s_state_on_the_spine.py": {
+        "runtime_spine",
+        "determinism_surface",
+    },
     # ---- #307 E3 the twelve-window pin ----
     # determinism_surface: the ELINS counting layer over CT-1's litigation
     # record, loaded from OUTSIDE the tree (skipped, with the reason, when
