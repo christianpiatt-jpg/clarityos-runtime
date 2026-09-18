@@ -25,6 +25,14 @@ from .el_ins_analyzer import (
     ElInsResult,
     PROVIDER_MODES,
     SYSTEM_PROMPT_PATH,
+    # #355 -- the sentinel rides the package's public surface. A caller who
+    # can reach ``analyze_text`` must be able to reach the value it returns
+    # for 0/0 without importing a private module or retyping the string.
+    # One token, one spelling; a second literal is how two calibrations end
+    # up in one series.
+    RATIO_UNMAPPED,
+    MODE_UNMAPPED,
+    CLASSIFIER_VERSION,
 )
 from .el_ins_store import (
     ElInsRecord,
@@ -98,6 +106,9 @@ __all__ = [
     "ElInsResult",
     "PROVIDER_MODES",
     "SYSTEM_PROMPT_PATH",
+    "RATIO_UNMAPPED",
+    "MODE_UNMAPPED",
+    "CLASSIFIER_VERSION",
     "ElInsRecord",
     "store_el_ins_record",
     "get_thread_el_ins",

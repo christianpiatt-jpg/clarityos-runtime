@@ -196,14 +196,34 @@ def _tokenise(text: str) -> list[str]:
 # ---------------------------------------------------------------------------
 # Classification helpers
 # ---------------------------------------------------------------------------
+#: #355 SITE 2 (CT-1 2026-09-18) -- 0/0 IS UNDEFINED, NOT THE MIDDLE BAND.
+#: The spelling is ``_compression_index``'s, deliberately: that function
+#: returns a float in [0,1] OR the string "UNMAPPED" (app.py:6430, :6482),
+#: and a second convention for the same idea is how two calibrations end up
+#: in one series. One token, one spelling, both fields.
+RATIO_UNMAPPED: str = "UNMAPPED"
+MODE_UNMAPPED: str = "UNMAPPED"
+
+#: Bumped when the CLASSIFIER's rule changes. Stamped forward onto every new
+#: record; its absence reads "classified under the pre-#355 rule, where 0/0
+#: resolved to balanced". Forward only -- no retrofit, no rewrite (#51, #90).
+CLASSIFIER_VERSION: str = "el_ins.classifier.v2-unmapped"
+
+
 def _classify_ratio(el_score: float, ins_score: float) -> str:
     """Return ratio classification per §3.2 thresholds.
 
-    When both scores are zero (no markers detected at all) we return
-    ``balanced`` — neither side has expressed dominance.
+    ★ #355 -- BOTH SCORES ZERO IS 0/0: UNDEFINED, AND IT GETS ITS OWN STATE.
+    It used to return ``balanced``, which is the SAME LABEL a real near-parity
+    read gets (0.39 / 0.32). One of those is a measurement and the other is the
+    absence of one. This is the rule v1.8.3 §14.7 already ratified when it
+    removed ``dominant`` -- absence must not enter a computation as a value
+    (ELINS/standard_elins.py:305-309).
+
+    Returns ``RATIO_UNMAPPED`` for 0/0; otherwise high_el | high_ins | balanced.
     """
     if el_score == 0 and ins_score == 0:
-        return "balanced"
+        return RATIO_UNMAPPED
     # Avoid div-by-zero — if INS is zero but EL isn't, the ratio is
     # effectively infinite → high_el. Symmetric for the other side.
     if ins_score == 0:
@@ -219,7 +239,19 @@ def _classify_ratio(el_score: float, ins_score: float) -> str:
 
 
 def _mode_for(classification: str) -> str:
-    """Map ratio_classification → reasoning_mode (deterministic)."""
+    """Map ratio_classification → reasoning_mode (deterministic).
+
+    ★ #355 -- ``_mode_for`` is BIJECTIVE with classification (verified 32/32 on
+    live records), so a new state needs its own mode and must NOT fall through
+    to ``normal``. "normal" is a prescription -- proceed as usual -- and an
+    unmapped read has no basis to prescribe anything. It reports that it cannot
+    say, in the same word the classification uses.
+
+    ★ PROVISIONAL MEMBER-FACING WORD: "UNMAPPED" is rendered. CT-1 to ratify or
+    replace; the requirement it satisfies (not ``normal``, not a fourth
+    spelling) is the ruled part."""
+    if classification == RATIO_UNMAPPED:
+        return MODE_UNMAPPED
     if classification == "high_el":
         return "stabilize"
     if classification == "high_ins":
@@ -318,10 +350,10 @@ def _coerce_llm_output(raw: Union[str, dict]) -> Optional[ElInsResult]:
     if not isinstance(analysis, dict):
         return None
     cls = analysis.get("ratio_classification")
-    if cls not in ("high_el", "high_ins", "balanced"):
+    if cls not in ("high_el", "high_ins", "balanced", RATIO_UNMAPPED):
         return None
     mode = body.get("reasoning_mode")
-    if mode not in ("stabilize", "expand", "normal"):
+    if mode not in ("stabilize", "expand", "normal", MODE_UNMAPPED):
         return None
     # Defensive normalisation: fill any missing top-level keys with
     # sensible defaults so the result is schema-valid even if the
@@ -419,8 +451,8 @@ def analyze_text(
         - ``"auto"``          — try LLM first, fall back to heuristic
                                  (this is the production default).
 
-    Empty / whitespace-only input returns a deterministic ``balanced``
-    result with zero scores.
+    Empty / whitespace-only input returns a deterministic result with zero
+    scores, classified ``UNMAPPED`` (#355): no markers is not parity.
     """
     if provider_mode not in PROVIDER_MODES:
         raise ValueError(

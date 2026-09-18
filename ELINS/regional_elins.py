@@ -172,13 +172,23 @@ def _apply_domain_overlay(elins_obj: dict, region_code: str) -> dict:
     for k, mult in profile["domain_overlay"].items():
         scores[k] = round(float(scores.get(k, 0.0) + 0.1) * float(mult), 4)
     if scores:
-        nz = {k: v for k, v in scores.items() if v > 0.0}
+        # ★ #355 3c -- CROWN THROUGH ``_domain_top``, NOT BY HAND.
+        # This used to re-implement the crown inline (sorted by -score then
+        # name) and that copy is why the floor did not reach here: #355 put
+        # DOMAIN_MIN_SIGNAL inside _domain_top, so a second crowning path
+        # named a domain the global read had just refused. Measured before
+        # this change, on "The novel ends just before the war." (geopolitical
+        # 1.0, below the floor): the global read returned top=None and ALL SIX
+        # regional overlays returned top="geopolitical" -- while stamping
+        # matcher_version=v2, i.e. claiming the calibration they bypassed.
+        # One rule, one implementation.
+        top, nz = standard_elins._domain_top(scores)
         if nz:
-            top = sorted(nz.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
             dm["scores"] = nz
             dm["top"] = top
             # ``effective_top`` already preserves caller hint; only update if
-            # the caller did not supply a hint.
+            # the caller did not supply a hint. ``top`` may be None when
+            # nothing clears the floor -- that is a reading, and it rides.
             if not dm.get("hint"):
                 dm["effective_top"] = top
     elins_obj["domain_mapping"] = dm
@@ -233,9 +243,10 @@ def _merge_eso(elins_obj: dict, eso: Optional[dict]) -> dict:
             except (TypeError, ValueError):
                 continue
         if scores:
-            nz = {k: v for k, v in scores.items() if v > 0.0}
+            # #355 3c -- the SECOND copy of the crown, same fix. An ESO's
+            # domain_bias must not be able to name a domain the floor refused.
+            top, nz = standard_elins._domain_top(scores)
             if nz:
-                top = sorted(nz.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
                 dm["scores"] = nz
                 dm["top"] = top
                 if not dm.get("hint"):

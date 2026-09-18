@@ -689,6 +689,21 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "determinism_surface",
     },
+    # ---- #355: undefined is not a reading (three sites, one rule) ----
+    # runtime_spine: score_record's third case (R15 -- a CLAIMED bearing the
+    # observation never took is undefined, not missed; this is what unblocks
+    # #330's promotion), and the el_ins store's stability read excluding an
+    # undefined frame from the TSI arithmetic instead of scoring it as a
+    # position. determinism_surface: the domain matcher is pinned PER TOKEN
+    # against the inflected form each token exists to catch -- all 78, zero
+    # may be lost -- plus the 0/0 sentinel, the floor, and the two forward-only
+    # version stamps. The per-token pin is the file's reason to exist: the
+    # first 3b pass built its probe out of the token itself, could not return
+    # "no", and passed a rule that silently killed 45 of the 78.
+    "test_355_undefined_is_not_a_reading.py": {
+        "runtime_spine",
+        "determinism_surface",
+    },
     # ---- #307 E3 the twelve-window pin ----
     # determinism_surface: the ELINS counting layer over CT-1's litigation
     # record, loaded from OUTSIDE the tree (skipped, with the reason, when

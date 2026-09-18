@@ -593,6 +593,50 @@ def score_record(rec: dict) -> dict:
             per[b] = "undefined"      # no claim was made
             undefined += 1
             continue
+        # ★ R15 (CT-1 2026-09-18) -- CLAIMED, BUT THIS OBSERVATION NEVER TOOK
+        # THE READING. A third case, and it is the ratified rule: v1.8.3 §14.7
+        # removed ``dominant`` for "deriving a categorical claim from a strict
+        # inequality where only a magnitude exists" (see ELINS/standard_elins
+        # .py:305-309). This is its twin -- ABSENCE entering the score as a
+        # value. A key the observer never computed is UNDEFINED, and undefined
+        # is EXCLUDED from the score, never counted against it.
+        #
+        # Reachable because three writers share a thread's namespace and only
+        # one supplies intensities (#330): when the physics route or the
+        # kernel's chat copy observes a turn /elins/v2/run sealed, s_state is
+        # claimed and absent. Measured on a five-turn thread: trust_signal
+        # reads 0.8611 here where the contaminated value was 0.8367.
+        #
+        # ★ PROVABLY A NO-OP ON EVERY PRE-#330 RECORD, and the test proves it
+        # rather than asserting it: the base observation emits an INVARIANT key
+        # set (7 primitive counts, 4 hydronic counts, pressure_score, all
+        # unconditional), so a claimed key absent from a sibling observation was
+        # structurally unreachable before s_state existed. No seal is rewritten
+        # and no record is re-scored (#51, #90).
+        #
+        # ★★ THE GUARD ``exp.get(b) is not None`` IS LOAD-BEARING, AND IT IS
+        # CT-1's STANDING RULE -- the one this function's own docstring states:
+        # "absence expecting absence is a trust INCREASE (both sides say 'not
+        # present', which is a hit)."
+        #
+        # That rule is expressed in exactly ONE shape in this system, and it is
+        # not the shape it looks like. ``flatten_scalars`` NEVER EMITS A None
+        # LEAF (measured: 12 leaves on a live observation, zero of them None),
+        # so "the observation says not-present" is expressed by the key being
+        # ABSENT, not by the key being present with None. An expectation of
+        # None against an absent key therefore reaches the equality test below
+        # as None == None and scores MATCHED -- and without this guard the new
+        # branch would intercept it first and turn every such hit into
+        # ``undefined``. That would not be a refinement of the rule; it would
+        # delete it.
+        #
+        # So the branch fires on exactly one case: the expectation made a
+        # POSITIVE claim (a non-None value) and the observation never computed
+        # that key at all. A claim with nothing to check it against.
+        if b not in flat_obs and exp.get(b) is not None:
+            per[b] = "undefined"
+            undefined += 1
+            continue
         e = exp.get(b)
         o = flat_obs.get(b, None)
         if e == o:                    # includes None == None: absence expecting absence

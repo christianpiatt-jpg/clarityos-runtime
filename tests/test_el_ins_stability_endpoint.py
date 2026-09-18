@@ -96,11 +96,33 @@ class TestAuth:
 # ===========================================================================
 class TestStabilityEndpoint:
     def test_shape_locked(self, client):
+        """#355 SITE 2 -- the lock gains ``undefined_frames``.
+
+        ``window`` changed meaning: it now reports the frames that CARRIED
+        A READING, not the sample size. A number whose meaning changed
+        without the wire saying so is exactly what #355 exists to stop, so
+        the count of excluded frames rides beside it. Additive; no existing
+        key moved or changed type.
+        """
         _seed_thread("op_alice", "t1", n=4, mode="balanced")
         r = client.get("/el_ins/thread/t1/stability", headers=_auth())
         assert r.status_code == 200
         body = r.json()
-        assert set(body.keys()) == {"thread_id", "stability", "tsi", "window"}
+        assert set(body.keys()) == {
+            "thread_id", "stability", "tsi", "window", "undefined_frames",
+        }
+
+    def test_the_new_key_is_on_every_return_path(self, client):
+        """★ A key that appears on only SOME branches is not a wire field,
+        it is a trap. An empty thread is the commonest case there is."""
+        for tid in ("ghost", "t1"):
+            if tid == "t1":
+                _seed_thread("op_alice", "t1", n=3, mode="balanced")
+            body = client.get(
+                f"/el_ins/thread/{tid}/stability", headers=_auth(),
+            ).json()
+            assert "undefined_frames" in body, tid
+            assert isinstance(body["undefined_frames"], int)
 
     def test_stable_thread_returns_stable(self, client):
         _seed_thread("op_alice", "t1", n=6, mode="balanced")

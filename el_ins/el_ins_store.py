@@ -68,6 +68,12 @@ import secrets
 import time
 from typing import Any, Literal, Optional, TypedDict
 
+# #355 -- the sentinel and the classifier version are DECLARED ONCE, in the
+# analyzer that produces them, and imported here. No second spelling, no
+# duplicated constant to drift. The analyzer has no back-dependency on this
+# module, so the import is acyclic.
+from . import el_ins_analyzer
+
 logger = logging.getLogger("clarityos.el_ins.store")
 
 # In-memory state.
@@ -238,6 +244,12 @@ def _validate(record: dict) -> ElInsRecord:
         "timestamp":   ts_f,
         "source":      source,
         "result":      result,
+        # #355 -- FORWARD-ONLY STAMP. 0/0 used to classify ``balanced``; it now
+        # classifies UNMAPPED, so the same input reads differently before and
+        # after. The stamp keeps the two calibrations distinguishable and
+        # un-averageable. Records written earlier carry no stamp, and that
+        # absence IS the reading: "classified under the pre-#355 rule."
+        "classifier_version": el_ins_analyzer.CLASSIFIER_VERSION,
     }
     # v70 / Unit 76 — preserve an explicitly-supplied tsi (e.g. from
     # a migration) but coerce to int + clamp to [0, 100]. New records
@@ -504,10 +516,62 @@ def _stability_from_rows(thread_id: str, thread_rows: list, n: int) -> dict:
             "stability": "stable",
             "tsi":       100,
             "window":    0,
+            # #355 -- EVERY branch carries this key, including this one, which
+            # predates it. A key that appears on only some return paths is not
+            # a wire field, it is a trap: a reader written against the new
+            # contract would KeyError on the commonest case there is, a thread
+            # with no records yet. Zero rows means zero frames were dropped.
+            "undefined_frames": 0,
         }
 
     # Reverse to chronological so slopes carry the right sign.
     series = list(reversed(sampled))
+
+    # ★ #355 SITE 2 -- AN UNDEFINED FRAME IS EXCLUDED, NOT SCORED. A 0/0 read
+    # has no EL/INS position, so it cannot vary, cannot "flip", and cannot
+    # change a mode. Scoring it did all three. Measured 09-18 on thread ``US``:
+    # 38 of 44 points lost to two undefined reads -- 28.45 from var(INS) over
+    # [0.00, 5.06, 0.00], 10 for two flips into and out of nothing, 6 for the
+    # derived mode flipping with them. Every one of those penalties was the
+    # absence being read as a position.
+    #
+    # ★ The frame is dropped from the ARITHMETIC only. It stays in the record,
+    # it stays on the wire, and ``window`` below reports how many frames
+    # actually carried a reading -- never the raw sample count, which would
+    # claim a confidence the series does not have.
+    #
+    # NOT CHANGED, and named: a row with NO ratio_classification key at all
+    # (pre-v70 shape) still defaults to "balanced" below. That default is the
+    # same class of defect, but rewriting how a stored record reads is a
+    # retrofit and #51/#90 forbid it here.
+    defined = [
+        r for r in series
+        if (r.get("result") or {}).get("analysis", {}).get("ratio_classification")
+        != el_ins_analyzer.RATIO_UNMAPPED
+    ]
+    series = defined
+    if not series:
+        # Every frame in the window was undefined: there is no series to
+        # score. This returns the same VALUES the no-rows branch above
+        # returns -- stable / 100 / window 0 -- because every reader already
+        # handles those, and #355 is not the place to change a wire contract.
+        # (Both branches now also carry ``undefined_frames``; that key is on
+        # every return path or it is on none.)
+        # ``window: 0`` is the honest part: it says no frame
+        # carried a reading, and ``undefined_frames`` says how many were
+        # looked at. ★ NAMED, NOT FIXED: "stable" and 100 are still a
+        # prescription over an empty series, which is the same D5 defect
+        # this site exists to correct one level down. Correcting it means
+        # giving ``stability``/``tsi`` a third kind, which is a wire ruling
+        # and CT-1's -- carried as R-355-A.
+        return {
+            "thread_id": thread_id,
+            "stability": "stable",
+            "tsi":       100,
+            "window":    0,
+            "undefined_frames": len(sampled),
+        }
+
     el_scores = [
         float(r["result"]["analysis"].get("el_score") or 0.0)
         for r in series
@@ -529,7 +593,10 @@ def _stability_from_rows(thread_id: str, thread_rows: list, n: int) -> dict:
         "thread_id": thread_id,
         "stability": _classify_drift(el_scores, ins_scores, classifications),
         "tsi":       _compute_tsi(el_scores, ins_scores, classifications, modes),
+        # #355 -- the number of frames that CARRIED A READING, not the sample
+        # size. A window of 3 with one undefined frame reports 2.
         "window":    len(series),
+        "undefined_frames": len(sampled) - len(series),
     }
 
 

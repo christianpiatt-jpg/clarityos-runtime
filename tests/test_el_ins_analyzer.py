@@ -68,13 +68,17 @@ class TestDeterministicClassifications:
         # one of the three valid values regardless.
         assert r["reasoning_mode"] in ("stabilize", "expand", "normal")
 
-    def test_neutral_text_with_no_markers_is_balanced(self):
+    def test_neutral_text_with_no_markers_is_unmapped(self):
+        """#355 SITE 2 -- REPOINTED, not deleted. No markers on either side
+        is 0/0: the ABSENCE of a reading, not the middle of one. This used
+        to assert ``balanced``, which is the same label a genuine
+        near-parity read carries; the two are now distinct states."""
         text = "the cat sat on the mat and watched the rain"
         r = el_ins.analyze_text(text, provider_mode="deterministic")
         assert r["analysis"]["el_score"] == 0
         assert r["analysis"]["ins_score"] == 0
-        assert r["analysis"]["ratio_classification"] == "balanced"
-        assert r["reasoning_mode"] == "normal"
+        assert r["analysis"]["ratio_classification"] == el_ins.RATIO_UNMAPPED
+        assert r["reasoning_mode"] == el_ins.MODE_UNMAPPED
 
 
 # ===========================================================================
@@ -110,6 +114,9 @@ class TestSchemaShape:
         assert 0 <= r["analysis"]["ins_score"] <= 10
 
     def test_ratio_classification_is_valid_enum(self):
+        """#355 SITE 2 -- the enum is FOUR-VALUED now. ``UNMAPPED`` is a
+        state, not an error: it is what 0/0 reports instead of borrowing
+        ``balanced``."""
         for text in [
             "catastrophic disaster doom",
             "statute clause testimony",
@@ -118,7 +125,7 @@ class TestSchemaShape:
         ]:
             r = el_ins.analyze_text(text, provider_mode="deterministic")
             assert r["analysis"]["ratio_classification"] in (
-                "high_el", "high_ins", "balanced",
+                "high_el", "high_ins", "balanced", el_ins.RATIO_UNMAPPED,
             )
 
     def test_components_are_string_lists(self):
@@ -150,22 +157,24 @@ class TestReasoningModeMapping:
 # D. Edge cases
 # ===========================================================================
 class TestEdgeCases:
-    def test_empty_string_returns_balanced(self):
+    def test_empty_string_returns_unmapped(self):
+        """#355 SITE 2 -- an empty input has no reading to report, and
+        ``normal`` is a prescription it has no basis to make."""
         r = el_ins.analyze_text("", provider_mode="deterministic")
-        assert r["analysis"]["ratio_classification"] == "balanced"
-        assert r["reasoning_mode"] == "normal"
+        assert r["analysis"]["ratio_classification"] == el_ins.RATIO_UNMAPPED
+        assert r["reasoning_mode"] == el_ins.MODE_UNMAPPED
 
-    def test_whitespace_only_returns_balanced(self):
+    def test_whitespace_only_returns_unmapped(self):
         r = el_ins.analyze_text("   \n  \t  ", provider_mode="deterministic")
-        assert r["analysis"]["ratio_classification"] == "balanced"
+        assert r["analysis"]["ratio_classification"] == el_ins.RATIO_UNMAPPED
 
-    def test_unknown_tokens_only_returns_balanced(self):
+    def test_unknown_tokens_only_returns_unmapped(self):
         r = el_ins.analyze_text(
             "zorblax fnordable wibbletronic", provider_mode="deterministic",
         )
         assert r["analysis"]["el_score"] == 0
         assert r["analysis"]["ins_score"] == 0
-        assert r["analysis"]["ratio_classification"] == "balanced"
+        assert r["analysis"]["ratio_classification"] == el_ins.RATIO_UNMAPPED
 
     def test_only_one_side_present_picks_that_side(self):
         r_el = el_ins.analyze_text(
@@ -345,8 +354,13 @@ class TestInternalHelpers:
         # Mid-range balanced.
         assert _classify_ratio(1.0, 1.0) == "balanced"
 
-    def test_classify_ratio_both_zero_balanced(self):
-        assert _classify_ratio(0.0, 0.0) == "balanced"
+    def test_classify_ratio_both_zero_is_unmapped_not_balanced(self):
+        """#355 SITE 2. The second assertion is the load-bearing one: 0/0
+        must not wear the label a real near-parity read wears, and the
+        third shows that label is still reachable."""
+        assert _classify_ratio(0.0, 0.0) == el_ins.RATIO_UNMAPPED
+        assert _classify_ratio(0.0, 0.0) != "balanced"
+        assert _classify_ratio(0.39, 0.32) == "balanced"
 
     def test_classify_ratio_one_zero(self):
         assert _classify_ratio(5.0, 0.0) == "high_el"
