@@ -235,15 +235,18 @@ function computeStats(records: ElInsRecord[]): MacroStats {
   // distribution OVER the records that carried a reading, not over every
   // record looked at; `total` and `unmapped` report the rest honestly.
   const mapped = n - counts.UNMAPPED;
-  const d = mapped || 1;   // guard: every record unmapped -> three zeroes
+  // #374-W -- an earlier draft also carried `const d = mapped || 1`. It was
+  // DEAD: the ternaries below already return 0 when mapped is 0, so the
+  // `|| 1` could never be reached, and a test that claimed to guard it could
+  // not fail. One guard, in one place.
   return {
     total: n,
     mapped,
     unmapped: counts.UNMAPPED,
     pct: {
-      balanced: mapped ? (counts.balanced / d) * 100 : 0,
-      high_el:  mapped ? (counts.high_el / d) * 100 : 0,
-      high_ins: mapped ? (counts.high_ins / d) * 100 : 0,
+      balanced: mapped ? (counts.balanced / mapped) * 100 : 0,
+      high_el:  mapped ? (counts.high_el / mapped) * 100 : 0,
+      high_ins: mapped ? (counts.high_ins / mapped) * 100 : 0,
     },
     avg_el:  sum_el / n,
     avg_ins: sum_ins / n,

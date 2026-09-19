@@ -1,5 +1,8 @@
 /**
- * #374 -- the dashboard and the export with UNMAPPED records in the summary.
+ * #374 -- the dashboard with UNMAPPED records in the summary.
+ * (The export page has its own file: OperatorElinsExport.unmapped.374.test.tsx.
+ * An earlier draft of this header claimed to cover both while covering one --
+ * a refuter caught the claim, not a test.)
  *
  * ★ THE MEASURED DEFECT. With the operator's recent records = [balanced,
  * UNMAPPED], the backend now returns sample_size 2 / mapped_sample_size 1.

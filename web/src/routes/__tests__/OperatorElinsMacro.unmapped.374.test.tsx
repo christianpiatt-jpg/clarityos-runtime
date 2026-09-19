@@ -80,10 +80,19 @@ describe("OperatorElinsMacro -- UNMAPPED in the distribution (#374)", () => {
     expect(stats).not.toContain("50.0%");
   });
 
-  test("★ every record UNMAPPED -> '3 of 3', the reads-needed gate, no percentages, no NaN", async () => {
-    // MUTATION: gate on `total < 2` instead of `mapped < 2`, or remove the
-    // `mapped || 1` guard (0/0 -> NaN%). Three records, zero readings: there
-    // is no split to show however many there are.
+  test("★ every record UNMAPPED -> '3 of 3', the reads-needed gate, no percentages", async () => {
+    // MUTATION: gate on `total < 2` instead of `mapped < 2`. Three records,
+    // zero readings: there is no split to show however many there are.
+    //
+    // ★ THE EIGHTH TAUTOLOGY LIVED HERE. An earlier draft also asserted
+    // `not.toContain("NaN")` and claimed a second killer, "remove the
+    // `mapped || 1` guard". Neither could fail: with mapped = 0 the gate
+    // renders the reads-needed branch and the percentages never reach the
+    // DOM, so NaN was unreachable on this surface -- and the `|| 1` was
+    // dead code behind the `mapped ? ... : 0` ternaries. Measured by a
+    // refuter: both guards removed, all five tests still green. The
+    // assertion and the guard are gone; the claim that remains is the one
+    // that was measured to bite.
     mockMacro.mockResolvedValue(resp([
       rec("UNMAPPED", 0, 0, 1000), rec("UNMAPPED", 0, 0, 1001), rec("UNMAPPED", 0, 0, 1002),
     ]));
@@ -93,7 +102,6 @@ describe("OperatorElinsMacro -- UNMAPPED in the distribution (#374)", () => {
     expect(screen.getByTestId("el-ins-macro-needs2")).toBeInTheDocument();
     const stats = screen.getByTestId("el-ins-macro-stats").textContent ?? "";
     expect(stats).not.toMatch(/\d+\.\d%/);
-    expect(stats).not.toContain("NaN");
   });
 
   test("no UNMAPPED records -> the row reads 'none' and the split is unchanged", async () => {

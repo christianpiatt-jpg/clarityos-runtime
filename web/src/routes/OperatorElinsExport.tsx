@@ -5,6 +5,7 @@
 // Authgated via RequireAuth at the App.tsx route layer.
 
 import { useCallback, useEffect, useState } from "react";
+import { readsNeeded } from "../lib/counts";
 import {
   ApiError,
   config,
@@ -108,11 +109,27 @@ export default function OperatorElinsExport() {
               {summary.recent_classification_distribution.unmapped}
             </div>
             <div className="k">mapped sample size</div>
-            <div className="v">{summary.mapped_sample_size}</div>
-            <div className="k">avg TSI</div>
-            <div className="v">{summary.avg_tsi}/100</div>
-            <div className="k">trend</div>
-            <div className="v">{summary.trend}</div>
+            <div className="v" data-testid="el-ins-export-mapped">{summary.mapped_sample_size}</div>
+            {/* #374-W -- F: a percentage of one read is that read, and an
+                average of none is nothing. The Dashboard and Macro pages
+                gate on mapped reads; this page printed "avg TSI 0/100 ·
+                trend stable" directly under "mapped sample size 0". Same
+                gate, same denominator. */}
+            {summary.mapped_sample_size < 2 ? (
+              <>
+                <div className="k">avg TSI / trend</div>
+                <div className="v" data-testid="el-ins-export-needs2">
+                  {readsNeeded(summary.mapped_sample_size)}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="k">avg TSI</div>
+                <div className="v">{summary.avg_tsi}/100</div>
+                <div className="k">trend</div>
+                <div className="v">{summary.trend}</div>
+              </>
+            )}
             <div className="k">balanced</div>
             <div className="v">{summary.recent_classification_distribution.balanced}</div>
             <div className="k">high_el</div>
