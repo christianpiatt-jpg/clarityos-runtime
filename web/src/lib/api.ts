@@ -1882,6 +1882,44 @@ export interface DirectiveMeta {
   [k: string]: unknown;
 }
 
+// #366 R-366-B -- the direction bit on threads: the four words the /session
+// selector has carried since v57. The cockpit composer pre-sets "query";
+// ``picked`` says whether the member chose the word (false when the pre-set
+// rode through). The payload the lanes receive and the turn's seal both
+// carry it.
+export type ThreadDirection = "query" | "action" | "plan" | "diagnostic";
+export const THREAD_DIRECTIONS: readonly ThreadDirection[] = ["query", "action", "plan", "diagnostic"];
+
+// #366 -- the reading's meta beside the reply: counts and enums and the
+// relation's name (restored on-machine). Never a lane's text.
+export interface ThreadReadingMeta {
+  v?: string;
+  direction?: ThreadDirection | string;
+  picked?: boolean;
+  turn?: number;
+  rows?: number;
+  rows_read?: number;
+  robust?: number;
+  contested?: number;
+  undefined?: number;
+  lanes?: string[];
+  lane_reasons?: Record<string, string | null>;
+  halted?: boolean;
+  ask?: boolean;
+  asker_holds_seat?: boolean;
+  relation?: string | null;
+  provisioned?: boolean;
+  payload_chars?: number;
+  masked?: number;
+  up?: boolean;
+  [k: string]: unknown;
+}
+
+// #366 A6 -- the sovereign seat on a diagnostic turn: "not_provisioned" when
+// the local engine answered with the router's mock (no daemon). null off the
+// diagnostic path (D5: not a value).
+export type SovereignState = "provisioned" | "not_provisioned";
+
 export interface ThreadMessageResult {
   meta: ThreadMeta;
   user_message: ThreadMessage;
@@ -1892,6 +1930,11 @@ export interface ThreadMessageResult {
   // A30 — unified directive surface; [] / {} on non-directive turns.
   directives?: string[];
   directive_metadata?: Record<string, DirectiveMeta> | null;
+  // #366 -- the direction bit as run, the reading's meta, the sovereign seat.
+  direction?: ThreadDirection | null;
+  picked?: boolean | null;
+  reading?: ThreadReadingMeta | null;
+  sovereign?: SovereignState | null;
 }
 
 /** List every thread for the current user, newest-first by ``updated_at``. */
@@ -2024,12 +2067,21 @@ export async function getRelationshipTurns(
 export async function postThreadMessage(
   thread_id: string,
   content: string,
+  // #366 R-366-B -- the direction bit and whether the member picked it. A
+  // caller that passes nothing sends the body it always sent; the server
+  // pre-sets query/unpicked.
+  opts?: { direction: ThreadDirection; picked: boolean },
 ): Promise<ThreadMessageResult> {
+  const body: Record<string, unknown> = { content };
+  if (opts) {
+    body.direction = opts.direction;
+    body.picked = opts.picked;
+  }
   return request<ThreadMessageResult>(
     `/me/threads/${encodeURIComponent(thread_id)}/message`,
     // ★ v56 — this route is metered. Without an Idempotency-Key the server
     // rejects the call with 400 missing_idempotency_key.
-    { method: "POST", body: { content }, idempotent: true },
+    { method: "POST", body, idempotent: true },
   );
 }
 
@@ -2496,7 +2548,9 @@ export interface SessionStepResult {
     engine:   string;
     request:  { model_id: string; task: string; prompt_preview: string };
     response: SessionModelResponse;
-    metadata: { provider: string; mock: boolean; ts: number };
+    // #366 A6 -- ``provisioned`` is false only on a local engine whose call
+    // came back as the router's mock (no daemon behind the sovereign seat).
+    metadata: { provider: string; mock: boolean; ts: number; provisioned?: boolean };
   };
   vault_update: Record<string, unknown>;
 }

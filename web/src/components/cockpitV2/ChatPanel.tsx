@@ -16,6 +16,7 @@
  */
 import { useEffect, useRef, type FormEvent, useState } from "react";
 
+import { THREAD_DIRECTIONS, type ThreadDirection } from "../../lib/api";
 import { useCockpit, cockpit } from "../../state/cockpitStore";
 import {
   DirectiveBadge,
@@ -33,7 +34,7 @@ export default function ChatPanel() {
   // it and the next keystroke drops it.
   const [ringReleased, setRingReleased] = useState(false);
 
-  const { status, messages, meta, error, failedSend } = thread;
+  const { status, messages, meta, error, failedSend, direction } = thread;
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -81,6 +82,22 @@ export default function ChatPanel() {
               >
                 <span className="cv2-msg-role">{m.role}</span>
                 <p className="cv2-msg-body">{m.content}</p>
+                {/* #366 A6 -- the sovereign seat, named on the page: a
+                    diagnostic turn the local engine answered as the router's
+                    mock is NOT a reading, and the page says so beside it. */}
+                {isAssistant && m.sovereign === "not_provisioned" ? (
+                  <p className="cv2-msg-sovereign" data-testid="sovereign-not-provisioned">
+                    sovereign seat not provisioned
+                  </p>
+                ) : null}
+                {/* #366 A8 -- the relation the reading names (specimen 8b:
+                    never two relations averaged under one name). Omitted
+                    when the reading named none -- never a dash pretending. */}
+                {isAssistant && m.reading?.relation && m.reading.relation !== "undefined" ? (
+                  <span className="cv2-msg-relation" data-testid="reading-relation">
+                    relation: {m.reading.relation}
+                  </span>
+                ) : null}
                 {showRow ? (
                   <div className="cv2-msg-meta">
                     {m.model ? (
@@ -150,6 +167,21 @@ export default function ChatPanel() {
         className={"cv2-composer" + (status === "sending" ? " is-sending" : "")}
         onSubmit={onSend}
       >
+        {/* #366 R-366-B -- the direction bit. Pre-set to query; picking any
+            of the four words (query included) marks the turn picked. The
+            words are the /session selector's, unchanged since v57. */}
+        <select
+          className="cv2-input cv2-select"
+          aria-label="Direction"
+          data-testid="thread-direction"
+          value={direction}
+          disabled={composerDisabled}
+          onChange={(e) => cockpit.thread.actions.setDirection(e.target.value as ThreadDirection)}
+        >
+          {THREAD_DIRECTIONS.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
         <input
           className="cv2-input"
           value={input}

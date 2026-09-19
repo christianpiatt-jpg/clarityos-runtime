@@ -293,6 +293,16 @@ export default function Session() {
               <div className="v">{lastStep.model.metadata.provider}</div>
               <div className="k">mock</div>
               <div className="v">{String(lastStep.model.metadata.mock)}</div>
+              {/* #366 A6 -- a diagnostic step runs on the sovereign seat
+                  (engine local, hard-pinned). When the local engine answered
+                  as the router's mock there is no daemon behind the seat: the
+                  page names that; a mock is never rendered as a reading. */}
+              {lastStep.model.engine === "local" && lastStep.model.metadata.mock ? (
+                <>
+                  <div className="k">sovereign</div>
+                  <div className="v" data-testid="session-sovereign">sovereign seat not provisioned</div>
+                </>
+              ) : null}
             </div>
             <pre
               style={{

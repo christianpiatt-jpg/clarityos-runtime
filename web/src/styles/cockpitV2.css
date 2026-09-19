@@ -201,6 +201,27 @@
   flex: 1 1 auto;
 }
 
+/* #366 -- the direction bit sits beside the input; the input keeps the room */
+.cv2-composer .cv2-select {
+  flex: 0 0 auto;
+  min-width: 7.5rem;
+}
+
+/* #366 -- the relation the reading names, and the sovereign seat's state,
+   under the reply body in the secondary tone; neither is a badge */
+.cv2-msg-relation {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--os-text-secondary);
+}
+
+.cv2-msg-sovereign {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--os-text-secondary);
+}
+
 /* ONE RING IN THE ROOM. The ring lands on the answer that just arrived;
    while a send is in flight the composer surrenders its own focus ring so
    the two are never lit at once. Token unchanged -- 0.28 is a standing

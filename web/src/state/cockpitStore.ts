@@ -43,6 +43,9 @@ import {
   type ThreadMeta,
   type ThreadMessage,
   type RelationshipTurns,
+  type ThreadDirection,
+  type ThreadReadingMeta,
+  type SovereignState,
 } from "../lib/api";
 import type { DirectiveSurface } from "../components/shared/DirectiveBadges";
 import type { ElinsV2Envelope } from "../lib/elinsV2";
@@ -87,9 +90,19 @@ export const PHYSICS_AUTO_EVERY_N = 5;
 /** Which pane the cockpit InsightsPanel is showing. Mirrors Threads.tsx. */
 export type InsightsTab = "thread" | "elins" | "physics";
 
+/** #366 -- the reading's surface on an assistant message: the direction the
+ *  turn ran under, the reading's meta (the relation's name, the counts) and
+ *  the sovereign seat's state on a diagnostic turn. Rides the live POST
+ *  response only, like the directive surface; never persisted on the message. */
+export type ReadingSurface = {
+  direction?: ThreadDirection | null;
+  reading?: ThreadReadingMeta | null;
+  sovereign?: SovereignState | null;
+};
+
 /** A19/A30 — same view-model Threads.tsx uses: the stored message plus the
  *  per-turn directive surface, which rides on the live POST response only. */
-export type CockpitChatMessage = ThreadMessage & DirectiveSurface;
+export type CockpitChatMessage = ThreadMessage & DirectiveSurface & ReadingSurface;
 type AuthStatus = "anon" | "authing" | "authed" | "error";
 
 /** Per-session envelope returned by GET /markov/envelope/latest. */
@@ -176,6 +189,11 @@ export interface CockpitState {
     /** ★ The text of a send that FAILED, plus why. Held so a failed request
      *  does not destroy what the member typed -- see send(). */
     failedSend: { text: string; error: string } | null;
+    /** #366 R-366-B -- the direction bit the composer will send. Pre-set to
+     *  "query" with picked=false; setDirection marks it picked (any of the
+     *  four words, query included). Both ride the POST body and the seal. */
+    direction: ThreadDirection;
+    picked: boolean;
   };
 }
 
@@ -201,6 +219,7 @@ function initialState(): CockpitState {
       status: "loading", meta: null, items: [], messages: [], error: null,
       busy: false, tab: "thread", elins: null, physics: null,
       turnsSincePhysics: 0, failedSend: null,
+      direction: "query", picked: false,
     },
   };
 }
@@ -590,13 +609,15 @@ const threadSlice = {
     /** Send one turn. Attaches the A19/A30 directive surface from the live
      *  POST response onto the assistant message — Threads.tsx:189-194. */
     async send(text: string): Promise<void> {
-      const { meta, status } = current.thread;
+      const { meta, status, direction, picked } = current.thread;
       const trimmed = text.trim();
       if (!trimmed || !meta || status === "sending") return;
       setSlice("thread", { status: "sending", error: null, failedSend: null });
       const nextTurns = current.thread.turnsSincePhysics + 1;
       try {
-        const r = await postThreadMessage(meta.thread_id, trimmed);
+        // #366 R-366-B -- the direction bit rides every turn, with whether
+        // the member picked it; the server pre-sets the same default.
+        const r = await postThreadMessage(meta.thread_id, trimmed, { direction, picked });
         setSlice("thread", {
           status: "ready",
           // A (#180b 4): /message's meta.* replace thread.meta WHOLE --
@@ -614,6 +635,11 @@ const threadSlice = {
               grounding_status: r.grounding_status ?? null,
               directive_metadata: r.directive_metadata ?? null,
               directives: r.directives ?? null,
+              // #366 -- the reading's surface: the direction as run, the
+              // reading's meta (relation, counts), the sovereign seat.
+              direction: r.direction ?? direction,
+              reading: r.reading ?? null,
+              sovereign: r.sovereign ?? null,
             },
           ],
           // The transcript changed, so the ELINS envelope is stale. It is
@@ -754,6 +780,9 @@ const threadSlice = {
 
     /** Drop a failed attempt once the member has retried or edited it. */
     clearFailedSend(): void { setSlice("thread", { failedSend: null }); },
+    /** #366 R-366-B -- the member picked a direction (any word, query
+     *  included): the next send carries it with picked=true. */
+    setDirection(direction: ThreadDirection): void { setSlice("thread", { direction, picked: true }); },
     setTab(tab: InsightsTab): void { setSlice("thread", { tab }); },
     setElins(elins: ElinsV2Envelope | null): void { setSlice("thread", { elins }); },
     setPhysics(physics: EmotionalPhysicsResponse | null): void { setSlice("thread", { physics }); },
