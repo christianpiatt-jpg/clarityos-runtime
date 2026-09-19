@@ -633,16 +633,26 @@ def compute_operator_summary(
           "recent_classification_distribution": {
             "high_el":  int,
             "high_ins": int,
-            "balanced": int
+            "balanced": int,
+            "unmapped": int    # #374 -- records that carried NO reading
           },
           "avg_tsi":     int (0..100),
           "trend":       "improving" | "declining" | "stable",
-          "sample_size": int     # actual sample size used
+          "sample_size":        int,   # every record looked at
+          "mapped_sample_size": int    # #374 -- the denominator the three
+                                       # real classes are a distribution OVER
         }
 
     Records without a TSI (e.g. analyses stored without thread_id)
     are still counted toward the distribution but excluded from the
     TSI average + trend.
+
+    #374 -- an UNMAPPED record counts in ``unmapped`` and in
+    ``sample_size``, and is excluded from the three real classes AND from
+    the TSI average. A 0/0 read has no EL/INS position to average, and
+    #355 already excludes it from the per-thread TSI window; letting it
+    back in through the operator mean would reinstate exactly the number
+    that was declined one level down.
     """
     if not isinstance(operator_id, str) or not operator_id:
         raise ValueError("operator_id must be a non-empty string")
@@ -653,10 +663,25 @@ def compute_operator_summary(
     n = max(1, min(1000, n))
 
     sampled = get_recent_el_ins(operator_id, limit=n)   # #285 -- either backend
-    counts = {"high_el": 0, "high_ins": 0, "balanced": 0}
+    # ★ #374 SITE 2 (CT-1 2026-09-18) -- A FOURTH BUCKET, AND IT IS NOT IN THE
+    # RATIO. Before this, the counter was closed at three keys, so an UNMAPPED
+    # record incremented nothing while still counting toward ``sample_size``:
+    # measured on three records with one UNMAPPED, the distribution read
+    # {high_el 0, high_ins 0, balanced 2} over a sample of 3, with nothing
+    # saying where the third went. With every recent record UNMAPPED it read
+    # all zeros over a non-zero sample. That is a distribution silently
+    # under-reporting itself -- the #355 defect wearing a percentage.
+    counts = {"high_el": 0, "high_ins": 0, "balanced": 0, "unmapped": 0}
     tsis: list[int] = []
     for r in sampled:
         cls = (r.get("result") or {}).get("analysis", {}).get("ratio_classification")
+        if cls == el_ins_analyzer.RATIO_UNMAPPED:
+            counts["unmapped"] += 1
+            # ★ AND ITS TSI IS NOT AVERAGED. #355 excludes an undefined frame
+            # from the thread's TSI arithmetic; the operator average must
+            # exclude it for the same reason, or the number #355 declined to
+            # compute comes back in through the mean.
+            continue
         if cls in counts:
             counts[cls] += 1
         t = r.get("tsi")
@@ -675,7 +700,13 @@ def compute_operator_summary(
         "recent_classification_distribution": counts,
         "avg_tsi":     avg_tsi,
         "trend":       trend,
-        "sample_size": len(sampled),
+        # #374 -- ``sample_size`` keeps its meaning (every record looked at)
+        # and its TYPE. ``mapped_sample_size`` is the denominator the three
+        # real classes are a distribution OVER. Adding a key rather than
+        # changing one: turning an int into mapped/total would be a wire
+        # ruling, and this is not the leg that makes those.
+        "sample_size":        len(sampled),
+        "mapped_sample_size": len(sampled) - counts["unmapped"],
     }
 
 

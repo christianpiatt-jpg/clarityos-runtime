@@ -704,6 +704,20 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "determinism_surface",
     },
+    # ---- #374: absence is not an anomaly, a sample, or a forecast ----
+    # runtime_spine: the anomaly detector no longer fires low_ins/tsi_spike/
+    # quadrant_jump on a record that carries no reading (and an UNMAPPED
+    # PRIOR is no prior, so the first real read after a quiet turn stops
+    # producing a spurious diagonal), and the operator summary gains a
+    # fourth bucket that is out of the ratio AND out of the TSI average.
+    # determinism_surface: the five-day forecast's days[].phase guards on
+    # no_signal exactly as its sibling trend already did -- pure, no I/O --
+    # and the phase/trend spelling divergence is pinned as ruled rather
+    # than left to be rediscovered (#376).
+    "test_374_absence_is_not_an_anomaly.py": {
+        "runtime_spine",
+        "determinism_surface",
+    },
     # ---- #307 E3 the twelve-window pin ----
     # determinism_surface: the ELINS counting layer over CT-1's litigation
     # record, loaded from OUTSIDE the tree (skipped, with the reason, when

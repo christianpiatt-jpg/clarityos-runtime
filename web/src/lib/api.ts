@@ -2738,8 +2738,19 @@ export function getProviderConfig(): Promise<ProviderConfigResponse> {
 // them with local React state. Storage shape matches the backend
 // ElInsRecord TypedDict.
 
-export type ElInsRatioClassification = "high_el" | "high_ins" | "balanced";
-export type ElInsReasoningMode = "stabilize" | "expand" | "normal";
+// #374 (CT-1 2026-09-18) -- "UNMAPPED" is a FOURTH STATE, not an error.
+// #355 stopped 0/0 borrowing the label a real near-parity reading wears:
+// both scores zero is the ABSENCE of a reading and now says so, in the
+// ratio and in the mode derived from it. The mode is deliberately NOT
+// "normal" -- normal is a prescription ("proceed as usual") and an unmapped
+// read has no basis to prescribe. These unions were closed at three while
+// the wire carried four, which made the TYPE a claim the server does not
+// honour; every renderer of either field must handle the fourth member.
+export const EL_INS_UNMAPPED = "UNMAPPED";
+export type ElInsRatioClassification =
+  | "high_el" | "high_ins" | "balanced" | "UNMAPPED";
+export type ElInsReasoningMode =
+  | "stabilize" | "expand" | "normal" | "UNMAPPED";
 export type ElInsSource = "on_demand" | "per_turn" | "macro";
 export type ElInsProviderMode = "llm" | "deterministic" | "auto";
 
@@ -2873,10 +2884,18 @@ export interface ElInsOperatorSummaryResponse {
     high_el:  number;
     high_ins: number;
     balanced: number;
+    // #374 -- records that carried NO reading (0/0). Counted here, and
+    // excluded from the three real classes and from avg_tsi.
+    unmapped: number;
   };
-  avg_tsi:     number;     // 0..100
+  avg_tsi:     number;     // 0..100, over MAPPED records only (#374)
   trend:       ElInsTrend;
+  /** every record looked at -- name, type and meaning unchanged */
   sample_size: number;
+  /** #374 -- the denominator the three real classes are a distribution OVER.
+   *  A reads-needed gate belongs on THIS number, not on sample_size: a page
+   *  of 0/0 records has no split to show however many there are. */
+  mapped_sample_size: number;
 }
 
 export function getElInsOperatorSummary(

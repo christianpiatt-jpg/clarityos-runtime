@@ -206,7 +206,13 @@ def test_a_write_restart_read_back_every_reader(fire):
     assert stab["window"] == 2 and 0 <= stab["tsi"] <= 100
     summ = st.compute_operator_summary(op)
     assert summ["sample_size"] == 3
-    assert summ["recent_classification_distribution"] == {"high_el": 1, "high_ins": 0, "balanced": 2}
+    # #374 -- a fourth bucket. None of these three records is UNMAPPED, so
+    # the count is 0 and the three real classes are unchanged: the reader
+    # now sees that nothing was dropped, rather than having to assume it.
+    assert summ["recent_classification_distribution"] == {
+        "high_el": 1, "high_ins": 0, "balanced": 2, "unmapped": 0,
+    }
+    assert summ["mapped_sample_size"] == 3      # every record carried a reading
     # the layout: one document per record under the operator's subcollection
     paths = fire.paths(("el_ins_records", op, "records"))
     assert len(paths) == 3 and all(len(p) == 4 for p in paths)

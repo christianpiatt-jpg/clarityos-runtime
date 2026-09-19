@@ -516,6 +516,16 @@ def _layer_6_forecast_5day(ep_summary: dict, stress_relief: dict) -> dict:
     base = float(ep_summary["net"])
     days = []
     cur = base
+    # ★★ #374 SITE 3 (CT-1 2026-09-18) -- NO SIGNAL IS NOT "balanced".
+    # ``trend`` below (:385 region) already refuses to name a shape it has no
+    # basis for: B-1 §17.3, "'flat' is a measured claim about a trajectory;
+    # absence of signal is not." Its sibling ``phase`` had no such guard, so a
+    # text scoring NOTHING -- no primitives, no domain, net 0.0 -- still
+    # projected five days of "balanced", which reads to a member as a finding.
+    # Measured: generate_ELINS("The Commission published the consultation
+    # document on Tuesday morning.") emitted days[0].phase == "balanced" on a
+    # run whose every other layer reported no_signal.
+    no_signal = bool(ep_summary.get("no_signal"))
     for d in range(1, 6):
         # Mean-revert toward 0 by 12% per step; add a small "drift" term
         # equal to half of the contradiction intensity so contradictions
@@ -524,7 +534,16 @@ def _layer_6_forecast_5day(ep_summary: dict, stress_relief: dict) -> dict:
         days.append({
             "day": d,
             "projected_net": cur,
-            "phase": "relief" if cur > 0.05 else ("stress" if cur < -0.05 else "balanced"),
+            # ★ THE SPELLING DIVERGES FROM ``trend`` DELIBERATELY AND UNDER
+            # ORDER. CT-1 ruled "undefined" here and left ``trend``'s None
+            # alone, because ``trend`` is a live field with readers and
+            # changing it is its own pass (#376: one spelling of absence
+            # across the dict). Two spellings for one idea is a known cost,
+            # carried knowingly, not an oversight.
+            "phase": "undefined" if no_signal else (
+                "relief" if cur > 0.05
+                else ("stress" if cur < -0.05 else "balanced")
+            ),
         })
     return {
         "days": days,

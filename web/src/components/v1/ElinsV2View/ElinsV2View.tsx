@@ -242,12 +242,37 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
   const ring = ringOf(view);
   const engineLine = ring ? `engine: ${view.meta.engine} · ring: ${ring}` : `engine: ${view.meta.engine}`;
   // #184 -- the one reading a signal-less run can still carry: a domain hit.
+  // #184 -- the one reading a signal-less run can still carry: a domain hit.
+  //
+  // ★ #374 -- AND #355's FLOOR HAD JUST KILLED IT. `effective_top` and `top`
+  // both go null when the top score is below DOMAIN_MIN_SIGNAL, which is the
+  // common case for exactly the runs this line exists for: a signal-less text
+  // that happened to hit one domain token. Measured -- generate_ELINS("The
+  // court adjourned.") returns no_signal with scores {legal: 1.0}, top null.
+  // The no-signal branch returns before DomainBlock renders, so this line is
+  // the ONLY route that hit has to a reader, and it was rendering "no signal"
+  // instead. The scores survived; only the NAME was withheld.
+  //
+  // ★★ SO IT READS THE SCORES, AND IT DOES NOT RE-MAKE THE CLAIM THE FLOOR
+  // REFUSED. `named` distinguishes the two cases: a domain that CLEARED the
+  // floor is stated as a finding; one that did not is shown as a signal with
+  // its magnitude, which is what the floor's own rule says to do -- it
+  // withholds the name, it does not hide the reading.
   const noSignalDomain = (() => {
     const domain = obj(pipe.L3_domain);
-    const name = str(domain.effective_top) ?? str(domain.top);
-    if (!name) return null;
-    const score = num(obj(domain.scores)[name]);
-    return { name, score: score === null ? DASH : String(score) };
+    const scores = obj(domain.scores);
+    const named = str(domain.effective_top) ?? str(domain.top);
+    if (named) {
+      const score = num(scores[named]);
+      return { name: named, score: score === null ? DASH : String(score), named: true };
+    }
+    // below the floor: take the highest entry the run still reports
+    const entries = Object.keys(scores)
+      .map((k) => [k, num(scores[k])] as const)
+      .filter((e): e is readonly [string, number] => e[1] !== null);
+    if (entries.length === 0) return null;
+    entries.sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]));
+    return { name: entries[0][0], score: String(entries[0][1]), named: false };
   })();
 
   const actions = (
@@ -305,7 +330,10 @@ export default function ElinsV2View({ envelope, runOn, onRun, trust }: Props) {
           title="pipeline.L10_signature.summary.no_signal · pipeline.L3_domain.top · pipeline.L3_domain.scores"
         >
           {noSignalDomain
-            ? `no reading ${DASH} but domain: ${noSignalDomain.name} (${noSignalDomain.score})`
+            ? noSignalDomain.named
+              ? `no reading ${DASH} but domain: ${noSignalDomain.name} (${noSignalDomain.score})`
+              /* #374 -- below the floor: the magnitude, not the claim. */
+              : `no reading ${DASH} domain signal too weak to name: ${noSignalDomain.name} (${noSignalDomain.score})`
             : `no signal ${DASH} ${sigInstrument}`}
         </div>
         {actions}

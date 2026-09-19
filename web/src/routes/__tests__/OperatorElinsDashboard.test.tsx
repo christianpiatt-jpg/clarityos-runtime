@@ -37,10 +37,12 @@ function makeSummary(
   return {
     recent_classification_distribution: {
       high_el: 5, high_ins: 3, balanced: 12,
+      unmapped: 0,           // #374 -- every fixture record carries a reading
     },
     avg_tsi:     78,
     trend:       "stable",
     sample_size: 20,
+    mapped_sample_size: 20,  // #374
     ...overrides,
   };
 }
@@ -172,8 +174,9 @@ describe("OperatorElinsDashboard route", () => {
 
   test("renders empty pie when distribution is zero", async () => {
     mockSummary.mockResolvedValueOnce(makeSummary({
-      recent_classification_distribution: { high_el: 0, high_ins: 0, balanced: 0 },
+      recent_classification_distribution: { high_el: 0, high_ins: 0, balanced: 0, unmapped: 0 },
       sample_size: 0,
+      mapped_sample_size: 0,   // #374
     }));
     mockRecent.mockResolvedValueOnce(makeRecent([]));
     const { container } = renderRoute();

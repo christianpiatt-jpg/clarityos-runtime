@@ -16,6 +16,7 @@ import {
   type ElInsRecord,
 } from "../lib/api";
 import { readsNeeded } from "../lib/counts";
+import { elInsClassColor, elInsClassWord } from "../lib/labels";
 
 interface WindowChoice { label: string; sinceSecondsAgo: number | null; }
 const WINDOWS: readonly WindowChoice[] = [
@@ -105,15 +106,27 @@ export default function OperatorElinsMacro() {
             <div className="kv">
               <div className="k">total records</div>
               <div className="v">{stats.total}</div>
-              {/* F -- a percentage of one read is that read: say the count. */}
-              {stats.total < 2 ? (
+              {/* #374 -- the records that carried NO reading are named, and
+                  they are named BEFORE the percentages, because they are
+                  what the percentages are not about. Silence here is what
+                  made three numbers add to under 100 with no explanation. */}
+              <div className="k">no reading (0/0)</div>
+              <div className="v" data-testid="el-ins-macro-unmapped">
+                {stats.unmapped > 0
+                  ? `${stats.unmapped} of ${stats.total}`
+                  : "none"}
+              </div>
+              {/* F -- a percentage of one read is that read: say the count.
+                  #374 -- the gate is on MAPPED reads, not on total: a page of
+                  0/0 records has no split to show however many there are. */}
+              {stats.mapped < 2 ? (
                 <>
                   <div className="k">classification split</div>
-                  <div className="v" data-testid="el-ins-macro-needs2">{readsNeeded(stats.total)}</div>
+                  <div className="v" data-testid="el-ins-macro-needs2">{readsNeeded(stats.mapped)}</div>
                 </>
               ) : (
                 <>
-                  <div className="k">% balanced</div>
+                  <div className="k" title="share of the reads that carried a reading">% balanced</div>
                   <div className="v">{stats.pct.balanced.toFixed(1)}%</div>
                   <div className="k">% high_el</div>
                   <div className="v">{stats.pct.high_el.toFixed(1)}%</div>
@@ -156,7 +169,7 @@ export default function OperatorElinsMacro() {
                     {rec.thread_id || "—"}
                   </td>
                   <td style={{ ...tdStyle, color: classColor(rec.result.analysis.ratio_classification) }}>
-                    {rec.result.analysis.ratio_classification}
+                    {elInsClassWord(rec.result.analysis.ratio_classification)}
                   </td>
                   <td style={tdStyle}>{rec.result.analysis.el_score.toFixed(2)}</td>
                   <td style={tdStyle}>{rec.result.analysis.ins_score.toFixed(2)}</td>
@@ -173,8 +186,17 @@ export default function OperatorElinsMacro() {
 
 // ---------- compute ----------
 interface MacroStats {
+  /** every record looked at */
   total: number;
-  pct:   Record<ElInsRatioClassification, number>;
+  /** #374 -- records that carried a reading; the denominator of `pct` */
+  mapped: number;
+  /** #374 -- records with no reading at all (0/0) */
+  unmapped: number;
+  // ★ pct is NOT Record<ElInsRatioClassification, number> any more: that
+  // union gained UNMAPPED in #374, and there is no such thing as "the
+  // percentage of readings that were not readings". The three real classes
+  // are named explicitly so the type cannot drift back.
+  pct:   { balanced: number; high_el: number; high_ins: number };
   avg_el:  number;
   avg_ins: number;
 }
@@ -182,27 +204,46 @@ interface MacroStats {
 function computeStats(records: ElInsRecord[]): MacroStats {
   if (records.length === 0) {
     return {
-      total: 0,
+      total: 0, mapped: 0, unmapped: 0,
       pct:   { balanced: 0, high_el: 0, high_ins: 0 },
       avg_el:  0,
       avg_ins: 0,
     };
   }
-  const counts = { balanced: 0, high_el: 0, high_ins: 0 } as Record<ElInsRatioClassification, number>;
+  // ★ #374 -- THE COUNTER WAS CLOSED AT THREE KEYS WHILE THE WIRE CARRIED
+  // FOUR. `counts[ratio_classification] += 1` on an UNMAPPED record indexed a
+  // key that did not exist, so `undefined + 1` wrote NaN to a phantom entry
+  // and the record left the distribution entirely -- while `total` still
+  // counted it. The three percentages then divided by a denominator that
+  // included records none of them represented, so they summed to well under
+  // 100 with nothing on the page saying why. That is #355's own defect
+  // wearing a percentage.
+  const counts = { balanced: 0, high_el: 0, high_ins: 0, UNMAPPED: 0 } as
+    Record<ElInsRatioClassification, number>;
   let sum_el = 0;
   let sum_ins = 0;
   for (const r of records) {
-    counts[r.result.analysis.ratio_classification] += 1;
+    const cls = r.result.analysis.ratio_classification;
+    // an unrecognised value counts as unmapped rather than vanishing
+    if (cls in counts) counts[cls] += 1;
+    else counts.UNMAPPED += 1;
     sum_el += r.result.analysis.el_score;
     sum_ins += r.result.analysis.ins_score;
   }
   const n = records.length;
+  // ★ THE DENOMINATOR IS THE MAPPED COUNT. The three classes are a
+  // distribution OVER the records that carried a reading, not over every
+  // record looked at; `total` and `unmapped` report the rest honestly.
+  const mapped = n - counts.UNMAPPED;
+  const d = mapped || 1;   // guard: every record unmapped -> three zeroes
   return {
     total: n,
+    mapped,
+    unmapped: counts.UNMAPPED,
     pct: {
-      balanced: (counts.balanced / n) * 100,
-      high_el:  (counts.high_el / n) * 100,
-      high_ins: (counts.high_ins / n) * 100,
+      balanced: mapped ? (counts.balanced / d) * 100 : 0,
+      high_el:  mapped ? (counts.high_el / d) * 100 : 0,
+      high_ins: mapped ? (counts.high_ins / d) * 100 : 0,
     },
     avg_el:  sum_el / n,
     avg_ins: sum_ins / n,
@@ -218,11 +259,10 @@ function formatTimestamp(ts: number): string {
   }
 }
 
-function classColor(cls: string): string {
-  if (cls === "high_el")  return "var(--os-err, #ef4444)";
-  if (cls === "high_ins") return "var(--os-warn, #f59e0b)";
-  return "var(--os-ok, #10b981)";
-}
+// #374 -- the private copy is GONE. It fell through to the OK green for
+// any value it did not recognise, so #355's new UNMAPPED rendered in the
+// colour of a healthy balanced reading. One rule, one implementation.
+const classColor = elInsClassColor;
 
 function formatError(e: unknown): string {
   if (e instanceof ApiError) {

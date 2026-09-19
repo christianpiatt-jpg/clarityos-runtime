@@ -41,10 +41,12 @@ function makeSummary(): ElInsOperatorSummaryResponse {
   return {
     recent_classification_distribution: {
       high_el: 4, high_ins: 2, balanced: 14,
+      unmapped: 0,           // #374 -- every fixture record carries a reading
     },
     avg_tsi:     82,
     trend:       "improving",
     sample_size: 20,
+    mapped_sample_size: 20,  // #374
   };
 }
 
@@ -203,10 +205,11 @@ describe("OperatorElinsExport route", () => {
 
   test("empty operator state renders empty preview", async () => {
     mockSummary.mockResolvedValueOnce({
-      recent_classification_distribution: { high_el: 0, high_ins: 0, balanced: 0 },
+      recent_classification_distribution: { high_el: 0, high_ins: 0, balanced: 0, unmapped: 0 },
       avg_tsi: 0,
       trend: "stable",
       sample_size: 0,
+      mapped_sample_size: 0,   // #374
     });
     mockConfig.mockResolvedValueOnce(makeConfig());
     renderRoute();

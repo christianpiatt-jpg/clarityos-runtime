@@ -17,6 +17,7 @@ import {
   type ElInsRecord,
 } from "../lib/api";
 import { readsNeeded } from "../lib/counts";
+import { elInsClassColor, elInsClassWord } from "../lib/labels";
 
 const DEFAULT_SAMPLE = 20;
 
@@ -113,10 +114,23 @@ export default function OperatorElinsDashboard() {
                 data-testid="el-ins-dashboard-tsi-chart"
               />
               <div style={{ marginTop: 8, fontSize: 12 }}>
-                {summary.sample_size < 2 ? (
-                  // F -- one read has no average and no trend.
+                {/* #374 -- the records that carried NO reading are named
+                    here, before the average they are not part of. */}
+                {summary.recent_classification_distribution.unmapped > 0 ? (
+                  <div data-testid="el-ins-dashboard-unmapped" style={{ marginBottom: 4 }}>
+                    <span className="muted">no reading (0/0):</span>{" "}
+                    <span style={{ fontFamily: "var(--font-mono)" }}>
+                      {summary.recent_classification_distribution.unmapped} of {summary.sample_size}
+                    </span>
+                  </div>
+                ) : null}
+                {/* F -- one read has no average and no trend.
+                    #374 -- the gate is on MAPPED reads, not on sample_size:
+                    with [balanced, UNMAPPED] the old gate passed on 2 and
+                    drew a 100% pie plus an average over ONE read. */}
+                {summary.mapped_sample_size < 2 ? (
                   <span data-testid="el-ins-dashboard-needs2" style={{ fontFamily: "var(--font-mono)" }}>
-                    {readsNeeded(summary.sample_size)}
+                    {readsNeeded(summary.mapped_sample_size)}
                   </span>
                 ) : (<>
                 <span className="muted">avg TSI:</span>{" "}
@@ -169,7 +183,7 @@ export default function OperatorElinsDashboard() {
                     {rec.thread_id || "—"}
                   </td>
                   <td style={{ ...tdStyle, color: classColor(rec.result.analysis.ratio_classification) }}>
-                    {rec.result.analysis.ratio_classification}
+                    {elInsClassWord(rec.result.analysis.ratio_classification)}
                   </td>
                   <td style={tdStyle}>{rec.result.analysis.el_score.toFixed(2)}</td>
                   <td style={tdStyle}>{rec.result.analysis.ins_score.toFixed(2)}</td>
@@ -295,11 +309,10 @@ function formatTimestamp(ts: number): string {
   }
 }
 
-function classColor(cls: string): string {
-  if (cls === "high_el")  return "var(--os-err, #ef4444)";
-  if (cls === "high_ins") return "var(--os-warn, #f59e0b)";
-  return "var(--os-ok, #10b981)";
-}
+// #374 -- the private copy is GONE. It fell through to the OK green for
+// any value it did not recognise, so #355's new UNMAPPED rendered in the
+// colour of a healthy balanced reading. One rule, one implementation.
+const classColor = elInsClassColor;
 
 function trendColor(t: string): string {
   if (t === "improving") return "var(--os-ok, #10b981)";

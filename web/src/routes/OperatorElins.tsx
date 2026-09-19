@@ -22,6 +22,7 @@ import {
   type ElInsThreadStabilityResponse,
 } from "../lib/api";
 import { readsNeeded } from "../lib/counts";
+import { elInsClassColor, elInsClassWord } from "../lib/labels";
 
 const PROVIDER_MODES: readonly ElInsProviderMode[] = [
   "auto", "llm", "deterministic",
@@ -236,7 +237,7 @@ export default function OperatorElins() {
                     )}
                   </td>
                   <td style={{ ...tdStyle, color: classColor(rec.result.analysis.ratio_classification) }}>
-                    {rec.result.analysis.ratio_classification}
+                    {elInsClassWord(rec.result.analysis.ratio_classification)}
                   </td>
                   <td style={tdStyle}>{rec.result.analysis.el_score.toFixed(2)}</td>
                   <td style={tdStyle}>{rec.result.analysis.ins_score.toFixed(2)}</td>
@@ -297,7 +298,7 @@ export default function OperatorElins() {
                   </span>
                   {" — "}
                   <span style={{ color: classColor(rec.result.analysis.ratio_classification) }}>
-                    {rec.result.analysis.ratio_classification}
+                    {elInsClassWord(rec.result.analysis.ratio_classification)}
                   </span>
                   {" ("}
                   EL {rec.result.analysis.el_score.toFixed(2)}, INS{" "}
@@ -326,11 +327,10 @@ function formatTimestamp(ts: number): string {
   }
 }
 
-function classColor(cls: string): string {
-  if (cls === "high_el")  return "var(--os-err, #ef4444)";
-  if (cls === "high_ins") return "var(--os-warn, #f59e0b)";
-  return "var(--os-ok, #10b981)";
-}
+// #374 -- the private copy is GONE. It fell through to the OK green for
+// any value it did not recognise, so #355's new UNMAPPED rendered in the
+// colour of a healthy balanced reading. One rule, one implementation.
+const classColor = elInsClassColor;
 
 function stabilityColor(s: string): string {
   if (s === "stable") return "var(--os-ok, #10b981)";

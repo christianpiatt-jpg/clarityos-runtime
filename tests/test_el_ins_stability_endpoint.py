@@ -183,15 +183,29 @@ class TestOperatorSummaryEndpoint:
         r = client.get("/el_ins/operator/summary", headers=_auth())
         assert r.status_code == 200
         body = r.json()
+        # #374 -- the lock gains two keys, both ADDITIVE. ``sample_size``
+        # keeps its name, type and meaning (every record looked at);
+        # ``mapped_sample_size`` is the denominator the three real classes
+        # are a distribution OVER, and ``unmapped`` counts the rest. Before
+        # this, an UNMAPPED record incremented nothing while still counting
+        # toward sample_size, so the distribution silently under-reported
+        # itself -- percentages that summed to less than the sample with
+        # nothing saying why.
         assert set(body.keys()) == {
             "recent_classification_distribution",
             "avg_tsi",
             "trend",
             "sample_size",
+            "mapped_sample_size",
         }
         assert set(body["recent_classification_distribution"].keys()) == {
-            "high_el", "high_ins", "balanced",
+            "high_el", "high_ins", "balanced", "unmapped",
         }
+        # the arithmetic that makes the fourth bucket worth having
+        d = body["recent_classification_distribution"]
+        assert sum(d.values()) == body["sample_size"]
+        assert (d["high_el"] + d["high_ins"] + d["balanced"]
+                == body["mapped_sample_size"])
 
     def test_distribution_counts_correct(self, client):
         # 3 high_el, 2 balanced.
@@ -230,10 +244,11 @@ class TestOperatorSummaryEndpoint:
             "/el_ins/operator/summary", headers=_auth(),
         ).json()
         assert body["sample_size"] == 0
+        assert body["mapped_sample_size"] == 0      # #374
         assert body["avg_tsi"] == 0
         assert body["trend"] == "stable"
         d = body["recent_classification_distribution"]
-        assert d == {"high_el": 0, "high_ins": 0, "balanced": 0}
+        assert d == {"high_el": 0, "high_ins": 0, "balanced": 0, "unmapped": 0}
 
     def test_sample_size_query_param_honoured(self, client):
         for i in range(30):

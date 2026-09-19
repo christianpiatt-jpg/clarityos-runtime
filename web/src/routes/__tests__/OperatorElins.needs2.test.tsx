@@ -76,7 +76,9 @@ test("★ Macro: one record shows no percentage", async () => {
 
 test("★ Dashboard: a sample of one shows no average and no trend", async () => {
   vi.mocked(api.getElInsOperatorSummary).mockResolvedValue({
-    recent_classification_distribution: { high_el: 0, high_ins: 0, balanced: 1 }, avg_tsi: 100, trend: "stable", sample_size: 1,
+    // #374 -- the gate now reads mapped_sample_size; one mapped read still needs 2.
+    recent_classification_distribution: { high_el: 0, high_ins: 0, balanced: 1, unmapped: 0 },
+    avg_tsi: 100, trend: "stable", sample_size: 1, mapped_sample_size: 1,
   });
   vi.mocked(api.getElInsRecent).mockResolvedValue({ operator_id: "op_alice", records: [rec()] });
   render(<MemoryRouter initialEntries={["/operator/el_ins/dashboard"]}><OperatorElinsDashboard /></MemoryRouter>);

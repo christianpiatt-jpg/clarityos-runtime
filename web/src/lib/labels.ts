@@ -114,3 +114,49 @@ export function labelFor(key: string): Label {
 export function labelText(key: string): string {
   return labelFor(key).word;
 }
+
+// ---------------------------------------------------------------------------
+// #374 (CT-1 2026-09-18) -- the EL/INS classification's WORD and COLOUR, in
+// ONE place.
+//
+// ★ WHY HERE AND NOT IN EACH ROUTE. Four files carried a byte-identical
+// private `classColor`, and three of the four fell through to the OK green
+// for anything they did not recognise -- so the moment #355 put a fourth
+// value on the wire, "we have no reading" rendered in the colour of a
+// healthy balanced one. That is the #355 defect in pixels. The same shape of
+// duplication is what let #355's own domain floor reach one crowning path of
+// three. One rule, one implementation, and a fifth renderer cannot diverge.
+// ---------------------------------------------------------------------------
+
+/** The sentinel the backend emits for a 0/0 read (el_ins_analyzer.RATIO_UNMAPPED). */
+export const EL_INS_UNMAPPED = "UNMAPPED";
+
+/** Em dash: what a reader is shown where there is no reading to show. */
+export const DASH = "—";
+
+/**
+ * The member-facing word for a ratio_classification or a reasoning_mode.
+ *
+ * UNMAPPED renders as an em dash, NOT as the word "UNMAPPED": absence is
+ * shown the way every other absent value on these surfaces is shown, and the
+ * raw key still rides in a title attribute at the call site so the internal
+ * name is always recoverable. An unknown value returns itself, never blank.
+ */
+export function elInsClassWord(cls: string | null | undefined): string {
+  if (!cls) return DASH;
+  if (cls === EL_INS_UNMAPPED) return DASH;
+  return cls;
+}
+
+/**
+ * The colour for a ratio_classification.
+ *
+ * ★ THE DEFAULT IS MUTED, NOT GREEN. A value this function has not heard of
+ * is not evidence of health, and the previous default said it was.
+ */
+export function elInsClassColor(cls: string | null | undefined): string {
+  if (cls === "high_el")  return "var(--os-err, #ef4444)";
+  if (cls === "high_ins") return "var(--os-warn, #f59e0b)";
+  if (cls === "balanced") return "var(--os-ok, #10b981)";
+  return "var(--os-text-muted, #888)";
+}

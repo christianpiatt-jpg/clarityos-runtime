@@ -26,6 +26,7 @@ import {
   type ElInsReasoningModeLabel,
   type ElInsReasoningModeResponse,
 } from "../../lib/api";
+import { elInsClassColor } from "../../lib/labels";
 
 // v72 / Unit 80 — anomaly "new" window. The red dot fires when at
 // least one anomaly was emitted in the last 24h. No client-side
@@ -42,6 +43,10 @@ const LABELS: Record<string, string> = {
   balanced: "Balanced",
   high_el:  "High-EL",
   high_ins: "High-INS",
+  // #374 -- a 0/0 read has no position to name. An em dash, the same way
+  // every other absent value reads on this badge; the raw key still rides
+  // in the title attribute beside the EL/INS numbers.
+  UNMAPPED: "—",
 };
 
 // v71 / Unit 79 — Display labels for reasoning_mode. Locked here so
@@ -184,9 +189,8 @@ export default function ElInsIndicator() {
   );
 }
 
-function classColor(cls: string | null): string {
-  if (cls === "high_el")  return "var(--os-err, #ef4444)";
-  if (cls === "high_ins") return "var(--os-warn, #f59e0b)";
-  if (cls === "balanced") return "var(--os-ok, #10b981)";
-  return "var(--os-text-muted, #888)";
-}
+// #374 -- routed to the one shared implementation. This copy was already
+// correct (it had an explicit `balanced` arm and a muted default, so #355's
+// UNMAPPED landed on grey by luck rather than by rule); the other three fell
+// through to the OK green. Keeping four private copies is how that happened.
+const classColor = elInsClassColor;

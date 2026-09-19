@@ -30,6 +30,11 @@ import time
 import uuid
 from typing import Any, Literal, Optional, TypedDict
 
+# #374 -- the sentinel is DECLARED ONCE, in the analyzer that produces it,
+# and imported. The analyzer has no back-dependency on this module, so the
+# import is acyclic. One token, one spelling (#355).
+from . import el_ins_analyzer
+
 AnomalyType = Literal["high_el", "low_ins", "tsi_spike", "quadrant_jump"]
 
 ANOMALY_TYPES: tuple = ("high_el", "low_ins", "tsi_spike", "quadrant_jump")
@@ -118,6 +123,32 @@ def detect_anomalies(
         raise ValueError("record must be a dict")
 
     analysis = (record.get("result") or {}).get("analysis", {})
+
+    # ★★ #374 SITE 1 (CT-1 2026-09-18) -- AN UNMAPPED RECORD IS NEITHER A
+    # SAMPLE NOR AN ANOMALY. Every rule below reads a POSITION: el and ins as
+    # coordinates, tsi as a level, the quadrant as a place. A 0/0 read has no
+    # position, so each rule was reading the absence of a measurement as a
+    # measurement -- the #355 defect, one layer out.
+    #
+    # Measured 2026-09-18 on a thread of two stable balanced reads followed by
+    # one 0/0 turn: the UNMAPPED record fired THREE anomalies -- low_ins
+    # (sev 3, because ins 0.0 < 2.0), tsi_spike (sev 4, because #355 rightly
+    # excludes the frame from the TSI window so the record is stamped with the
+    # OTHER frames' 100), and quadrant_jump (sev 5, because the quadrant
+    # "moved" from a place to nowhere). Pre-#355 the same frame scored into the
+    # window, TSI came out 71, and nothing fired at all.
+    #
+    # ★ THIS IS WHY IT MATTERS AT SCALE: 0/0 is the COMMON case for ordinary
+    # conversational text (the EL/INS term sets are exact-token and small), so
+    # without this guard every quiet turn writes three anomaly rows, a timeline
+    # event, and lights the cockpit red dot.
+    #
+    # Returning [] rather than filtering rule-by-rule is deliberate: there is
+    # no rule here that a record without a reading could legitimately trip, and
+    # a list of exceptions would drift the moment a fifth rule is added.
+    if analysis.get("ratio_classification") == el_ins_analyzer.RATIO_UNMAPPED:
+        return []
+
     el = float(analysis.get("el_score") or 0.0)
     ins = float(analysis.get("ins_score") or 0.0)
     tsi = record.get("tsi") if isinstance(record.get("tsi"), int) else None
@@ -151,7 +182,16 @@ def detect_anomalies(
         ))
 
     # Rule 4: quadrant jump vs prior
-    if prior_record is not None and isinstance(prior_record, dict):
+    #
+    # ★ #374 -- THE PRIOR MUST CARRY A READING TOO. A jump is a comparison of
+    # two positions; if the earlier one is UNMAPPED there is no "from", and
+    # computing it from 0.0/0.0 places the prior in Q4 (stabilization) as
+    # though absence were a low-low reading. That would fire a spurious
+    # diagonal on the FIRST real read after any quiet turn. An UNMAPPED prior
+    # is treated exactly as no prior at all, which is what it is.
+    if (prior_record is not None and isinstance(prior_record, dict)
+            and (prior_record.get("result") or {}).get("analysis", {})
+                .get("ratio_classification") != el_ins_analyzer.RATIO_UNMAPPED):
         prior_analysis = (prior_record.get("result") or {}).get("analysis", {})
         prior_el = float(prior_analysis.get("el_score") or 0.0)
         prior_ins = float(prior_analysis.get("ins_score") or 0.0)

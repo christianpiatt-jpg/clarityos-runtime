@@ -6416,14 +6416,31 @@ def _ensure_envelope(user: str) -> dict:
 # manufacture the answer this phase is meant to withhold.
 #
 # WHY T AND N ARE UNMAPPED, precisely:
-#   T  hedgeRatio is computed in phone/lib/langbridg.ts -- CLIENT-SIDE, on
-#      the phone. The web path, which is now the primary member surface
-#      (/cockpit -> CockpitV2), has no producer at all. Not "not lifted
-#      yet": the main client cannot supply it.
-#   N  derivable from CI = 1 - H(p)/H_max(n) over these same counts.
-#      24_compression_index.md:72 gives the closed form and its own header
-#      says the metric is SPECIFIED, NOT IMPLEMENTED. Verified absent from
-#      both roots.
+#
+# ★ #361 (CT-1 2026-09-18) -- THE TWO REASONS BELOW WERE TRUE WHEN WRITTEN
+# AND ARE NOT TRUE NOW. #133/#135 built both producers server-side and this
+# block was never updated, so it told every later reader that work which
+# EXISTS cannot be done. Corrected in place rather than deleted, because the
+# prohibition above may still be right -- but it must rest on live reasons.
+#
+#   T  WAS: "hedgeRatio is computed in phone/lib/langbridg.ts -- CLIENT-SIDE,
+#      on the phone. The web path ... has no producer at all. Not 'not lifted
+#      yet': the main client cannot supply it."
+#      NOW: `_hedge_ratio` exists SERVER-SIDE at app.py:6629, ported from
+#      langbridg.ts:345-354 with two deliberate divergences, and is called at
+#      app.py:6853. What is still unmapped is the SCALE: the arithmetic is
+#      ported exactly, the mapping from hedge ratio to arousal is asserted by
+#      a comment rather than derived (see :6850-6855).
+#   N  WAS: "derivable from CI ... SPECIFIED, NOT IMPLEMENTED. Verified
+#      absent from both roots."
+#      NOW: `_compression_index` IS implemented at app.py:6463 and is
+#      called at app.py:6845. What is still unmapped is again the SCALE: CI
+#      lands in [0,1] (or the string UNMAPPED) while PressureModel documents N
+#      as "typically 1-10", so feeding CI straight in computes a different
+#      pressure. The closed form is ruled; the WEIGHTING is not (:6841-6842).
+#
+# So the remaining blocker is ONE KIND OF THING -- two unruled scale
+# transforms -- not two absent producers.
 #
 # A shadow layer that quietly defaults N and logs a plausible pressure would
 # be worse than not shipping this phase: a confident value with correct

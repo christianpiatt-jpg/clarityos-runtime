@@ -100,6 +100,15 @@ export default function OperatorElinsExport() {
           <div className="kv">
             <div className="k">sample size</div>
             <div className="v">{summary.sample_size}</div>
+            {/* #374 -- the export said "sample size 3, balanced 0, high_el 0,
+                high_ins 0" for three records that carried no reading: three
+                findings printed where there was one absence. */}
+            <div className="k">no reading (0/0)</div>
+            <div className="v" data-testid="el-ins-export-unmapped">
+              {summary.recent_classification_distribution.unmapped}
+            </div>
+            <div className="k">mapped sample size</div>
+            <div className="v">{summary.mapped_sample_size}</div>
             <div className="k">avg TSI</div>
             <div className="v">{summary.avg_tsi}/100</div>
             <div className="k">trend</div>
