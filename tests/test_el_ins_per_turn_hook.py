@@ -126,8 +126,8 @@ class TestFailureIsolation:
 
         monkeypatch.setattr(el_ins, "store_el_ins_record", _boom)
         result = ik.run_thread_message("alice", tid, "catastrophic")
-        # Chat turn succeeded.
-        assert result["assistant_message"]["content"] == "(mock reply)"
+        # Chat turn succeeded. #366: the reply is the reading, never a lane's text.
+        assert result["assistant_message"]["content"].startswith("reading")
 
 
 # ===========================================================================

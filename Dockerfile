@@ -5,6 +5,12 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
+# #366 A1 -- the parser's English model, exact-pinned by wheel URL (it is
+# not published on PyPI). Same layer discipline as requirements.txt; the
+# spaCy pin that loads it lives there. MIT. ~12.8 MB.
+RUN pip install --no-cache-dir --no-deps \
+    https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+
 # Runtime modules — explicit allowlist. When a new top-level package
 # directory is added to the repo, add a COPY line here, or the
 # container will hit ModuleNotFoundError at startup.

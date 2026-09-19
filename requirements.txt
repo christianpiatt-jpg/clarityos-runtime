@@ -24,3 +24,10 @@ google-cloud-aiplatform==1.71.1
 
 # --- Billing (BD1) ---------------------------------------------------------
 stripe==11.1.1
+
+# --- #366 A1 -- the on-machine clause parser (no vendor, no network) --------
+# spaCy 3.8.14 (MIT). 3.8.15/3.8.16 publish no cp312 manylinux wheel set;
+# 3.8.14 resolves completely on python:3.12-slim and holds pydantic==2.9.2.
+# The English model (en_core_web_sm 3.8.0, MIT) is not on PyPI: it is
+# installed by exact wheel URL in the Dockerfile, the same pin discipline.
+spacy==3.8.14

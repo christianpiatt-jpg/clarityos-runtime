@@ -78,7 +78,9 @@ class TestTopLevelShape:
 
     def test_metadata_keys_locked(self):
         out = mr.route_model_request(_operator_intent(), _route("claude"))
-        assert set(out["metadata"].keys()) == {"provider", "mock", "ts"}
+        # #366 A6 -- ``provisioned`` joins the three: False only on a local
+        # engine whose call came back as the router's mock (no daemon).
+        assert set(out["metadata"].keys()) == {"provider", "mock", "ts", "provisioned"}
 
     def test_response_passthrough_has_route_request_keys(self):
         out = mr.route_model_request(_operator_intent(), _route("claude"))
@@ -148,8 +150,12 @@ class TestHardPinnedRouting:
 # D. Prompt shaping
 # ===========================================================================
 class TestPromptShaping:
-    """#147 -- the model reads the operator's text."""
-    FRAME = "[ClarityOS operator step] intent=query"
+    """#147 -- the envelope never reaches the model; the frame is the preview.
+    #366 A4 (CT-1 2026-09-19) -- neither does the TEXT: the /session shaper
+    composes EP (the step's attributed triples, D/T/N) behind the lane frame,
+    and the operator's words never ride a prompt. The tests below pin the new
+    shape where #147 pinned the old one; #147's privacy assertions hold."""
+    FRAME = "[ClarityOS ep-up.v1] lane=role direction=query"
 
     def _captured(self, monkeypatch, intent, engine="claude"):
         seen: dict = {}
@@ -163,21 +169,30 @@ class TestPromptShaping:
         out = mr.route_model_request(intent, _route(engine))
         return out, seen["prompt"]
 
+    @staticmethod
+    def _payload(prompt: str) -> dict:
+        import json
+        return json.loads(prompt.split("\n\n", 1)[1])
+
     def test_prompt_preview_capped_at_60_chars(self):
         out = mr.route_model_request(_operator_intent(), _route("claude"))
         assert len(out["request"]["prompt_preview"]) <= 60
 
-    def test_prompt_carries_intent_type(self):
+    def test_prompt_carries_the_direction_bit(self):
         out = mr.route_model_request(
             _operator_intent(intent_type="plan"), _route("claude"),
         )
-        assert "intent=plan" in out["request"]["prompt_preview"]
+        assert "direction=plan" in out["request"]["prompt_preview"]
 
-    def test_prompt_is_the_frame_then_the_operator_text(self, monkeypatch):
+    def test_prompt_is_the_lane_frame_then_the_algebra_never_the_text(self, monkeypatch):
         intent = _operator_intent(session_id="sess_0123456789abcdef", operator_id="op_alice_long_id")
         intent["payload"]["text"] = "MARKER-7f3a what should the operator do next?"
         _, prompt = self._captured(monkeypatch, intent)
-        assert prompt == self.FRAME + "\n\nMARKER-7f3a what should the operator do next?"
+        assert prompt.startswith(self.FRAME)
+        assert "MARKER-7f3a" not in prompt and "what should the operator do next" not in prompt
+        payload = self._payload(prompt)
+        assert payload["v"] == "ep-up.v1" and payload["direction"] == "query"
+        assert isinstance(payload["EP"]["triples"], list)
         # the envelope never reaches the model
         for envelope in ("sess_0123456789abcdef", "op_alice_long_id", "runtime_mode",
                          "override", "elins_inputs_keys", "session=", "operator="):
@@ -186,18 +201,24 @@ class TestPromptShaping:
     def test_prompt_preview_is_the_frame_only(self, monkeypatch):
         intent = _operator_intent()
         intent["payload"]["text"] = "MARKER-7f3a what should the operator do next?"
-        out, _ = self._captured(monkeypatch, intent)
-        assert out["request"]["prompt_preview"] == self.FRAME
+        out, prompt = self._captured(monkeypatch, intent)
+        first_line = prompt.split("\n", 1)[0]
+        assert out["request"]["prompt_preview"] == first_line[:60]
+        assert "MARKER" not in out["request"]["prompt_preview"]
 
     def test_text_is_capped_by_the_module_constant(self, monkeypatch):
+        # the v57 cap promise, kept: the parser reads at most the constant;
+        # a text of one repeated letter yields no clause and no leak
         intent = _operator_intent()
         intent["payload"]["text"] = "x" * (mr.OPERATOR_TEXT_MAX_CHARS + 500)
         _, prompt = self._captured(monkeypatch, intent)
-        assert prompt == self.FRAME + "\n\n" + "x" * mr.OPERATOR_TEXT_MAX_CHARS
+        assert "x" * 50 not in prompt
+        assert self._payload(prompt)["EP"]["triples"] == []
 
-    def test_missing_text_gives_the_frame_and_an_empty_body(self, monkeypatch):
+    def test_missing_text_gives_the_frame_and_an_empty_chain(self, monkeypatch):
         _, prompt = self._captured(monkeypatch, _operator_intent())
-        assert prompt == self.FRAME + "\n\n"
+        assert prompt.startswith(self.FRAME)
+        assert self._payload(prompt)["EP"]["triples"] == []
 
     def test_the_envelope_goes_to_the_log_line_not_the_prompt(self, monkeypatch, caplog):
         caplog.set_level("INFO", logger="clarityos.model_router")
@@ -214,27 +235,33 @@ class TestPromptShaping:
         assert "MARKER" not in line and "text_chars=11" in line  # never the text
         assert "runtime_mode" not in prompt
 
-    def test_the_mock_reply_carries_no_member_text(self):
+    def test_the_mock_reply_carries_no_member_text_and_is_read_not_shown(self):
         # the suite sets no provider key, so route_request answers with the
-        # mock; its 60-char preview used to be of the WHOLE prompt
+        # mock; #366 A8 -- the operator sees the READING, never a lane's
+        # reply: a mock that is not lane JSON reads as no reading
         intent = _operator_intent()
         intent["payload"]["text"] = "MARKER-7f3a what should the operator do next?"
         out = mr.route_model_request(intent, _route("claude"))
         assert out["response"]["mock"] is True
-        assert out["response"]["text"] == f"[mock {out['request']['model_id']}] {self.FRAME}"
+        assert out["response"]["text"].startswith("reading: undefined")
+        assert "MARKER" not in out["response"]["text"] and "[mock" not in out["response"]["text"]
+        assert out["response"]["reading"]["lanes"] == ["role"]
+        assert out["metadata"]["provisioned"] is True     # claude is not the sovereign seat
 
-    def test_a_non_string_intent_type_frames_as_unknown(self, monkeypatch):
+    def test_a_non_string_intent_type_falls_back_to_query_unpicked(self, monkeypatch):
         intent = _operator_intent()
         intent["intent_type"] = {"x": "MEMBER"}
         _, prompt = self._captured(monkeypatch, intent)
-        assert prompt.startswith("[ClarityOS operator step] intent=unknown\n\n")
+        assert prompt.startswith("[ClarityOS ep-up.v1] lane=role direction=query")
+        assert self._payload(prompt)["picked"] is False
         assert "MEMBER" not in prompt
 
     def test_prompt_handles_malformed_payload_gracefully(self, monkeypatch):
         intent = _operator_intent()
         intent["payload"] = "not a dict"
         out, prompt = self._captured(monkeypatch, intent)
-        assert prompt == self.FRAME + "\n\n"
+        assert prompt.startswith(self.FRAME)
+        assert self._payload(prompt)["EP"]["triples"] == []
         assert isinstance(out["request"]["prompt_preview"], str)
 
     def test_the_vault_preferred_model_names_the_answerer(self):

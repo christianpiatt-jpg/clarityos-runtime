@@ -187,6 +187,9 @@ class TestINV_V6_NamespaceAllowList:
         "arc_records",
         # #191 (2026-09-08) -- one durable login row per magic-link login.
         "session_records",
+        # #366 A2 (2026-09-19) -- the seat ledger + id<->name map per
+        # relationship; the map never serializes toward a model.
+        "relationships",
     })
 
     def test_inv_v6_allowed_namespaces_matches_frozen_registry(self):

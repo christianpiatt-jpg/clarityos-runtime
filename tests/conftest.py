@@ -718,6 +718,35 @@ _FILE_MARKERS: dict[str, set[str]] = {
         "runtime_spine",
         "determinism_surface",
     },
+    # ---- #366: the two transformers + the sequencer ----
+    # determinism_surface: the parser's tuple, modality, negation, contrast,
+    # nominalization and reading order are pure functions of the text under
+    # two exact pins; the intersection is a pure fold over lane values.
+    # privacy_surface: the A4 refuter (no seat-map name in a member slot;
+    # the fixture's proper nouns never in a lane prompt), the seat map never
+    # serialized, the reply is the reading and never a lane's JSON.
+    # runtime_spine: the route carries direction/picked, reserves on the
+    # algebra, runs the lanes through run_workflow, records the ask on the
+    # seal, and a halt surfaces without a vendor call.
+    "test_366_parser.py": {
+        "determinism_surface",
+    },
+    "test_366_ledger.py": {
+        "determinism_surface",
+        "privacy_surface",
+    },
+    "test_366_sequencer.py": {
+        "runtime_spine",
+        "determinism_surface",
+    },
+    "test_366_reassembler.py": {
+        "determinism_surface",
+        "privacy_surface",
+    },
+    "test_366_route.py": {
+        "runtime_spine",
+        "privacy_surface",
+    },
     # ---- #307 E3 the twelve-window pin ----
     # determinism_surface: the ELINS counting layer over CT-1's litigation
     # record, loaded from OUTSIDE the tree (skipped, with the reason, when

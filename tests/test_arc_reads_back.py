@@ -164,7 +164,7 @@ def test_a_failed_step_is_named_at_warning_and_the_turn_completes(monkeypatch, c
     tid = threads_vault.create_thread(user, title="lease")["thread_id"]
     ik.run_thread_message(user, tid, PROMPT_1)
     out = ik.run_thread_message(user, tid, PROMPT_2)          # the turn completes
-    assert out["assistant_message"]["content"] == REPLY_2
+    assert out["assistant_message"]["content"].startswith("reading")   # #366: the reply is the reading
     lines = [r.getMessage() for r in caplog.records
              if r.levelno == logging.WARNING and r.getMessage().startswith("felt_gap_reader step=")]
     assert len(lines) == 1, lines

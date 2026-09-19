@@ -109,15 +109,17 @@ def test_verify_el_ins_never_raises_and_returns_a_different_kind(monkeypatch):
 # --------------------------------------------------------------------------
 # on the member turn
 # --------------------------------------------------------------------------
-def test_two_deterministic_calls_per_turn_and_the_router_is_called_once(monkeypatch):
-    fake = _router(monkeypatch, [REPLY])
+def test_two_deterministic_calls_per_turn_and_the_router_is_called_once_per_lane(monkeypatch):
+    fake = _router(monkeypatch, [REPLY, REPLY, REPLY])
     calls = _spy_analyze(monkeypatch)
     tid, out = _turn("v_alice", INPUT)
-    assert len(fake.calls) == 1, "the analyzer must never phone the router"
+    # #366 -- three lanes, one call each; the analyzer must never phone the router
+    assert len(fake.calls) == 3, "the analyzer must never phone the router"
     assert [c["provider_mode"] for c in calls] == ["deterministic", "deterministic"]
-    assert [c["text"] for c in calls] == [INPUT, REPLY]
-    # the reply is byte-equal to what the router returned: acted on by nothing
-    assert out["assistant_message"]["content"] == REPLY
+    # the verifier reads the input and the REPLY -- which is the reading (#366)
+    reply = out["assistant_message"]["content"]
+    assert reply.startswith("reading")
+    assert [c["text"] for c in calls] == [INPUT, reply]
     # no store write: the verifier persists nothing
     assert el_ins.get_recent_el_ins("v_alice") == []
     assert el_ins.get_thread_el_ins("v_alice", tid) == []
@@ -137,7 +139,9 @@ def test_the_line_carries_ids_marks_and_words_never_the_texts(monkeypatch, caplo
     assert "'stop_reason': None" in line         # raw vendor value; None on mock
     assert "'refusal': False" in line
     assert "'input': {'ratio_classification': 'high_el', 'reasoning_mode': 'stabilize'}" in line
-    assert "'reply': {'ratio_classification': 'high_ins', 'reasoning_mode': 'expand'}" in line
+    # #366 -- the reply verified is the READING; its class is whatever the
+    # deterministic analyzer reads off it, never ABSENT
+    assert "'reply': {'ratio_classification': '" in line and "'reply': 'ABSENT'" not in line
     assert "'status': 'ok'" in line and "'acted_on': False" in line
     assert INPUT not in line and REPLY not in line
     # lexicon hits (el_components / ins_components are member words) never ride the line
@@ -155,44 +159,52 @@ def test_an_analyzer_exception_is_absent_with_a_reason_and_the_turn_completes(mo
         raise ValueError("no lexicon")
     monkeypatch.setattr(el_ins, "analyze_text", boom)
     tid, out = _turn("v_carol", INPUT)
-    assert out["assistant_message"]["content"] == REPLY
+    assert out["assistant_message"]["content"].startswith("reading")   # #366: the reply is the reading
     line = _verify_lines(caplog)[0]
     assert "'status': 'ABSENT'" in line and "'reason': 'ValueError: no lexicon'" in line
     assert "'input': 'ABSENT'" in line and "'reply': 'ABSENT'" in line
     assert "'acted_on': False" in line
 
 
-def test_a_refusal_is_marked_and_still_verified(monkeypatch, caplog):
+def test_a_vendor_refusal_is_a_lane_without_a_reading_not_a_reply(monkeypatch, caplog):
+    """#366 -- a lane that refuses answers no row: the reply is the reading
+    (which reads no refusal), and the refusal is a lane's no-basis reason.
+    Surfacing a lane's refusal on the verify line is a ruling owed."""
     caplog.set_level(logging.INFO, logger=LOGGER)
-    _router(monkeypatch, [REFUSAL])
+    _router(monkeypatch, [REFUSAL, REFUSAL, REFUSAL])
     tid, out = _turn("v_dave", INPUT)
-    assert out["assistant_message"]["content"] == REFUSAL      # stored as-is; the mark is a log
+    assert out["assistant_message"]["content"].startswith("reading: undefined")
+    assert REFUSAL not in out["assistant_message"]["content"]
+    assert out["reading"]["lane_reasons"]["role"] == "no JSON object in reply"
     line = _verify_lines(caplog)[0]
-    assert "'refusal': True" in line
+    assert "'refusal': False" in line
     assert "'input': {'ratio_classification': 'high_el'" in line
     assert "'reply': {'ratio_classification': " in line and "'reply': 'ABSENT'" not in line
 
 
 def test_a_stop_that_is_not_end_turn_is_marked_and_still_verified(monkeypatch, caplog):
     caplog.set_level(logging.INFO, logger=LOGGER)
-    _router(monkeypatch, [REPLY], stop_reason="max_tokens")
+    _router(monkeypatch, [REPLY, REPLY, REPLY], stop_reason="max_tokens")
     _turn("v_erin", INPUT)
     line = _verify_lines(caplog)[0]
-    assert "'stop_reason': 'max_tokens'" in line
-    assert "'reply': {'ratio_classification': 'high_ins'" in line
+    assert "'stop_reason': 'max_tokens'" in line        # the LAST lane's raw value
+    assert "'reply': {'ratio_classification': '" in line and "'reply': 'ABSENT'" not in line
 
 
-def test_no_vendor_text_reads_reply_absent_not_balanced(monkeypatch, caplog):
-    """The kernel persists its own "(no reply)" sentinel when the vendor
-    returns nothing; the verifier must not grade that placeholder."""
+def test_no_vendor_text_still_yields_a_reading_that_names_the_absence(monkeypatch, caplog):
+    """#366 -- when every lane returns nothing the reply is still the
+    reading, and the reading says 0 rows carried a value; the verifier
+    grades that text (it is ours, not a vendor placeholder), and the
+    "(no reply)" sentinel is no longer reachable on this path."""
     caplog.set_level(logging.INFO, logger=LOGGER)
-    _router(monkeypatch, [""])
+    _router(monkeypatch, ["", "", ""])
     _, out = _turn("v_gil", INPUT)
-    assert out["assistant_message"]["content"] == "(no reply)"     # unchanged behaviour
+    assert out["assistant_message"]["content"].startswith("reading: undefined — 0 of")
+    assert out["reading"]["lane_reasons"] == {"time": "empty reply", "ambient": "empty reply", "role": "empty reply"}
     line = _verify_lines(caplog)[0]
-    assert "'reply': 'ABSENT'" in line and "'reason': 'no_reply'" in line
+    assert "'reply': 'ABSENT'" not in line and "'reason': None" in line
     assert "'input': {'ratio_classification': 'high_el'" in line   # the input is still verified
-    assert "'status': 'ok'" in line and "balanced" not in line
+    assert "'status': 'ok'" in line
 
 
 def test_verify_el_ins_with_no_reply_returns_the_word(monkeypatch):
@@ -203,11 +215,12 @@ def test_verify_el_ins_with_no_reply_returns_the_word(monkeypatch):
 
 
 def test_the_return_contract_and_the_reply_are_unchanged(monkeypatch):
-    _router(monkeypatch, [REPLY])
+    _router(monkeypatch, [REPLY, REPLY, REPLY])
     _, out = _turn("v_fay", INPUT)
     assert set(out) == {
         "meta", "user_message", "assistant_message", "model_id", "reasoning_mode",
         "anomalies", "grounding_status", "directives", "directive_metadata", "vendor_calls",
         "mock", "fallback_error",   # #284 -- declared beside grounding_status, by ruling
+        "direction", "picked", "reading", "sovereign",   # #366 -- the direction bit, the reading's meta, the sovereign seat
     }
     assert "el_ins" not in str(out["meta"]) and out["reasoning_mode"] is None

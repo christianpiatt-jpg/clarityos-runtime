@@ -186,7 +186,10 @@ def test_2_the_two_fields_are_declared_on_the_wire(client, monkeypatch):
     assert "grounding_status" in body
     assert body["mock"] is True                              # a mock answered
     assert body["fallback_error"] is None                    # ... and nothing failed: absent, not ""
-    assert body["assistant_message"]["content"].startswith("[mock ")   # the text is unchanged (additive)
+    # #366 -- the reply is the READING; a lane's text (mock or real) never
+    # rides it. The flag still says a mock answered every lane.
+    assert body["assistant_message"]["content"].startswith("reading")
+    assert "[mock" not in body["assistant_message"]["content"]
 
 
 def test_2_a_real_provider_answer_declares_mock_false(client, monkeypatch):
@@ -251,33 +254,35 @@ def _sequence(*responses):
     return _route
 
 
-def test_2_the_flags_follow_the_text_that_became_the_reply(reset_stores, monkeypatch):
-    """A #cite turn whose reply is ungrounded fires ONE retry. If the retry
-    comes back empty, the FIRST call's text stands as the reply -- and so
-    must its flags: the last call was real and clean, the answer was a
-    mock that stood in for a failure. When the retry's text stands, the
-    flags are the retry's."""
+def test_2_the_flags_follow_the_lanes_that_answered(reset_stores, monkeypatch):
+    """#366 -- three lanes answer one turn and no lane's text becomes the
+    reply, so the flags are over the LANES: ``mock`` is True only when no
+    real provider answered any lane; ``fallback_error`` is the first lane's.
+    (Before #366 the flags followed the #cite retry's text. The retry no
+    longer fires -- a re-query would hand the pilot a lane's JSON -- and a
+    ruling on #cite under A4 is owed.)"""
     import intelligence_kernel as ik
     import model_router
     import threads_vault as tv
     first = dict(model_router._clarity_result("m", "gemini", "p", 0.0, error="E1"),
-                 text="The value is 42.")                     # ungrounded -> a retry fires
-    empty_real = {"ok": True, "provider": "openai", "text": "", "mock": False,
-                  "ts": 0.0, "stop_reason": "stop", "usage": None}
-    monkeypatch.setattr(model_router, "route_request", _sequence(first, empty_real))
+                 text="The value is 42.")                     # a mock that stood in for a failure
+    real = {"ok": True, "provider": "openai", "text": "", "mock": False,
+            "ts": 0.0, "stop_reason": "stop", "usage": None}
+    monkeypatch.setattr(model_router, "route_request", _sequence(first, real, real))
     tid = tv.create_thread("alice", "chat")["thread_id"]
     out = ik.run_thread_message("alice", tid, "#cite what is it?")
-    assert len(out["vendor_calls"]) == 2                          # the retry was made
-    assert out["assistant_message"]["content"] == "The value is 42."   # ... and the first text stood
-    assert out["mock"] is True and out["fallback_error"] == "E1"  # so the first call's flags
+    assert len(out["vendor_calls"]) == 3                          # one call per lane, no retry
+    assert out["assistant_message"]["content"].startswith("reading")
+    assert "The value is 42" not in out["assistant_message"]["content"]
+    assert out["mock"] is False and out["fallback_error"] == "E1"  # a real lane answered; the first lane's error
+    assert out["grounding_status"] == "incomplete"                # #cite cannot ground a reading
+    assert out["directive_metadata"]["cite"]["retry_used"] is False
 
-    real_retry = dict(empty_real, text="The value is 42 [source: the lease, clause 7].")
-    monkeypatch.setattr(model_router, "route_request", _sequence(first, real_retry))
+    monkeypatch.setattr(model_router, "route_request", _sequence(first, first, first))
     tid2 = tv.create_thread("alice", "chat2")["thread_id"]
     out2 = ik.run_thread_message("alice", tid2, "#cite what is it?")
-    assert len(out2["vendor_calls"]) == 2
-    assert out2["assistant_message"]["content"].startswith("The value is 42 [")
-    assert out2["mock"] is False and out2["fallback_error"] is None  # the retry answered
+    assert len(out2["vendor_calls"]) == 3
+    assert out2["mock"] is True and out2["fallback_error"] == "E1"  # no lane was real
 
 
 @pytest.mark.parametrize("raw, expect", [

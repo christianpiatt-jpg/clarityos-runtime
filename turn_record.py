@@ -994,6 +994,59 @@ def record_turn(
 
 
 # --------------------------------------------------------------------------
+# #366 -- the direction bit and the ask ride the seal
+# --------------------------------------------------------------------------
+#: a stored string may be an id, a lemma, a short compound (``hearing
+#: request`` · ``agency defense counsel``) or a status word -- at most this
+#: many words. Longer is prose and stays prose for the guard to refuse.
+_SEAL_TOKEN_MAX_WORDS: int = 4
+
+
+def _seal_token(value: Any) -> Any:
+    """Short strings become single tokens (whitespace → ``_``, capped at the
+    scalar length) so an id, a lemma, a short compound or a status word
+    passes the prose guard. A string of more than ``_SEAL_TOKEN_MAX_WORDS``
+    words is left as it is, so ``_reject_prose`` refuses it: the tokenizer
+    is a spelling for compounds, not a door for sentences. Dicts and lists
+    recurse; everything else passes through."""
+    if isinstance(value, str):
+        words = value.split()
+        if len(words) > _SEAL_TOKEN_MAX_WORDS:
+            return value
+        return "_".join(words)[:_MAX_SCALAR_LEN]
+    if isinstance(value, dict):
+        return {str(k): _seal_token(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_seal_token(v) for v in value]
+    return value
+
+
+def annotate_seal(user_id: str, sealed_key: str, fields: dict) -> dict:
+    """Write ``direction`` · ``picked`` · ``ask`` (R-366-B, #371) onto THIS
+    turn's seal. A None value OMITS its key (D5 -- never "" / {} / null
+    standing in for a bit that was not set). Every stored value passes
+    ``_reject_prose`` after ``_seal_token``. Runs under ``_RECORD_LOCK`` with
+    the record's other writers. Returns what was written."""
+    if not isinstance(fields, dict):
+        raise ValueError("fields must be a dict")
+    clean: dict = {}
+    for k, v in fields.items():
+        if v is None:
+            continue
+        clean[str(k)] = _reject_prose(_seal_token(v), "seal." + str(k))
+    if not clean:
+        return clean
+    with _RECORD_LOCK:
+        rec = memory_vault.vault_get(user_id, sealed_key)
+        if not isinstance(rec, dict):
+            raise KeyError("no turn record at %s" % sealed_key)
+        rec = dict(rec)
+        rec.update(clean)
+        memory_vault.vault_put(user_id, sealed_key, rec)
+    return clean
+
+
+# --------------------------------------------------------------------------
 # #114 -- the bearings into the seal, and the header that reads them back
 # --------------------------------------------------------------------------
 def seal_physics_bearings(

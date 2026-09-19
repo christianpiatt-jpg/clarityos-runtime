@@ -58,7 +58,9 @@ import local_model_runtime           # v45 — on-device inference runtime
 import memory_vault                  # v46 — encrypted local KV store
 import stop_vocabulary               # #196 — the ONE stop-token table
 import turn_record                   # W1_TURN — the per-turn record (seal/observe)
-import orchestrator_routing          # board #50 — routing handoff, SHADOW ONLY
+import ep_up_payload                 # #366 A4 — the direction bit's vocabulary
+import ep_up_turn                    # #366 — the machine: parse · attribute · compose · lanes · reassemble
+import orchestrator_routing          # board #50 — routing handoff; #366 A5 — acted on
 import orchestrator_schemas          # locked schemas — conformed to, never amended
 import model_router
 import operator_state
@@ -954,10 +956,23 @@ def run_thread_message(
     content: str,
     *,
     project_id: Optional[str] = None,
+    direction: Optional[str] = None,
+    picked: Optional[bool] = None,
+    composed: Optional[dict] = None,
+    response_shape: Optional[dict] = None,
 ) -> dict:
-    """Append ``content`` as a user message, route it through the
-    model router, append the assistant reply, and return both
-    messages plus the updated thread meta.
+    """Append ``content`` as a user message, run it through the #366
+    machine (parse → attribute → compose EP/UP → lanes → intersect →
+    reassemble), append the READING as the assistant reply, and return
+    both messages plus the updated thread meta.
+
+    #366 (CT-1, 2026-09-19): no vendor receives the transcript or the text.
+    ``direction`` is the four-way bit (query · action · plan · diagnostic;
+    None → the composer's pre-set ``query``), ``picked`` says whether the
+    member chose it, ``composed`` is the route's pre-composed bundle when it
+    reserved on the algebra (None → composed here from the same reads), and
+    ``response_shape`` is the envelope cascade's v24 block when the route
+    ran it before the reply (A8: the grammar conditions the reading).
 
     v51: when ``project_id`` is supplied AND the thread carries a
     matching ``project_id``, the kernel consults the project's
@@ -1068,13 +1083,16 @@ def run_thread_message(
     # index itself failed (a seal that fails after the index is still
     # this turn's count).
     _tr_index: Optional[int] = None
+    _tr_read: Optional[dict] = None      # #366 -- this turn's read: UP.observation
+    _tr_prior: Optional[dict] = None     # #366 -- the prior seal, as observed: UP.expectation
+    _tr_key: Optional[str] = None        # #366 -- this turn's seal: direction · picked · ask ride on it
     try:
         _tr_read = turn_record.build_geometry_observation(text)
         _tr_pending = turn_record.pending_seal(user_id, thread_id)
         if _tr_pending:
-            turn_record.observe_return(user_id, _tr_pending, _tr_read)
+            _tr_prior = turn_record.observe_return(user_id, _tr_pending, _tr_read)
         _tr_index = turn_record.next_turn_index(user_id, thread_id)
-        turn_record.seal_expectation(
+        _tr_key = turn_record.seal_expectation(
             user_id, thread_id,
             _tr_index,
             turn_record.persistence_expectation(_tr_read),
@@ -1091,39 +1109,15 @@ def run_thread_message(
             type(_tr_exc).__name__, _tr_exc, exc_info=True,
         )
 
-    # board #50 — the ROUTING HANDOFF, in SHADOW.
+    # board #50 -> #366 A5 — the ROUTING HANDOFF is no longer a shadow.
     #
-    # ★ NOTHING ROUTES ON THIS. The decision is computed and logged; no
-    # call path changes and no response differs. A server-side handoff is
-    # the only place an E/r ratio can be mounted, and today a browser tab
-    # calls two engines in sequence with no coordinator between them (HAR
-    # 2026-09-01: analyze 6058ms then run 545ms, SEQUENTIAL, client-driven).
-    # This creates the mounting point and nothing else.
-    #
-    # ★★ available_agents=() is NOT a placeholder. Measured tree-wide:
-    # ZERO AgentBinding instantiations exist. The registry is empty, so the
-    # decision halts -- and the halt IS the finding, recorded rather than
-    # papered over with a fabricated agent.
-    try:
-        _rt_req = orchestrator_schemas.RoutingRequest(
-            request_id=thread_id,
-            request_type="thread_message",
-            payload={"content_len": len(text or "")},   # length, never the text
-            identity=orchestrator_schemas.IdentityProfile(
-                actor=user_id,
-                actor_kind=orchestrator_schemas.ActorKind.USER,
-                sovereignty_level=orchestrator_schemas.SovereigntyLevel.USER_OWNED,
-                authorization_tier=orchestrator_schemas.AuthorizationTier.EXECUTE,
-            ),
-            arrived_at=datetime.now(timezone.utc),
-        )
-        _rt_decision = orchestrator_routing.route_request(_rt_req, (), ())
-        orchestrator_routing.log_shadow_handoff(_rt_req, _rt_decision, ())
-    except Exception as _rt_exc:  # shadow must never break the turn
-        logger.warning(
-            "orchestrator_routing shadow FAILED err=%s: %s",
-            type(_rt_exc).__name__, _rt_exc, exc_info=True,
-        )
+    # The decision route_request makes is now KEPT: ep_up_turn.run_lanes
+    # (called below, after the model resolves) binds the resolved model as
+    # the one registered AgentBinding, plans one step per lane, assembles the
+    # C/D/G/I envelope and runs the plan through orchestrator_workflows.
+    # run_workflow. A halt surfaces to the pilot as the reply and is never
+    # auto-resumed. The shadow log line (log_shadow_handoff, acted_on=False)
+    # is retired on this path because it would now state a falsehood.
 
     started = time.perf_counter()
 
@@ -1177,28 +1171,43 @@ def run_thread_message(
         except Exception:  # pragma: no cover (defensive)
             pass
 
-    # 3. Build conversation context + dispatch. We pull the canonical
-    #    transcript from the vault (cheaper + correct than relying on
-    #    the in-memory list) and pass it as the prompt body.
-    try:
-        _, full_messages = threads_vault.get_thread(user_id, thread_id)
-    except KeyError:
-        # Race: thread deleted between our two calls. Surface to the
-        # caller — append_message above has already been undone if
-        # this happened, but in practice we just re-raise.
-        raise
-    prompt = _format_thread_context(full_messages, latest=text)
+    # 3. #366 — THE MACHINE. Compose (A4), route + plan + run the lanes (A5),
+    #    intersect (A7), reassemble (A8). The transcript no longer rides:
+    #    _format_thread_context is not called on this path. Each lane
+    #    receives EP/UP in ids and lemmas; the reply is the reading. The
+    #    thread is not re-read here -- the machine reads the vault's seat map
+    #    and ledger, not the messages.
+    #
+    #    ``composed`` arrives from the route when it reserved on the algebra
+    #    (compose_thread_turn); otherwise the machine composes here from the
+    #    same reads (_tr_read / _tr_prior / _tr_index).
+    #
+    #    #160 / #193 -- ``diagnostic`` is the sovereign seat: the hard pin
+    #    beats the project's default and the member's preference.
+    _direction = direction if isinstance(direction, str) and direction in ep_up_payload.DIRECTIONS else "query"
+    _picked = bool(picked)
+    if _direction == "diagnostic":
+        model_id = model_router._ENGINE_HARD_PIN["local"]
 
     # v56 — collect EVERY vendor dispatch for this turn so the caller can
-    # meter the turn's total. ★ A #cite retry fires a second billed call
-    # below; both land in this list and settle as one turn, which is what
-    # stops the retry path from being billed at a loss.
+    # meter the turn's total. One lane = one billed call; N lanes land in
+    # this list and settle as one turn.
     vendor_calls: list[dict] = []
 
-    response = model_router.route_request(model_id, prompt)
-    vendor_calls.append(response)
-    assistant_text = str(response.get("text") or "").strip()
-    _answer_call: dict = response   # #284 -- the call whose text became the reply
+    _turn = ep_up_turn.run_turn(
+        user_id=user_id, thread_id=thread_id, text=text,
+        direction=_direction, picked=_picked, model_id=model_id,
+        route_request_fn=model_router.route_request,
+        read=_tr_read, prior_record=_tr_prior,
+        turn_index=_tr_index if _tr_index is not None else 0,
+        composed=composed, response_shape=response_shape,
+    )
+    vendor_calls.extend(_turn["lane_responses"])
+    assistant_text = str((_turn.get("reading") or {}).get("text") or "").strip()
+    # #284 -- the answering call's flags, now over the LANES: mock is True
+    # only when no real provider answered any lane; fallback_error is the
+    # first lane's. Both None when no lane was sent (a halt) -- D5.
+    _answer_call: dict = {"mock": _turn["mock"], "fallback_error": _turn["fallback_error"]}
 
     # A28 — unified directive post-enforcement. The engine validates/transforms
     # the reply per active directive and signals at most one capped re-query
@@ -1211,25 +1220,28 @@ def run_thread_message(
     retry_used = False
     grounding_status: Optional[str] = None
     if directives.active:
+        # #366 -- post-enforcement runs over the READING. A re-query would
+        # append an instruction to an algebra prompt and hand the pilot a
+        # lane's JSON as the reply, so NO second vendor call fires on this
+        # path: when the first pass asks for one, the status is settled by a
+        # second pass over the same reading with retry_used=True (#cite reads
+        # "incomplete" when the reading carries no citation), and the flag
+        # the handler stamps is corrected to what happened -- no retry was
+        # used. A ruling on #cite under A4 is owed (Part B return).
         final_output, dmeta = directive_engine.apply_post_enforcement(
             directives, assistant_text,
         )
         if dmeta.retry_needed:
-            retry_used = True
-            retry_prompt = prompt
-            if dmeta.retry_instruction:
-                retry_prompt = f"{prompt}\n\n{dmeta.retry_instruction}"
-            retry_response = model_router.route_request(model_id, retry_prompt)
-            vendor_calls.append(retry_response)   # v56 — billed, so metered
-            retry_text = str(retry_response.get("text") or "").strip()
-            if retry_text:
-                _answer_call = retry_response   # #284 -- the retry's text is the reply
-            retry_output = retry_text or final_output
             final_output, dmeta = directive_engine.apply_post_enforcement(
-                directives, retry_output, retry_used=True,
+                directives, assistant_text, retry_used=True,
             )
+            directive_metadata = dmeta.to_dict()
+            for _dm in directive_metadata.values():
+                if isinstance(_dm, dict) and _dm.get("retry_used") is True:
+                    _dm["retry_used"] = False
+        else:
+            directive_metadata = dmeta.to_dict()
         assistant_text = final_output
-        directive_metadata = dmeta.to_dict()
         cite_meta = directive_metadata.get("cite")
         if cite_meta:
             grounding_status = cite_meta.get("status")
@@ -1301,6 +1313,17 @@ def run_thread_message(
     )
     # W1_HUB — attach Module B advisory to meta (None on non-externalization turns).
     meta_final["module_b_alignment"] = module_b_advisory
+
+    # #366 -- direction · picked · the ask onto THIS turn's seal (R-366-B,
+    # #371), so the next turn's UP differences the answer against it. Loud,
+    # never fatal; nothing here can cost the member the reply.
+    if _tr_key:
+        try:
+            turn_record.annotate_seal(user_id, _tr_key, ep_up_turn.seal_fields(_turn))
+        except Exception as _sf_exc:  # noqa: BLE001
+            logger.warning(
+                "seal annotate FAILED err=%s: %s", type(_sf_exc).__name__, _sf_exc,
+            )
 
     # 5. v69 / Unit 74 — Optional EL/INS per-turn analysis hook.
     #    Off by default; users opt in via operator_state.el_ins_per_turn.
@@ -1466,6 +1489,11 @@ def run_thread_message(
             # None when no vendor call happened). Content-free, like
             # model_id; the error string itself stays off the log line.
             "mock":              _answer_mock,
+            # #366 -- the direction bit, the lanes sent, whether the
+            # workflow halted. Enums and counts.
+            "direction":         _direction,
+            "lanes":             len(vendor_calls),
+            "halted":            bool(_turn.get("halt")),
         },
     )
 
@@ -1474,6 +1502,17 @@ def run_thread_message(
         "user_message":      user_msg_saved,
         "assistant_message": assistant_msg_saved,
         "model_id":          model_id,
+        # #366 -- the direction bit as run, the reading's meta (counts,
+        # enums and the relation's name restored on-machine -- the member's
+        # own wire; never a lane's text), and the sovereign seat's state on
+        # a diagnostic turn (None otherwise -- D5).
+        "direction":         _direction,
+        "picked":            _picked,
+        "reading":           _turn.get("meta"),
+        "sovereign":         (None if _direction != "diagnostic"
+                              else ("provisioned" if _turn.get("provisioned") is True
+                                    else "not_provisioned" if _turn.get("provisioned") is False
+                                    else "undefined")),      # no lane sent: unread, not healthy (D5)
         # v71 / Unit 79 — additive. None when EL/INS per-turn is off.
         "reasoning_mode":    reasoning_mode,
         # v72 / Unit 80 — additive. Empty list when no anomalies fired
@@ -1504,6 +1543,28 @@ def run_thread_message(
         # entry whose `usage` is None (nothing was consumed, nothing billed).
         "vendor_calls":      vendor_calls,
     }
+
+
+def compose_thread_turn(
+    user_id: str, thread_id: str, content: str, *, direction: str, picked: bool,
+) -> dict:
+    """#366 A4 -- compose the turn WITHOUT writing, so the route can reserve
+    on the algebra the lanes will actually receive (the packet's noted
+    under-reserve becomes exact). The same reads run_thread_message makes:
+    the directive-stripped text, this turn's geometry read, the pending seal
+    (read, not observed) and the next turn index. Pass the result back as
+    ``composed``."""
+    text = ep_up_turn.strip_directives(content)
+    if not text:
+        raise ValueError("content must be a non-empty string after stripping")
+    read = turn_record.build_geometry_observation(text)
+    pending = turn_record.pending_seal(user_id, thread_id)
+    prior = memory_vault.vault_get(user_id, pending) if pending else None
+    idx = turn_record.next_turn_index(user_id, thread_id)
+    return ep_up_turn.compose_turn(
+        text=text, direction=direction, picked=picked, user_id=user_id, thread_id=thread_id,
+        read=read, prior_record=prior if isinstance(prior, dict) else None, turn_index=idx,
+    )
 
 
 # ---------------------------------------------------------------------------

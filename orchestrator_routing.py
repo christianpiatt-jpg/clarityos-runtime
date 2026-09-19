@@ -305,7 +305,50 @@ def build_execution_plan(
     INVARIANT: ``plan.overall_constraints`` is a SUPERSET of every
     ``step.constraints``. No constraint is silently dropped between
     routing and plan.
+
+    #366 A5 (R-366-D): the body for the thread route. ``context_hints``::
+
+        {"lanes": ("time","ambient","role"),   # one step per lane
+         "model_id": str,                      # the agent the decision bound
+         "direction": str,                     # the direction bit
+         "contract_ids": {lane: str},           # optional
+         "constraints": tuple[ConstitutionalConstraint]}  # plan-level additions
+
+    A halt decision (``selected_agent == HALT_AGENT``) plans ZERO steps and
+    carries the attached constraints: a halted route runs nothing and the
+    caller reads the halt off the decision, not off a fabricated step.
     """
-    raise NotImplementedError(
-        "orchestrator_routing.build_execution_plan — Phase 2 implementation",
+    if not isinstance(decision, RoutingDecision):
+        raise ValueError("decision must be a RoutingDecision")
+    hints = dict(context_hints or {})
+    now = datetime.now(timezone.utc)
+    attached = tuple(decision.constraints_attached or ())
+    extra = tuple(c for c in (hints.get("constraints") or ()) if isinstance(c, ConstitutionalConstraint))
+    overall: dict = {}
+    for c in attached + extra:
+        prev = overall.get(c.rule_id)
+        if prev is None or _sev_rank(c.severity) > _sev_rank(prev.severity):
+            overall[c.rule_id] = c
+    overall_t = tuple(overall.values())
+    if decision.selected_agent == HALT_AGENT:
+        return ExecutionPlan(plan_id="plan-" + decision.request_id, steps=(), overall_constraints=overall_t, created_at=now)
+    lanes = tuple(hints.get("lanes") or ())
+    if not lanes:
+        raise ValueError("context_hints.lanes must name at least one lane")
+    model_id = hints.get("model_id") or decision.selected_agent
+    contract_ids = hints.get("contract_ids") if isinstance(hints.get("contract_ids"), dict) else {}
+    steps = tuple(
+        ExecutionStep(
+            step_id="%s:%s" % (decision.request_id, lane),
+            action="lane_read",
+            inputs={"lane": lane, "model_id": model_id, "direction": hints.get("direction"),
+                    "contract_id": contract_ids.get(lane, UNMAPPED)},
+            constraints=overall_t,
+        )
+        for lane in lanes
     )
+    return ExecutionPlan(plan_id="plan-" + decision.request_id, steps=steps, overall_constraints=overall_t, created_at=now)
+
+
+def _sev_rank(s) -> int:
+    return {Severity.ADVISORY: 0, Severity.REQUIRED: 1, Severity.ABSOLUTE: 2}.get(s, -1)

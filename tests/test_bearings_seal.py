@@ -348,6 +348,8 @@ def test_the_thread_turn_path_makes_no_model_call_for_physics(monkeypatch):
         "ok": True, "text": "a reply", "model_id": model_id, "provider": "fake", "mock": True, "ts": 0.0}))
     tid = threads_vault.create_thread("b_dave", title="t")["thread_id"]
     ik.run_thread_message("b_dave", tid, "hello there")
-    assert len(calls) == 1 and "temperature" not in calls[0]   # the chat call only, router default
+    # #366 -- the turn's calls are the three LANES (router default, no
+    # temperature); physics (temperature=0.0) still never runs on this path
+    assert len(calls) == 3 and all("temperature" not in kw for kw in calls)
     rows = tr.list_turn_records("b_dave", tid)
     assert rows and "bearings" not in rows[-1]

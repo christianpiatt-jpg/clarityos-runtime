@@ -45,6 +45,7 @@ from typing import Optional
 from orchestrator_schemas import (
     ContextEnvelope,
     ConstitutionalConstraint,
+    DEFAULT_DRIFT_THRESHOLD,
     DriftAxis,
     DriftState,
     ExecutionPlan,
@@ -83,10 +84,31 @@ def assemble_context(
 
     The ``constraints`` field is sourced from ``plan.overall_constraints``;
     plan-level constraints are authoritative at context-assembly time.
+
+    #366 A5 (R-366-D): implemented for the thread route. Type-checked, not
+    reinterpreted: the envelope carries exactly what arrived.
     """
-    raise NotImplementedError(
-        "orchestrator_context.assemble_context — Phase 2 implementation",
+    if not isinstance(req, RoutingRequest):
+        raise ValueError("req must be a RoutingRequest")
+    if not isinstance(plan, ExecutionPlan):
+        raise ValueError("plan must be an ExecutionPlan")
+    if not isinstance(identity, IdentityProfile):
+        raise ValueError("identity must be an IdentityProfile")
+    if not isinstance(drift, DriftState):
+        raise ValueError("drift must be a DriftState")
+    if not isinstance(geometry, GeometryProfile):
+        raise ValueError("geometry must be a GeometryProfile")
+    env = ContextEnvelope(
+        request=req,
+        plan=plan,
+        constraints=tuple(plan.overall_constraints or ()),
+        identity=identity,
+        drift=drift,
+        geometry=geometry,
     )
+    from orchestrator_schemas import assert_context_contract
+    assert_context_contract()
+    return env
 
 
 # ---------------------------------------------------------------------------
@@ -164,7 +186,52 @@ def load_drift_state(
         * For Phase 2 v1, INTENT is the primary axis; others may
           return magnitude=0.0, in_bounds=True until later units add
           richer measurement.
+
+    #366 A5 (R-366-D): the INTENT axis is implemented for the thread route.
+    ``history`` is the tuple of the relationship's prior DIRECTION bits
+    (query · action · plan · diagnostic), oldest first; ``baseline_anchor``
+    is this turn's direction. magnitude = the share of the last
+    ``DRIFT_WINDOW`` prior bits that differ from it -- a pure count, no
+    clock, no store.
+
+    ★ CARRIED, NOT GATED. ``in_bounds`` is True on this axis whatever the
+    magnitude: the direction bit is the member's own authorization (R-366-B),
+    so a member who picks ``action`` after three ``query`` turns has not
+    drifted from anything the orchestrator may hold them to -- the first
+    draft halted that turn with zero lanes sent (refuter, 2026-09-19). The
+    measure rides ``magnitude`` / ``direction`` for a later reader; the
+    workflow's D check reads ``in_bounds``. Every other axis keeps raising:
+    the route does not exercise it, and a 0.0 it never measured would be a
+    value where the honest answer is "unread" (D5).
     """
-    raise NotImplementedError(
-        "orchestrator_context.load_drift_state — Phase 2 implementation",
+    if axis != DriftAxis.INTENT:
+        raise NotImplementedError(
+            "orchestrator_context.load_drift_state — axis %s is not exercised by the thread route (#366 R-366-D)" % axis,
+        )
+    if not isinstance(actor, str) or not actor:
+        raise ValueError("actor must be a non-empty string")
+    if not isinstance(baseline_anchor, str) or not baseline_anchor:
+        raise ValueError("baseline_anchor must be a non-empty string")
+    bits = tuple(h for h in (history or ()) if isinstance(h, str) and h)
+    window = bits[-DRIFT_WINDOW:]
+    if not window:
+        magnitude = 0.0
+        direction = "no prior turn"
+    else:
+        differing = sum(1 for b in window if b != baseline_anchor)
+        magnitude = round(differing / float(len(window)), 4)
+        direction = ("stable" if differing == 0 else ("shifting %d/%d" % (differing, len(window)))) + " (member-authorized; not gated)"
+    from datetime import datetime, timezone
+    return DriftState(
+        axis=DriftAxis.INTENT,
+        magnitude=magnitude,
+        direction=direction,
+        baseline_anchor=baseline_anchor,
+        in_bounds=True,
+        measured_at=datetime.now(timezone.utc),
     )
+
+
+#: how many prior direction bits the INTENT drift reads (a bootstrap
+#: number, like the record's 3 and 7 -- named, not physics)
+DRIFT_WINDOW: int = 8

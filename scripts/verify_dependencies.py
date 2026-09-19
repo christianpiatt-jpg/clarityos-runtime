@@ -82,6 +82,8 @@ _DIST_TO_IMPORTS: dict[str, set[str]] = {
     "google-cloud-aiplatform":{"google", "vertexai"},
     # --- Billing ---
     "stripe":                {"stripe"},
+    # --- #366 A1 -- the on-machine clause parser ---
+    "spacy":                 {"spacy"},
     # --- Dev / test deps ---
     "pytest":                {"pytest", "_pytest"},
     "pytest-cov":            {"pytest_cov"},

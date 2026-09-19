@@ -69,26 +69,39 @@ def _send(monkeypatch, caplog, outputs, content, user="alice"):
     return out, _last_thread_record(caplog)
 
 
-def test_telemetry_grounded_first_try_no_retry(reset_stores, monkeypatch, caplog):
-    _out, rec = _send(monkeypatch, caplog, [GROUNDED], "#cite who?")
-    assert rec["meta"]["grounding_status"] == "grounded"
+# #366 (CT-1 2026-09-19) -- the vendor receives algebra and answers rows;
+# the reply is the READING, which carries no citation, so #cite settles
+# "incomplete" and NO re-query fires (a retry would append the validator's
+# instruction to an algebra prompt and hand the pilot a lane's JSON).
+# retry_used is False on every line because none was used; the line still
+# carries grounding_status, model_id and duration_ms, plus the direction,
+# the lane count and whether the workflow halted. A ruling on #cite under
+# A4 is owed (Part B return). The three tests below pinned the retry path
+# and are converted to the new contract.
+def test_telemetry_cite_settles_incomplete_without_a_retry(reset_stores, monkeypatch, caplog):
+    _out, rec = _send(monkeypatch, caplog, [GROUNDED, GROUNDED, GROUNDED], "#cite who?")
+    assert rec["meta"]["grounding_status"] == "incomplete"
     assert rec["meta"]["retry_used"] is False
+    assert rec["meta"]["lanes"] == 3 and rec["meta"]["halted"] is False
+    assert rec["meta"]["direction"] == "query"
 
 
-def test_telemetry_grounded_after_retry(reset_stores, monkeypatch, caplog):
+def test_telemetry_no_retry_fires_when_the_lanes_disagree(reset_stores, monkeypatch, caplog):
     _out, rec = _send(
-        monkeypatch, caplog, [UNGROUNDED, GROUNDED_FACT], "#cite how tall?",
-    )
-    assert rec["meta"]["grounding_status"] == "grounded"
-    assert rec["meta"]["retry_used"] is True
-
-
-def test_telemetry_incomplete_uses_retry(reset_stores, monkeypatch, caplog):
-    _out, rec = _send(
-        monkeypatch, caplog, [UNGROUNDED, UNGROUNDED_2], "#cite how tall?",
+        monkeypatch, caplog, [UNGROUNDED, GROUNDED_FACT, GROUNDED_FACT], "#cite how tall?",
     )
     assert rec["meta"]["grounding_status"] == "incomplete"
-    assert rec["meta"]["retry_used"] is True
+    assert rec["meta"]["retry_used"] is False
+    assert len(_out["vendor_calls"]) == 3
+
+
+def test_telemetry_incomplete_never_used_a_retry(reset_stores, monkeypatch, caplog):
+    _out, rec = _send(
+        monkeypatch, caplog, [UNGROUNDED, UNGROUNDED_2, UNGROUNDED_2], "#cite how tall?",
+    )
+    assert rec["meta"]["grounding_status"] == "incomplete"
+    assert rec["meta"]["retry_used"] is False
+    assert _out["directive_metadata"]["cite"]["retry_used"] is False
 
 
 def test_telemetry_non_cite_turn(reset_stores, monkeypatch, caplog):

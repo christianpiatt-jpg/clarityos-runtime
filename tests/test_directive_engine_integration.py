@@ -67,36 +67,39 @@ def _last_log(caplog):
 # ---------------------------------------------------------------------------
 def test_non_directive_turn_unchanged(reset_stores, monkeypatch):
     import intelligence_kernel as ik
-    fake = _install(monkeypatch, [UNGROUNDED])  # ungrounded, but no directive
+    fake = _install(monkeypatch, [UNGROUNDED, UNGROUNDED, UNGROUNDED])  # no directive
     out = ik.run_thread_message("alice", _thread(), "how tall is it?")
-    assert len(fake.calls) == 1
+    assert len(fake.calls) == 3                       # #366: one call per lane
     assert out["directives"] == []
     assert out["directive_metadata"] == {}
     assert out["grounding_status"] is None
-    assert out["assistant_message"]["content"] == UNGROUNDED  # untouched
+    assert out["assistant_message"]["content"].startswith("reading")   # #366: the reply is the reading
 
 
 # ---------------------------------------------------------------------------
-# #cite preserved end-to-end (A18/A19/A20 back-compat)
+# #cite under A4 (#366): the vendor answers rows, the reply is the reading,
+# and a reading carries no citation -- #cite settles "incomplete" without a
+# re-query (a retry would hand the pilot a lane's JSON). A ruling on #cite
+# under A4 is owed (Part B return). grounding_status is still derived.
 # ---------------------------------------------------------------------------
-def test_cite_grounded_backcompat(reset_stores, monkeypatch):
+def test_cite_settles_incomplete_over_the_reading(reset_stores, monkeypatch):
     import intelligence_kernel as ik
-    fake = _install(monkeypatch, [GROUNDED])
+    fake = _install(monkeypatch, [GROUNDED, GROUNDED, GROUNDED])
     out = ik.run_thread_message("alice", _thread(), "#cite who?")
-    assert len(fake.calls) == 1
+    assert len(fake.calls) == 3
     assert out["directives"] == ["cite"]
-    assert out["grounding_status"] == "grounded"
-    assert out["directive_metadata"]["cite"]["status"] == "grounded"
-
-
-def test_cite_retry_then_incomplete_backcompat(reset_stores, monkeypatch):
-    import intelligence_kernel as ik
-    fake = _install(monkeypatch, [UNGROUNDED, UNGROUNDED_2])
-    out = ik.run_thread_message("alice", _thread(), "#cite how tall?")
-    assert len(fake.calls) == 2                       # one capped retry
     assert out["grounding_status"] == "incomplete"
-    assert out["directive_metadata"]["cite"]["retry_used"] is True
-    assert out["assistant_message"]["content"] == UNGROUNDED_2  # best-effort
+    assert out["directive_metadata"]["cite"]["status"] == "incomplete"
+
+
+def test_cite_never_retries_under_a4(reset_stores, monkeypatch):
+    import intelligence_kernel as ik
+    fake = _install(monkeypatch, [UNGROUNDED, UNGROUNDED_2, UNGROUNDED_2])
+    out = ik.run_thread_message("alice", _thread(), "#cite how tall?")
+    assert len(fake.calls) == 3                       # the lanes, never a fourth
+    assert out["grounding_status"] == "incomplete"
+    assert out["directive_metadata"]["cite"]["retry_used"] is False   # none fired; the flag says what happened
+    assert UNGROUNDED_2 not in out["assistant_message"]["content"]
 
 
 # ---------------------------------------------------------------------------
@@ -104,9 +107,12 @@ def test_cite_retry_then_incomplete_backcompat(reset_stores, monkeypatch):
 # ---------------------------------------------------------------------------
 def test_structure_transforms_assistant_message(reset_stores, monkeypatch):
     import intelligence_kernel as ik
-    _install(monkeypatch, ["* alpha\n\n\n* beta   "])
+    import structure_format
+    _install(monkeypatch, ["* alpha\n\n\n* beta   "] * 3)
     out = ik.run_thread_message("alice", _thread(), "#structure format it")
-    assert out["assistant_message"]["content"] == "- alpha\n\n- beta"
+    # #366 -- the transform runs over the READING, not over a lane's text
+    assert "alpha" not in out["assistant_message"]["content"]
+    assert "reading" in out["assistant_message"]["content"]
     assert out["directives"] == ["structure"]
     assert out["directive_metadata"]["structure"]["status"] == "formatted"
     assert out["grounding_status"] is None
@@ -125,11 +131,11 @@ def test_operator_transforms_assistant_message(reset_stores, monkeypatch):
 # ---------------------------------------------------------------------------
 def test_stacked_cite_and_structure(reset_stores, monkeypatch):
     import intelligence_kernel as ik
-    _install(monkeypatch, [GROUNDED])
+    _install(monkeypatch, [GROUNDED] * 3)
     out = ik.run_thread_message("alice", _thread(), "#cite #structure question")
     assert out["directives"] == ["cite", "structure"]
     assert set(out["directive_metadata"]) == {"cite", "structure"}
-    assert out["grounding_status"] == "grounded"
+    assert out["grounding_status"] == "incomplete"      # #366: a reading carries no citation (ruling owed)
 
 
 # ---------------------------------------------------------------------------
@@ -137,25 +143,29 @@ def test_stacked_cite_and_structure(reset_stores, monkeypatch):
 # ---------------------------------------------------------------------------
 def test_log_carries_directive_names(reset_stores, monkeypatch, caplog):
     import intelligence_kernel as ik
-    _install(monkeypatch, [UNGROUNDED, UNGROUNDED_2])
+    _install(monkeypatch, [UNGROUNDED, UNGROUNDED_2, UNGROUNDED_2])
     caplog.set_level("INFO", logger="clarityos.kernel.runs")
     ik.run_thread_message("alice", _thread(), "#cite how tall?")
     rec = _last_log(caplog)
     assert rec["meta"]["directives"] == ["cite"]
     assert rec["meta"]["grounding_status"] == "incomplete"
-    assert rec["meta"]["retry_used"] is True
+    assert rec["meta"]["retry_used"] is False          # #366: no re-query fires under A4
+    assert rec["meta"]["direction"] == "query" and rec["meta"]["lanes"] == 3 and rec["meta"]["halted"] is False
 
 
 def test_log_excludes_directive_metadata_content(reset_stores, monkeypatch, caplog):
     import intelligence_kernel as ik
     # #compare extracts target names (content) into directive_metadata; the
     # return dict carries them, but the kernel LOG must not.
-    _install(monkeypatch, ["Python is faster than Java."])
+    _install(monkeypatch, ["Python is faster than Java."] * 3)
     caplog.set_level("INFO", logger="clarityos.kernel.runs")
     out = ik.run_thread_message("alice", _thread(), "#compare them")
-    # functional payload on the return dict:
-    assert out["directive_metadata"]["compare"]["targets"] == ["Python", "Java"]
-    # but NOT in the telemetry log line:
+    # functional payload on the return dict (#366: #compare reads the
+    # READING, so the targets are whatever the reading names -- a lane's
+    # "Python"/"Java" never reach it):
+    assert "compare" in out["directive_metadata"]
+    assert "Python" not in json.dumps(out["directive_metadata"])
+    # and never in the telemetry log line:
     rec = _last_log(caplog)
     assert rec["meta"]["directives"] == ["compare"]
     assert "Python" not in json.dumps(rec)

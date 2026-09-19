@@ -108,9 +108,9 @@ def test_one_state_per_turn_index_increments_and_the_readers_answer(client):
     s2 = markov_states_store.latest_for(user, tid)
     assert s2["state_index"] == 1 and s2["state_vector"] != v1
     assert abs(math.sqrt(sum(x * x for x in s2["state_vector"])) - 1.0) < 1e-6
-    # the reply is what the router said, both turns: the write changed no text
-    assert r1.json()["assistant_message"]["content"] == REPLY
-    assert r2.json()["assistant_message"]["content"] == REPLY
+    # the reply is the reading, both turns (#366): the write changed no text
+    assert r1.json()["assistant_message"]["content"].startswith("reading")
+    assert r2.json()["assistant_message"]["content"].startswith("reading")
 
     # #71 -- the MQC cell's read answers now
     r = client.get(f"/markov/envelope/latest?session_id={tid}", headers=h)
@@ -154,7 +154,7 @@ def test_a_write_failure_is_a_warning_and_the_reply_is_unchanged(client, monkeyp
     monkeypatch.setattr(dewey_pipeline, "embed_text_cached", boom)
     caplog.set_level(logging.WARNING, logger="clarityos")
     r = _post(client, h, tid, TEXT_1)
-    assert r.json()["assistant_message"]["content"] == REPLY
+    assert r.json()["assistant_message"]["content"].startswith("reading")   # #366: the reply is the reading
     assert markov_states_store.latest_for(user, tid) is None
     lines = [rec.getMessage() for rec in caplog.records if rec.getMessage().startswith("markov write FAILED")]
     assert len(lines) == 1, [rec.getMessage() for rec in caplog.records]

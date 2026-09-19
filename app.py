@@ -951,6 +951,15 @@ def _assert_prod_default_provider_configured() -> None:
 _assert_prod_default_provider_configured()
 
 
+# #366 A1 (R-366-C) -- load the clause parser at boot in production so the
+# cold-start number is the whole truth: the model rides the image and the
+# first member turn does not pay a five-second load. Tests and dev load it
+# lazily on the first parse.
+if os.environ.get("K_SERVICE"):
+    import clause_parser as _clause_parser_boot
+    _clause_parser_boot.warm()
+
+
 # ---------------------------------------------------------------------------
 # Card 16 — operator-token auth (privileged path)
 # ---------------------------------------------------------------------------
@@ -6919,6 +6928,13 @@ def _emophysics_shadow(user: str, text: str) -> dict:
     # nothing downstream reads the record; it is here for tests.
     payload["plan"] = _emophysics_plan(user, text, payload)
     return payload
+
+
+# #366 -- the machine reads D / T / N through this binding: the kernel cannot
+# import app, and _verb_owner_set is the one producer of the verb-owner set.
+import ep_up_payload   # noqa: E402 -- the direction bit's vocabulary (route validation)
+import ep_up_turn      # noqa: E402
+ep_up_turn.VERB_OWNER_SET_FN = _verb_owner_set
 
 
 def _run_envelope_cascade(user: str, text: str) -> dict:
@@ -13533,6 +13549,12 @@ class V47PostMessageRequest(BaseModel):
     # belongs to that project and applies the project's
     # default_model / allowed_models routing rules.
     project_id: Optional[str] = None
+    # #366 R-366-B -- the direction bit: query · action · plan · diagnostic.
+    # Absent → the composer's pre-set ``query`` with picked=False. Present
+    # and outside the four words → 400. ``picked`` says whether the member
+    # chose it (absent with a direction → True: they sent it).
+    direction: Optional[str] = None
+    picked: Optional[bool] = None
 
 
 class V47PostMessageResponse(BaseModel):
@@ -13562,6 +13584,16 @@ class V47PostMessageResponse(BaseModel):
     # happened. Forwarded from the kernel; never persisted on the message.
     mock: Optional[bool] = None
     fallback_error: Optional[str] = None
+    # #366 -- the direction bit as run (R-366-B), the reading's meta (counts
+    # and enums, the relation's name, never a lane's text), and the
+    # sovereign seat's state on a diagnostic turn: "provisioned" /
+    # "not_provisioned" / None when the turn was not diagnostic (D5). The
+    # web renders "sovereign seat not provisioned" on the second, never a
+    # mock as a reading.
+    direction: Optional[str] = None
+    picked: Optional[bool] = None
+    reading: Optional[dict] = None
+    sovereign: Optional[str] = None
 
 
 class V47RenameThreadRequest(BaseModel):
@@ -13778,21 +13810,50 @@ def me_threads_post_message(
                 "bad_input", f"content must be <= {_THREAD_MESSAGE_MAX} chars",
             ),
         )
-    # v56 — RESERVE. The kernel composes the real prompt from the thread
-    # transcript, which we cannot see from here, so the reserve is taken
-    # against the incoming turn plus a transcript allowance. It is an
-    # over-reserve either way and the settle below corrects it exactly from
-    # the vendor's numbers.
+    # #366 R-366-B -- the direction bit. Absent → the composer's pre-set
+    # ``query`` with picked=False; present → one of the four words or 400.
+    _direction = req.direction if req.direction is not None else "query"
+    if not isinstance(_direction, str) or _direction not in ep_up_payload.DIRECTIONS:
+        v29_hardening.raise_validation(
+            v29_hardening.ValidationError(
+                "bad_input", "direction must be one of query, action, plan, diagnostic",
+            ),
+        )
+    _picked = bool(req.picked) if req.picked is not None else (req.direction is not None)
+
+    # #366 A4 -- COMPOSE FIRST, RESERVE ON THE ALGEBRA. The lanes receive
+    # EP/UP, not the transcript, so the reserve is taken against exactly
+    # what they will receive: every lane prompt, concatenated, with the
+    # output ceiling counted ONCE PER LANE (three calls, three ceilings --
+    # the first draft reserved one; refuter, 2026-09-19). A compose failure
+    # falls back to the raw turn -- an UNDER-reserve when the payload
+    # outweighs the text, corrected at settle from the vendors' numbers --
+    # and is LOUD; it never costs the member the turn.
+    _composed = None
+    try:
+        _composed = intelligence_kernel.compose_thread_turn(
+            user, thread_id, req.content, direction=_direction, picked=_picked,
+        )
+    except Exception as exc:  # noqa: BLE001 -- loud, never fatal
+        logger.warning(
+            "v366 compose FAILED user=%s thread=%s err=%s: %s",
+            _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
+        )
     meter = session.get("_meter")
     if meter is not None:
         try:
-            # task="thread" mirrors intelligence_kernel.run_thread_message's
-            # own routing call, so the reserve is priced against the model
-            # that will actually be dispatched -- not a guess that could sit
-            # on the wrong rate row.
+            # The reserve is priced against the model that will actually be
+            # dispatched: the sovereign pin on a diagnostic turn (#160/#193),
+            # the thread task's selection otherwise.
+            _reserve_model = (
+                model_router._ENGINE_HARD_PIN["local"] if _direction == "diagnostic"
+                else model_router.select_model(user, task="thread")
+            )
+            _n_lanes = len(_composed["lanes"]) if _composed else len(ep_up_turn.THREAD_LANES)
             meter.reserve(
-                model_router.select_model(user, task="thread"),
-                req.content,
+                _reserve_model,
+                _composed["reserve_text"] if _composed else req.content,
+                max_output_tokens=compute_meter.DEFAULT_MAX_OUTPUT_TOKENS * _n_lanes,
             )
         except ValueError as exc:
             if str(exc) == "no_credits":
@@ -13805,10 +13866,34 @@ def me_threads_post_message(
             raise
         except Exception as exc:  # pragma: no cover — routing must not 500 here
             logger.warning("v56 reserve skipped user=%s err=%s", _user_ref(user), exc)
+
+    # #366 A8 -- THE CASCADE RUNS BEFORE THE REPLY COMPOSES. Its v24
+    # response_shape (direction · phase · risk · sections) conditions the
+    # reading instead of being computed after it and applied to nothing.
+    # Same isolation as before: a failure here costs the member an envelope
+    # update, not their turn, and it is LOUD. Same request-time cost as
+    # before: this call always ran inside the request; only its position
+    # moved. (Vertex's unbounded embed, measured 2026-08-27, is unchanged.)
+    # ★ NOTE FOR THE RETURN: the embed still sends the member's text to
+    # Vertex -- an embedding model, not a noun-id reader -- outside #366's
+    # scope; named, not changed.
+    _shape = None
+    try:
+        _evolved = _run_envelope_cascade(user, req.content)
+        if isinstance(_evolved, dict) and isinstance(_evolved.get("response_shape"), dict):
+            _shape = _evolved.get("response_shape")
+    except Exception as exc:                      # noqa: BLE001 - see above
+        logger.warning(
+            "envelope cascade FAILED user=%s thread=%s err=%s: %s",
+            _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
+        )
+
     try:
         out = intelligence_kernel.run_thread_message(
             user, thread_id, req.content,
             project_id=req.project_id,
+            direction=_direction, picked=_picked,
+            composed=_composed, response_shape=_shape,
         )
     except KeyError:
         raise HTTPException(status_code=404, detail="thread not found")
@@ -13822,32 +13907,12 @@ def me_threads_post_message(
         for _call in (out.get("vendor_calls") or []):
             meter.add_vendor_usage(_call)
 
-    # A2 — run the envelope cascade on the member's message.
-    #
-    # ★ AFTER PERSISTENCE, AND IT MUST NEVER BLOCK THE MESSAGE.
-    # run_thread_message has already written both messages by this point, so
-    # a failure here costs the member an envelope update, not their turn.
-    #
-    # ★ THE CATCH IS LOUD ON PURPOSE. It logs the user, the exception type
-    # AND the message, and it re-raises nothing. A bare `except: pass` here
-    # is exactly the defect this lane has spent three days cataloguing: the
-    # cascade would stop running, the panel would keep reading "(absent)",
-    # and no signal would exist anywhere to say why.
-    #
-    # ★ UNBOUNDED EXTERNAL CALL, KNOWN AND ACCEPTED. embed_text_cached ->
-    # _real_embed has NO timeout (dewey_pipeline.py:105-126). Measured
-    # 2026-08-27: when Vertex is unreachable the first call in a process
-    # costs ~12s while _init_vertex_once fails, then memoizes -- subsequent
-    # uncached embeds are ~0ms on the hash fallback. So the exposure is one
-    # slow request per container instance, not per message. Worth a timeout
-    # in a later order; not worth blocking this one.
-    try:
-        _run_envelope_cascade(user, req.content)
-    except Exception as exc:                      # noqa: BLE001 - see above
-        logger.warning(
-            "envelope cascade FAILED user=%s thread=%s err=%s: %s",
-            _user_ref(user), _session_ref(thread_id), type(exc).__name__, exc,
-        )
+    # A2 — the envelope cascade used to run HERE, after persistence. #366 A8
+    # moved it above the kernel call so its v24 grammar conditions the
+    # reading (the isolation and the loud catch moved with it). The
+    # UNBOUNDED EXTERNAL CALL note (embed_text_cached -> _real_embed has no
+    # timeout, dewey_pipeline.py:105-126; ~12s once per container when
+    # Vertex is unreachable, then memoized) still applies, unchanged.
 
     # Emotional Physics PHASE 1 -- SHADOW. Log only; computes no physics.
     # ★ LAST, AND ISOLATED. run_thread_message has already persisted both
@@ -13891,6 +13956,10 @@ def me_threads_post_message(
         fallback_error=_privacy.scrub_credentials(out.get("fallback_error")),  # #284 — additive, scrubbed
         directives=out.get("directives") or [],                    # A30 — additive
         directive_metadata=out.get("directive_metadata") or {},    # A30 — additive
+        direction=out.get("direction"),                            # #366 — additive
+        picked=out.get("picked"),                                  # #366 — additive
+        reading=out.get("reading"),                                # #366 — counts, enums and the relation's restored name; never a lane's text
+        sovereign=out.get("sovereign"),                            # #366 A6 — None off the diagnostic path
     )
 
 

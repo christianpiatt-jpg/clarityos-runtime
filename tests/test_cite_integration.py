@@ -70,78 +70,83 @@ def test_cite_prefix_detected_and_stripped(reset_stores, monkeypatch):
 
     out = ik.run_thread_message("alice", tid, "#cite What is the tower height?")
 
-    # Grounded on first try → exactly one model call, no retry.
-    assert len(fake.calls) == 1
-    assert out["grounding_status"] == "grounded"
+    # #366 -- one call per lane (three), no retry; the vendor answers rows,
+    # the reply is the reading, and a reading carries no citation: #cite
+    # settles "incomplete" without a re-query. A ruling on #cite under A4 is
+    # owed (Part B return).
+    assert len(fake.calls) == 3
+    assert out["grounding_status"] == "incomplete"
     # The directive token is stripped from the persisted user turn...
     assert out["user_message"]["content"] == "What is the tower height?"
-    # ...and never reaches the model prompt...
-    assert "#cite" not in fake.calls[0]["prompt"].lower()
+    # ...and never reaches any lane prompt...
+    assert all("#cite" not in c["prompt"].lower() for c in fake.calls)
     # ...nor the stored transcript.
     _, msgs = tv.get_thread("alice", tid)
     assert msgs[0]["content"] == "What is the tower height?"
 
 
-def test_ungrounded_reply_triggers_single_retry(reset_stores, monkeypatch):
+def test_ungrounded_reply_no_longer_triggers_a_retry(reset_stores, monkeypatch):
+    """#366 -- a #cite re-query would append the validator's instruction to
+    an algebra prompt and hand the pilot a lane's JSON as the reply. No
+    retry fires: three lane calls, none carrying the re-query instruction,
+    the status settled "incomplete", retry_used False on the wire (none was
+    used). A ruling on #cite under A4 is owed (Part B return)."""
     import intelligence_kernel as ik
     import cite_mode
-    fake = _install_router(monkeypatch, [UNGROUNDED_FACT, GROUNDED_FACT])
+    fake = _install_router(monkeypatch, [UNGROUNDED_FACT, GROUNDED_FACT, GROUNDED_FACT])
     tid = _new_thread()
 
     out = ik.run_thread_message("alice", tid, "#cite How tall is it?")
 
-    # First reply ungrounded → one retry → grounded.
-    assert len(fake.calls) == 2
-    assert out["grounding_status"] == "grounded"
-    # The retry prompt carries the validator's re-query instruction.
-    assert cite_mode.FACTUAL_REQUERY in fake.calls[1]["prompt"]
-    # The grounded retry is what gets persisted + returned.
-    assert out["assistant_message"]["content"] == GROUNDED_FACT
-
-
-def test_retry_is_capped_and_marks_incomplete(reset_stores, monkeypatch):
-    import intelligence_kernel as ik
-    # Both replies ungrounded → the retry budget is still exactly one.
-    fake = _install_router(monkeypatch, [UNGROUNDED_FACT, UNGROUNDED_FACT_2])
-    tid = _new_thread()
-
-    out = ik.run_thread_message("alice", tid, "#cite How tall is it?")
-
-    # Hard cap: exactly two calls total (initial + one retry), never three.
-    assert len(fake.calls) == 2
+    assert len(fake.calls) == 3                                    # one per lane, no retry
     assert out["grounding_status"] == "incomplete"
-    # Best-effort: the retried output is returned even though ungrounded.
-    assert out["assistant_message"]["content"] == UNGROUNDED_FACT_2
+    assert out["directive_metadata"]["cite"]["retry_used"] is False
+    assert not any(cite_mode.FACTUAL_REQUERY in c["prompt"] for c in fake.calls)
+    assert all(c["prompt"].startswith("[ClarityOS ep-up.v1] lane=") for c in fake.calls)
+    # The reply is the reading; no lane's text rides it.
+    assert out["assistant_message"]["content"].startswith("reading")
+    assert GROUNDED_FACT not in out["assistant_message"]["content"]
 
 
-def test_opinion_without_basis_triggers_retry(reset_stores, monkeypatch):
+def test_the_retry_budget_is_zero_under_a4(reset_stores, monkeypatch):
+    import intelligence_kernel as ik
+    fake = _install_router(monkeypatch, [UNGROUNDED_FACT, UNGROUNDED_FACT_2, UNGROUNDED_FACT_2])
+    tid = _new_thread()
+
+    out = ik.run_thread_message("alice", tid, "#cite How tall is it?")
+
+    # Exactly the lanes: three calls, never a fourth.
+    assert len(fake.calls) == 3
+    assert out["grounding_status"] == "incomplete"
+    assert UNGROUNDED_FACT_2 not in out["assistant_message"]["content"]
+
+
+def test_opinion_without_basis_settles_incomplete_without_a_retry(reset_stores, monkeypatch):
     import intelligence_kernel as ik
     import cite_mode
-    # Opinion with no declared basis → retry; second reply declares a basis.
-    grounded_opinion = "It is the best option based on the customer ratings."
     fake = _install_router(
-        monkeypatch, ["It is the best option.", grounded_opinion],
+        monkeypatch, ["It is the best option.", "x", "x"],
     )
     tid = _new_thread()
 
     out = ik.run_thread_message("alice", tid, "#cite which option?")
 
-    assert len(fake.calls) == 2
-    assert cite_mode.OPINION_REQUERY in fake.calls[1]["prompt"]
-    assert out["grounding_status"] == "grounded"
+    assert len(fake.calls) == 3
+    assert not any(cite_mode.OPINION_REQUERY in c["prompt"] for c in fake.calls)
+    assert out["grounding_status"] == "incomplete"
 
 
 def test_normal_mode_unaffected(reset_stores, monkeypatch):
     import intelligence_kernel as ik
-    # No #cite: even an ungrounded factual reply must NOT trigger a retry.
-    fake = _install_router(monkeypatch, [UNGROUNDED_FACT])
+    # No #cite: no validation, no grounding status; the lanes run as always.
+    fake = _install_router(monkeypatch, [UNGROUNDED_FACT, UNGROUNDED_FACT, UNGROUNDED_FACT])
     tid = _new_thread()
 
     out = ik.run_thread_message("alice", tid, "How tall is it?")
 
-    assert len(fake.calls) == 1
+    assert len(fake.calls) == 3
     assert out["grounding_status"] is None
-    assert out["assistant_message"]["content"] == UNGROUNDED_FACT
+    assert out["assistant_message"]["content"].startswith("reading")
 
 
 def test_return_contract_preserved(reset_stores, monkeypatch):

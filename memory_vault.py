@@ -91,6 +91,11 @@ ALLOWED_NAMESPACES: tuple = (
     # ``problem_solver.RegressionChain`` exactly — no envelope/header,
     # the chain dict itself is the value.
     "regression_chains",
+    # #366 A2 (2026-09-19) -- the seat ledger and its id<->name map, per
+    # relationship (thread): ``relationships.ledger.{thread_id}`` and
+    # ``relationships.seatmap.{thread_id}``. ON-MACHINE ONLY: the map is
+    # read by the reassembler and by nothing that serializes toward a model.
+    "relationships",
     # v82 — Original packet history. Each entry under
     # ``regression_packets.{chain_id}`` is the raw packet that
     # originated the chain. First packet wins (not overwritten on

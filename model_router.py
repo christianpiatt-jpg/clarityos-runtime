@@ -1320,21 +1320,41 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
     else:
         model_id, task = _resolve_model_id_for_engine(engine, user)
     env = _intent_envelope(operator_intent)
-    prompt = _shape_prompt_from_env(env)
+    # #366 A4 -- the /session shaper composes EP (this step's attributed
+    # triples, D / T / N) with the direction bit the selector already
+    # carries -- NEVER the text. _shape_prompt_from_env (frame line + raw
+    # member text, #147) is retired on this path: nothing goes to a model in
+    # plain English. One lane (role), one vendor call, exactly as before;
+    # the reply the operator sees is the reassembled reading (A8), and the
+    # lane's JSON never reaches the surface. Lazy import: the machine's
+    # modules import nothing from here, but directive_engine's handlers do.
+    import ep_up_turn as _ep_up_turn
+    # the v57 cap promise, kept: the parser reads at most OPERATOR_TEXT_MAX_CHARS
+    _composed = _ep_up_turn.shape_session_step(env["text"][:OPERATOR_TEXT_MAX_CHARS], env["intent_type"])
+    prompt = _composed["prompts"][_composed["lanes"][0]]
     # #147 -- the envelope goes to the LOG line, not to the model. Refs are
     # redacted (runtime_privacy.session_ref / user_ref); the text itself is
     # never logged, only its length.
     logger.info(
         "route_model_request engine=%s model=%s task=%s session_ref=%s "
         "operator_ref=%s runtime_mode=%s override=%s elins_inputs_keys=%d "
-        "text_chars=%d",
+        "text_chars=%d payload_chars=%d rows=%d",
         engine, model_id, task,
         runtime_privacy.session_ref(env["session_id"]),
         runtime_privacy.user_hash(env["operator_id"]),
         env["runtime_mode"], env["override_decision"],
         env["elins_inputs_keys"], len(env["text"]),
+        len(_composed["serialized"]), len(_composed["triples"]),
     )
     response = route_request(model_id, prompt)
+    # #366 A6 -- the sovereign seat: a local engine that answered with the
+    # router's mock has no daemon behind it. The reading says so; a mock is
+    # never rendered as a reading.
+    _provisioned = not (engine == "local" and bool(response.get("mock", True)))
+    _finished = _ep_up_turn.finish_session_step(_composed, response, provisioned=_provisioned)
+    response = dict(response)
+    response["text"] = _finished["reading"]["text"]
+    response["reading"] = _finished["meta"]
 
     return {
         "engine": engine,
@@ -1342,14 +1362,18 @@ def route_model_request(operator_intent: dict, model_route: dict) -> dict:
             "model_id":       model_id,
             "task":           task,
             # #147 -- the preview is the FRAME only (the first line): member
-            # text never rides a preview field. CT-1 confirms on return.
-            "prompt_preview": runtime_privacy.prompt_preview(_prompt_frame(env)),
+            # text never rides a preview field. #366: the frame is the lane
+            # frame's first line.
+            "prompt_preview": runtime_privacy.prompt_preview(prompt.split("\n", 1)[0]),
         },
         "response": response,
         "metadata": {
             "provider": response.get("provider", parse_provider(model_id)),
             "mock":     bool(response.get("mock", True)),
             "ts":       float(response.get("ts", time.time())),
+            # #366 A6 -- False only on a local engine whose call came back
+            # as the router's mock (no daemon). True on every other path.
+            "provisioned": _provisioned,
         },
     }
 

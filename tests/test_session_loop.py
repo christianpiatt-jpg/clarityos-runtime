@@ -270,13 +270,19 @@ class TestModelReadsTheTextAndTheRecordNamesTheModel:
         monkeypatch.setattr(mr, "route_request", spy)
         return seen
 
-    def test_the_step_prompt_carries_the_text_and_not_the_session_id(self, monkeypatch):
+    def test_the_step_prompt_carries_the_algebra_and_not_the_text_nor_the_session_id(self, monkeypatch):
+        # #366 A4 (CT-1 2026-09-19): the /session shaper composes EP -- the
+        # step's attributed triples -- and never the text. #147's promise
+        # (no session id, no operator id) still holds; #147's shape (frame
+        # line + the member's words) is retired: nothing goes to a model in
+        # plain English.
         seen = self._capture_prompt(monkeypatch)
         state = sl_mod.start_session("op_alice")
         sl_mod.step_session(state, "MARKER-9c2e what should the operator do next?")
         prompt = seen["prompt"]
-        assert prompt.startswith("[ClarityOS operator step] intent=query\n\n")
-        assert "MARKER-9c2e what should the operator do next?" in prompt
+        assert prompt.startswith("[ClarityOS ep-up.v1] lane=role direction=query")
+        assert "MARKER-9c2e what should the operator do next?" not in prompt
+        assert "MARKER-9c2e" not in prompt
         assert state["session_id"] not in prompt
         assert "op_alice" not in prompt
 

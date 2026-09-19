@@ -160,7 +160,7 @@ class TestRunThreadMessageIntegration:
         monkeypatch.setattr(el_ins, "store_el_ins_record", _boom)
         out = ik.run_thread_message("alice", tid, "any text")
         assert out["reasoning_mode"] is None
-        assert out["assistant_message"]["content"] == "(mock reply)"
+        assert out["assistant_message"]["content"].startswith("reading")   # #366: the reply is the reading
 
 
 # ===========================================================================

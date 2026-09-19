@@ -464,8 +464,15 @@ class TestRuntimeGuards:
 class TestSkeletonsRaise:
     # ★ route_request is NO LONGER A SKELETON (board #50). Its
     # NotImplementedError assertion is removed rather than left to assert
-    # a thing that stopped being true. select_agent and
-    # build_execution_plan below still raise, and still say so.
+    # a thing that stopped being true.
+    #
+    # ★ #366 A5 (R-366-D, CT-1 2026-09-19): run_workflow · checkpoint ·
+    # halt_for_violation · build_execution_plan · assemble_context and the
+    # INTENT axis of load_drift_state are implemented IN PLACE for the path
+    # the thread route exercises; their behaviour is pinned in
+    # tests/test_366_sequencer.py. The branches the route does NOT exercise
+    # keep raising, and still say so here: select_agent,
+    # attach_constraints, every non-INTENT drift axis.
 
     def test_routing_select_agent_skeleton(self):
         with pytest.raises(NotImplementedError):
@@ -473,53 +480,19 @@ class TestSkeletonsRaise:
                 "elins_run", _make_identity(), (), (),
             )
 
-    def test_routing_build_execution_plan_skeleton(self):
-        decision = schemas.RoutingDecision(
-            request_id="r", selected_agent="a",
-            rationale="", constraints_attached=(),
-            decided_at=datetime.now(timezone.utc),
-        )
-        with pytest.raises(NotImplementedError):
-            orchestrator_routing.build_execution_plan(decision)
-
-    def test_context_assemble_skeleton(self):
-        with pytest.raises(NotImplementedError):
-            orchestrator_context.assemble_context(
-                _make_request(), _make_plan(), _make_identity(),
-                _make_drift(), _make_geometry(),
-            )
-
     def test_context_attach_constraints_skeleton(self):
         with pytest.raises(NotImplementedError):
             orchestrator_context.attach_constraints(_make_context(), ())
 
-    def test_context_load_drift_state_skeleton(self):
+    @pytest.mark.parametrize("axis", [
+        schemas.DriftAxis.TONE, schemas.DriftAxis.SCOPE,
+        schemas.DriftAxis.IDENTITY, schemas.DriftAxis.TIMELINE,
+    ])
+    def test_context_load_drift_state_non_intent_axes_unreached(self, axis):
         with pytest.raises(NotImplementedError):
             orchestrator_context.load_drift_state(
-                "alice", (), "session_start",
+                "alice", (), "query", axis=axis,
             )
-
-    def test_workflows_run_workflow_skeleton(self):
-        with pytest.raises(NotImplementedError):
-            orchestrator_workflows.run_workflow(
-                _make_plan(), _make_context(),
-                lambda step, ctx: {},  # dummy runner
-            )
-
-    def test_workflows_checkpoint_skeleton(self):
-        with pytest.raises(NotImplementedError):
-            orchestrator_workflows.checkpoint({})
-
-    def test_workflows_halt_for_violation_skeleton(self):
-        v = schemas.Violation(
-            constraint_id="C1",
-            severity=schemas.Severity.ABSOLUTE,
-            detected_at_step="s1",
-            description="x",
-            detected_at=datetime.now(timezone.utc),
-        )
-        with pytest.raises(NotImplementedError):
-            orchestrator_workflows.halt_for_violation({}, v)
 
 
 # ===========================================================================
